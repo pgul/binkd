@@ -1,3 +1,7 @@
+2004/11/15 12:32:20 1.0a-432 gul
+perlhooks.c,2.47,2.48
+Fixed compilation multithread version with perl
+
 2004/11/12 16:40:17 1.0a-431 gul
 binkd.c,2.91,2.92
 Also one syntax error
