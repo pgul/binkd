@@ -1,3 +1,8 @@
+2004/10/20 20:31:05 1.0a-412 gul
+protocol.c,2.162,2.163
+Fixed segfault on transmission compressed files
+when sizeof(off_t)!=sizeof(long) and loglevel>3.
+
 2004/10/19 20:09:11 1.0a-411 gul
 readcfg.c,2.73,2.74
 Remove duplicate addresses from config
