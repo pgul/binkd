@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19  2004/08/21 17:13:33  gul
+ * Fix total bytes logging
+ *
  * Revision 2.18  2004/01/08 13:27:47  val
  * * extend struct dirent for dos and win32 in order to get file attribute
  * * ignore hidden files in boxes for dos/win32/os2
@@ -172,8 +175,8 @@ struct _STATE
   /* binkp stats */
   int files_sent;               /* Files sent/rcvd during the session */
   int files_rcvd;
-  unsigned long bytes_sent;
-  unsigned long bytes_rcvd;
+  uintmax_t bytes_sent;
+  uintmax_t bytes_rcvd;
   time_t   start_time;          /* Start of session */
   char sysname[MAXSYSTEMNAME + 1];
   char sysop[MAXSYSOPNAME + 1];
