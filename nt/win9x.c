@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.24  2003/09/11 13:04:14  hbrew
+ * Undo 'move binkd9x deinit to exitfunc()' patch
+ *
  * Revision 2.23  2003/09/11 12:23:25  hbrew
  * Fix 'suggest parentheses around assignment used as truth value'.
  *
@@ -186,7 +189,7 @@ int win9xExec(char *cmdline)
   return rc;
 }
 
-void win9x_exit(void)
+void win9xAtExit(void)
 {
   FreeTempConsole();
 }
@@ -327,7 +330,9 @@ int win9x_process(int argc, char **argv)
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-        return binkd_main(__argc, __argv, environ);
+  atexit(win9xAtExit);
+  
+  return binkd_main(__argc, __argv, environ);
 }
 
 LRESULT CALLBACK MainWin9xWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)

@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.6  2003/09/11 13:04:14  hbrew
+ * Undo 'move binkd9x deinit to exitfunc()' patch
+ *
  * Revision 2.5  2003/09/07 04:49:42  hbrew
  * Remove binkd9x restart-on-config-change code; move binkd9x deinit to exitfunc()
  *
@@ -40,9 +43,6 @@ int win9x_process(int argc, char **argv);
 int win9x_check_name_all(void);
 
 void CreateWin9xThread(PHANDLER_ROUTINE phandler);
-
-/* binkd9x deinit */
-void win9x_exit(void);
 
 /* TempConsole */
 void AllocTempConsole(void);

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.28  2003/09/11 13:04:13  hbrew
+ * Undo 'move binkd9x deinit to exitfunc()' patch
+ *
  * Revision 2.27  2003/09/09 17:57:43  stream
  * Do not unload config on exit (considered useless and potentially unstable)
  *
@@ -232,7 +235,4 @@ Log(7, "exitproc(): pid=%d, cmgr=%d, smgr=%d, inetd=%d", getpid(), pidCmgr, pids
   CleanSem (&fhsem);
 #endif
   ReleaseErrorList();
-#ifdef BINKDW9X
-  win9x_exit();
-#endif
 }
