@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.29  2003/03/28 14:01:10  gul
+ * Do not call _endthread() without _beginthread() in client only mode
+ *
  * Revision 2.28  2003/03/26 10:44:40  gul
  * Code cleanup
  *
@@ -510,8 +513,10 @@ static void call (void *arg)
   rel_grow_handles(-6);
 #ifdef HAVE_THREADS
   threadsafe(--n_clients);
-  PostSem(&eothread);
-  _endthread();
+  if (server_flag) {
+    PostSem(&eothread);
+    _endthread();
+  }
 #elif defined(DOS)
   --n_clients;
 #endif
