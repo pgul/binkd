@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2002/12/10 21:31:30  gul
+ * Bugfix for check filebox and outbound
+ *
  * Revision 2.8  2002/11/14 13:01:43  gul
  * Bugfix for previous patch
  *
@@ -294,16 +297,18 @@ static int check_outbox(char *obox)
 #ifndef UNIX
   char *OBOX, *PATH=NULL;
   if (obox == NULL) return 0;
-  OBOX = strupper(strdup(obox));
+  OBOX = strupper(xstrdup(obox));
 #endif
   while (pd)
   {
+    if (pd->alias4)
+      continue;
     if (pd->path)
 #ifdef UNIX
       if (obox==strstr(obox, pd->path))
         return 1;
 #else
-    { PATH = strupper(strdup(pd->path));
+    { PATH = strupper(xstrdup(pd->path));
       if (OBOX==strstr(OBOX, PATH))
       { free(PATH);
         free(OBOX);
