@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.105  2003/08/24 18:54:30  gul
+ * Bugfix in timeout check on win32
+ *
  * Revision 2.104  2003/08/24 01:35:59  hbrew
  * Update for previous patch
  *
@@ -2648,7 +2651,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
   int no, rd;
 #ifdef WIN32
   unsigned long t_out = 0;
-  unsigned long u_nettimeout = nettimeout*100000l;
+  unsigned long u_nettimeout = nettimeout*1000000l;
 #endif
   struct sockaddr_in peer_name;
   socklen_t peer_name_len = sizeof (peer_name);
@@ -2795,7 +2798,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
     }
     else
     {
-      Log (8, "win9x winsock workaround: timeout detected (nettimeout=%u sec, t_out=%lu sec)", nettimeout, t_out/100000);
+      Log (8, "win9x winsock workaround: timeout detected (nettimeout=%u sec, t_out=%lu sec)", nettimeout, t_out/1000000);
       no = 0;
     }
 #endif

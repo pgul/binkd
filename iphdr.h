@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2003/08/24 18:54:30  gul
+ * Bugfix in timeout check on win32
+ *
  * Revision 2.13  2003/08/24 00:45:44  hbrew
  * win9x-select-workaround fix, thanks to Pavel Gulchouck
  *
@@ -156,11 +159,11 @@ void ReleaseErrorList(void);
   #define TCPERRNO (h_errno)
   #define TCPERR_WOULDBLOCK WSAEWOULDBLOCK
   #define TCPERR_AGAIN WSAEWOULDBLOCK
-  #include "nt\wsock.h"
+  #include "nt/wsock.h"
   #define sock_init() WinsockIni()
   #define sock_deinit() WinsockClean()
   #define soclose(h) closesocket(h)
-/* w9x_workaround_sleep: 100000 = 1 sec, 10000 = 10 ms */
+/* w9x_workaround_sleep: 1000000 = 1 sec, 10000 = 10 ms */
   #define w9x_workaround_sleep 10000
 #else
   #include <errno.h>
