@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of Mar 04 2004
+        Version of Mar 11 2004
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -37,6 +37,7 @@ from Russian by Michael Dukelsky 2:5020/1042.
     26. The Outbound Name Has a Comment Char and Binkd Doesn't See It
     27. Is There a Possibility to Start an Application On an Event From BinkD?
     28. What Is the Difference Between BinkD/w32 and BinkD/w9x?
+    29. I Miss a Chat in BinkD And I Want To Synchronize Time!
     A1. I Have Found a Bug in BinkD!
     A2. I Want To Talk To Developers.
     A3. I Want To Get Information About Changes In BinkD Immediately!
@@ -929,6 +930,20 @@ NT/2000/XP/2003 and BinkD 1.0a/w9x as a service only in Windows 95/98/Me.
 It is planned to support Windows NT service in BinkD/w9x. A correct support
 of working as a service under Windows 9x is impossible for BinkD/w32
 because of the described console features in the systems.
+
+
+----------------------------------------------------------------------------
+
+
+        29. I Miss a Chat in BinkD And I Want To Synchronize Time!
+
+    You may use talk, icq or irc (or even Gadu-Gadu) for chatting. If you 
+can start BinkD then all the programs mentioned here and many other ones 
+may use the same channel. You may chat as much as you like.
+
+    And there are special utilities for synchronizing time via IP, for 
+example ntpdate. Unlike mailers such utilities take time from the precise 
+time servers.
 
 
 ----------------------------------------------------------------------------
