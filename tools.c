@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.29  2003/07/12 18:22:06  gul
+ * Fix typo in comment
+ *
  * Revision 2.28  2003/07/07 08:38:18  val
  * safe pkthdr-reading function (to byte order and struct alignment)
  *
@@ -638,7 +641,7 @@ char *strwipe (char *s)
 
   for (i = 0; s[i]; ++i)
     if ((iscntrl (s[i]) || s[i] == '\\' || s[i] == '/' || s[i] == ':')
-#ifdef WIN32 /* ungly hack */
+#ifdef WIN32 /* ugly hack */
         && ((s[i] & 0x80) == 0)
 #endif
        )
