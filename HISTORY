@@ -1,3 +1,7 @@
+2003/10/11 20:31:30 1.0a-234 stas
+breaksig.c,2.18,2.19
+cosmetics (indent nt/breaksig.c)
+
 2003/10/11 11:41:48 1.0a-233 gul
 readcfg.c,2.55,2.56
 stricmp() -> STRICMP()
