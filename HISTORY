@@ -1,3 +1,7 @@
+2004/10/19 20:09:11 1.0a-411 gul
+readcfg.c,2.73,2.74
+Remove duplicate addresses from config
+
 2004/10/19 19:28:25 1.0a-410 gul
 inbound.c,2.32,2.33 inbound.h,2.6,2.7 protocol.c,2.161,2.162
 Do not remove complete received but not renamed partial files
