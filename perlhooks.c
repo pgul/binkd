@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.45  2004/07/23 11:40:06  gul
+ * Fix compilation warning
+ *
  * Revision 2.44  2004/01/08 12:57:18  val
  * * parse up to 3 comma-separated passwords (in,pkt,out)
  * * use out password for outgoing sessions if it's set
@@ -1073,7 +1076,11 @@ void boot_OS2__REXX(CV *cv);
 #ifdef WIN32
 EXTERN_C void xs_init (pTHXo)
 #else
+#ifdef pTHXo
+static void xs_init(pTHXo)
+#else
 static void xs_init(void)
+#endif
 #endif
 {
   static char *file = __FILE__;
