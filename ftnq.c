@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19.2.5  2005/01/09 19:39:42  stream
+ * Nodes in beginning of queue were ignored if a node with higher flavour
+ * appeared later in the queue.
+ *
  * Revision 2.19.2.4  2003/12/02 19:28:48  gul
  * Prevent several clients calls to the same node
  *
@@ -529,7 +533,7 @@ void process_hld (FTN_ADDR *fa, char *path)
   releasenodesem();
 }
 
-void process_bsy (FTN_ADDR *fa, char *path)
+static void process_bsy (FTN_ADDR *fa, char *path)
 {
   char *s = path + strlen (path) - 4;
   FTN_NODE *node;
@@ -669,7 +673,7 @@ static FTNQ *q_add_dir (FTNQ *q, char *dir, FTN_ADDR *fa1)
 	{
 	  struct stat sb;
 
-	  if (stat (buf, &sb) == 0 && sb.st_mode & S_IFDIR)
+	  if (stat (buf, &sb) == 0 && (sb.st_mode & S_IFDIR))
 	    q = q_add_dir (q, buf, &fa2);
 	  continue;
 	}
@@ -988,6 +992,7 @@ typedef struct
 {
   int maxflvr;
   FTN_NODE *fn;
+  FTN_NODE *prevCandidate;
 } qn_not_empty_arg;
 
 static int qn_not_empty (FTN_NODE *fn, void *arg)
@@ -1001,6 +1006,9 @@ static int qn_not_empty (FTN_NODE *fn, void *arg)
       a->maxflvr = MAXFLVR (fn->mail_flvr, fn->files_flvr);
       if (a->fn)
       {
+        if (a->prevCandidate)
+          a->prevCandidate->busy = 0;
+        a->prevCandidate = fn;
         memcpy (a->fn, fn, sizeof (*fn));
         fn->busy = 'c';
       }
@@ -1015,6 +1023,7 @@ int q_not_empty (FTN_NODE *fn)
 
   arg.maxflvr = 0;
   arg.fn = fn;
+  arg.prevCandidate = NULL;
 
   foreach_node (qn_not_empty, &arg);
 
