@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30  2004/01/18 20:39:31  gul
+ * Undo previous patch
+ *
  * Revision 2.29  2004/01/15 14:49:12  gul
  * If only two passwords for a node specified in passwd-file, use its as
  * in,out+pkt but not in+out,pkt.
@@ -248,7 +251,7 @@ static void add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd
     if (strcmp(out_pwd, "-")) pn->out_pwd = xstrdup(out_pwd);
     else pn->out_pwd = NULL;
   }
-  else pn->out_pwd = (char*)&(pn->pkt_pwd);
+  else pn->out_pwd = (char*)&(pn->pwd);
 
   if (obox_flvr != '-')
   {
@@ -439,8 +442,8 @@ void free_nodes(BINKD_CONFIG *config)
     xfree(node->hosts);
     xfree(node->obox);
     xfree(node->ibox);
-    if (node->out_pwd && node->out_pwd != (char*)&(node->pkt_pwd)) free(node->out_pwd);
     if (node->pkt_pwd && node->pkt_pwd != (char*)&(node->pwd)) free(node->pkt_pwd);
+    if (node->out_pwd && node->out_pwd != (char*)&(node->pwd)) free(node->out_pwd);
     free(node);
   }
   xfree(config->pNodArray);
