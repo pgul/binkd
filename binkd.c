@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.74  2003/11/09 03:45:45  hbrew
+ * Add -vv to help message
+ *
  * Revision 2.73  2003/11/04 00:46:20  hbrew
  * confopt added.
  *
@@ -436,6 +439,7 @@ void usage (void)
 	  "  -r       disable crypt traffic\n"
 	  "  -s       run server only\n"
 	  "  -v       be verbose / dump version and quit\n"
+	  "  -vv      dump version with compilation flags and quit\n"
 	  "  -m       disable CRAM-MD5 authorization\n"
 	  "  -h       print this help\n"
 	  "\n"
@@ -758,7 +762,7 @@ int main (int argc, char *argv[], char *envp[])
 
     printf ("Binkd " MYVER " (" __DATE__ " " __TIME__ "%s)\n", get_os_string ());
     if (verbose_flag>1)
-      printf ("Compilation flags: " _DBNKD "\n");
+      printf ("Compilation flags: " _DBNKD ".\n");
     exit (0);
   }
   else if (argc > 1)
