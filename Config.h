@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10.2.10  2003/10/15 14:48:16  stas
+ * Auto increase patchlevel, set 0.9.5p4-stable
+ * Fix NT service stop
+ *
  * Revision 2.10.2.9  2003/10/08 10:32:50  gul
  * Auto increase patchlevel, set 0.9.5p3-stable
  * Fix exit threads in exitfunc()
@@ -114,7 +118,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.5p3-stable"
+#define MYVER "0.9.5p4-stable"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
