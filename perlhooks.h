@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2005/03/28 10:15:13  val
+ * manage proxy/socks via perl-hook on_call()
+ *
  * Revision 2.8  2003/10/30 10:57:46  gul
  * Change inb_done arguments, optimize a bit
  *
@@ -71,7 +74,7 @@ void perl_done_clone(void *);          /* destruct a clone */
 void perl_on_start(void);              /* start, after init */
 void perl_on_exit(void);               /* exit, just before destruction */
 
-int perl_on_call(FTN_NODE *);          /* before outgoing call */
+int perl_on_call(FTN_NODE *, BINKD_CONFIG *);           /* before outgoing call */
 int perl_on_error(FTN_ADDR *, const char *, const int); /* on errors: bad_try() */
 char *perl_on_handshake(STATE *, BINKD_CONFIG *);       /* before xmitting ADR */
 char *perl_after_handshake(STATE *);   /* after handshake complete */

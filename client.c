@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.59  2005/03/28 10:15:13  val
+ * manage proxy/socks via perl-hook on_call()
+ *
  * Revision 2.58  2004/11/07 13:52:40  stream
  * Automatically rescan outbound after reload of configuration
  *
@@ -465,7 +468,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   const char *save_err;
 
 #ifdef WITH_PERL
-  if (!perl_on_call(node)) {
+  if (!perl_on_call(node, config)) {
     Log(1, "call aborted by Perl on_call()");
     return 0;
   }

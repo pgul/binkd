@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.51  2005/03/28 10:15:13  val
+ * manage proxy/socks via perl-hook on_call()
+ *
  * Revision 2.50  2004/11/19 15:58:45  gul
  * Add dynamic load function used by new errors handler
  *
@@ -1657,10 +1660,13 @@ void perl_on_exit(void) {
 }
 
 /* before outgoing call */
-int perl_on_call(FTN_NODE *node) {
+int perl_on_call(FTN_NODE *node, BINKD_CONFIG *cfg) {
   char   buf[FTN_ADDR_SZ];
   int    rc;
   SV     *svret, *sv;
+#ifdef HTTPS
+  SV     *svproxy, *svsocks;
+#endif
 
   if (perl_ok & (1 << PERL_ON_CALL)) {
     Log(LL_DBG, "perl_on_call(), perl=%p", Perl_get_context());
@@ -1668,6 +1674,10 @@ int perl_on_call(FTN_NODE *node) {
     { dSP;
       ftnaddress_to_str(buf, &(node->fa));
       VK_ADD_str(sv, "addr", buf);
+#ifdef HTTPS
+      if ((svproxy = perl_get_sv("proxy", TRUE))) sv_setpv(svproxy, cfg->proxy);
+      if ((svsocks = perl_get_sv("socks", TRUE))) sv_setpv(svsocks, cfg->socks);
+#endif
       ENTER;
       SAVETMPS;
       PUSHMARK(SP);
@@ -1680,6 +1690,21 @@ int perl_on_call(FTN_NODE *node) {
       FREETMPS;
       LEAVE;
       if (SvTRUE(ERRSV)) sub_err(PERL_ON_CALL);
+#ifdef HTTPS
+      else if (rc == 2) {
+          STRLEN len;
+          sv = perl_get_sv("proxy", FALSE);
+          if (sv && SvOK(sv)) {
+            char *s = SvPV(sv, len);
+            strnzcpy(cfg->proxy, len ? s : "", sizeof(cfg->proxy)-1);
+          }
+          sv = perl_get_sv("socks", FALSE);
+          if (sv && SvOK(sv)) {
+            char *s = SvPV(sv, len);
+            strnzcpy(cfg->socks, len ? s : "", sizeof(cfg->socks)-1);
+          }
+      }
+#endif
     }
     Log(LL_DBG, "perl_on_call() end");
     return rc;
