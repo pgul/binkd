@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.4  2003/03/31 22:11:34  gul
+ * Fixed semaphores usage
+ *
  * Revision 2.3  2003/03/31 19:56:12  gul
  * minor fix in close semaphores functions
  *
@@ -61,9 +64,10 @@
 /*--------------------------------------------------------------------*/
 
 int _InitSem(void *vpSem) {
+  ULONG rc;
 
-  if (DosCreateMutexSem (0, &hmtx, 0, FALSE)) {
-     Log (0, "DosCreateMutexSem: error");
+  if ((rc = DosCreateMutexSem (0, &hmtx, 0, FALSE)) != 0) {
+     Log (0, "DosCreateMutexSem: error 0x%lx", rc);
      return(-1);
    }
    return(0);
@@ -76,9 +80,10 @@ int _InitSem(void *vpSem) {
 /*--------------------------------------------------------------------*/
 
 int _InitEventSem(void *vpSem) {
+  ULONG rc;
 
-  if (DosCreateEventSem (NULL, &hevt, 0, FALSE)) {
-     Log (0, "DosCreateEventSem: error");
+  if ((rc = DosCreateEventSem (NULL, &hevt, 0, FALSE)) != 0) {
+     Log (0, "DosCreateEventSem: error 0x%lx", rc);
      return(-1);
    }
    return(0);
@@ -105,7 +110,13 @@ int _CleanSem(void *vpSem) {
 /*--------------------------------------------------------------------*/
 
 int _LockSem(void *vpSem) {
-  DosRequestMutexSem (hmtx, SEM_INDEFINITE_WAIT);
+  ULONG rc;
+
+  if (hmtx == 0) return (-1);
+  if ((rc = DosRequestMutexSem (hmtx, SEM_INDEFINITE_WAIT)) != 0) {
+    _CleanSem (vpSem);
+    Log (0, "DosRequestMutexSem retcode 0x%lx", rc);
+  }
   return (0);
 }
 
@@ -116,6 +127,7 @@ int _LockSem(void *vpSem) {
 /*--------------------------------------------------------------------*/
 
 int _ReleaseSem(void *vpSem) {
+  if (hmtx == 0) return (-1);
   DosReleaseMutexSem (hmtx);
   return (0);
 }
@@ -127,6 +139,7 @@ int _ReleaseSem(void *vpSem) {
 /*--------------------------------------------------------------------*/
 
 int _PostSem(void *vpSem) {
+  if (hmtx == 0) return (-1);
   DosPostEventSem (hevt);
   return (0);
 }
@@ -139,6 +152,8 @@ int _PostSem(void *vpSem) {
 
 int _WaitSem(void *vpSem, int timeout) {
   ULONG semcount;
+
+  if (hmtx == 0) return (-1);
   if (DosWaitEventSem (hevt, timeout * 1000ul))
     return -1;
   DosResetEventSem (hevt, &semcount);
@@ -156,5 +171,6 @@ int _CleanEventSem(void *vpSem) {
   { DosCloseEventSem (hevt);
     hevt = 0;
   }
+  return 0;
 }
 

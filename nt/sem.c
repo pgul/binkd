@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.6  2003/03/31 22:11:34  gul
+ * Fixed semaphores usage
+ *
  * Revision 2.5  2003/03/31 21:49:01  gul
  * Avoid infinite recursion
  *
@@ -135,6 +138,7 @@ int _LockSem(void *vpSem) {
 
 int _ReleaseSem(void *vpSem) {
    
+   if (BsySem == 0) return (-1);
    ReleaseMutex(BsySem);
    return(0);
 }
@@ -162,6 +166,7 @@ int _InitEventSem(void *vpSem) {
 /*--------------------------------------------------------------------*/
 
 int _PostSem(void *vpSem) {
+   if (EvtSem == 0) return (-1);
    SetEvent(EvtSem);
    return(0);
 }
@@ -173,6 +178,7 @@ int _PostSem(void *vpSem) {
 /*--------------------------------------------------------------------*/
 
 int _WaitSem(void *vpSem, int timeout) {
+   if (EvtSem == 0) return (-1);
    if (WaitForSingleObject(EvtSem, timeout * 1000l) == WAIT_TIMEOUT)
       return -1;
    return(0);
