@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2003/07/18 14:56:34  stas
+ * Use description of win2000/XP services
+ *
  * Revision 2.14  2003/07/18 13:44:32  stas
  * Difference NT service internal name and display name
  *
@@ -83,11 +86,16 @@
 #include "service.h"
 #include "w32tools.h"
 
+/* ChangeServiceConfig2() prototype:
+ */
+typedef BOOL (WINAPI *CSD_T)(SC_HANDLE, DWORD, LPCVOID);
+
 extern enum serviceflags service_flag;
 extern char *configpath;
 
 static const char libname[]="ADVAPI32";
 static char *srvname="binkd-service";
+static const char *description = "BinkD: Fidonet TCP/IP mailer uses binkp protocol";
 static const char dependencies[] = "Tcpip\0Afd\0"; /* Afd is the winsock handler */
 static char reg_path_prefix[]="SYSTEM\\CurrentControlSet\\Services\\";
 static char reg_path_suffix[]="\\Parameters";
@@ -323,9 +331,28 @@ static int service_main(int type)
                           NULL );               /* account password */
 
       if(!shan)
+      {
         Log(1, "Error in CreateService()=%s", tcperr(GetLastError()) );
+        rc=service_main_ret_failinstall;
+      }
+      else
+      {
+        CSD_T ChangeServiceDescription;
+        HANDLE hwin2000scm;
+
+        hwin2000scm = GetModuleHandle(libname);
+        if (hwin2000scm) {
+          ChangeServiceDescription = (CSD_T) GetProcAddress(hwin2000scm,
+                                                    "ChangeServiceConfig2A");
+          if (ChangeServiceDescription)
+          {
+            ChangeServiceDescription( shan,
+                                      1 /* SERVICE_CONFIG_DESCRIPTION */,
+                                      &description );
+          }
+        }
+      }
     }
-    if(!shan) rc=1;
     if((rc)||(type==2)) break;
   case 4: /* start service */
     if(!shan)
