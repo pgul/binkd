@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.40  2003/10/18 18:53:50  stas
+ * remove unused variable
+ *
  * Revision 2.39  2003/10/18 18:50:48  stas
  * Move to new 'tray.c' file several functions when is related with 'minimize to tray' feature
  *
@@ -187,7 +190,6 @@ static char **serv_argv=NULL;
 static char **serv_envp=NULL;
 static enum service_main_retcodes service_main(enum service_main_types type);
 extern int checkcfg_flag;
-int init_exit_service_thread = 0;
 MUTEXSEM exitsem=NULL;
 
 
