@@ -22,7 +22,6 @@
 - put session time in "done" line
 - send-hold-on-outgoing option
 - argus-compatible freq (M_NUL "FREQ")
-- select() bug on win9x: 100% cpu load on sending file
 - option -snr - force send in NR mode on binkp/1.1
 - turn on NR-mode if exists incomplete files from this link (optional?)
 - option -mc - must crypt. Drop session if remote does not support crypt mode
