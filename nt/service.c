@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.50  2004/01/04 15:19:36  stas
+ * Use Service Display Name to display (log, windows title)
+ *
  * Revision 2.49  2004/01/03 19:26:12  stas
  * Decrease delay for service operations
  *
@@ -222,6 +225,11 @@ static DWORD dwErr=0;
 static char **serv_argv=NULL;
 extern int checkcfg_flag;
 MUTEXSEM exitsem=NULL;
+static DWORD srvtype = SERVICE_WIN32_OWN_PROCESS;
+static SC_HANDLE sman=NULL, shan=NULL;
+
+static void try_open_SCM(void);
+static void try_open_service(void);
 
 
 BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
@@ -364,6 +372,33 @@ static int get_string_registry_value(HKEY hk, char *name, DWORD reqtype, char **
   return size;
 }
 
+/* Retrieve the "service display name" from SCM
+   Return malloc'ed string or NULL
+ */
+static char* NTServiceDisplayName(char*ServiceName)
+{ char DisplayName[256]; /* MSDN spoke: "The maximum string length is 256 characters" */
+  DWORD Len=sizeof(DisplayName);
+  char* ret=NULL;
+
+  if(!ServiceName) return NULL;
+  if(!sman) try_open_SCM();
+  if(sman)
+  { 
+    if( GetServiceDisplayName( sman, ServiceName, DisplayName, &Len) )
+      ret = strdup(DisplayName);
+    else
+    { if( GetLastError()==ERROR_MORE_DATA && Len )
+      { char* DName=malloc(Len);
+        if( DName && GetServiceDisplayName( sman, ServiceName, DName, &Len) )
+          ret = DName;
+      }
+    }
+  }
+
+  return ret?ret:strdup(ServiceName);
+}
+
+
 int binkd_main(int argc, char **argv, char **envp);
 static void ServiceStart()
 {
@@ -418,6 +453,8 @@ static void ServiceStart()
       goto ServiceStart_error;
     }
 
+    service_name = NTServiceDisplayName(srvname);
+
     binkd_main(argc, serv_argv, NULL);
   }
   else
@@ -435,7 +472,6 @@ static void WINAPI ServiceMain(DWORD argc,LPSTR* args)
 {
 
   if(argc && args && args[0]) srvname = strdup(args[0]); /* save service name */
-  service_name = strdup((const char *)srvname);
   service_flag = w32_run_as_service;
 
   sshan=RegisterServiceCtrlHandler(srvname, ServiceCtrl);
@@ -451,8 +487,6 @@ static void WINAPI ServiceMain(DWORD argc,LPSTR* args)
   exit(0);
 }
 
-static DWORD srvtype = SERVICE_WIN32_OWN_PROCESS;
-static SC_HANDLE sman=NULL, shan=NULL;
 
 static void cleanup_service(void)
 {
@@ -468,7 +502,7 @@ static void cleanup_service(void)
   }
 }
 
-static void try_open_service(void)
+static void try_open_SCM(void)
 {
   if(!sman)
   {
@@ -483,6 +517,11 @@ static void try_open_service(void)
       }
     }
   }
+}
+
+static void try_open_service(void)
+{
+  try_open_SCM();
   if(sman && !shan)
     shan=OpenService(sman, srvname, SERVICE_ALL_ACCESS);
 }
