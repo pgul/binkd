@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.32  2003/04/06 13:50:11  gul
+ * dos sleep() realization
+ *
  * Revision 2.31  2003/04/06 08:38:47  gul
  * Log port number for outgoing connections to non-standard port
  *
@@ -199,14 +202,6 @@ static void chld (int signo)
 
 #if defined(HAVE_THREADS)
 #define SLEEP(x) WaitSem(&exitcmgr, x)
-#elif defined(__MSC__)
-void SLEEP (time_t s)
-{
-  struct timeval tv;
-  tv.tv_sec = s;
-  tv.tv_usec = 0;
-  select(0, NULL, NULL, NULL, &tv);
-}
 #elif defined(VOID_SLEEP) || !defined(HAVE_FORK)
 #define SLEEP(x) sleep(x)
 #else

@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2003/04/06 13:50:11  gul
+ * dos sleep() realization
+ *
  * Revision 2.10  2003/03/26 13:53:28  gul
  * Fix OS/2 compilation
  *
@@ -107,8 +110,10 @@
     #define PID() ((int)gettid())
   #endif
 #elif defined(__MSC__)
-  #define PID() ((int)getpid())
-  #define sleep(s)
+  #include <process.h>
+  #define PID()    ((int)getpid())
+  void dos_sleep(int);
+  #define sleep(s) dos_sleep(s)
 #else
   #include <sys/wait.h>
   #define PID() ((int)getpid())
