@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2003/07/07 08:34:26  val
+ * pmatch() replaced by define to xpmatch()
+ *
  * Revision 2.14  2003/06/30 22:42:27  hbrew
  * Print only binkd name (without path) in error messages
  *
@@ -176,8 +179,8 @@ int parse_args (int argc, char *argv[], char *src, char *ID);
 /*
  * (pmatch.c) Returns true if the pattern matches the string.
  */
-int pmatch (char *pattern, char *string);
 int xpmatch (char *pattern, char *string, int ncase);
+#define pmatch(pattern, string) xpmatch(pattern, string, 0)
 #define pmatch_ncase(pattern, string) xpmatch(pattern, string, 1)
 
 /*
