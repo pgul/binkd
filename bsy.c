@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/06/11 13:10:34  gul
+ * Do not try to remove bsy for 0:0/0 at exitlist
+ *
  * Revision 2.4  2003/03/11 09:21:29  gul
  * Fixed OS/2 Watcom compilation
  *
@@ -203,6 +206,7 @@ void bsy_remove_all (void)
 
   for (bsy = bsy_list; bsy; bsy = bsy->next)
   {
+    if (FA_ISNULL (&bsy->fa)) continue; /* free cell */
     ftnaddress_to_filename (buf, &bsy->fa);
     if (*buf)
     {
