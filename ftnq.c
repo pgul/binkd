@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.17  2003/04/22 22:30:18  gul
+ * rtl workaround, incorrect diagnostics if poll already exists
+ *
  * Revision 2.16  2003/04/02 13:12:57  gul
  * Try to use workaround for buggy windows time functions (timezone)
  *
@@ -986,6 +989,7 @@ int create_poll (FTN_ADDR *fa, int flvr)
   char buf[MAXPATHLEN + 1];
   char ext[5];
   int rc = 0;
+  struct stat st;
 
   strcpy (ext, ".flo");
   if (flvr && strchr (flo_flvrs, flvr))
@@ -995,6 +999,7 @@ int create_poll (FTN_ADDR *fa, int flvr)
   {
     mkpath (buf);
     strnzcat (buf, ext, sizeof (buf));
+    if (stat (buf, &st) == 0) return 1; /* already exists */
     if ((rc = create_empty_sem_file (buf)) == 0)
       if (errno != EEXIST)
         Log (1, "cannot create %s: %s", buf, strerror (errno));
