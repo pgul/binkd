@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.46  2004/01/03 15:38:50  stas
+ * Implement service control option for Windows NT/2k/XP
+ *
  * Revision 2.45  2004/01/02 18:02:39  stas
  * Small code change to simplification
  *
@@ -183,6 +186,10 @@
 #include "w32tools.h"
 #include "tray.h"
 
+/* service_status() and query_status() returns this to indicate error */
+#define SERVICE_STATUS_ERROR -2
+
+/* Registry values types */
 #define args_REG_type REG_BINARY /* REG_MULTI_SZ */
 #define path_REG_type REG_SZ
 
@@ -469,14 +476,36 @@ static void try_open_service(void)
     shan=OpenService(sman, srvname, SERVICE_ALL_ACCESS);
 }
 
+
+/* Return current service status or -2 (SERVICE_STATUS_ERROR)
+ */
+static DWORD service_status(void)
+{
+  if( !shan ) try_open_service();
+  if( !shan ) return SERVICE_STATUS_ERROR;
+  /* ControlService is more accurate status checks what QueryServiceStatus() */
+  if( !ControlService(shan,SERVICE_CONTROL_INTERROGATE,&sstat) )
+    switch(GetLastError())
+    {
+      case NO_ERROR:
+      case ERROR_INVALID_SERVICE_CONTROL:
+      case ERROR_SERVICE_CANNOT_ACCEPT_CTRL:
+      case ERROR_SERVICE_NOT_ACTIVE:
+        break;
+      default:
+        if( !QueryServiceStatus(shan,&sstat) ) return SERVICE_STATUS_ERROR;
+    }
+  return sstat.dwCurrentState;
+}
+
+
 /* Return 0 if service status is equal with parameter.
  */
 static int query_service(DWORD servicestatus)
 {
-  if( !shan ) try_open_service();
-  if( !QueryServiceStatus(shan,&sstat) ) return -1;
-  return !(sstat.dwCurrentState == servicestatus);
+  return !(service_status() == servicestatus);
 }
+
 
 static int store_data_into_registry(char **argv,char **envp)
 { int len, rc=0;
@@ -731,6 +760,50 @@ int service(int argc, char **argv, char **envp)
     else{
       rc = stop_service() + uninstall_service();
     }
+    cleanup_service();
+    exit(0);
+    break;
+
+  case w32_startservice:
+    start_service();
+    cleanup_service();
+    exit(0);
+    break;
+
+  case w32_stopservice:
+    stop_service();
+    cleanup_service();
+    exit(0);
+    break;
+
+  case w32_restartservice:
+    stop_service();
+    start_service();
+    cleanup_service();
+    exit(0);
+    break;
+
+  case w32_queryservice:
+    if( j==CHKSRV_NOT_INSTALLED )
+      Log(-1, "Service '%s' is not installed.", service_name);
+    else if( j==CHKSRV_INSTALLED )
+    { char *statustext="";
+      switch (service_status())
+      {
+        case SERVICE_STATUS_ERROR: statustext="but status is unknown (query status error)"; break;
+        case SERVICE_NO_CHANGE: statustext="and status is 'no change'"; break;
+        case SERVICE_STOPPED: statustext="but is stopped"; break;
+        case SERVICE_START_PENDING: statustext="and start in progress"; break;
+        case SERVICE_STOP_PENDING: statustext="and stop in progress"; break;
+        case SERVICE_RUNNING: statustext="and is running"; break;
+        case SERVICE_CONTINUE_PENDING: statustext="and continue in progress from pause"; break;
+        case SERVICE_PAUSE_PENDING: statustext="and pause in progress"; break;
+        case SERVICE_PAUSED: statustext="and is paused"; break;
+        default: statustext="but status is unknown"; break;
+      }
+      Log(-1, "Service '%s' is installed %s.", service_name, statustext);
+    }
+
     cleanup_service();
     exit(0);
     break;

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.79  2004/01/03 15:38:50  stas
+ * Implement service control option for Windows NT/2k/XP
+ *
  * Revision 2.78  2004/01/03 12:38:26  stas
  * Small change (win32)
  *
@@ -444,6 +447,7 @@ void usage (void)
 	  "  -T       minimize to Tray\n"
 	  "  -i       install WindowsNT service\n"
 	  "  -u       UNinstall WindowsNT service\n"
+	  "  -t cmd   (start|stop|restart|status) service(s)\n"
 	  "  -S name  set WindowsNT service name\n"
 #endif
 	  "  -P node  poll a node\n"
@@ -513,7 +517,7 @@ const char *optstring = "CchmP:pqrsvd-:?"
 #if !defined (BINKDW9X)
 			"T"
 #endif
-#if defined(BINKDW9X)
+#if defined WIN32
 			"t:"
 #endif
 			"iuS:"
