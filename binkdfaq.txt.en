@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of Feb 21 2004
+        Version of Mar 04 2004
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -40,6 +40,7 @@ from Russian by Michael Dukelsky 2:5020/1042.
     A1. I Have Found a Bug in BinkD!
     A2. I Want To Talk To Developers.
     A3. I Want To Get Information About Changes In BinkD Immediately!
+    A4. And When Will BinkD Do ... ?
 
 
 ----------------------------------------------------------------------------
@@ -982,3 +983,18 @@ You may read how to subscribe in the previous answer.
     There are two FIDOnet echomail conferences for discussions on binkd and
 for dialogue of the users and the developers: Russian RU.BINKD and
 international BINKD (in English).  Please look for them at echomail hubs :).
+
+
+----------------------------------------------------------------------------
+
+
+        A4. And When Will BinkD Do ... ?
+
+    Maybe it will do it some time in the future. And maybe not. You may wait 
+until the feature you wish will be implemented or you may "fix" it yourself: 
+the source code is open. Please do not forget to send your patch to the 
+developers, it will be possibly included in the main development branch and 
+for sure it will be put to the Web site or the FTP archive.
+
+
+    === The end.
