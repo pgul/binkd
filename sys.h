@@ -17,6 +17,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.20  2004/08/04 19:51:40  gul
+ * Change SIGCHLD handling, make signal handler more clean,
+ * prevent occasional hanging (mutex deadlock) under linux kernel 2.6.
+ *
  * Revision 2.19  2004/08/04 13:15:36  gul
  * Define u16 and u32 types more clean
  *
@@ -155,6 +159,16 @@
 #else
   extern int mypid;
   #define PID() mypid
+#endif
+
+#if defined(HAVE_FORK) && defined(HAVE_SIGPROCMASK) && defined(HAVE_WAITPID) && defined(SIG_BLOCK)
+  void switchsignal(int how);
+  #define blockchld()    switchsignal(SIG_BLOCK)
+  #define unblockchld()  switchsignal(SIG_BLOCK)
+  #define BLOCK_CHLD     1
+#else
+  #define blockchld()
+  #define unblockchld()
 #endif
 
 #ifndef F_OK

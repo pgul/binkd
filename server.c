@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.38  2004/08/04 19:51:40  gul
+ * Change SIGCHLD handling, make signal handler more clean,
+ * prevent occasional hanging (mutex deadlock) under linux kernel 2.6.
+ *
  * Revision 2.37  2003/10/29 21:08:39  gul
  * Change include-files structure, relax dependences
  *
@@ -272,13 +276,17 @@ static int do_server(BINKD_CONFIG *config)
   for (;;)
   {
     struct timeval tv;
+    int n;
     fd_set r;
 
     FD_ZERO (&r);
     FD_SET (sockfd, &r);
     tv.tv_usec = 0;
     tv.tv_sec  = CHECKCFG_INTERVAL;
-    switch (select(sockfd+1, &r, NULL, NULL, &tv))
+    unblockchld();
+    n = select(sockfd+1, &r, NULL, NULL, &tv);
+    blockchld();
+    switch (n)
     { case 0: /* timeout */
       /* Test config mtime */
       if (checkcfg())
@@ -376,6 +384,7 @@ void servmgr (void)
   checkcfg ();
 
 #ifdef HAVE_FORK
+  blockchld();
   signal (SIGCHLD, chld);
 #endif
 

@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.54  2004/08/04 19:51:40  gul
+ * Change SIGCHLD handling, make signal handler more clean,
+ * prevent occasional hanging (mutex deadlock) under linux kernel 2.6.
+ *
  * Revision 2.53  2004/08/03 20:06:08  gul
  * Remove unneeded longjump from signal handler
  *
@@ -266,7 +270,7 @@ static void chld (int signo)
 #else
 void SLEEP (time_t s)
 {
-  while ((s = sleep (s)) > 0);
+  while ((s = sleep (s)) > 0 && !binkd_exit);
 }
 #endif
 
@@ -346,7 +350,9 @@ static int do_client(BINKD_CONFIG *config, int *pq_empty)
         threadsafe(--n_clients);
         PostSem(&eothread);
         Log (1, "cannot branch out");
+        unblockchld();
         SLEEP(1);
+        blockchld();
       }
 #if !defined(DEBUGCHILD)
       else
@@ -366,12 +372,16 @@ static int do_client(BINKD_CONFIG *config, int *pq_empty)
         return -1;
       }
       *pq_empty = 1;
+      unblockchld();
       SLEEP (config->rescan_delay);
+      blockchld();
     }
   }
   else
   {
+    unblockchld();
     SLEEP (config->call_delay);
+    blockchld();
   }
 
   return 0;
@@ -387,6 +397,7 @@ void clientmgr (void *arg)
 #ifdef HAVE_FORK
   pidcmgr = 0;
   pidCmgr = (int) getpid();
+  blockchld();
   signal (SIGCHLD, chld);
 #elif HAVE_THREADS
   pidcmgr = PID();
@@ -410,6 +421,7 @@ void clientmgr (void *arg)
   } while (status == 0 && !binkd_exit);
 
   Log (5, "downing clientmgr...");
+  unblockchld();
 #ifdef HAVE_THREADS
   pidcmgr = 0;
   PostSem(&eothread);
@@ -594,7 +606,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 #ifdef HTTPS
     if (sockfd != INVALID_SOCKET && (config->proxy[0] || config->socks[0])) {
       if (h_connect(sockfd, host, config) != 0) {
-	if (!binkd_exit)
+        if (!binkd_exit)
           bad_try (&node->fa, TCPERR (), BAD_CALL, config);
         del_socket(sockfd);
         soclose (sockfd);

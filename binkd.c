@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.89  2004/08/04 19:51:40  gul
+ * Change SIGCHLD handling, make signal handler more clean,
+ * prevent occasional hanging (mutex deadlock) under linux kernel 2.6.
+ *
  * Revision 2.88  2004/02/07 14:06:06  hbrew
  * Macros: RTLDLL-->RTLSTATIC, BINKDW9X-->BINKD9X
  *
@@ -425,6 +429,17 @@ static void hup (int signo)
 }
 #endif
 
+#if defined(BLOCK_CHLD)
+void switchsignal(int how)
+{
+  sigset_t sigset;
+
+  sigemptyset(&sigset);
+  sigaddset(&sigset, SIGCHLD);
+  sigprocmask(how, &sigset, NULL);
+}
+#endif
+
 void usage (void)
 {
 #if defined(BINKD9X)
@@ -433,12 +448,12 @@ void usage (void)
 
   printf ("usage: binkd [-Cc"
 #if defined(BINKD_DAEMONIZE)
-          "D"
+	  "D"
 #endif
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
 	  "i"
 #elif defined(WIN32) && !defined(BINKD9X)
-          "T"
+	  "T"
 #endif
 	  "pqrsvmh] [-P node]"
 #if defined(WIN32)
@@ -578,24 +593,24 @@ char *parseargs (int argc, char *argv[])
 
 	    case 't': /* service control/query */
 	      if (isService()) break;
-              if ((service_flag != w32_noservice)) {
-                Log (0, "%s: '-t' command line switch can't mixed with '-i', '-u' and other '-t'", extract_filename(argv[0]));
-              }
+	      if ((service_flag != w32_noservice)) {
+	        Log (0, "%s: '-t' command line switch can't mixed with '-i', '-u' and other '-t'", extract_filename(argv[0]));
+	      }
 	      if (!strcmp (optarg, "status"))
-                service_flag = w32_queryservice;
+	        service_flag = w32_queryservice;
 	      else if (!strcmp (optarg, "start"))
-                service_flag = w32_startservice;
-              else if (!strcmp (optarg, "stop"))
-                service_flag = w32_stopservice;
+	        service_flag = w32_startservice;
+	      else if (!strcmp (optarg, "stop"))
+	        service_flag = w32_stopservice;
 	      else if (!strcmp (optarg, "restart"))
-                service_flag = w32_restartservice;
+	        service_flag = w32_restartservice;
 	      else if (!strcmp (optarg, "install"))
-                service_flag = w32_installservice;
+	        service_flag = w32_installservice;
 	      else if (!strcmp (optarg, "uninstall"))
-                service_flag = w32_uninstallservice;
+	        service_flag = w32_uninstallservice;
 	      else
-                Log (0, "%s: '-t': invalid argument '%s'", extract_filename(argv[0]), optarg);
-              break;
+	        Log (0, "%s: '-t': invalid argument '%s'", extract_filename(argv[0]), optarg);
+	      break;
 	    case 'S':
 	      if (service_name)
 	        Log(0, "%s: '-S %s': service name specified before, can't overwrite!", extract_filename(argv[0]), optarg);
@@ -604,41 +619,41 @@ char *parseargs (int argc, char *argv[])
 	    case 'i': /* install service */
 	      Log(1,"Warning: switch \"-i\" is deprecated, use \"-t install\" instead");
 	      if (isService()) break;
-              if ( service_flag==w32_installservice
-                || service_flag==w32_uninstallservice
-                || service_flag==w32_queryservice
-                || service_flag==w32_startservice
-                || service_flag==w32_restartservice
-                || service_flag==w32_stopservice
-                 )
-                Log (0, "%s: '-i' command line switch can't mixed with '-u', '-t' and other '-i'", extract_filename(argv[0]));
-              if (!service_flag)
-                service_flag = w32_installservice;
+	      if ( service_flag==w32_installservice
+	        || service_flag==w32_uninstallservice
+	        || service_flag==w32_queryservice
+	        || service_flag==w32_startservice
+	        || service_flag==w32_restartservice
+	        || service_flag==w32_stopservice
+	         )
+	        Log (0, "%s: '-i' command line switch can't mixed with '-u', '-t' and other '-i'", extract_filename(argv[0]));
+	      if (!service_flag)
+	        service_flag = w32_installservice;
 	      break;
 
 	    case 'u': /* uninstall service */
 	      Log(1,"Warning: switch \"-u\" is deprecated, use \"-t uninstall\" instead");
 	      if (isService()) break;
-              if ( service_flag==w32_installservice
-                || service_flag==w32_uninstallservice
-                || service_flag==w32_queryservice
-                || service_flag==w32_startservice
-                || service_flag==w32_restartservice
-                || service_flag==w32_stopservice
-                 )
-                Log (0, "%s: '-u' command line switch can't mixed with '-i', '-t' and other '-u'", extract_filename(argv[0]));
-              if (!service_flag)
-                service_flag = w32_uninstallservice;
+	      if ( service_flag==w32_installservice
+	        || service_flag==w32_uninstallservice
+	        || service_flag==w32_queryservice
+	        || service_flag==w32_startservice
+	        || service_flag==w32_restartservice
+	        || service_flag==w32_stopservice
+	         )
+	        Log (0, "%s: '-u' command line switch can't mixed with '-i', '-t' and other '-u'", extract_filename(argv[0]));
+	      if (!service_flag)
+	        service_flag = w32_uninstallservice;
 	      break;
 #endif
 
 	    case 'P': /* create poll to node */
-              {
-                struct maskchain new_entry;
+	      {
+	        struct maskchain new_entry;
 
-                new_entry.mask = xstrdup(optarg);
-                simplelist_add(&psPolls.linkpoint, &new_entry, sizeof(new_entry));
-              }
+	        new_entry.mask = xstrdup(optarg);
+	        simplelist_add(&psPolls.linkpoint, &new_entry, sizeof(new_entry));
+	      }
 	      break;
 
 	    case 'p': /* run clients and exit */
@@ -920,7 +935,7 @@ int main (int argc, char *argv[], char *envp[])
   if (*current_config->pid_file)
   {
     if ( unlink (current_config->pid_file) == 0 ) /* successfully unlinked, i.e.
-                                                     an old pid_file was found */
+	                                            an old pid_file was found */
 	Log (1, "unexpected pid_file: %s: unlinked", current_config->pid_file);
     else
     {
