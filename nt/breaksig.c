@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.4  2003/03/10 18:19:51  gul
+ * Use common.h
+ *
  * Revision 2.3  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -61,6 +64,7 @@
 /*--------------------------------------------------------------------*/
 
 #include "..\sys.h"
+#include "..\common.h"
 #include "..\tools.h"
 #include "..\iphdr.h"
 #include "..\bsy.h"
