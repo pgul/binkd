@@ -31,6 +31,5 @@
 - send-hold-on-outgoing option
 - argus-compatible freq (M_NUL "FREQ")
 - select() bug on win9x: 100% cpu load on sending file
-- asymmetric ND-mode (only for send, only for receive)
-  - options -snr, -snd - force send in NR or ND mode on binkp/1.1
+- options -snr, -snd - force send in NR or ND mode on binkp/1.1
 - turn on NR-mode if exists incomplete files from this link (optional?)
