@@ -1,3 +1,7 @@
+2003/10/30 12:57:48 1.0a-291 gul
+inbound.c,2.24,2.25 inbound.h,2.5,2.6 perlhooks.c,2.39,2.40 perlhooks.h,2.7,2.8 protocol.c,2.138,2.139
+Change inb_done arguments, optimize a bit
+
 2003/10/30 12:37:06 1.0a-290 gul
 inbound.c,2.23,2.24 inbound.h,2.4,2.5 perlhooks.c,2.38,2.39 perlhooks.h,2.6,2.7 protocol.c,2.137,2.138
 Do not append file partially received from busy remote aka,
