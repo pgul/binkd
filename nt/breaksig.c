@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.6  2003/08/05 05:36:14  hbrew
+ * 'static const char rcsid[]' removed
+ *
  * Revision 2.5  2003/07/16 15:08:49  stas
  * Fix NT services to use getopt(). Improve logging for service
  *
@@ -51,9 +54,6 @@
  *      First revision
  *
  */
-
- static const char rcsid[] =
-      "$Id$";
 
 /*--------------------------------------------------------------------*/
 /*                        System include files                        */

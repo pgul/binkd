@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.7  2003/08/05 05:36:14  hbrew
+ * 'static const char rcsid[]' removed
+ *
  * Revision 2.6  2003/03/31 22:11:34  gul
  * Fixed semaphores usage
  *
@@ -55,9 +58,6 @@
  *      First revision
  *
  */
-
- static const char rcsid[] =
-      "$Id$";
 
 /*--------------------------------------------------------------------*/
 /*                        System include files                        */
