@@ -496,3 +496,5 @@ NT/95:  ctrl-c problems fixed
 
 	New option overwrite in binkd.cfg - overwrite older file by newer.
 
+	Run as service under win9x (Alexander Reznikov <homebrewer@yandex.ru>).
+
