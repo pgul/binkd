@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.34  2003/10/18 06:45:23  stas
+ * Fix a semaphore usage in exitfunc()
+ *
  * Revision 2.33  2003/10/17 18:49:36  stas
  * Use a semaphore to prevent double run exitfunc()
  *
@@ -193,17 +196,16 @@ void exitfunc (void)
   BINKD_CONFIG *config;
 #if defined(WIN32) && !defined(BINKDW9X)
   static int exitfunc_called_flag=0;
-  static MUTEXSEM exitfuncsem;
 
   if (IsNT() && isService()) {
-    LockSem(&exitfuncsem);
+    LockSem(&exitsem);
     if(exitfunc_called_flag)
     { /* prevent double call exitfunc() at NT service stop sequence */
       Log(10, "exitfunc() repeated call, return from exitfunc()");
       return;
     }
     exitfunc_called_flag=1;
-    ReleaseSem(&exitfuncsem);
+    ReleaseSem(&exitsem);
   }
 #endif
 

@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.38  2003/10/18 06:45:23  stas
+ * Fix a semaphore usage in exitfunc()
+ *
  * Revision 2.37  2003/10/14 15:34:40  stas
  * Fix MS Visual C build
  *
@@ -184,6 +187,7 @@ static enum service_main_retcodes service_main(enum service_main_types type);
 extern int checkcfg_flag;
 int _isService=-1;
 int init_exit_service_thread = 0;
+MUTEXSEM exitsem=NULL;
 
 
 BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
@@ -281,6 +285,7 @@ void atServiceExitEnds(void)
     free(sp);
     serv_envp=NULL;
   }
+  CleanSem(&exitsem);
   ReportStatusToSCMgr(SERVICE_STOPPED, NO_ERROR, 0);
 }
 
@@ -297,6 +302,7 @@ static void ServiceStart()
   strcpy(sp, reg_path_prefix);
   strcat(sp, srvname);
   strcat(sp, reg_path_suffix);
+  InitSem (&exitsem); /* See exitproc.c */
 
   atexit(atServiceExitEnds);
   for(;;)
