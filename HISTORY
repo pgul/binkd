@@ -1,3 +1,7 @@
+2003/10/29 08:44:35 1.0a-287 stas
+service.c,2.43,2.44 brw32sig.h,2.6,NONE
+Remove unused header file
+
 2003/10/29 08:41:27 1.0a-286 stas
 service.c,2.42,2.43 service.h,2.13,2.14
 Remove unused types; small optimizes code
