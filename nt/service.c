@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.34  2003/10/09 17:26:15  stas
+ * Unload icon after use (if loaded from file)
+ *
  * Revision 2.33  2003/10/09 17:14:01  stas
  * Load tray icon from file "binkd.ico"
  *
@@ -564,7 +567,7 @@ static void wndthread(void *par)
     char bn[20];
     ATOM wa;
     HWND wnd;
-    HICON hi;
+    HICON hi,loaded_icon;
     HANDLE in, out;
     int i;
 
@@ -619,7 +622,7 @@ static void wndthread(void *par)
     }
     if (!hi)
     {
-        hi = LoadImage( NULL, BINKD_ICON_FILE, IMAGE_ICON, 0, 0,
+        loaded_icon = hi = LoadImage( NULL, BINKD_ICON_FILE, IMAGE_ICON, 0, 0,
                         LR_LOADFROMFILE /*| LR_LOADTRANSPARENT*/ );
     }
     if (!hi)
@@ -699,6 +702,10 @@ static void wndthread(void *par)
                 ShowWindow(mainWindow, SW_HIDE);
             }
     	}
+    }
+    if(DestroyIcon(loaded_icon)==FALSE)
+    {
+      Log(1,"Error in DestroyIcon(): %s", w32err(GetLastError()));
     }
 }
 
