@@ -547,8 +547,7 @@ NT/95:  ctrl-c problems fixed
 
 	New commandline option -vv - show optional compiled-in extensions.
 
-	New commandline option -d - dump parsed config and exit. The 'debugcfg'
-	statement of config file is removed.
+	New commandline option -d - dump parsed config and exit.
 
 	Comments in config now starts only if '#' follows after space.
 
