@@ -1,3 +1,7 @@
+2003/10/13 11:48:42 1.0a-237 stas
+exitproc.c,2.31,2.32
+Implement true NT service stop sequence
+
 2003/10/13 11:48:13 1.0a-236 stas
 breaksig.c,2.19,2.20 service.c,2.35,2.36
 Implement true NT service stop sequence
