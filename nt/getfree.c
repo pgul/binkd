@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.11  2004/11/02 13:23:18  stas
+ * More fix getfree() (win32)
+ *
  * Revision 2.10  2004/10/29 13:05:05  stas
  * Add diagnostic about free space great 4Tb (win32 only)
  *
@@ -113,7 +116,7 @@ unsigned long getfree (char *path) {
                 (PULARGE_INTEGER)&i64FreeBytes)
       ) {
 
-      if( i64FreeBytesToCaller.u.HighPart > 0 ) {
+      if( i64FreeBytesToCaller.u.HighPart > 1023 ) {
         Log( 6, "GetDiskFreeSpaceEx() returns too big value (%lu*2^32) and getfree() is return ULONG_MAX (%lu)",i64FreeBytesToCaller.u.HighPart,ULONG_MAX);
         return ULONG_MAX;
       }
