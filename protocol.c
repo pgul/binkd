@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2001/07/28 09:56:39  gul
+ * NR-mode bugfix
+ *
  * Revision 2.8  2001/07/28 09:10:04  gul
  * minor fix in log messages
  *
@@ -1413,11 +1416,9 @@ static int GOT (STATE *state, char *args, int sz)
 	  rc = ND_set_status("", &state->ND_addr, state);
 	else
 	  rc = ND_set_status(status, &state->ND_addr, state);
-	state->waiting_for_GOT = state->off_req_sent = 0;
-	Log(9, "Don't waiting for M_GOT");
       }
-      else if (state->NR_flag >= WE_NR)
-	state->off_req_sent = 0;
+      state->waiting_for_GOT = 0;
+      Log(9, "Don't waiting for M_GOT");
       remove_from_spool (state, state->out.flo,
 			 state->out.path, state->out.action);
       TF_ZERO (&state->out);
@@ -1448,11 +1449,9 @@ static int GOT (STATE *state, char *args, int sz)
 	      rc = ND_set_status("", &state->ND_addr, state);
 	    else
 	      rc = ND_set_status(status, &state->ND_addr, state);
-	    state->waiting_for_GOT = state->off_req_sent = 0;
-	    Log(9, "Don't waiting for M_GOT");
 	  }
-	  else if (state->NR_flag >= WE_NR)
-	    state->off_req_sent = 0;
+	  state->waiting_for_GOT = 0;
+	  Log(9, "Don't waiting for M_GOT");
 	  remove_from_spool (state, state->sent_fls[n].flo,
 			state->sent_fls[n].path, state->sent_fls[n].action);
 	  remove_from_sent_files_queue (state, n);
