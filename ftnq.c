@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19.2.3  2003/10/19 12:51:42  stream
+ * Missing return value for q_scan_boxes()
+ *
  * Revision 2.19.2.2  2003/09/15 19:57:40  gul
  * Fixed double-locking pNod array
  *
@@ -490,8 +493,9 @@ static FTNQ *q_scan_boxes_nolock (FTNQ *q, FTN_ADDR *fa, int n)
 FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n)
 {
   locknodesem();
-  q_scan_boxes_nolock (q, fa, n);
+  q = q_scan_boxes_nolock (q, fa, n);
   releasenodesem();
+  return q;
 }
 
 void process_hld (FTN_ADDR *fa, char *path)
