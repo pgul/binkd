@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.25  2003/10/30 10:57:46  gul
+ * Change inb_done arguments, optimize a bit
+ *
  * Revision 2.24  2003/10/30 10:36:59  gul
  * Do not append file partially received from busy remote aka,
  * non-destructive skip it.
@@ -465,14 +468,14 @@ int check_pkthdr(int nfa, FTN_ADDR *from, char *netname, char *tmp_name,
  * File is complete, rename it to it's realname. 1=ok, 0=failed.
  * Sets realname[MAXPATHLEN]
  */
-int inb_done (char *netname, off_t size, time_t time,
-	      char *real_name, STATE *state, BINKD_CONFIG *config)
+int inb_done (TFILE *file, char *real_name, STATE *state, BINKD_CONFIG *config)
 {
   char tmp_name[MAXPATHLEN + 1];
-  char *s, *u;
+  char *s, *u, *netname;
   int  unlinked = 0, i;
 
   *real_name = 0;
+  netname = file->netname;
 
   if (find_tmp_name (tmp_name, state, config) != 1)
   {
@@ -488,7 +491,7 @@ int inb_done (char *netname, off_t size, time_t time,
   strwipe (s);
 
 #ifdef WITH_PERL
-  if (perl_after_recv(state, netname, size, time, tmp_name, real_name)) {
+  if (perl_after_recv(state, file, tmp_name, real_name)) {
     /* Replacing .dt with .hr and removing temp. file */
     if (access(tmp_name, 0) == 0) sdelete (tmp_name);
     strcpy (strrchr (tmp_name, '.'), ".hr");
@@ -527,7 +530,7 @@ int inb_done (char *netname, off_t size, time_t time,
     /* val: check pkt file header */
     if (ispkt (netname)) check_pkthdr(state->nallfa, state->fa, netname, tmp_name, real_name, config);
 
-    if (touch (tmp_name, time) != 0)
+    if (touch (tmp_name, file->time) != 0)
       Log (1, "touch %s: %s", tmp_name, strerror (errno));
 
     while (1)

@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2003/10/30 10:57:46  gul
+ * Change inb_done arguments, optimize a bit
+ *
  * Revision 2.7  2003/10/30 10:37:00  gul
  * Do not append file partially received from busy remote aka,
  * non-destructive skip it.
@@ -75,8 +78,8 @@ char *perl_after_handshake(STATE *);   /* after handshake complete */
 void perl_after_session(STATE *, char *); /* after session done */
 
 int perl_before_recv(STATE *, off_t offs); /* before receiving file */
-int perl_after_recv(STATE *, char *netname, off_t size, time_t time, 
-         char *tmp_name, char *real_name);  /* after file has been received */
+int perl_after_recv(STATE *, TFILE *, char *tmp_name,
+		char *real_name);  /* after file has been received */
 int perl_before_send(STATE *);         /* before sending file */
 int perl_after_sent(STATE *, int);     /* after file has been sent */
 

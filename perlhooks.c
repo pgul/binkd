@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.40  2003/10/30 10:57:46  gul
+ * Change inb_done arguments, optimize a bit
+ *
  * Revision 2.39  2003/10/30 10:36:59  gul
  * Do not append file partially received from busy remote aka,
  * non-destructive skip it.
@@ -1915,8 +1918,7 @@ int perl_before_recv(STATE *state, off_t offs) {
 /* after file has been received */
 /* return 0 to keep real_name, 1 to update real_name and try renaming,
           2 to kill tmp_name after having renamed it manually */
-int perl_after_recv(STATE *state, char *netname, off_t size, time_t time, 
-                    char *tmp_name, char *real_name) {
+int perl_after_recv(STATE *state, TFILE *file, char *tmp_name, char *real_name) {
   int    rc;
   STRLEN len;
   SV     *svret, *sv;
@@ -1927,9 +1929,9 @@ int perl_after_recv(STATE *state, char *netname, off_t size, time_t time,
     { dSP;
       if (state->perl_set_lvl < 2) setup_session(state, 2);
       if (perl_wants_queue) setup_queue(state, state->q);
-      VK_ADD_str (sv, "name", netname);
-      VK_ADD_intz(sv, "size", size);
-      VK_ADD_intz(sv, "time", time);
+      VK_ADD_str (sv, "name", file->netname);
+      VK_ADD_intz(sv, "size", file->size);
+      VK_ADD_intz(sv, "time", file->time);
       VK_ADD_str (sv, "tmpfile", tmp_name);
       VK_ADD_str (sv, "file", real_name); if (sv) { SvREADONLY_off(sv); }
       handle_perlerr();

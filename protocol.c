@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.139  2003/10/30 10:57:46  gul
+ * Change inb_done arguments, optimize a bit
+ *
  * Revision 2.138  2003/10/30 10:37:00  gul
  * Do not append file partially received from busy remote aka,
  * non-destructive skip it.
@@ -2071,8 +2074,7 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
       char realname[MAXPATHLEN + 1];
       char szAddr[FTN_ADDR_SZ + 1];
 
-      if (inb_done (state->in_complete.netname, state->in_complete.size,
-	            state->in_complete.time, realname, state, config) == 0)
+      if (inb_done (&(state->in_complete), realname, state, config) == 0)
         return 0; /* error, drop session */
       /* val: check for *.req if got M_NUL FREQ */
       if (state->delay_EOB && isreq(state->in_complete.netname))
@@ -2631,8 +2633,7 @@ static int EOB (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
     char realname[MAXPATHLEN + 1];
     char szAddr[FTN_ADDR_SZ + 1];
 
-    if (inb_done (state->in_complete.netname, state->in_complete.size,
-                  state->in_complete.time, realname, state, config) == 0)
+    if (inb_done (&(state->in_complete), realname, state, config) == 0)
       return 0;
     if (*realname)
     {
@@ -2842,8 +2843,7 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
 	  }
 	  else
 	  {
-	    if (inb_done (state->in.netname, state->in.size,
-		          state->in.time, realname, state, config) == 0)
+	    if (inb_done (&(state->in), realname, state, config) == 0)
               return 0;
 	    if (*realname)
 	    {

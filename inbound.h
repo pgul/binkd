@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/10/30 10:57:46  gul
+ * Change inb_done arguments, optimize a bit
+ *
  * Revision 2.5  2003/10/30 10:36:59  gul
  * Do not append file partially received from busy remote aka,
  * non-destructive skip it.
@@ -48,8 +51,7 @@ FILE *inb_fopen (STATE *state, BINKD_CONFIG *config);
  * File is complete, rename it to it's realname. 1=ok, 0=failed.
  * Sets realname[MAXPATHLEN]
  */
-int inb_done (char *netname, off_t size, time_t t, char *realname,
-               STATE *state, BINKD_CONFIG *config);
+int inb_done (TFILE *file, char *real_name, STATE *state, BINKD_CONFIG *config);
 
 /*
  * Remove partial file
