@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.24  2003/09/18 07:18:21  val
+ * fix to assure dll has been loaded before calling perl funcs
+ *
  * Revision 2.23  2003/09/15 06:57:09  val
  * compression support via zlib: config keywords, improvements, OS/2 code
  *
@@ -1640,10 +1643,11 @@ char *perl_on_handshake(STATE *state, BINKD_CONFIG *cfg) {
   AV *he, *me;
   SV *svret, **svp;
   /* this pointer is used later */
-  if (perl && perl_ok && Perl_get_context()) {
-    VK_ADD_intz(svret, sv_state, (long)state); 
-    VK_ADD_intz(svret, sv_config, (long)cfg);
-  }
+  if (perl && perl_ok) 
+    if (Perl_get_context()) {
+      VK_ADD_intz(svret, sv_state, (long)state); 
+      VK_ADD_intz(svret, sv_config, (long)cfg);
+    }
   if (perl_ok & (1 << PERL_ON_HANDSHAKE)) {
     Log(LL_DBG, "perl_on_handshake(), perl=%p", Perl_get_context());
     if (!Perl_get_context()) return NULL;
@@ -1751,7 +1755,8 @@ char *perl_after_handshake(STATE *state) {
 void perl_after_session(STATE *state, char *status) {
   SV *sv;
 
-  if (Perl_get_context()) { VK_ADD_intz(sv, "__state", 0); }
+  if (perl && perl_ok) 
+    if (Perl_get_context()) { VK_ADD_intz(sv, "__state", 0); }
   if (perl_ok & (1 << PERL_AFTER_SESSION)) {
     Log(LL_DBG, "perl_after_session(), perl=%p", Perl_get_context());
     if (!Perl_get_context()) return;
@@ -2005,7 +2010,8 @@ int perl_on_log(char *s, int bufsize, int *lev) {
   STRLEN len;
   SV     *svret, *sv, *svchk;
 
-  if (!perl || !Perl_get_context()) return 1;
+  if (!perl || !perl_ok) return 1;
+  if (!Perl_get_context()) return 1;
   if (perl_ok & (1 << PERL_ON_LOG)) {
     /* check: not to call while on_log() is running */
     svchk = perl_get_sv("__in_log", FALSE);
