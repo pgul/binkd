@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/03/25 21:09:04  gul
+ * Memory leak
+ *
  * Revision 2.3  2003/03/25 20:37:46  gul
  * free_hostent() function
  *
@@ -40,9 +43,13 @@
  */
 const char *get_hostname (struct sockaddr_in * addr, char *host, int len);
 
+#ifdef HAVE_THREADS
 void copy_hostent(struct hostent *dest, struct hostent *src);
 
 void free_hostent(struct hostent *hp, char **alist);
+#else
+#define free_hostent(hp, alist)
+#endif
 
 /*
  * Sets non-blocking mode for a given socket

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2003/03/25 21:09:04  gul
+ * Memory leak
+ *
  * Revision 2.11  2003/03/10 17:24:28  gul
  * Fixed signed/unsigned char conversions
  *
@@ -320,7 +323,6 @@ int h_connect(int so, char *host)
 		{
 			if (!sauth)
 			{
-
 				buf[0]=4;
 				buf[1]=1;
 				lockhostsem();
@@ -368,11 +370,15 @@ int h_connect(int so, char *host)
 				{
 					Log(4, "socks timeout...");
 					SetTCPError(PR_ERROR);
+					if (sauth) free(sauth);
+					free_hostent(hp, alist);
 					return 1;
 				}
 				if (recv(so, buf+i, 1, 0)<1) {
 					Log(2, "connection closed by socks server...");
 					SetTCPError(PR_ERROR);
+					if (sauth) free(sauth);
+					free_hostent(hp, alist);
 					return 1;
 				}
 				if (!sauth && i>6) /* 8th byte received */
@@ -380,6 +386,7 @@ int h_connect(int so, char *host)
 					if (buf[0]!=0) {
 						Log(2, "Bad reply from socks server");
 						SetTCPError(PR_ERROR);
+						free_hostent(hp, alist);
 						return 1;
 					}
 					if (buf[1]!=90) {
@@ -387,21 +394,24 @@ int h_connect(int so, char *host)
 						SetTCPError(PR_ERROR);
 						break; /* try next IP */
 					}
-					else
+					else {
+						free_hostent(hp, alist);
 						return 0;
+					}
 				}
 				else if (sauth && i>5)
 				{
 					if (buf[0]!=5) {
 						Log(2, "Bad reply from socks server");
 						SetTCPError(PR_ERROR);
+						free(sauth);
 						return 1;
 					}
 					if ((buf[3]==1) && (i<9)) continue;
 					if ((buf[3]==3) && (i<(6+(unsigned char)buf[4]))) continue;
 					if ((buf[3]==4) && (i<21)) continue;
-					if (!buf[1])	return 0;
 					free(sauth);
+					if (!buf[1])	return 0;
 					switch (buf[1])
 					{
 						case 1: Log (2, "general SOCKS5 server failure"); break;
@@ -419,6 +429,7 @@ int h_connect(int so, char *host)
 				}
 			}
 		}
+		free_hostent(hp, alist);
 	}
 	return 0;
 }
