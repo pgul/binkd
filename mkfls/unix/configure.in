@@ -12,12 +12,12 @@ CFLAGS=
 dnl Checks for header files.
 AC_CHECK_HEADERS(unistd.h io.h)
 AC_CHECK_HEADERS(sys/vfs.h sys/statfs.h sys/statvfs.h sys/param.h sys/mount.h)
-AC_CHECK_HEADERS(arpa/inet.h sys/ioctl.h sys/time.h)
+AC_CHECK_HEADERS(arpa/inet.h sys/ioctl.h sys/time.h stdarg.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(vsnprintf vsyslog waitpid statvfs statfs uname)
+AC_CHECK_FUNCS(snprintf vsnprintf vsyslog waitpid statvfs statfs uname)
 AC_CHECK_FUNCS(daemon setsid getopt)
 
 dnl Checks for libraries.
@@ -211,8 +211,8 @@ case $ac_cv_func_getopt in
      ;;
 esac
 
-case $ac_cv_func_vsnprintf in
- no) OPT_SRC="$OPT_SRC snprintf.c"
+case $ac_cv_func_vsnprintf$ac_cv_func_vsnprintf in
+ *no*) OPT_SRC="$OPT_SRC snprintf.c"
      ;;
 esac
 
