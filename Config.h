@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.135  2003/08/22 09:41:38  val
+ * Auto increase patchlevel, set 0.9.6a-122
+ * add check perl!=NULL in perl_on_handshake
+ *
  * Revision 2.134  2003/08/22 09:37:41  val
  * Auto increase patchlevel, set 0.9.6a-121
  * missing function import for PERLDL: sv_setpvn()
@@ -582,7 +586,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-121"
+#define MYVER "0.9.6a-122"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
