@@ -1,0 +1,338 @@
+2003/08/25 07:42:51 0.9.6a-134  gul
+Add OS/2 EMX multithread version
+
+2003/08/25 06:11:08 0.9.6a-133 gul
+Fix compilation with HAVE_FORK
+
+2003/08/25 05:39:28 0.9.6a-132 stas
+Bugfix: "readcfg.c:938: `fa\' undeclared" compilation error
+
+2003/08/24 19:42:11 0.9.6a-131 gul
+Get FTN-domain from matched zone in exp_ftnaddress()
+
+2003/08/24 18:54:32 0.9.6a-130 gul
+Bugfix in timeout check on win32
+
+2003/08/24 18:06:01 0.9.6a-129 hbrew
+Update for previous patch
+
+2003/08/24 17:28:33 0.9.6a-128 hbrew
+Fix work with sighandler on win32
+
+2003/08/24 16:55:10 0.9.6a-127 hbrew
+Fix memory allocation for polls
+
+2003/08/24 13:30:35 0.9.6a-126 stream
+Socket wasn't closed if branch() failed
+
+2003/08/24 01:36:02 0.9.6a-125 hbrew
+Update for previous patch
+
+2003/08/24 00:45:48 0.9.6a-124 hbrew
+win9x-select-workaround fix, thanks to Pavel Gulchouck
+
+2003/08/23 15:51:52 0.9.6a-123 stream
+Implemented common list routines for all linked records in configuration
+
+2003/08/22 09:41:38 0.9.6a-122 val
+add check perl!=NULL in perl_on_handshake
+
+2003/08/22 09:37:41 0.9.6a-121 val
+missing function import for PERLDL: sv_setpvn()
+
+2003/08/21 15:41:06 0.9.6a-120 gul
+Change building commandline for service under win32
+(patch by Alexander Reznikov)
+
+2003/08/21 15:40:37 0.9.6a-119 gul
+Change building commandline for service under win32
+(patch by Alexander Reznikov)
+
+2003/08/21 07:24:42 0.9.6a-118 gul
+Use local buffer in Log() with HAVE_FORK
+
+2003/08/20 07:33:40 0.9.6a-117 hbrew
+Addon for 'Avoid double exitfunc() call' patch
+
+2003/08/19 19:41:41 0.9.6a-116 gul
+Fix warnings
+
+2003/08/19 18:08:10 0.9.6a-115 gul
+Avoid double exitfunc() call
+
+2003/08/19 18:01:09 0.9.6a-114 stream
+Fix unix compilation
+
+2003/08/19 10:16:13 0.9.6a-113 gul
+Rename trunc() -> trunc_file() due to conflict under OS/2 EMX
+
+2003/08/19 10:13:17 0.9.6a-112 gul
+Change Log() semaphoring
+
+2003/08/18 17:19:14 0.9.6a-111 stream
+Partially implemented new configuration parser logic (required for config reload)
+
+2003/08/18 15:44:53 0.9.6a-110 stream
+New function last_slash(): Return pointer to last directory separator
+in file name, or NULL if no path present.
+
+2003/08/18 09:41:03 0.9.6a-109 gul
+Little cleanup in handle perl errors
+
+2003/08/18 09:15:41 0.9.6a-108 gul
+Cosmetics
+
+2003/08/18 08:23:05 0.9.6a-107 gul
+Return log semaphoring
+
+2003/08/18 07:35:11 0.9.6a-106 val
+multiple changes:
+- hide-aka/present-aka logic
+- address mask matching via pmatch
+- delay_ADR in STATE (define DELAY_ADR removed)
+- ftnaddress_to_str changed to xftnaddress_to_str (old version #define'd)
+- parse_ftnaddress now sets zone to domain default if it's omitted
+
+2003/08/18 07:29:41 0.9.6a-105 val
+multiple changes:
+- perl error handling made via fork/thread
+- on_log() perl hook
+- perl: msg_send(), on_send(), on_recv()
+- unless using threads define log buffer via xalloc()
+
+2003/08/17 19:07:12 0.9.6a-104 gul
+Fix typo
+
+2003/08/17 10:38:57 0.9.6a-103 gul
+Return semaphoring for log and binlog
+
+2003/08/17 08:12:07 0.9.6a-102 gul
+Fix typo
+
+2003/08/16 09:47:27 0.9.6a-101 gul
+Autodetect tzoff if not specified
+
+2003/08/16 09:08:35 0.9.6a-100 gul
+Binlog semaphoring removed
+
+2003/08/16 06:21:14 0.9.6a-99 gul
+Log() semaphoring removed
+
+2003/08/15 08:48:52 0.9.6a-98 gul
+Compilation error fixed
+
+2003/08/14 14:19:39 0.9.6a-97 gul
+Drop remote AKA with another password on outgoing sessions
+
+2003/08/14 12:56:31 0.9.6a-96 gul
+Make Log() thread-safe
+
+2003/08/14 11:43:21 0.9.6a-95 val
+free allocated log buffer in exitfunc()
+
+2003/08/14 08:29:24 0.9.6a-94 gul
+Use snprintf() from sprintf.c if no such libc function
+
+2003/08/14 07:42:40 0.9.6a-93 val
+vsnprintf() function, taken from libsasl sources
+
+2003/08/14 07:40:08 0.9.6a-92 val
+migrate from vfprintf() to vsnprintf() in Log(), new keyword `nolog'
+
+2003/08/14 07:39:36 val
+migrate from vfprintf() to vsnprintf() in Log(), new keyword `nolog'
+
+2003/08/13 11:59:23 0.9.6a-91 gul
+Undo my prev patch, sorry ;)
+
+2003/08/13 11:49:07 0.9.6a-90 gul
+correct previous fix
+
+2003/08/13 11:35:28 0.9.6a-89 hbrew
+Fix warning.
+
+2003/08/13 08:20:47 0.9.6a-88 val
+try to avoid mixing Log() output and Perl errors in stderr
+
+2003/08/13 08:02:53 0.9.6a-87 val
+define DELAY_ADR ifdef WITH_PERL (todo: provide more flexible logic)
+
+2003/08/12 09:35:50 0.9.6a-86 gul
+Cosmetics
+
+2003/08/12 09:31:47 0.9.6a-85 val
+don't strlower() mask in flag/exec since we now use pmatch_ncase()
+
+2003/08/12 09:23:03 0.9.6a-84 val
+migrate from pmatch() to pmatch_ncase()
+
+2003/08/11 08:36:43 0.9.6a-83 gul
+workaround winsock bug
+
+2003/08/11 08:33:18 0.9.6a-82 val
+better error handling in perl hooks
+
+2003/08/05 05:36:16 0.9.6a-81 hbrew
+'static const char rcsid[]' removed
+
+2003/08/04 12:23:42 0.9.6a-80 gul
+Add CVS tags
+
+2003/08/04 12:17:51 0.9.6a-79 gul
+Remove extra error message
+
+2003/08/04 12:12:28 0.9.6a-78 gul
+Add opterr and optopt vars
+
+2003/07/30 11:01:39 0.9.6a-77 val
+perl-dll keyword can be used even when PERLDL is not defined (does nothing)
+
+2003/07/28 10:24:07 0.9.6a-76 val
+Perl DLL dynamic load for Win32, config keyword perl-dll, nmake PERLDL=1
+
+2003/07/19 07:00:08 0.9.6a-75 hbrew
+Complex patch:
+* nt/w32tools.c: Fix warnings
+* nt/w32tools.c: Fix typo in #ifdef
+* nt/win9x.c: Fix type in #include
+* Config.h, sys.h, branch.c, nt/service.c,
+    nt/win9x.c, : _beginthread()-->BEGINTHREAD()
+* binkd.c, common.h, mkfls/nt95-msvc/Makefile.dep,
+    nt/service.c, nt/w32tools.c,nt/win9x.c: cosmitic code cleanup
+
+2003/07/19 06:59:37 0.9.6a-74 hbrew
+Complex patch:
+* nt/w32tools.c: Fix warnings
+* nt/w32tools.c: Fix typo in #ifdef
+* nt/win9x.c: Fix type in #include
+* Config.h, sys.h, branch.c, nt/service.c,
+    nt/win9x.c, : _beginthread()-->BEGINTHREAD()
+* binkd.c, common.h, mkfls/nt95-msvc/Makefile.dep,
+    nt/service.c, nt/w32tools.c,nt/win9x.c: cosmitic code cleanup
+
+2003/07/19 06:59:34 hbrew
+Complex patch:
+* nt/w32tools.c: Fix warnings
+* nt/w32tools.c: Fix typo in #ifdef
+* nt/win9x.c: Fix type in #include
+* Config.h, sys.h, branch.c, nt/service.c,
+    nt/win9x.c, : _beginthread()-->BEGINTHREAD()
+* binkd.c, common.h, mkfls/nt95-msvc/Makefile.dep,
+    nt/service.c, nt/w32tools.c,nt/win9x.c: cosmitic code cleanup
+
+2003/07/19 04:26:09 0.9.6a-73 hbrew
+'\r\n' --> '\n'
+
+2003/07/18 14:56:37 0.9.6a-72 stas
+Use description of win2000/XP services
+
+2003/07/18 13:44:34 0.9.6a-71 stas
+Difference NT service internal name and display name
+
+2003/07/18 12:36:01 0.9.6a-70 stas
+Remove old code; add some checks; use new option '--service' for win9x
+
+2003/07/18 10:31:06 0.9.6a-69 stas
+New functions: IsNT(), Is9x(); small code cleanup
+
+2003/07/18 10:30:36 0.9.6a-68 stas
+New functions: IsNT(), Is9x(); small code cleanup
+
+2003/07/18 07:48:59 0.9.6a-67 hbrew
+binkd9x: Store current dir in registry
+
+2003/07/18 04:15:08 0.9.6a-66 hbrew
+Fix 'tell_start_ntservice(): {120} ...' error on Win9x
+
+2003/07/17 04:32:18 0.9.6a-65 hbrew
+Fix "No prototype found for 'isdigit'" warning.
+
+2003/07/17 03:08:23 0.9.6a-64 hbrew
+Fix uninstall of binkd9x service
+
+2003/07/17 02:53:07 0.9.6a-63 hbrew
+Fix MSVC warnings & errors
+
+2003/07/17 02:42:20 0.9.6a-62 hbrew
+Compability with nt/service.c & nt/win9x.c.
+Usage "--service" options as win9x "run-as-service" flag.
+
+2003/07/17 02:41:51 0.9.6a-61 hbrew
+Compability with nt/service.c & nt/win9x.c.
+Usage "--service" options as win9x "run-as-service" flag.
+
+2003/07/16 15:51:17 0.9.6a-60 stas
+Fix: restore "Minimise to tray"
+
+2003/07/16 15:50:46 0.9.6a-59 stas
+Fix: restore "Minimise to tray"
+
+2003/07/16 15:43:25 0.9.6a-58 stas
+Fix: restore -T option
+
+2003/07/16 15:42:56 0.9.6a-57 stas
+Fix: restore -T option
+
+2003/07/16 15:09:22 0.9.6a-56 stas
+Fix NT services to use getopt(). Improve logging for service
+
+2003/07/16 15:08:51 0.9.6a-55 stas
+Fix NT services to use getopt(). Improve logging for service
+
+2003/07/13 09:37:53 0.9.6a-54 gul
+Fix daemonize with libc5
+
+2003/07/12 18:22:08 0.9.6a-53 gul
+Fix typo in comment
+
+2003/07/12 18:06:45 0.9.6a-52 gul
+Fixed node output on debugcfg
+
+2003/07/11 15:06:44 0.9.6a-51 gul
+Fix building with libc5
+
+2003/07/08 06:48:05 0.9.6a-50 gul
+cosmetics
+
+2003/07/07 18:38:58 0.9.6a-49 hbrew
+Fix gcc(mingw) warnings:
+
+getopt.c:   suggest explicit braces to avoid ambiguous `else'
+nt/win9x.c: Avoid gcc warnings about non-handled enumeration values
+
+2003/07/07 18:38:27 0.9.6a-48 hbrew
+Fix gcc(mingw) warnings:
+
+getopt.c:   suggest explicit braces to avoid ambiguous `else'
+nt/win9x.c: Avoid gcc warnings about non-handled enumeration values
+
+2003/07/07 10:39:27 0.9.6a-47 gul
+getopt() usage fix
+
+2003/07/07 10:14:22 0.9.6a-46 gul
+Use getopt() for commandline parse
+
+2003/07/07 10:13:56 0.9.6a-45 gul
+Use getopt() for commandline parse
+
+2003/07/07 08:42:06 0.9.6a-44 val
+check real length of SvPV() when importing queue element from perl
+
+2003/07/07 08:38:20 0.9.6a-43 val
+safe pkthdr-reading function (to byte order and struct alignment)
+
+2003/07/07 08:34:29 0.9.6a-42 val
+pmatch() replaced by define to xpmatch()
+
+2003/07/07 08:33:27 0.9.6a-41 val
+`perl-hooks' config keyword to specify perl script
+
+2003/07/06 10:34:29 0.9.6a-40 gul
+Migrate workaround of 100% CPU load with winsock from stable branch
+
+2003/07/06 10:18:59 0.9.6a-39 gul
+Increase loglevel for "Watinig for M_GOT" message
+
+2003/07/06 08:32:33 0.9.6a-38 gul
+Decrease logging about link status changes
+
