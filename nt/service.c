@@ -14,8 +14,8 @@
  * $Id$
  *
  * $Log$
- * Revision 2.25  2003/10/06 17:01:34  stas
- * Fix "we're running as a service" test
+ * Revision 2.26  2003/10/06 17:03:38  stas
+ * Fix logic of checkservice()
  *
  * Revision 2.24  2003/10/06 16:54:51  stas
  * (Prevent warnings.) Prepare to implement full service control
@@ -796,7 +796,7 @@ int service(int argc, char **argv, char **envp)
 int checkservice(void)
 {
   if(res_checkservice) return res_checkservice;
-  if(Is9x()) return res_checkservice=(CHKSRV_CANT_INSTALL);
+  if(!IsNT()) return res_checkservice=(CHKSRV_CANT_INSTALL);
   if(service_main(service_main_services)) return res_checkservice=(CHKSRV_CANT_INSTALL);
   if(service_main(service_main_testinstalled)) return res_checkservice=CHKSRV_NOT_INSTALLED;
   return res_checkservice=CHKSRV_INSTALLED;
