@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12.2.2  2003/07/12 18:14:08  gul
+ * Fixed node output on debugcfg
+ *
  * Revision 2.12.2.1  2003/06/30 22:49:39  hbrew
  * Allow to override -ip, -sip, -md, -nomd in add_node()
  *
@@ -328,12 +331,16 @@ static int print_node_info_1 (FTN_NODE *fn, void *arg)
   char szfa[FTN_ADDR_SZ + 1];
 
   ftnaddress_to_str (szfa, &fn->fa);
-  fprintf ((FILE *) arg, "%-20.20s %s %s %c %s %s%s%s\n",
+  fprintf ((FILE *) arg, "%-20.20s %s %s %c %s %s%s%s%s%s%s%s\n",
 	   szfa, fn->hosts ? fn->hosts : "-", fn->pwd,
 	   fn->obox_flvr, fn->obox ? fn->obox : "-",
 	   fn->ibox ? fn->ibox : "-",
-	   (fn->NR_flag == NR_ON) ? " -NR" : "",
-	   (fn->ND_flag == ND_ON) ? " -ND" : "");
+	   (fn->NR_flag == NR_ON) ? " -nr" : "",
+	   (fn->ND_flag == ND_ON) ? " -nd" : "",
+	   (fn->ND_flag == MD_ON) ? " -md" : "",
+	   (fn->ND_flag == MD_OFF) ? " -nomd" : "",
+	   (fn->restrictIP == RIP_ON) ? " -ip" : "",
+	   (fn->restrictIP == RIP_SIP) ? " -sip" : "");
   return 0;
 }
 
