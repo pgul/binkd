@@ -1,219 +1,373 @@
 # Microsoft Visual C++ Makefile
 # $Id$
 #
-# Usage: nmake [DEBUG=1] [DLLRTL=1] [BINKD9X=1] [PERL=1] [PERLDL=1]
+# Usage: nmake [DEBUG=1] [STATIC=1] [BINKD9X=1] [PERL=1] [PERLDL=1]
 #              [ZLIB=1] [BZLIB2=1] [ZLIBDL=1] [DEBUGCHILD=1]
 #
 #
 
-# define path to perl sources if using PERL=1
-!if defined(PERL) || defined(PERLDL)
-!if !defined(PERL_BASE)
-recurse:
-	@perl -mConfig -e "printf 'PERL_BASE=%%s%%sPERL_LIB=%%s%%s', $$Config::Config{libpth}, chr(10), $$Config::Config{libperl}, chr(10)" >Makefile.tmp
-	@type Makefile >>Makefile.tmp
-	@$(MAKE) -f Makefile.tmp
-	@del Makefile.tmp
+#PERL_BASE=c:\Perl
+#PERL_LIB=perl58.lib
 
-all:	recurse
-!endif
-!ifndef PERL
-PERL=1
-!endif
-!endif
+#ZLIB_BASE=..\zlib
+#ZLIB_LIB=zlib.lib
+#BZLIB2_BASE=..\bzlib2
+#BZLIB2_LIB=libbz2.lib
 
-# define path to zlib sources if using ZLIB=1 without ZLIBDL
-!if defined(ZLIB)
-ZLIB_SRC=..\zlib
-!endif
-# define path to bzlib2 sources if using BZLIB2=1 without ZLIBDL
-!if defined(BZLIB2)
-BZLIB2_SRC=..\bzlib2
-!endif
+# =============================================================================
 
-!ifdef DLLRTL
-RTLTYPE=D
-RTLSUFFIX=-dll
-RTL_DEFINES=-D"RTLDLL"
+CC=cl
+LINK=link
+BSC=bscmake
+RSC=rc
+!if "$(OS)" == "Windows_NT"
+DELTREE=rmdir /S /Q
 !else
-RTLTYPE=T
-RTLSUFFIX=
-RTL_DEFINES=
+DELTREE=deltree /Y
 !endif
 
+BINDIR=bin
+OUTDIR=$(BINDIR)\msvc
+BINKDTYPE=msvc
+
+OBJDIR= $(OUTDIR)\obj
+MAKEDIRSONLY= $(OBJDIR) $(OBJDIR)\nt $(OBJDIR)\ntlm
+MAKEDIRS= $(BINDIR) $(OUTDIR) $(MAKEDIRSONLY)
+
+CFLAGS=  $(CFLAGS) -nologo -M$(RTLTYPE) -W3 -GX -c -YX \
+         -Fp"$(OBJDIR)\$(BINKDNAME).pch" -Fd"$(OBJDIR)\$(BINKDNAME)"
+CDEFS=   $(CDEFS) -DWIN32 -DHAVE_THREADS -DHAVE_IO_H -DHAVE_DOS_H \
+         -DHAVE_STDARG_H -DVISUALCPP -DHTTPS -DAMIGADOS_4D_OUTBOUND -DNTLM
+
+LFLAGS=  /nologo /machine:I386 /subsystem:$(SUBSYSTEM) \
+         /pdb:"$(OUTDIR)\$(BINKDNAME).pdb" /out:"$(OUTDIR)\$(BINKDEXE)"
+LIBS=    $(LIBS) kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib \
+         advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib wsock32.lib
+
+BSCFLAGS=/nologo
+
+OBJS= \
+ "$(OBJDIR)\binkd.obj"    "$(OBJDIR)\readcfg.obj"  "$(OBJDIR)\tools.obj"    \
+ "$(OBJDIR)\ftnaddr.obj"  "$(OBJDIR)\ftnq.obj"     "$(OBJDIR)\client.obj"   \
+ "$(OBJDIR)\server.obj"   "$(OBJDIR)\protocol.obj" "$(OBJDIR)\bsy.obj"      \
+ "$(OBJDIR)\inbound.obj"  "$(OBJDIR)\branch.obj"   "$(OBJDIR)\ftndom.obj"   \
+ "$(OBJDIR)\ftnnode.obj"  "$(OBJDIR)\srif.obj"     "$(OBJDIR)\pmatch.obj"   \
+ "$(OBJDIR)\readflo.obj"  "$(OBJDIR)\prothlp.obj"  "$(OBJDIR)\iptools.obj"  \
+ "$(OBJDIR)\run.obj"      "$(OBJDIR)\binlog.obj"   "$(OBJDIR)\exitproc.obj" \
+ "$(OBJDIR)\getw.obj"     "$(OBJDIR)\xalloc.obj"   "$(OBJDIR)\setpttl.obj"  \
+ "$(OBJDIR)\https.obj"    "$(OBJDIR)\md5b.obj"     "$(OBJDIR)\crypt.obj"    \
+ "$(OBJDIR)\getopt.obj"   "$(OBJDIR)\snprintf.obj"                          \
+                                                                            \
+ "$(OBJDIR)\ntlm\des_enc.obj" "$(OBJDIR)\ntlm\helpers.obj"                  \
+ "$(OBJDIR)\ntlm\ecb_enc.obj" "$(OBJDIR)\ntlm\md4_dgst.obj"                 \
+ "$(OBJDIR)\ntlm\set_key.obj"                                               \
+                                                                            \
+ "$(OBJDIR)\nt\breaksig.obj" "$(OBJDIR)\nt\dirwin32.obj"                    \
+ "$(OBJDIR)\nt\getfree.obj"  "$(OBJDIR)\nt\sem.obj"                         \
+ "$(OBJDIR)\nt\TCPErr.obj"   "$(OBJDIR)\nt\tray.obj"                        \
+ "$(OBJDIR)\nt\w32tools.obj" "$(OBJDIR)\nt\WSock.obj"
+
+RESOBJS= "$(OBJDIR)\nt\binkdres.res"
+
+# binkd9x +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !ifdef BINKD9X
-BINKDEXE=  binkd9x$(RTLSUFFIX)
-BINKD9X_DEFINES= -D"_WINDOWS" -D"BINKDW9X"
-BINKD9X_SUBSYSTEM= windows
-OUTDIRSUFFIX= -w9x
+BINKDNAME=binkd9x
+OUTDIR=$(OUTDIR)-binkd9x
+BINKDTYPE=$(BINKDTYPE), binkd9x
+CDEFS=$(CDEFS) -DBINKD9X -D_WINDOWS
+SUBSYSTEM=windows
+OBJS=$(OBJS) "$(OBJDIR)\nt\win9x.obj"
 !else
-BINKDEXE=  binkd$(RTLSUFFIX)
-BINKD9X_DEFINES= -D"_CONSOLE"
-BINKD9X_SUBSYSTEM= console
-OUTDIRSUFFIX=
+BINKDNAME=binkd
+OUTDIR=$(OUTDIR)-binkd
+CDEFS=$(CDEFS) -D_CONSOLE
+SUBSYSTEM=console
+OBJS=$(OBJS) "$(OBJDIR)\nt\service.obj"
 !endif
+# binkd9x ---------------------------------------------------------------------
 
-!ifndef DEBUG
-CFLAGS=    -nologo -M$(RTLTYPE)  -W3 -GX -Ox -c
-CDEBUG=
-OUTDIR=    .\Release$(OUTDIRSUFFIX)$(RTLSUFFIX)
-BINKDSBR=
-LDEBUG=
+# static ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!ifdef STATIC
+BINKDNAME=$(BINKDNAME)-static
+OUTDIR=$(OUTDIR)-static
+BINKDTYPE=$(BINKDTYPE), static
+CDEFS=$(CDEFS) -DRTLSTATIC
+RTLTYPE=T
 !else
-CFLAGS=    -nologo -M$(RTLTYPE)d -W3 -Gm -GX -ZI -Od -c
-CDEBUG=    -D"_DEBUG" -D"DEBUG"
-OUTDIR=    .\Debug$(OUTDIRSUFFIX)$(RTLSUFFIX)
-BINKDSBR=  -FR"$(OUTDIR)\\"
-LDEBUG=    /incremental:yes /map:"$(OUTDIR)\$(BINKDEXE).map" /debug
+RTLTYPE=D
 !endif
+# static ----------------------------------------------------------------------
 
+# debug +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!ifdef DEBUG
+BINKDNAME=$(BINKDNAME)-debug
+OUTDIR=$(OUTDIR)-debug
+BINKDTYPE=$(BINKDTYPE), debug
+RTLTYPE=$(RTLTYPE)d
+CFLAGS=$(CFLAGS) -Gm -ZI -Od
+CDEFS=$(CDEFS) -D_DEBUG -DDEBUG
+LFLAGS=$(LFLAGS) /incremental:yes /map:"$(OUTDIR)\$(BINKDNAME).map" /debug
+SBRS=$(OBJS:.obj=.sbr)
+BINKDBSC="$(OUTDIR)\$(BINKDNAME).bsc"
+!else
+CFLAGS=$(CFLAGS) -Ox
+!endif
+# debug -----------------------------------------------------------------------
+
+# debugchild, nofork ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !ifdef DEBUGCHILD
-DEBUGCHILD_CDEFS= -D"DEBUGCHILD"
+BINKDNAME=$(BINKDNAME)-debugchild
+OUTDIR=$(OUTDIR)-debugchild
+BINKDTYPE=$(BINKDTYPE), debugchild
+CDEFS=$(CDEFS) -DDEBUGCHILD
+!endif
+# debugchild, nofork ----------------------------------------------------------
+
+# perl support ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# PERLDL implies PERL
+!if defined(PERLDL) && !defined(PERL)
+PERL=1
 !endif
 
 !ifdef PERL
-PERL_COPT= -I"$(PERL_BASE)"
+
 !ifndef PERLDL
-PERL_CDEFS= -D"WITH_PERL" -DNDEBUG -DNO_STRICT -DHAVE_DES_FCRYPT -DPERL_IMPLICIT_CONTEXT -DPERL_IMPLICIT_SYS -DPERL_MSVCRT_READFIX
-PERL_LLIBS= $(PERL_BASE)\(PERL_LIB)
+BINKDNAME=$(BINKDNAME)-perl
+OUTDIR=$(OUTDIR)-perl
+BINKDTYPE=$(BINKDTYPE), perl
+CDEFS=$(CDEFS) -DPERLDL
 !else
-PERL_CDEFS= -D"WITH_PERL" -D"PERLDL" -DNDEBUG -DNO_STRICT -DHAVE_DES_FCRYPT -DPERL_IMPLICIT_CONTEXT -DPERL_IMPLICIT_SYS -DPERL_MSVCRT_READFIX
-!endif
-PERL_OBJS= $(OUTDIR)\perlhooks.obj
+BINKDNAME=$(BINKDNAME)-perldl
+OUTDIR=$(OUTDIR)-perldl
+BINKDTYPE=$(BINKDTYPE), perldl
 !endif
 
+!ifdef PERL_BASE
+PERL_INCL=$(PERL_BASE)\lib\CORE
+!endif
+
+CDEFS=$(CDEFS) -DWITH_PERL -DNDEBUG -DNO_STRICT -DHAVE_DES_FCRYPT \
+      -DPERL_IMPLICIT_CONTEXT -DPERL_IMPLICIT_SYS -DPERL_MSVCRT_READFIX
+OBJS=$(OBJS) "$(OBJDIR)\perlhooks.obj"
+
+!endif
+# perl support ----------------------------------------------------------------
+
+# zlib support ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!ifdef ZLIB
+CDEFS=$(CDEFS) -DWITH_ZLIB
+
+!ifdef ZLIB_BASE
+C_DIRS=$(C_DIRS) -I "$(ZLIB_BASE)"
+!ifndef ZLIBDL
+L_DIRS=$(L_DIRS) /LIBPATH:"$(ZLIB_BASE)"
+!endif
+!endif
+
+!ifndef ZLIBDL
+BINKDNAME=$(BINKDNAME)-zlib
+OUTDIR=$(OUTDIR)-zlib
+BINKDTYPE=$(BINKDTYPE), zlib
+!ifndef ZLIB_LIB
+ZLIB_LIB=zlib.lib
+!endif
+LIBS=$(LIBS) ZLIB_LIB
+!else
+BINKDNAME=$(BINKDNAME)-zlibdl
+OUTDIR=$(OUTDIR)-zlibdl
+BINKDTYPE=$(BINKDTYPE), zlibdl
+!endif
+
+!endif
+# zlib support ----------------------------------------------------------------
+
+# bzlib2 support ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!ifdef BZLIB2
+CDEFS=$(CDEFS) -DWITH_BZLIB2
+
+!ifdef BZLIB2_BASE
+C_DIRS=$(C_DIRS) -I "$(BZLIB2_BASE)"
+!ifndef ZLIBDL
+L_DIRS=$(L_DIRS) /LIBPATH:"$(BZLIB2_BASE)"
+!endif
+!endif
+
+!ifndef ZLIBDL
+BINKDNAME=$(BINKDNAME)-bzlib2
+OUTDIR=$(OUTDIR)-bzlib2
+BINKDTYPE=$(BINKDTYPE), bzlib2
+!ifndef BZLIB2_LIB
+BZLIB2_LIB=libbz2.lib
+!endif
+LIBS=$(LIBS) BZLIB2_LIB
+!else
+BINKDNAME=$(BINKDNAME)-bzlib2dl
+OUTDIR=$(OUTDIR)-bzlib2dl
+BINKDTYPE=$(BINKDTYPE), bzlib2dl
+!endif
+
+!endif
+# bzlib2 support --------------------------------------------------------------
+
+# zlib & bzlib2 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !if defined(ZLIB) || defined(BZLIB2)
-ZLIB_OBJS = $(OUTDIR)\compress.obj
-!endif
-!if defined(ZLIB)
-ZLIB_CDEFS= $(ZLIB_CDEFS) -DWITH_ZLIB
-!endif
-!if defined(BZLIB2)
-ZLIB_CDEFS= $(ZLIB_CDEFS) -DWITH_BZLIB2
-!endif
-!ifdef ZLIB_SRC
-ZLIB_COPT= $(ZLIB_COPT) -I"$(ZLIB_SRC)"
-!endif
-!ifdef BZLIB2_SRC
-ZLIB_COPT= $(ZLIB_COPT) -I"$(BZLIB2_SRC)"
-!endif
+OBJS=$(OBJS) "$(OBJDIR)\compress.obj"
 !ifdef ZLIBDL
-ZLIB_CDEFS= $(ZLIB_CDEFS) -DZLIBDL
-ZLIB_OBJS = $(ZLIB_OBJS) $(OUTDIR)\zlibdl.obj
+CDEFS=$(CDEFS) -DZLIBDL
+OBJS=$(OBJS) "$(OBJDIR)\zlibdl.obj"
+!endif
+!endif
+# zlib & bzlib2 ---------------------------------------------------------------
+
+# PERL_BASE & PERL_LIB ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!ifdef PERL
+
+!if !defined(PERL_INCL) || (!defined(PERL_DL) && !defined(PERL_LIB))
+
+!if !exists("$(BINDIR)")
+!if ![mkdir "$(BINDIR)"]
+!message Making directory $(BINDIR)...
+!endif
+!endif
+!if !exists("$(OUTDIR)")
+!if ![mkdir "$(OUTDIR)"]
+!message Making directory $(OUTDIR)...
 !else
-! if defined(ZLIB)
-ZLIB_LLIBS= $(ZLIB_LLIBS) $(ZLIB_SRC)\zlib.lib
-! endif
-! if defined(BZLIB2)
-ZLIB_LLIBS= $(ZLIB_LLIBS) $(BZLIB2_SRC)\libbz2.lib
-! endif
+!error Can't create directory $(OUTDIR)!
+!endif
 !endif
 
-CC=        cl
-CDEFS=     $(CDEBUG) $(DEBUGCHILD_CDEFS) $(BINKD9X_DEFINES) $(RTL_DEFINES) $(PERL_CDEFS) $(ZLIB_CDEFS) -D"HTTPS" -D"WIN32" -D"HAVE_THREADS" -D"HAVE_IO_H" -D"HAVE_DOS_H" -D"HAVE_STDARG_H" -D"VISUALCPP" -D"AMIGADOS_4D_OUTBOUND"  -D"NTLM"
-COPT=      $(BINKDSBR) $(PERL_COPT) $(ZLIB_COPT) -Fo"$(OUTDIR)\\" -Fp"$(OUTDIR)\$(BINKDEXE).pch" -YX -Fd"$(OUTDIR)\\"
-LINK=      link
-LFLAGS=    /nologo /machine:I386
-LOPT=      $(LDEBUG) /subsystem:$(BINKD9X_SUBSYSTEM) /pdb:"$(OUTDIR)\$(BINKDEXE).pdb" /out:"$(OUTDIR)\$(BINKDEXE).exe" $(PERL_LOPT)
-LLIBS=     kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib wsock32.lib $(ZLIB_LLIBS) $(PERL_LLIBS)
-BSC=       bscmake
-BINKDBSC=  "$(OUTDIR)\$(BINKDEXE).bsc"
-BSCFLAGS=  /nologo /o$(BINKDBSC)
-RSC=       rc
-
-!ifdef BINKD9X
-BINKD9X_OBJ="$(OUTDIR)\win9x.obj"
-NTSERVICE_OBJ=
+!if ![perl mkfls\nt95-msvc\perlconf.pl $(OUTDIR)\perlconf.tmp]
+!if exists("$(OUTDIR)\perlconf.tmp")
+!include "$(OUTDIR)\perlconf.tmp"
+!if ![del "$(OUTDIR)\perlconf.tmp"]
+!endif
 !else
-BINKD9X_OBJ=
-NTSERVICE_OBJ="$(OUTDIR)\service.obj"
+!error Can't include $(OUTDIR)\perlconf.tmp!
+!endif
+!else
+!error Can't execute perlconf.pl!
+!endif
 !endif
 
-NTLM_OBJS= \
- "$(OUTDIR)\des_enc.obj"  "$(OUTDIR)\helpers.obj"  "$(OUTDIR)\ecb_enc.obj" \
- "$(OUTDIR)\md4_dgst.obj" "$(OUTDIR)\set_key.obj"
-NT_OBJS= \
- "$(OUTDIR)\breaksig.obj" "$(OUTDIR)\sem.obj"      "$(OUTDIR)\getfree.obj" \
- "$(OUTDIR)\TCPErr.obj"   "$(OUTDIR)\WSock.obj"    "$(OUTDIR)\dirwin32.obj" \
- "$(OUTDIR)\w32tools.obj" "$(OUTDIR)\tray.obj"
-OBJS= \
- "$(OUTDIR)\binkd.obj"    "$(OUTDIR)\readcfg.obj"  "$(OUTDIR)\tools.obj"   \
- "$(OUTDIR)\ftnaddr.obj"  "$(OUTDIR)\ftnq.obj"     "$(OUTDIR)\client.obj"  \
- "$(OUTDIR)\server.obj"   "$(OUTDIR)\protocol.obj" "$(OUTDIR)\bsy.obj"     \
- "$(OUTDIR)\inbound.obj"  "$(OUTDIR)\branch.obj"   "$(OUTDIR)\ftndom.obj"  \
- "$(OUTDIR)\ftnnode.obj"  "$(OUTDIR)\srif.obj"     "$(OUTDIR)\pmatch.obj"  \
- "$(OUTDIR)\readflo.obj"  "$(OUTDIR)\prothlp.obj"  "$(OUTDIR)\iptools.obj" \
- "$(OUTDIR)\run.obj"      "$(OUTDIR)\binlog.obj"   "$(OUTDIR)\exitproc.obj"\
- "$(OUTDIR)\getw.obj"     "$(OUTDIR)\xalloc.obj"   "$(OUTDIR)\setpttl.obj" \
- "$(OUTDIR)\https.obj"    "$(OUTDIR)\md5b.obj"     "$(OUTDIR)\crypt.obj"   \
- "$(OUTDIR)\getopt.obj"   "$(OUTDIR)\snprintf.obj"                         \
- $(NT_OBJS) $(NTSERVICE_OBJ) $(BINKD9X_OBJ) $(NTLM_OBJS) $(PERL_OBJS) $(ZLIB_OBJS)
+!ifdef PERL_INCL
+C_DIRS=$(C_DIRS) -I "$(PERL_INCL)"
+!endif
+!ifndef PERLDL
+!ifdef PERL_INCL
+L_DIRS=$(L_DIRS) /LIBPATH:"$(PERL_INCL)"
+!endif
+!ifdef PERL_LIB
+LIBS=$(LIBS) $(PERL_LIB)
+!endif
+!endif
 
-RESOBJS= \
- "$(OUTDIR)\binkdres.res"
+!endif
+# PERL_BASE & PERL_LIB --------------------------------------------------------
+
+
+BINKDEXE = $(BINKDNAME).exe
+
+all: printinfo makedirs "$(OUTDIR)\$(BINKDEXE)" $(BINKDBSC)
+
+printinfo:
+	@echo on
+	@type <<
+-----------------------------------------------------------
+binkd type : $(BINKDTYPE)
+output dir : $(OUTDIR)
+binkd exe  : $(BINKDEXE)
+!ifdef PERL
+perlincl   : $(PERL_INCL)
+!ifndef PERLDL
+perllib    : $(PERL_LIB)
+!endif
+!endif
+!ifdef ZLIB
+!ifdef ZLIB_BASE
+zlibincl   : $(ZLIB_BASE)
+!endif
+!ifndef ZLIBDL
+zliblib    : $(ZLIB_LIB)
+!endif
+!endif
+!ifdef BZLIB2
+!ifdef BZLIB2_BASE
+bzlib2incl : $(BZLIB2_BASE)
+!endif
+!ifndef ZLIBDL
+bzlib2lib  : $(BZLIB2_LIB)
+!endif
+!endif
+-----------------------------------------------------------
+<<
+
+makedirs: $(MAKEDIRS)
+
+$(MAKEDIRS):
+	@echo Making directory $@...
+	@mkdir $@
+
+"$(OUTDIR)\$(BINKDEXE)": $(OBJS) $(RESOBJS)
+	@echo Linking $(BINKDEXE)...
+	@$(LINK) $(LFLAGS) $(L_DIRS) @<<
+$(LIBS) $(OBJS) $(RESOBJS)
+<<
 
 !ifdef DEBUG
-SBRS= $(OBJS:.obj=.sbr)
-BSCTARGET= $(BINKDBSC)
-!endif
-
-all:      "$(OUTDIR)" "$(OUTDIR)\$(BINKDEXE).exe" $(BSCTARGET)
-
-"$(OUTDIR)\$(BINKDEXE).exe": "$(OUTDIR)" $(OBJS) $(RESOBJS)
-	$(LINK) $(LFLAGS) $(LOPT) @<<
-$(LLIBS) $(OBJS) $(RESOBJS)
-<<
-
-$(BINKDBSC): "$(OUTDIR)" $(SBRS)
-	$(BSC) $(BSCFLAGS) @<<
+$(BINKDBSC): $(SBRS)
+	@echo Compiling $@...
+	@$(BSC) $(BSCFLAGS) /o$(BINKDBSC) @<<
 $(SBRS)
 <<
+!endif
 
-.c{$(OUTDIR)}.obj::
-	$(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
-$<
-<<
-{nt}.c{$(OUTDIR)}.obj::
-	$(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
-$<
-<<
-{ntlm}.c{$(OUTDIR)}.obj::
-	$(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
+.c{$(OBJDIR)}.obj::
+	@echo Compiling:
+	@$(CC) $(CFLAGS) $(CDEFS) $(C_DIRS) -Fo"$(OBJDIR)\\" -FR"$(OBJDIR)\\" @<<
 $<
 <<
 
-.c{$(OUTDIR)}.sbr::
-	$(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
-$<
-<<
-{nt}.c{$(OUTDIR)}.sbr::
-	$(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
-$<
-<<
-{ntlm}.c{$(OUTDIR)}.sbr::
-	$(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
+{nt}.c{$(OBJDIR)\nt}.obj::
+	@echo Compiling (nt/*):
+	@$(CC) $(CFLAGS) $(CDEFS) $(C_DIRS) -Fo"$(OBJDIR)\nt\\" -FR"$(OBJDIR)\\nt\\" @<<
 $<
 <<
 
-{nt}.rc{$(OUTDIR)}.res:
-	$(RSC) $(CDEFS) -D"BINKDNAME=$(BINKDEXE)" -D"BINKDEXE=$(BINKDEXE).exe" -D"_MSC_VER" /fo$@ "$<"
+{ntlm}.c{$(OBJDIR)\ntlm}.obj::
+	@echo Compiling (ntlm/*):
+	@$(CC) $(CFLAGS) $(CDEFS) $(C_DIRS) -Fo"$(OBJDIR)\ntlm\\" -FR"$(OBJDIR)\\ntlm\\" @<<
+$<
+<<
 
-"$(OUTDIR)":
-	mkdir "$(OUTDIR)"
+.c{$(OBJDIR)}.sbr::
+	@echo Compiling .sbr/.obj:
+	@$(CC) $(CFLAGS) $(CDEFS) $(C_DIRS) -Fo"$(OBJDIR)\\" -FR"$(OBJDIR)\\" @<<
+$<
+<<
+
+{nt}.c{$(OBJDIR)\nt}.sbr::
+	@echo Compiling .sbr/.obj (nt/*):
+	@$(CC) $(CFLAGS) $(CDEFS) $(C_DIRS) -Fo"$(OBJDIR)\nt\\" -FR"$(OBJDIR)\\nt\\" @<<
+$<
+<<
+
+{ntlm}.c{$(OBJDIR)\ntlm}.sbr::
+	@echo Compiling .sbr/.obj (ntlm/*):
+	@$(CC) $(CFLAGS) $(CDEFS) $(C_DIRS) -Fo"$(OBJDIR)\ntlm\\" -FR"$(OBJDIR)\\ntlm\\" @<<
+$<
+<<
+
+{nt}.rc{$(OBJDIR)\nt}.res:
+	@echo Compiling $<...
+	@$(RSC) $(CDEFS) -D"BINKDNAME=$(BINKDNAME)" -D"BINKDEXE=$(BINKDEXE)" -D"_MSC_VER" /fo$@ "$<"
 
 clean:
-	-@del "$(OUTDIR)\*.obj"
-	-@del "$(OUTDIR)\$(BINKDEXE).pch"
-	-@del "$(OUTDIR)\*.sbr"
-	-@del "$(OUTDIR)\*.idb"
-	-@del "$(OUTDIR)\$(BINKDEXE).ilk"
-	-@del "$(OUTDIR)\*.res"
+	-@$(DELTREE) "$(OBJDIR)"
+	-@del "$(OUTDIR)\$(BINKDNAME).ilk"
 
-distclean: clean
-	-@del "$(OUTDIR)\$(BINKDEXE).exe"
-	-@del "$(OUTDIR)\$(BINKDEXE).bsc"
-	-@del "$(OUTDIR)\$(BINKDEXE).map"
-	-@del "$(OUTDIR)\*.pdb"
+distclean:
+	-@$(DELTREE) "$(OUTDIR)"
 
 !if exists("Makefile.dep")
 !include "Makefile.dep"
