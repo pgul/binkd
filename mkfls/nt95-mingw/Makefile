@@ -166,8 +166,9 @@ endif
 ifdef ZLIB_BZLIB2
 ifdef ZLIBDL
 CDEFS+= -DZLIBDL
-endif
 SRCS+= zlibdl.c
+endif
+SRCS+= compress.c
 endif
 
 BINKDEXE = $(BINKDNAME).exe
