@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.75  2003/12/26 20:11:32  gul
+ * Add -d commandline switch - dump parsed config and exit;
+ * remove 'debugcfg' config token.
+ *
  * Revision 2.74  2003/11/09 03:45:45  hbrew
  * Add -vv to help message
  *
@@ -440,6 +444,7 @@ void usage (void)
 	  "  -s       run server only\n"
 	  "  -v       be verbose / dump version and quit\n"
 	  "  -vv      dump version with compilation flags and quit\n"
+	  "  -d       dump parsed config and exit\n"
 	  "  -m       disable CRAM-MD5 authorization\n"
 	  "  -h       print this help\n"
 	  "\n"
@@ -468,6 +473,7 @@ int poll_flag = 0;		       /* Run clientmgr, make all jobs, quit
 				        * (-p) */
 int quiet_flag = 0;		       /* Be quiet (-q) */
 int verbose_flag = 0;		       /* Be verbose / print version (-v) */
+int dumpcfg_flag = 0;		       /* Dump parsed config */
 int checkcfg_flag = 0;		       /* exit(3) on config change (-C) */
 int no_MD5 = 0;			       /* disable MD5 flag (-m) */
 int no_crypt = 0;		       /* disable CRYPT (-r) */
@@ -487,7 +493,7 @@ int tray_flag = 0;                     /* minimize to tray */
 #endif
 #endif
 
-const char *optstring = "CchmP:pqrsv-:?"
+const char *optstring = "CchmP:pqrsvd-:?"
 #ifdef BINKD_DAEMONIZE
 			"D"
 #endif
@@ -635,6 +641,9 @@ char *parseargs (int argc, char *argv[])
 	      ++verbose_flag;
 	      break;
 
+	    case 'd': /* dump cfg */
+	      ++dumpcfg_flag;
+
 #ifdef BINKD_DAEMONIZE
 	    case 'D': /* run as unix daemon */
 	      if (!rerun) daemon_flag = 1;
@@ -753,7 +762,14 @@ int main (int argc, char *argv[], char *envp[])
   nodes_init ();
 
   if (configpath)
+  {
     readcfg (configpath);
+    if (dumpcfg_flag)
+    {
+      debug_readcfg ();
+      exit(0);
+    }
+  }
   else if (verbose_flag)
   {
 #if defined(WIN32) && defined(BINKDW9X)

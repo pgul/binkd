@@ -22,7 +22,6 @@
 - option -mc - must crypt. Drop session if remote does not support crypt mode
 - xBSO
 - go to tray under windows
-- debugcfg -> to commandline
 - compression:
   - configurable dll paths
   - no-compression node switch, remove zaccept keyword

@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.62  2003/12/26 20:11:32  gul
+ * Add -d commandline switch - dump parsed config and exit;
+ * remove 'debugcfg' config token.
+ *
  * Revision 2.61  2003/12/26 07:51:11  val
  * up to 3 comma-separated passwords in <passwords> file are parsed
  *
@@ -577,8 +581,6 @@ static int read_shares (KEYWORD *key, int wordcount, char **words);
 static int read_syslog_facility (KEYWORD *key, int wordcount, char **words);
 #endif
 
-static void debug_readcfg (void);
-
 #define DONT_CHECK 0x7fffffffl
 
 static KEYWORD keywords[] =
@@ -620,7 +622,6 @@ static KEYWORD keywords[] =
   {"minfree-nonsecure", read_int, &work_config.minfree_nonsecure, 0, DONT_CHECK},
   {"flag", read_flag_exec_info, NULL, 'f', 0},
   {"exec", read_flag_exec_info, NULL, 'e', 0},
-  {"debugcfg", read_bool, &work_config.debugcfg, 0, 0},
   {"printq", read_bool, &work_config.printq, 0, 0},
   {"try", read_int, &work_config.tries, 0, 0xffff},
   {"hold", read_int, &work_config.hold, 0, DONT_CHECK},
@@ -903,9 +904,6 @@ int readcfg (char *path)
 
       /* setup command-line overrides */
 
-      if (verbose_flag >= 3)
-        work_config.debugcfg = 1;
-
       if (quiet_flag)
       {
         work_config.percents = 0;
@@ -933,9 +931,6 @@ int readcfg (char *path)
 
       if (!check_config())
         break;
-
-      if (work_config.debugcfg)
-        debug_readcfg ();
 
       /* All checks passed! */
 
@@ -1774,7 +1769,7 @@ static char *describe_addrtype(addrtype a)
   return "???";
 }
 
-static void debug_readcfg (void)
+void debug_readcfg (void)
 {
   KEYWORD *k;
   char szfa[FTN_ADDR_SZ + 1];

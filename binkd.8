@@ -3,7 +3,7 @@
 binkd \- transfer files between two Fidonet systems over TCP/IP
 .SH SYNOPSIS
 .B binkd
-.RB [ \-CcDipqrsvmh ]
+.RB [ \-CcDipqrsvdmh ]
 .RB [
 .B \-P
 .I node
@@ -94,6 +94,12 @@ starts both server and client.
 Be verbose.
 .B Binkd \-v
 will dump binkd's version and quit.
+.TP
+.BI \-vv
+Dump version and compiled-in options.
+.TP
+.BI \-d
+Dump parsed config and exit.
 .TP
 .BI \-m
 Disable CRAM-MD5 authorization. Implies
