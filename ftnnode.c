@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2003/04/23 04:35:34  gul
+ * Fix semaphores usage
+ *
  * Revision 2.8  2003/03/31 19:51:29  gul
  * Fix prev patch
  *
@@ -122,7 +125,6 @@ static int add_node_nolock(FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
 {
   int cn;
 
-  locknodesem();
   for (cn = 0; cn < nNod; ++cn)
   {
     if (!ftnaddress_cmp (&pNod[cn].fa, fa))
@@ -191,7 +193,6 @@ static int add_node_nolock(FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
     pNod[cn].ibox = xstrdup (ibox);
   }
 
-  releasenodesem();
   return 1;
 }
 
