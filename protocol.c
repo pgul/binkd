@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.88  2003/07/06 10:34:27  gul
+ * Migrate workaround of 100% CPU load with winsock from stable branch
+ *
  * Revision 2.87  2003/07/06 10:18:55  gul
  * Increase loglevel for "Watinig for M_GOT" message
  *
@@ -609,6 +612,17 @@ static int send_block (STATE *state)
 	return 0;
       }
       Log (7, "data transfer would block");
+#if defined(WIN32) /* workaround winsock bug - give up CPU */
+      {
+	struct timeval tv;
+	fd_set r;
+	FD_ZERO (&r);
+	FD_SET (state->s, &r);
+	tv.tv_sec = 0;
+	tv.tv_usec = 10000; /* 10 ms */
+	select (state->s + 1, &r, 0, 0, &tv);
+      }
+#endif
     }
     else
     {
