@@ -14,6 +14,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.21  2003/09/08 06:36:51  val
+ * (a) don't call exitfunc for perlhook fork'ed process
+ * (b) many compilation warnings in perlhooks.c fixed
+ *
  * Revision 2.20  2003/09/05 06:49:06  val
  * Perl support restored after config reloading patch
  *
@@ -518,8 +522,8 @@ struct perl_dlfunc { void **f; char *name; } perl_dlfuncs[] = {
 /* =========================== vars ================================== */
 
 static PerlInterpreter *perl = NULL;        /* root object for all threads */
-static const char *sv_config = "__config";  /* SV that keeps pointer to cfg */
-static const char *sv_state  = "__state";   /* SV that keeps pointer to state */
+static char *sv_config = "__config";  /* SV that keeps pointer to config */
+static char *sv_state  = "__state";   /* SV that keeps pointer to state */
 
 #define VK_FIND_CONFIG(cfg)                                        \
             { SV *sv = perl_get_sv(sv_config, FALSE);              \
@@ -585,23 +589,23 @@ struct perl_const { char *name; int value; } perl_consts[] = {
 
 #define VK_ADD_intz(_sv, _name, _v)                 \
   if ( (_sv = perl_get_sv(_name, TRUE)) != NULL ) { \
-    sv_setiv(_sv, _v); SvREADONLY(_sv);             \
+    sv_setiv(_sv, _v); SvREADONLY_on(_sv);          \
   }
 #define VK_ADD_strz(_sv, _name, _v)                 \
   if ( (_sv = perl_get_sv(_name, TRUE)) != NULL ) { \
-    sv_setpv(_sv, _v ? _v : ""); SvREADONLY(_sv);   \
+    sv_setpv(_sv, _v ? _v : ""); SvREADONLY_on(_sv);\
   }
 #define VK_ADD_str(_sv, _name, _v)                            \
   if ( (_sv = perl_get_sv(_name, TRUE)) != NULL ) {           \
     if (_v) sv_setpv(_sv, _v); else sv_setsv(_sv, &sv_undef); \
-    SvREADONLY(_sv);   \
+    SvREADONLY_on(_sv);                                       \
   }
 #define B4(l) (l>>24 & 0xff), (l>>16 & 0xff), (l>>8 & 0xff), (l & 0xff)
 #define VK_ADD_ip(_sv, _name, _v)                             \
   if ( (_sv = perl_get_sv(_name, TRUE)) != NULL ) {           \
     if (_v) sv_setpvf(_sv, "%u.%u.%u.%u", B4(ntohl(_v)));     \
     else sv_setsv(_sv, &sv_undef);                            \
-    SvREADONLY(_sv);                                          \
+    SvREADONLY_on(_sv);                                       \
   }
 
 #define VK_ADD_HASH_sv(_hv,_sv,_name)                  \
@@ -631,6 +635,9 @@ struct s_perlerr {
   int errpipe[2];
 } perlerr = { 0, {0,0} };
 int perl_errpid;
+#ifdef HAVE_FORK
+int perl_skipexitfunc = 0;
+#endif
 
 #ifdef HAVE_THREADS
 /* thread that reads from pipe */
@@ -678,6 +685,7 @@ int try = 0;
       FILE *R;
       char buf[256];
 
+      perl_skipexitfunc = 1;
       close(e->errpipe[1]);
       R = fdopen(e->errpipe[0], "r");
       buf[0] = 0;
@@ -1073,8 +1081,8 @@ int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
   /* run on_start() */
   perl_on_start();
   /* init perl queue management */
-  if (sv = perl_get_sv("want_queue", FALSE)) { perl_wants_queue = SvTRUE(sv); }
-  if (sv = perl_get_sv("manage_queue", FALSE)) { perl_manages_queue = SvTRUE(sv); }
+  if ( (sv = perl_get_sv("want_queue", FALSE)) ) { perl_wants_queue = SvTRUE(sv); }
+  if ( (sv = perl_get_sv("manage_queue", FALSE)) ) { perl_manages_queue = SvTRUE(sv); }
   if (perl_manages_queue && !perl_wants_queue) {
     Log(LL_ERR, "Perl queue management requires $want_queue to be set");
     perl_manages_queue = 0;
@@ -1317,16 +1325,14 @@ static void setup_addrs(char *name, int n, FTN_ADDR *p) {
     ftnaddress_to_str(buf, p+i);
     av_push(av, newSVpv(buf, 0));
   }
-  SvREADONLY( (SV*)av );
+  SvREADONLY_on( (SV*)av );
 }
 
 /* set session vars */
 static void setup_session(STATE *state, int lvl) {
   BINKD_CONFIG *cfg;
   SV 	*sv;
-  HV 	*hv, *hv2;
-  AV 	*av;
-  int   i;
+  HV 	*hv;
   struct sockaddr_in sin;
   socklen_t sin_len = sizeof(sin);
 
@@ -1418,7 +1424,7 @@ static FTNQ *refresh_queue(STATE *state, FTNQ *queue) {
   FTNQ *q = NULL, *qp = NULL, *q0 = NULL;
   AV *av;
   HV *hv;
-  SV **svp, *sv;
+  SV **svp;
   STRLEN len;
   int i, n;
   char *s;
@@ -1475,8 +1481,6 @@ static FTNQ *refresh_queue(STATE *state, FTNQ *queue) {
 
 /* start, after init */
 void perl_on_start(void) {
-  STRLEN n_a;
-
   if (perl_ok & (1 << PERL_ON_START)) {
      Log(LL_DBG, "perl_on_start(), perl=%p", Perl_get_context());
 #ifndef HAVE_THREADS
@@ -1506,8 +1510,6 @@ void perl_on_start(void) {
 
 /* exit, just before destruction */
 void perl_on_exit(void) {
-  STRLEN n_a;
-
   if (perl_ok & (1 << PERL_ON_EXIT)) {
 #ifdef HAVE_THREADS
      PERL_SET_CONTEXT(perl);
@@ -1540,7 +1542,6 @@ int perl_on_call(FTN_NODE *node) {
   char   buf[FTN_ADDR_SZ];
   int    rc;
   SV     *svret, *sv;
-  STRLEN len;
 
   if (perl_ok & (1 << PERL_ON_CALL)) {
     Log(LL_DBG, "perl_on_call(), perl=%p", Perl_get_context());
@@ -1578,7 +1579,6 @@ int perl_on_error(FTN_ADDR *addr, const char *error, const int where) {
   char   buf[FTN_ADDR_SZ];
   int    rc;
   SV     *svret, *sv;
-  STRLEN len;
 
   if (perl_ok & (1 << PERL_ON_ERROR)) {
     Log(LL_DBG, "perl_on_error(), perl=%p", Perl_get_context());
@@ -1732,7 +1732,6 @@ char *perl_after_handshake(STATE *state) {
 /* after session done */
 void perl_after_session(STATE *state, char *status) {
   SV *sv;
-  STRLEN len;
 
   if (Perl_get_context()) { VK_ADD_intz(sv, "__state", 0); }
   if (perl_ok & (1 << PERL_AFTER_SESSION)) {
@@ -1765,7 +1764,6 @@ void perl_after_session(STATE *state, char *status) {
 /* before receiving file */
 int perl_before_recv(STATE *state, off_t offs) {
   int    rc;
-  STRLEN len;
   SV     *svret, *sv;
 
   if (perl_ok & (1 << PERL_BEFORE_RECV)) {
