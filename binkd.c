@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19  2003/03/04 07:27:11  gul
+ * Put OS to log on start
+ *
  * Revision 2.18  2003/03/03 09:43:07  gul
  * Cosmetics changes
  *
@@ -444,7 +447,7 @@ int main (int argc, char *argv[], char *envp[])
     }
 
   print_args (tmp, sizeof (tmp), argc - 1, argv + 1);
-  Log (4, "BEGIN, " MYNAME "/" MYVER "%s", tmp);
+  Log (4, "BEGIN, " MYNAME "/" MYVER "%s%s", get_os_string(), tmp);
 
   if (sock_init ())
     Log (0, "sock_init: %s", TCPERR ());
