@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.131  2003/10/14 11:37:47  gul
+ * Fix typo
+ *
  * Revision 2.130  2003/10/14 07:34:28  gul
  * Use getwordx() for parse optional M_FILE params
  *
@@ -2816,7 +2819,7 @@ static void banner (STATE *state, BINKD_CONFIG *config)
   if (state->to) {
     strcat(szOpt, " NDA");
     if (state->NR_flag & WANT_NR) strcat(szOpt, " NR");
-    if (state->ND_flag & THEY_ND) strcat(szOpt, " NA");
+    if (state->ND_flag & THEY_ND) strcat(szOpt, " ND");
     if (state->crypt_flag & WE_CRYPT) strcat(szOpt, " CRYPT");
   }
 #ifdef WITH_ZLIB
