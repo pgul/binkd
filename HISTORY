@@ -1,3 +1,7 @@
+2003/10/06 20:17:19 1.0a-215 stas
+iphdr.h,2.15,2.16
+(Cosmetics) Rename tcperr() to w32err() for win32/win9x versions
+
 2003/10/06 20:16:50 1.0a-214 stas
 TCPErr.c,2.13,2.14 service.c,2.26,2.27 w32tools.c,2.7,2.8
 (Cosmetics) Rename tcperr() to w32err() for win32/win9x versions
