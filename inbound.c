@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2002/07/21 10:35:44  gul
+ * overwrite option
+ *
  * Revision 2.3  2002/05/06 19:25:39  gul
  * new keyword inboundCase in config
  *
@@ -63,6 +66,12 @@
 #include "tools.h"
 #include "protocol.h"
 #include "readdir.h"
+
+static struct overwriterule
+{
+  struct overwriterule *next;
+  char *mask;
+} *overwrite = NULL;
 
 /* Removes both xxxxx.hr and it's xxxxx.dt */
 static void remove_hr (char *path)
@@ -288,6 +297,35 @@ int inb_reject (char *netname, size_t size,
   }
 }
 
+void overwrite_add(char *mask)
+{
+  struct overwriterule *ps;
+
+  if (overwrite == NULL)
+  {
+    overwrite = xalloc(sizeof(*overwrite));
+    ps = overwrite;
+  }
+  else
+  {
+    for (ps = overwrite; ps->next; ps = ps->next);
+    ps->next = xalloc(sizeof(*ps));
+    ps = ps->next;
+  }
+  ps->next = NULL;
+  ps->mask = xstrdup(mask);
+}
+
+static int overwrite_test(char *netname)
+{
+  struct overwriterule *ps;
+
+  for (ps = overwrite; ps; ps = ps->next)
+    if (pmatch(ps->mask, netname))
+      return 1;
+  return 0;
+}
+
 /*
  * File is complete, rename it to it's realname. 1=ok, 0=failed.
  * Sets realname[MAXPATHLEN]
@@ -297,6 +335,7 @@ int inb_done (char *netname, size_t size, time_t time,
 {
   char tmp_name[MAXPATHLEN + 1];
   char *s, *u;
+  int  unlinked, i;
 
   *real_name = 0;
 
@@ -313,48 +352,70 @@ int inb_done (char *netname, size_t size, time_t time,
   free (u);
   strwipe (s);
 
-  s = real_name + strlen (real_name) - 1;
-
-  /* gul: for *.pkt and *.?ic (tic, zic etc.) change name but not extension */
-  /* ditto for arcmail -- mff */
-  if (ispkt (netname) || istic (netname) || isarcmail (netname) || isreq (netname))
-    s -= 4;
-
-  if (touch (tmp_name, time) != 0)
-    Log (1, "touch %s: %s", tmp_name, strerror (errno));
-
-  while (1)
+  if (overwrite_test(netname) && !ispkt(netname) && !isarcmail(netname))
   {
-    if (!RENAME (tmp_name, real_name))
+    for(i=0; ; i++)
     {
-      Log (2, "%s -> %s", netname, real_name);
-      break;
-    }
-    else
-    {
-      if (errno != EEXIST && errno != EACCES && errno != EAGAIN)
+      unlinked |= (unlink(real_name) == 0);
+      if (!RENAME (tmp_name, real_name))
+      {
+        Log (1, "%s -> %s%s", netname, real_name, unlinked?" (overwrited)":"");
+	break;
+      }
+      if ((errno != EEXIST && errno != EACCES && errno != EAGAIN) || i==10)
       {
         Log (1, "cannot rename %s to it's realname: %s! (data stored in %s)",
              netname, strerror (errno), tmp_name);
         *real_name = 0;
         return 0;
       }
-      Log (2, "error renaming `%s' to `%s': %s",
-	   netname, real_name, strerror (errno));
     }
+  } else
+  {
 
-    if (isalpha (*s) && toupper (*s) != 'Z')
-      ++*s;
-    else if (isdigit (*s) && toupper (*s) != '9')
-      ++*s;
-    else if (*s == '9')
-      *s = 'a';
-    else if (*--s == '.' || *s == '\\' || *s == '/')
+    s = real_name + strlen (real_name) - 1;
+
+    /* gul: for *.pkt and *.?ic (tic, zic etc.) change name but not extension */
+    /* ditto for arcmail -- mff */
+    if (ispkt (netname) || istic (netname) || isarcmail (netname) || isreq (netname))
+      s -= 4;
+
+    if (touch (tmp_name, time) != 0)
+      Log (1, "touch %s: %s", tmp_name, strerror (errno));
+
+    while (1)
     {
-      Log (1, "cannot rename %s to it's realname! (data stored in %s)",
-	   netname, tmp_name);
-      *real_name = 0;
-      return 0;
+      if (!RENAME (tmp_name, real_name))
+      {
+        Log (2, "%s -> %s", netname, real_name);
+        break;
+      }
+      else
+      {
+        if (errno != EEXIST && errno != EACCES && errno != EAGAIN)
+        {
+          Log (1, "cannot rename %s to it's realname: %s! (data stored in %s)",
+               netname, strerror (errno), tmp_name);
+          *real_name = 0;
+          return 0;
+        }
+        Log (2, "error renaming `%s' to `%s': %s",
+	     netname, real_name, strerror (errno));
+      }
+
+      if (isalpha (*s) && toupper (*s) != 'Z')
+        ++*s;
+      else if (isdigit (*s) && toupper (*s) != '9')
+        ++*s;
+      else if (*s == '9')
+        *s = 'a';
+      else if (*--s == '.' || *s == '\\' || *s == '/')
+      {
+        Log (1, "cannot rename %s to it's realname! (data stored in %s)",
+	     netname, tmp_name);
+        *real_name = 0;
+        return 0;
+      }
     }
   }
 

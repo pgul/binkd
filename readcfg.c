@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2002/07/21 10:35:44  gul
+ * overwrite option
+ *
  * Revision 2.5  2002/05/11 08:37:32  gul
  * Added token deletedirs
  *
@@ -191,7 +194,9 @@ static void read_flag_exec_info (KEYWORD *, char *);
 static void read_rfrule (KEYWORD *, char *);
 static void read_skipmask (KEYWORD *key, char *s);
 static void read_inboundcase (KEYWORD *, char *);
+static void read_overwrite (KEYWORD *key, char *s);
 void skipmask_add(char *mask);
+void overwrite_add(char *mask);
 
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
 
@@ -267,6 +272,7 @@ KEYWORD keywords[] =
   {"skipmask", read_skipmask, NULL, 0, 0},
   {"inboundcase", read_inboundcase, &inboundcase, 0, 0},
   {"deletedirs", read_bool, &deletedirs, 0, 0},
+  {"overwrite", read_overwrite, NULL, 0, 0},
   {NULL, NULL, NULL, 0, 0}
 };
 
@@ -795,6 +801,17 @@ static void read_skipmask (KEYWORD *key, char *s)
 
   for (i=2; (w = getword (s, i)) != NULL; i++)
     skipmask_add (w);
+  if (i == 2)
+    Log (0, "%s: %i: the syntax is incorrect", path, line);
+}
+
+static void read_overwrite (KEYWORD *key, char *s)
+{
+  char *w;
+  int i;
+
+  for (i=2; (w = getword (s, i)) != NULL; i++)
+    overwrite_add (w);
   if (i == 2)
     Log (0, "%s: %i: the syntax is incorrect", path, line);
 }

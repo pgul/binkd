@@ -490,7 +490,9 @@ NT/95:  ctrl-c problems fixed
 	New option inboundcase in binkd.cfg - set case style for received files
 	(Kostya Falkov 2:5014/33@fidonet)
 
-	New option deletedirs in binkd.cfg - delete empty point
-	dirs in BSO.
+	New option deletedirs in binkd.cfg - delete empty point dirs in BSO.
 
 	Do not send empty (60-bytes) pkt files.
+
+	New option overwrite in binkd.cfg - overwrite older file by newer.
+
