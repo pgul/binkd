@@ -1,3 +1,7 @@
+2003/09/07 07:35:18 0.9.6a-160 hbrew
+win9x.c,2.18,2.19
+Fix old noncritical bug in binkd9x (STD_OUTPUT_HANDLE --> STD_INPUT_HANDLE)
+
 2003/09/05 13:17:22 0.9.6a-159 gul
 ftnq.c,2.25,2.26 ftnq.h,2.6,2.7 protocol.c,2.114,2.115
 Send argus-compatible freqs.
