@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/05/26 20:37:59  gul
+ * typo in previous patch
+ *
  * Revision 2.9  2003/05/26 20:34:38  gul
  * Bugfix on resolving raw IP when HAVE_FORK
  *
@@ -193,7 +196,7 @@ int find_port (char *s)
 struct hostent *find_host(char *host, struct hostent *he, struct in_addr *defaddr)
 {
   struct hostent *hp;
-#ifdef HAVE_THREAD
+#ifdef HAVE_THREADS
   struct hostent ht;
   char *alist[2];
 #else
