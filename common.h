@@ -13,6 +13,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2004/02/07 14:06:06  hbrew
+ * Macros: RTLDLL-->RTLSTATIC, BINKDW9X-->BINKD9X
+ *
  * Revision 2.11  2003/10/05 09:37:42  stas
  * Optimize binkd/nt start: use hack to determine if we're running as a service without waiting for the service control manager to fail
  *
@@ -131,7 +134,7 @@ extern int verbose_flag;
 extern int daemon_flag;
 #endif
 #ifdef WIN32
-#ifndef BINKDW9X
+#ifndef BINKD9X
 extern int tray_flag;
 #endif
 #endif

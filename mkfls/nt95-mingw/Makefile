@@ -46,7 +46,7 @@ MAKEDIRS= $(OUTDIR) $(MAKEDIRSONLY)
 # binkd9x +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ifdef BINKD9X
 SRCS+= nt/win9x.c
-CDEFS+= -DBINKDW9X
+CDEFS+= -DBINKD9X
 LFLAGS+= -Wl,--subsystem,windows
 BINKDNAME=binkd9x-mingw
 OUTDIR:=$(OUTDIR)-binkd9x

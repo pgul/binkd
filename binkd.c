@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.88  2004/02/07 14:06:06  hbrew
+ * Macros: RTLDLL-->RTLSTATIC, BINKDW9X-->BINKD9X
+ *
  * Revision 2.87  2004/01/08 12:48:16  val
  * add missing 'break' for -d option case
  *
@@ -373,7 +376,7 @@
 #include <windows.h>
 #include "nt/service.h"
 #include "nt/w32tools.h"
-#ifdef BINKDW9X
+#ifdef BINKD9X
 #include "nt/win9x.h"
 #endif
 #endif
@@ -424,7 +427,7 @@ static void hup (int signo)
 
 void usage (void)
 {
-#if defined(BINKDW9X)
+#if defined(BINKD9X)
   AllocTempConsole();
 #endif
 
@@ -434,7 +437,7 @@ void usage (void)
 #endif
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
 	  "i"
-#elif defined(WIN32) && !defined(BINKDW9X)
+#elif defined(WIN32) && !defined(BINKD9X)
           "T"
 #endif
 	  "pqrsvmh] [-P node]"
@@ -453,7 +456,7 @@ void usage (void)
 	  "  -c       run client only\n"
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
 	  "  -i       run from inetd\n"
-#elif defined(BINKDW9X)
+#elif defined(BINKD9X)
 	  "  -t cmd   (start|stop|restart|status|install|uninstall) service(s)\n"
 	  "  -S name  set Win9x service name, all - use all services\n"
 #elif defined(WIN32)
@@ -507,10 +510,10 @@ static TYPE_LIST(maskchain) psPolls;   /* Create polls (-P) */
 #ifdef WIN32
 enum serviceflags service_flag = w32_noservice;  /* install, uninstall, start, stop, restart wnt/w9x service */
 char *service_name = NULL;
-#ifdef BINKDW9X
+#ifdef BINKD9X
 extern const char *Win9xStartService;  /* 'Run as win9x service' option */
 #endif
-#ifndef BINKDW9X
+#ifndef BINKD9X
 int tray_flag = 0;                     /* minimize to tray */
 #endif
 #endif
@@ -523,7 +526,7 @@ const char *optstring = "CchmP:pqrsvd-:?"
 			"i"
 #endif
 #if defined(WIN32)
-#if !defined (BINKDW9X)
+#if !defined (BINKD9X)
 			"T"
 #endif
 			"t:iuS:"
@@ -548,7 +551,7 @@ char *parseargs (int argc, char *argv[])
 	      if (!strcmp (argv[curind], "--help"))
 		usage ();
 	      else
-#if defined (BINKDW9X)
+#if defined (BINKD9X)
 	      if (!strcmp (argv[curind], Win9xStartService))
 	        service_flag = w32_run_as_service;
 	      else
@@ -567,7 +570,7 @@ char *parseargs (int argc, char *argv[])
 	      break;
 #endif
 #if defined(WIN32)
-#if !defined (BINKDW9X)
+#if !defined (BINKD9X)
 	    case 'T':
 	      tray_flag = 1;
 	      break;
@@ -702,7 +705,7 @@ char *parseargs (int argc, char *argv[])
   return cfgfile;
 }
 
-#if defined(WIN32) && !defined(BINKDW9X)
+#if defined(WIN32) && !defined(BINKD9X)
 int binkd_main (int argc, char *argv[], char *envp[]);
 int main (int argc, char *argv[], char *envp[])
 { int res=-1;
@@ -740,7 +743,7 @@ int main (int argc, char *argv[], char *envp[])
   if (service_flag==w32_installservice && !configpath)
     Log (0, "%s: invalid command line: config name must be specified", extract_filename(argv[0]));
   w32Init();
-#ifdef BINKDW9X
+#ifdef BINKD9X
   {
     int win9x_rc;
 
@@ -756,7 +759,7 @@ int main (int argc, char *argv[], char *envp[])
   if (poll_flag && server_flag)
     Log (0, "-p and -s cannot be used together");
 
-#if defined(WIN32) && !defined(BINKDW9X)
+#if defined(WIN32) && !defined(BINKD9X)
   if (service_flag!=w32_noservice)
     if (service(argc, argv, envp) && service_flag!=w32_run_as_service) {
       Log(0, "Windows NT service error");
@@ -800,7 +803,7 @@ int main (int argc, char *argv[], char *envp[])
   }
   else if (verbose_flag)
   {
-#if defined(WIN32) && defined(BINKDW9X)
+#if defined(WIN32) && defined(BINKD9X)
     AllocTempConsole();
 #endif
 

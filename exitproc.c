@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.39  2004/02/07 14:06:06  hbrew
+ * Macros: RTLDLL-->RTLSTATIC, BINKDW9X-->BINKD9X
+ *
  * Revision 2.38  2004/01/03 19:04:20  stas
  * New functions: public w32Init() and hidden w32exitfunc()
  *
@@ -157,10 +160,10 @@
 #ifdef WITH_PERL
 #include "perlhooks.h"
 #endif
-#ifdef BINKDW9X
+#ifdef BINKD9X
 #include "nt/win9x.h"
 #endif
-#if defined(WIN32) && !defined(BINKDW9X)
+#if defined(WIN32) && !defined(BINKD9X)
 #include "nt/service.h"
 #include "nt/w32tools.h"
 #endif
@@ -206,7 +209,7 @@ void close_srvmgr_socket(void)
 void exitfunc (void)
 {
   BINKD_CONFIG *config;
-#if defined(WIN32) && !defined(BINKDW9X)
+#if defined(WIN32) && !defined(BINKD9X)
   static int exitfunc_called_flag=0;
 
   if (IsNT() && isService()) {

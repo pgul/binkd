@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.7  2004/02/07 14:06:07  hbrew
+ * Macros: RTLDLL-->RTLSTATIC, BINKDW9X-->BINKD9X
+ *
  * Revision 2.6  2003/09/11 13:04:14  hbrew
  * Undo 'move binkd9x deinit to exitfunc()' patch
  *
@@ -38,7 +41,7 @@
 
 #ifndef _win9x_h
 #define _win9x_h
-#ifdef BINKDW9X
+#ifdef BINKD9X
 int win9x_process(int argc, char **argv);
 int win9x_check_name_all(void);
 

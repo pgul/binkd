@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.62  2004/02/07 14:06:06  hbrew
+ * Macros: RTLDLL-->RTLSTATIC, BINKDW9X-->BINKD9X
+ *
  * Revision 2.61  2004/01/08 13:07:40  val
  * use new pkt header parsing function in check-pkthdr, remove older function
  *
@@ -292,7 +295,7 @@
 #include "perlhooks.h"
 #endif
 
-#if defined(WIN32) && !defined(BINKDW9X)
+#if defined(WIN32) && !defined(BINKD9X)
 #include "nt/w32tools.h"
 #endif
 
@@ -610,7 +613,7 @@ void Log (int lev, char *s,...)
     ReleaseSem(&lsem);
   }
 #ifdef WIN32
-#ifdef BINKDW9X
+#ifdef BINKD9X
   if(!lev)
 #else
   if((lev<1)&&(isService()>0))
@@ -1164,9 +1167,9 @@ char *extract_filename(char *s)
 #define GET_BYTE2(arr,x) (arr[(x)] + arr[(x)+1]*0x100)
 #define SET_BYTE2(arr,x,v) { arr[(x)] = v & 0xff; arr[(x)+1] = (v/0x100) & 0xff; }
 /* parse FTN address of the pkt header byte array */
-int pkt_getaddr(unsigned char *raw, 
+int pkt_getaddr(unsigned char *raw,
                 short *oz, short *onet, short *onode, short *op,
-                short *dz, short *dnet, short *dnode, short *dp) 
+                short *dz, short *dnet, short *dnode, short *dp)
 {
   if (oz) *oz = -1; if (onet) *onet = -1; if (onode) *onode = -1; if (op) *op = -1;
   if (dz) *dz = -1; if (dnet) *dnet = -1; if (dnode) *dnode = -1; if (dp) *dp = -1;
@@ -1193,9 +1196,9 @@ int pkt_getaddr(unsigned char *raw,
   return 1;
 }
 /* set FTN address into the pkt header byte array */
-int pkt_setaddr(unsigned char *raw, 
+int pkt_setaddr(unsigned char *raw,
                 short oz, short onet, short onode, short op,
-                short dz, short dnet, short dnode, short dp) 
+                short dz, short dnet, short dnode, short dp)
 {
   /* wrong pkt version */
   if (GET_BYTE2(raw, 18) != 2) return 0;

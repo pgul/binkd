@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.27  2004/02/07 14:06:06  hbrew
+ * Macros: RTLDLL-->RTLSTATIC, BINKDW9X-->BINKD9X
+ *
  * Revision 2.26  2004/01/04 16:55:00  stas
  * Move declarations of the 'binkd_main' into one place (nt/w32tools.h)
  *
@@ -109,7 +112,7 @@
  *
  */
 
-#ifdef BINKDW9X
+#ifdef BINKD9X
 
 #include <stdlib.h>
 #include <stdio.h>

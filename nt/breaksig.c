@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.23  2004/02/07 14:06:06  hbrew
+ * Macros: RTLDLL-->RTLSTATIC, BINKDW9X-->BINKD9X
+ *
  * Revision 2.22  2003/10/23 21:38:52  gul
  * Remove C++ style comments
  *
@@ -117,7 +120,7 @@
 #include "../readcfg.h"
 #include "../common.h"
 #include "../tools.h"
-#ifdef BINKDW9X
+#ifdef BINKD9X
 #include "win9x.h"
 #endif
 #include "service.h"
@@ -160,7 +163,7 @@ SigHandler (DWORD SigType)
       Log (1, "Interrupted by Close");
       break;
     case CTRL_LOGOFF_EVENT:
-#ifndef BINKDW9X
+#ifndef BINKD9X
       if (isService ())
 	return (TRUE);
 #endif
@@ -183,7 +186,7 @@ SigHandler (DWORD SigType)
 }
 
 
-#if !defined(BINKDW9X)
+#if !defined(BINKD9X)
 /*--------------------------------------------------------------------*/
 /*  Signal handler for NT console                                     */
 /*--------------------------------------------------------------------*/
@@ -210,7 +213,7 @@ int
 set_break_handlers (void)
 {
   atexit (exitfunc);
-#if BINKDW9X
+#if BINKD9X
   CreateWin9xThread (&SigHandler);
 #else
   if (IsNT () && isService ())

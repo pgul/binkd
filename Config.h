@@ -50,7 +50,7 @@
 
 /* Enviromant variables */
 #define BINKD_LOGPATH_ENVIRON "BINKD_LOG"
-/* Icon file: you places this file into binkd directory and 
+/* Icon file: you places this file into binkd directory and
    binkd loads it for tray icon */
 #define BINKD_ICON_FILE "binkd.ico"
 
@@ -103,7 +103,7 @@
 #define MKTMPFILE_TRYES 20
 
 #ifndef OS
-  #if defined(BINKDW9X)
+  #if defined(BINKD9X)
     #define OS "Win9x"
   #elif defined(WIN32)
     #define OS "Win32"

@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.4  2004/02/07 14:06:06  hbrew
+ * Macros: RTLDLL-->RTLSTATIC, BINKDW9X-->BINKD9X
+ *
  * Revision 2.3  2003/11/17 01:03:27  hbrew
  * Fix BINKDW9X macro
  *
@@ -48,17 +51,17 @@
 #endif
 
 /* binkd9x: */
-#if defined(WIN32) && defined(BINKDW9X)
+#if defined(WIN32) && defined(BINKD9X)
 #  define _DBNKD_BINKD9X ", binkd9x"
 #else
 #  define _DBNKD_BINKD9X
 #endif
 
-/* rtldll: */
-#if defined(WIN32) && defined(RTLDLL)
-#  define _DBNKD_RTLDLL ", rtldll"
+/* rtlstatic: */
+#if defined(WIN32) && defined(RTLSTATIC)
+#  define _DBNKD_RTLSTATIC ", static"
 #else
-#  define _DBNKD_RTLDLL
+#  define _DBNKD_RTLSTATIC
 #endif
 
 /* debug: */
@@ -122,6 +125,6 @@
 #  define _DBNKD_AMIGADOS_4D_OUTBOUND
 #endif
 
-#define _DBNKD _DBNKD_COMPILER _DBNKD_BINKD9X _DBNKD_RTLDLL _DBNKD_DEBUG \
-               _DBNKD_DEBUGCHILD _DBNKD_ZLIB _DBNKD_BZLIB2 _DBNKD_PERL   \
+#define _DBNKD _DBNKD_COMPILER _DBNKD_BINKD9X _DBNKD_RTLSTATIC _DBNKD_DEBUG \
+               _DBNKD_DEBUGCHILD _DBNKD_ZLIB _DBNKD_BZLIB2 _DBNKD_PERL      \
                _DBNKD_HTTPS _DBNKD_NTLM _DBNKD_AMIGADOS_4D_OUTBOUND
