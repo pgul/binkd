@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4.2.7  2005/03/11 09:27:04  stream
+ * Options lost when passing to service (merged with service name)
+ *
  * Revision 2.4.2.6  2003/10/15 14:48:10  stas
  * Fix NT service stop
  *
@@ -647,20 +650,19 @@ int service(int argc, char **argv, char **envp)
       {
         if ( i==1 && strcmp(srvname, DEFAULT_SRVNAME)==0 )
         {
-          len += sprintf(asp+len, "-S%s", srvname);
+          len += sprintf(asp+len, "-S%s", srvname) + 1; /* count \0 */
           strnzcat(args, " \"-S", sizeof(args));
           strnzcat(args, srvname, sizeof(args));
           strnzcat(args, "\"", sizeof(args));
         }
-        if ( (j=strlen(argv[i]))>0 && strcmp(argv[i],"-") )
+        if ( *argv[i] && strcmp(argv[i],"-") )
         {
+          len += sprintf(asp+len, "%s", argv[i]) + 1; /* count \0 */
           strnzcat(args, " \"", sizeof(args));
           strnzcat(args, argv[i], sizeof(args));
           strnzcat(args, "\"", sizeof(args));
           memcpy(asp+len, argv[i], j);
-          len+=j;
         }
-        asp[len++]=0;
       }
       asp[len++]=0;
       Log(-1,"%s\n",args);
