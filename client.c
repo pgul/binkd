@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.58  2004/11/07 13:52:40  stream
+ * Automatically rescan outbound after reload of configuration
+ *
  * Revision 2.57  2004/11/05 12:44:24  gul
  * Client manager did not reload config on change
  * in fork versions (unix, os2-emx)
@@ -322,20 +325,20 @@ struct call_args
 /*
  * Run one client loop. Return -1 to exit
  */
-static int do_client(BINKD_CONFIG *config, int *pq_empty)
+static int do_client(BINKD_CONFIG *config)
 {
   FTN_NODE *r;
   int pid;
   int n_cl = n_clients;
 
-  if (*pq_empty)
+  if (!config->q_present)
   {
     q_free (SCAN_LISTED, config);
     if (config->printq)
       Log (-1, "scan\r");
     n_cl = n_clients;
     q_scan (SCAN_LISTED, config);
-    *pq_empty = !q_not_empty (config);
+    config->q_present = (q_not_empty (config) != NULL);
     if (config->printq)
     {
       LockSem (&lsem);
@@ -385,7 +388,7 @@ static int do_client(BINKD_CONFIG *config, int *pq_empty)
         Log (4, "the queue is empty, quitting...");
         return -1;
       }
-      *pq_empty = 1;
+      config->q_present = 0;
       unblockchld();
       SLEEP (config->rescan_delay);
       blockchld();
@@ -403,7 +406,6 @@ static int do_client(BINKD_CONFIG *config, int *pq_empty)
 
 void clientmgr (void *arg)
 {
-  int q_empty = 1;
   int status;
 
   UNUSED_ARG(arg);
@@ -432,10 +434,9 @@ void clientmgr (void *arg)
       checkcfg();
 
     config = lock_current_config();
-
-    status = do_client(config, &q_empty);
-
+    status = do_client(config);
     unlock_config_structure(config);
+
   } while (status == 0 && !binkd_exit);
 
   Log (5, "downing clientmgr...");
