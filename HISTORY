@@ -1,3 +1,7 @@
+2003/10/29 23:09:13 1.0a-289 gul
+btypes.h,NONE,2.1 Config.h,2.307,2.308 binkd.c,2.71,2.72 binlog.c,2.9,2.10 branch.c,2.10,2.11 breaksig.c,2.4,2.5 bsy.c,2.8,2.9 client.c,2.50,2.51 exitproc.c,2.35,2.36 ftnaddr.c,2.7,2.8 ftnaddr.h,2.3,2.4 ftndom.c,2.3,2.4 ftndom.h,2.5,2.6 ftnnode.c,2.24,2.25 ftnnode.h,2.14,2.15 ftnq.c,2.27,2.28 ftnq.h,2.7,2.8 getw.c,2.6,2.7 getw.h,2.0,2.1 https.c,2.18,2.19 inbound.c,2.22,2.23 iptools.c,2.13,2.14 iptools.h,2.6,2.7 md5b.c,2.7,2.8 md5b.h,2.5,2.6 perlhooks.c,2.37,2.38 perlhooks.h,2.5,2.6 prothlp.c,2.5,2.6 prothlp.h,2.4,2.5 protoco2.h,2.16,2.17 protocol.c,2.136,2.137 readcfg.c,2.58,2.59 readcfg.h,2.26,2.27 readflo.c,2.4,2.5 readflo.h,2.3,2.4 run.c,2.5,2.6 server.c,2.36,2.37 srif.c,2.14,2.15 srif.h,2.3,2.4 tools.c,2.55,2.56 tools.h,2.23,2.24 xalloc.c,2.4,2.5 zlibdl.c,2.13,2.14
+Change include-files structure, relax dependences
+
 2003/10/29 23:08:45 1.0a-288 gul
 daemonize.c,2.6,2.7
 Change include-files structure, relax dependences
