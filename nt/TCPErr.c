@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.4  2003/05/23 09:11:13  stas
+ * Improve diagnostic: print Win32API error message on unknown error
+ *
  * Revision 2.3  2003/05/23 07:55:23  stas
  * Update error messages, add comments with messages published in MSDN
  *
@@ -76,41 +79,41 @@
 /*--------------------------------------------------------------------*/
 static const char *sockerrors[] =
 { /*string*/                                /*index*/          /*Message taken from MSDN*/
-  "Error 0",                                 /* 0 */
-  "Error 1",                                 /* 1 */
-  "Error 2",                                 /* 2 */
-  "Error 3",                                 /* 3 */
+  NULL,                                 /* 0 */
+  NULL,                                 /* 1 */
+  NULL,                                 /* 2 */
+  NULL,                                 /* 3 */
   "The (blocking) call was canceled via WSACancelBlockingCall().", /* +4 */ /*A blocking operation was interrupted by a call to WSACancelBlockingCall*/
-  "Error 5",                                 /* 5 */
+  NULL,                                 /* 5 */
   "No such device or address",		    /* SOCBASEERR+6 */
-  "Error 7",                                 /* 7 */
-  "Error 8",                                 /* 8 */
+  NULL,                                 /* 7 */
+  NULL,                                 /* 8 */
   "Bad file number",			    /* SOCBASEERR+9 */ /*The file handle supplied is not valid*/
-  "Error 10",                                /* 10 */
-  "Error 11",                                /* 11 */
-  "Error 12",                                /* 12 */
+  NULL,                                /* 10 */
+  NULL,                                /* 11 */
+  NULL,                                /* 12 */
   "Permission denied",			    /* SOCBASEERR+13 */ /*An attempt was made to access a socket in a way forbidden by its access permissions*/
   "Bad address",			    /* SOCBASEERR+14 */ /*The system detected an invalid pointer address in attempting to use a pointer argument in a call*/
-  "Error 15",
-  "Error 16",
-  "Error 17",
-  "Error 18",
-  "Error 19",
-  "Error 20",
-  "Error 21",
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
   "Invalid argument",			    /* SOCBASEERR+22 */ /*An invalid argument was supplied*/
-  "Error 23",
+  NULL,
   "Too many open sockets",		    /* SOCBASEERR+24 */ /*Too many open sockets*/
-  "Error 25",
-  "Error 26",
-  "Error 27",
-  "Error 28",
-  "Error 29",
-  "Error 30",
-  "Error 31",
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
   "Broken pipe",			    /* SOCBASEERR+32 */
-  "Error 33",
-  "Error 34",
+  NULL,
+  NULL,
   "Operation would block",		    /* SOCBASEERR+35 */ /*A non-blocking socket operation could not be completed immediately*/
   "Operation now in progress",		    /* SOCBASEERR+36 */ /*A blocking operation is currently executing*/
   "Operation already in progress",	    /* SOCBASEERR+37 */ /*An operation was attempted on a non-blocking socket that already had an operation in progress*/
@@ -143,11 +146,11 @@ static const char *sockerrors[] =
   "Host is down",			    /* SOCBASEERR+64 */ /*A socket operation failed because the destination host was down*/
   "No route to host",			    /* SOCBASEERR+65 */ /*A socket operation was attempted to an unreachable host*/
   "Directory not empty",		    /* SOCBASEERR+66 */ /*Cannot remove a directory that is not empty*/
-  "Error 67",                                                   /*A Windows Sockets implementation may have a limit on the number of applications that may use it simultaneously*/
-  "Error 68",                                                   /*Ran out of quota*/
-  "Error 69",                                                   /*Ran out of disk quota*/
-  "Error 70",                                                   /*File handle reference is no longer available*/
-  "Error 71"                                                    /*Item is not available locally*/
+  "Applications limit reached",                                 /*A Windows Sockets implementation may have a limit on the number of applications that may use it simultaneously*/
+  NULL,                                                   /*Ran out of quota*/
+  NULL,                                                   /*Ran out of disk quota*/
+  NULL,                                                   /*File handle reference is no longer available*/
+  NULL                                                    /*Item is not available locally*/
 
 };
 
@@ -161,15 +164,38 @@ static const char *sockerrors[] =
 /*    return string to winsock error.                                 */
 /*--------------------------------------------------------------------*/
 
+#define W32API_StrErrorSize 255
+/* Return error string for win32 API error
+ * return pointer to static char array
+ */
+char *W32APIstrerror(int errnum)
+{ static char st[W32API_StrErrorSize];
+  char stemp[W32API_StrErrorSize];
+
+  stemp[0]='\0';
+    FormatMessage( 
+        FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        errnum,
+        0, /* Default language */
+        (LPTSTR) &stemp,
+        sizeof(stemp),
+        NULL 
+    );
+    AnsiToOem(stemp,st);
+
+  return st;
+}
+
 const char *tcperr (void) {
-static char Str[512];
+static char Str[W32API_StrErrorSize+15];
 int err = h_errno - WSABASEERR;
 
-   if (err > (sizeof (sockerrors) / sizeof (char *))) {   
-      sprintf(Str,"TCP/IP error (%d)",err);
-      return Str;
+   if ( (err<0) || (err > (sizeof (sockerrors) / sizeof (char *))) || !sockerrors[err] || !sockerrors[err][0] ) {
+      sprintf(Str,"{%d} %s",h_errno,W32APIstrerror(h_errno));
    } else {
-      sprintf(Str,"{%d} %s",err,sockerrors[err]);
-      return Str;
+      sprintf(Str,"{%d} %s",h_errno,sockerrors[err]);
    }
+   return Str;
 }
