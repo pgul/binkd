@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.28  2003/03/26 10:44:40  gul
+ * Code cleanup
+ *
  * Revision 2.27  2003/03/25 20:37:46  gul
  * free_hostent() function
  *
@@ -317,7 +320,6 @@ static int call0 (FTN_NODE *node)
   struct sockaddr_in sin;
   char **cp;
   char szDestAddr[FTN_ADDR_SZ + 1];
-  char *alist[2];
   struct in_addr defaddr;
   int i, rc;
   char host[MAXHOSTNAMELEN + 1];       /* current host/port */
@@ -360,7 +362,7 @@ static int call0 (FTN_NODE *node)
     else
       sin.sin_port = htons((unsigned short)atoi(sport));
     /* resolve proxy host */
-    if ((hp = find_host(host, &he, alist, &defaddr)) == NULL)
+    if ((hp = find_host(host, &he, &defaddr)) == NULL)
     {
       Log(1, "%s host %s not found", proxy[0] ? "Proxy" : "Socks", host);
       return 0;
@@ -381,7 +383,7 @@ static int call0 (FTN_NODE *node)
     if (!proxy[0] && !socks[0]) /* don't resolve if proxy or socks specified */
 #endif
     {
-      if ((hp = find_host(host, &he, alist, &defaddr)) == NULL)
+      if ((hp = find_host(host, &he, &defaddr)) == NULL)
       {
         bad_try(&node->fa, "Cannot gethostbyname");
         continue;
@@ -468,7 +470,7 @@ badtry:
 #ifdef HTTPS
     if (!proxy[0] && !socks[0])
 #endif
-      free_hostent(hp, alist);
+      free_hostent(hp);
 #endif
 #ifdef HTTPS
     if (sockfd != INVALID_SOCKET && (proxy[0] || socks[0]) &&
@@ -483,7 +485,7 @@ badtry:
   }
 #if defined(HAVE_THREADS) && defined(HTTPS)
   if (proxy[0] || socks[0])
-    free_hostent(hp, alist);
+    free_hostent(hp);
 #endif
 
   if (sockfd == INVALID_SOCKET)

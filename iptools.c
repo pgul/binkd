@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/03/26 10:44:40  gul
+ * Code cleanup
+ *
  * Revision 2.5  2003/03/25 20:37:46  gul
  * free_hostent() function
  *
@@ -59,6 +62,8 @@
 #include "readcfg.h"
 #include "sem.h"
 
+static char *alist[2];
+
 /*
  * Finds ASCIIZ address
  */
@@ -79,7 +84,7 @@ const char *get_hostname (struct sockaddr_in *addr, char *host, int len)
 }
 
 #ifdef HAVE_THREADS
-void copy_hostent(struct hostent *dest, struct hostent *src)
+struct hostent *copy_hostent(struct hostent *dest, struct hostent *src)
 {
   int naddr;
   char **cp;
@@ -100,16 +105,18 @@ void copy_hostent(struct hostent *dest, struct hostent *src)
       dest->h_addr_list[naddr] = NULL;
     }
   }
+  return dest;
 }
 
-void free_hostent(struct hostent *hp, char **alist)
+void free_hostent(struct hostent *hp)
 {
-  if (hp && hp->h_addr_list != alist)
+  if (hp)
   {
     if (hp->h_addr_list && hp->h_addr_list[0])
       free(hp->h_addr_list[0]);
     if (hp->h_addr_list)
       free(hp->h_addr_list);
+    hp->h_addr_list = NULL;
   }
 }
 #endif
@@ -168,7 +175,7 @@ int find_port (char *s)
  * Find the host IP address list by a domain name or IP address string.
  * Returns NULL on error.
  */
-struct hostent *find_host(char *host, struct hostent *he, char **alist, struct in_addr *defaddr)
+struct hostent *find_host(char *host, struct hostent *he, struct in_addr *defaddr)
 {
   struct hostent *hp;
 
@@ -184,14 +191,12 @@ struct hostent *find_host(char *host, struct hostent *he, char **alist, struct i
       releasehostsem();
       return NULL;
     }
-#ifdef HAVE_THREADS
-    copy_hostent(he, hp);
-    hp = he;
-#endif
+    hp = copy_hostent(he, hp);
     releasehostsem();
     return hp;
   }
   /* Raw ip address, fake */
+  lockhostsem();
   hp = he;
   hp->h_name = host;
   hp->h_aliases = 0;
@@ -200,6 +205,8 @@ struct hostent *find_host(char *host, struct hostent *he, char **alist, struct i
   hp->h_addr_list = alist;
   hp->h_addr_list[0] = (char *) defaddr;
   hp->h_addr_list[1] = (char *) 0;
+  hp = copy_hostent(he, hp);
+  releasehostsem();
   return hp;
 }
 

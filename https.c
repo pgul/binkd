@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2003/03/26 10:44:40  gul
+ * Code cleanup
+ *
  * Revision 2.12  2003/03/25 21:09:04  gul
  * Memory leak
  *
@@ -121,7 +124,7 @@ int h_connect(int so, char *host)
 	int i;
 	struct hostent he, *hp;
 	char buf[8192], *pbuf;
-	char *sp, *sauth, **cp, *alist[2];
+	char *sp, *sauth, **cp;
 	struct in_addr defaddr;
 	unsigned port;
 
@@ -264,12 +267,12 @@ int h_connect(int so, char *host)
 			port = oport; /* should never happens */
 		if (!sauth)
 		{
-			if ((hp=find_host(host, &he, alist, &defaddr)) == NULL)
+			if ((hp=find_host(host, &he, &defaddr)) == NULL)
 				return 1;
 		}
 		else
 		{
-			hp = find_host("127.0.0.1", &he, alist, &defaddr);
+			hp = find_host("127.0.0.1", &he, &defaddr);
 			sauth=strdup(sauth);
 			sp=strchr(sauth, '/');
 			buf[0]=5;
@@ -288,6 +291,7 @@ int h_connect(int so, char *host)
 			{
 				Log(1, "Auth. method not supported by socks5 server");
 				free(sauth);
+				free_hostent(hp);
 				SetTCPError(PR_ERROR);
 				return 1;
 			}
@@ -313,6 +317,7 @@ int h_connect(int so, char *host)
 				{
 					Log(1, "Authentication failed (socks5 returns %02X%02X)", (unsigned char)buf[0], (unsigned char)buf[1]);
 					free(sauth);
+					free_hostent(hp);
 					SetTCPError(PR_ERROR);
 					return 1;
 				}
@@ -371,14 +376,14 @@ int h_connect(int so, char *host)
 					Log(4, "socks timeout...");
 					SetTCPError(PR_ERROR);
 					if (sauth) free(sauth);
-					free_hostent(hp, alist);
+					free_hostent(hp);
 					return 1;
 				}
 				if (recv(so, buf+i, 1, 0)<1) {
 					Log(2, "connection closed by socks server...");
 					SetTCPError(PR_ERROR);
 					if (sauth) free(sauth);
-					free_hostent(hp, alist);
+					free_hostent(hp);
 					return 1;
 				}
 				if (!sauth && i>6) /* 8th byte received */
@@ -386,7 +391,7 @@ int h_connect(int so, char *host)
 					if (buf[0]!=0) {
 						Log(2, "Bad reply from socks server");
 						SetTCPError(PR_ERROR);
-						free_hostent(hp, alist);
+						free_hostent(hp);
 						return 1;
 					}
 					if (buf[1]!=90) {
@@ -395,7 +400,7 @@ int h_connect(int so, char *host)
 						break; /* try next IP */
 					}
 					else {
-						free_hostent(hp, alist);
+						free_hostent(hp);
 						return 0;
 					}
 				}
@@ -405,12 +410,14 @@ int h_connect(int so, char *host)
 						Log(2, "Bad reply from socks server");
 						SetTCPError(PR_ERROR);
 						free(sauth);
+						free_hostent(hp);
 						return 1;
 					}
 					if ((buf[3]==1) && (i<9)) continue;
 					if ((buf[3]==3) && (i<(6+(unsigned char)buf[4]))) continue;
 					if ((buf[3]==4) && (i<21)) continue;
 					free(sauth);
+					free_hostent(hp);
 					if (!buf[1])	return 0;
 					switch (buf[1])
 					{
@@ -429,7 +436,7 @@ int h_connect(int so, char *host)
 				}
 			}
 		}
-		free_hostent(hp, alist);
+		free_hostent(hp);
 	}
 	return 0;
 }

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/03/26 10:44:40  gul
+ * Code cleanup
+ *
  * Revision 2.4  2003/03/25 21:09:04  gul
  * Memory leak
  *
@@ -44,11 +47,12 @@
 const char *get_hostname (struct sockaddr_in * addr, char *host, int len);
 
 #ifdef HAVE_THREADS
-void copy_hostent(struct hostent *dest, struct hostent *src);
+struct hostent *copy_hostent(struct hostent *dest, struct hostent *src);
 
-void free_hostent(struct hostent *hp, char **alist);
+void free_hostent(struct hostent *hp);
 #else
-#define free_hostent(hp, alist)
+#define free_hostent(hp)
+#define copy_hostent(dest, src) (src)
 #endif
 
 /*
@@ -68,4 +72,4 @@ int find_port (char *s);
  *  * Find the host IP address list by a domain name or IP address string.
  *   * Returns NULL on error.
  *    */
-struct hostent *find_host(char *host, struct hostent *he, char **alist, struct in_addr *defaddr);
+struct hostent *find_host(char *host, struct hostent *he, struct in_addr *defaddr);
