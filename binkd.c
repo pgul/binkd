@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.80  2004/01/03 18:42:42  stas
+ * Now use srvname var in nt/* only
+ *
  * Revision 2.79  2004/01/03 15:38:50  stas
  * Implement service control option for Windows NT/2k/XP
  *
@@ -498,8 +501,6 @@ enum serviceflags service_flag = w32_noservice;  /* install, uninstall, start, s
 char *service_name = NULL;
 #ifdef BINKDW9X
 extern const char *Win9xStartService;  /* 'Run as win9x service' option */
-#else
-extern char *srvname;
 #endif
 #ifndef BINKDW9X
 int tray_flag = 0;                     /* minimize to tray */
@@ -803,13 +804,6 @@ int main (int argc, char *argv[], char *envp[])
 
   print_args (tmp, sizeof (tmp), argv + 1);
 #ifdef WIN32
-/*#ifndef BINKDW9X*/
-  if (IsNT() && isService()) {
-    service_flag = w32_run_as_service;
-    if (!service_name)
-      service_name = strdup((const char *)srvname);
-  }
-/*#endif*/
   if (service_flag==w32_run_as_service)
     Log (4, "BEGIN service '%s', " MYNAME "/" MYVER "%s%s", service_name, get_os_string(), tmp);
   else
