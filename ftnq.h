@@ -14,6 +14,9 @@
 /* $Id$
  *
  * $Log$
+ * Revision 2.4  2003/05/28 14:32:57  gul
+ * new function q_add_last_file() - add file to the end of queue
+ *
  * Revision 2.3  2003/03/01 18:04:30  gul
  * Remove redundrant include <sys/time.h>
  *
@@ -91,6 +94,11 @@ void q_free (FTNQ *q);
  * Add a file to the queue.
  */
 FTNQ *q_add_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action, char type);
+
+/*
+ * Add a file to the end of queue.
+ */
+FTNQ *q_add_last_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action, char type);
 
 /*
  * Adds to the q all files for n akas stored in fa

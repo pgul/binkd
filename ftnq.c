@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19  2003/05/28 14:32:57  gul
+ * new function q_add_last_file() - add file to the end of queue
+ *
  * Revision 2.18  2003/04/24 20:07:38  gul
  * Send freq first
  *
@@ -774,6 +777,22 @@ FTNQ *q_add_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action
     }
     releasenodesem();
   }
+  return q;
+}
+
+/*
+ * Add a file to the end of queue.
+ */
+FTNQ *q_add_last_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action, char type)
+{
+  FTNQ *new_file, *pq;
+
+  new_file = q_add_file (NULL, filename, fa1, flvr, action, type);
+  if (new_file == NULL) return q;
+  if (q == NULL) return new_file;
+  for (pq = q; pq->next; pq = pq->next);
+  new_file->prev = pq;
+  pq->next = new_file;
   return q;
 }
 

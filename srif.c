@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2003/05/28 14:32:57  gul
+ * new function q_add_last_file() - add file to the end of queue
+ *
  * Revision 2.8  2003/05/27 16:11:17  gul
  * Improve logging
  *
@@ -211,13 +214,13 @@ static FTNQ *parse_response (FTNQ *q, char *rsp, FTN_ADDR *fa)
       switch (*buf)
 	{
 	  case '=':
-	    q = q_add_file (q, buf + 1, fa, 'h', 'd', 0);
+	    q = q_add_last_file (q, buf + 1, fa, 'h', 'd', 0);
 	    break;
 	  case '+':
-	    q = q_add_file (q, buf + 1, fa, 'h', 0, 0);
+	    q = q_add_last_file (q, buf + 1, fa, 'h', 0, 0);
 	    break;
 	  case '-':
-	    q = q_add_file (q, buf + 1, fa, 'h', 'a', 0);
+	    q = q_add_last_file (q, buf + 1, fa, 'h', 'a', 0);
 	    break;
 	  default:
 	    Log (2, "parse_response: unknown predictor `%c', ignored response file `%s'", *buf, buf + 1);
