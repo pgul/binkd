@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.92  2003/08/04 12:23:42  gul
+ * Auto increase patchlevel, set 0.9.6a-80
+ * Add CVS tags
+ *
  * Revision 2.91  2003/08/04 12:17:51  gul
  * Auto increase patchlevel, set 0.9.6a-79
  * Remove extra error message
@@ -399,7 +403,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-79"
+#define MYVER "0.9.6a-80"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
