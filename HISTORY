@@ -1,3 +1,7 @@
+2004/11/01 15:05:43 1.0a-418 gul
+client.c,2.55,2.56
+Bugfix in connect-timeout
+
 2004/10/29 16:05:14 1.0a-417 stas
 getfree.c,2.9,2.10
 Add diagnostic about free space great 4Tb (win32 only)
