@@ -114,14 +114,14 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /D "HTTPS" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "HAVE_THREADS" /D "HAVE_IO_H" /D "VISUALCPP" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\binkd.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /D "HTTPS" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "HAVE_THREADS" /D "HAVE_IO_H" /D "VISUALCPP" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\binkd.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /c 
 
-.c{$(INTDIR)}.obj::
+.c{$(INTDIR)}.obj:
    $(CPP) @<<
    $(CPP_PROJ) $< 
 <<
 
-.c{$(INTDIR)}.sbr::
+.c{$(INTDIR)}.sbr:
    $(CPP) @<<
    $(CPP_PROJ) $< 
 <<
@@ -264,14 +264,14 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MT /W3 /GX /Ox /D "HTTPS" /D "WIN32" /D "_CONSOLE" /D "HAVE_THREADS" /D "HAVE_IO_H" /D "VISUALCPP" /Fp"$(INTDIR)\binkd.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MT /W3 /GX /Ox /D "HTTPS" /D "WIN32" /D "_CONSOLE" /D "HAVE_THREADS" /D "HAVE_IO_H" /D "VISUALCPP" /Fp"$(INTDIR)\binkd.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /c 
 
-.c{$(INTDIR)}.obj::
+.c{$(INTDIR)}.obj:
    $(CPP) @<<
    $(CPP_PROJ) $< 
 <<
 
-.c{$(INTDIR)}.sbr::
+.c{$(INTDIR)}.sbr:
    $(CPP) @<<
    $(CPP_PROJ) $< 
 <<
