@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.3  2001/09/24 10:31:39  gul
+ * Build under mingw32
+ *
  * Revision 2.2  2001/04/25 20:07:36  gul
  * bugfix
  *
@@ -48,6 +51,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include <limits.h>
+#include <ctype.h>
 
 /*--------------------------------------------------------------------*/
 /*                        Local include files                         */

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2001/09/24 10:31:39  gul
+ * Build under mingw32
+ *
  * Revision 2.0  2001/01/10 12:12:39  gul
  * Binkd is under CVS again
  *
@@ -440,7 +443,7 @@ char *strwipe (char *s)
   for (i = 0; s[i]; ++i)
     if ((iscntrl (s[i]) || s[i] == '\\' || s[i] == '/' || s[i] == ':')
 #ifdef WIN32 /* ungly hack */
-        && (s[i] & 0x80 == 0)
+        && ((s[i] & 0x80) == 0)
 #endif
        )
       s[i] = '_';

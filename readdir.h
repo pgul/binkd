@@ -16,6 +16,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2001/09/24 10:31:39  gul
+ * Build under mingw32
+ *
  * Revision 2.0  2001/01/10 12:12:39  gul
  * Binkd is under CVS again
  *
@@ -28,6 +31,9 @@
 
 #if defined(__WATCOMC__) || defined(VISUALCPP)
 #include <direct.h>
+#include <sys/utime.h>
+#elif defined(__MINGW32__)
+#include <dirent.h>
 #include <sys/utime.h>
 #else
 #include <dirent.h>

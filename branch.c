@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2001/09/24 10:31:39  gul
+ * Build under mingw32
+ *
  * Revision 2.0  2001/01/10 12:12:37  gul
  * Binkd is under CVS again
  *
@@ -102,7 +105,11 @@ again:
 #endif
 
 #ifdef HAVE_THREADS
+#ifdef __MINGW32__
+  if ((rc = _beginthread (F, STACKSIZE, arg)) < 0)
+#else
   if ((rc = _beginthread (F, 0, STACKSIZE, arg)) < 0)
+#endif
   {
     Log (1, "_beginthread: %s", strerror (errno));
   }

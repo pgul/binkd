@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2001/09/24 10:31:39  gul
+ * Build under mingw32
+ *
  * Revision 2.1  2001/08/24 13:23:28  da
  * binkd/binkd.c
  * binkd/readcfg.c
@@ -33,14 +36,10 @@
 #include <io.h>
 #include <direct.h>
 #include <string.h>
+#include <malloc.h>
+#include "../Config.h"
 #include "../tools.h"
 #include "service.h"
-
-#ifdef __WATCOMC__
-#define MAXPATHLEN NAME_MAX
-#else
-#define MAXPATHLEN _MAX_PATH
-#endif
 
 static char libname[]="ADVAPI32";
 static char *srvname="binkd-service";
@@ -51,7 +50,7 @@ static int res_checkservice=0;
 static DWORD dwErr=0;
 static char **serv_argv=NULL;
 static char **serv_envp=NULL;
-int service_main(int type);
+static int service_main(int type);
 extern int checkcfg_flag;
 int isService=0;
 
@@ -129,7 +128,6 @@ static void ServiceStart(LPTSTR args)
   int i, argc;
   char *sp=(char*)malloc(sw);
   char *env=NULL;
-  int stopping=0;
 
   strcpy(sp, reg_path);
   strcat(sp, srvname);
@@ -398,7 +396,7 @@ static void wndthread(void *par)
     i = GetConsoleTitle(buf, sizeof(buf));
     if (i < 0) i = 0;
     buf[i] = 0;
-    sprintf(bn, "%x", GetCurrentThreadId());
+    sprintf(bn, "%x", (unsigned int)GetCurrentThreadId());
     for (i = 0; i < 40; i++)
     {
         SetConsoleTitle(bn);
@@ -548,7 +546,7 @@ int service(int argc, char **argv, char **envp)
 
   if ((argc==1) || ((argc == 3) && (argv[1][0] == 1)))
   {
-    SERVICE_TABLE_ENTRY dt[]= { srvname, (LPSERVICE_MAIN_FUNCTION)ServiceMain, NULL, NULL};
+    SERVICE_TABLE_ENTRY dt[]= { {srvname, (LPSERVICE_MAIN_FUNCTION)ServiceMain}, {NULL, NULL}};
     if(service_main(6)) return argc;
     if(!StartServiceCtrlDispatcher(dt)) return argc;
     exit(0);

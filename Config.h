@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2001/09/24 10:31:39  gul
+ * Build under mingw32
+ *
  * Revision 2.0  2001/01/10 12:12:37  gul
  * Binkd is under CVS again
  *
@@ -34,6 +37,11 @@
   #include <direct.h>
   #ifndef MAXPATHLEN
     #define MAXPATHLEN _MAX_PATH
+  #endif
+#elif defined (__MINGW32__)
+  #include <limits.h>
+  #ifndef MAXPATHLEN
+    #define MAXPATHLEN PATH_MAX
   #endif
 #else
   #include <sys/param.h>
@@ -74,7 +82,7 @@
 #ifndef O_BINARY
   #define O_BINARY 0
 #endif
-#if defined(__WATCOMC__) || defined(VISUALCPP)
+#if defined(__WATCOMC__) || defined(VISUALCPP) || defined(__MINGW32__)
   #define MKDIR(s) mkdir(s)
 #else
   #define MKDIR(s) mkdir(s, 0755)
@@ -85,6 +93,18 @@
   #elif defined(OS2)
     #define OS "OS2"
   #endif
+#endif
+
+#ifdef __MINGW32__
+#define open  _open
+#define close _close
+#define read  _read
+#define write _write
+#define stat  _stat
+#define fstat _fstat
+#define sleep _sleep
+#define snprintf  _snprintf
+#define vsnprintf _vsnprintf
 #endif
 
 /* Pragmas */
