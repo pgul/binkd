@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.76  2004/10/26 15:46:42  gul
+ * Process option skipmask for backward compatibility
+ *
  * Revision 2.75  2004/10/25 17:04:54  gul
  * Process passwords file after all, independent of its place in config.
  * Use first password for node if several specified.
@@ -691,6 +694,7 @@ static KEYWORD keywords[] =
   {"deletebox", read_bool, &work_config.deleteablebox, 0, 0},
 #endif
   {"skip", read_skip, NULL, 0, 0},
+  {"skipmask", read_skip, NULL, 1, 0},
   {"inboundcase", read_inboundcase, &work_config.inboundcase, 0, 0},
   {"deletedirs", read_bool, &work_config.deletedirs, 0, 0},
   {"overwrite", read_mask, &work_config.overwrite, 0, 0},
@@ -1651,24 +1655,24 @@ static addrtype parse_addrtype(char *w)
 /* skip [all|listed|unlisted|secure|unsecure] [!]<size>|- <mask>... */
 static int read_skip (KEYWORD *key, int wordcount, char **words)
 {
-  int i, destr = 0, maskonly = 0;
+  int i, destr, maskonly = 0;
   off_t sz = 0;
   addrtype at = A_ALL;
   struct skipchain new_entry;
 
-  UNUSED_ARG(key);
-
+  if ((destr = key->option1) != 0)
+    Log(1, "%s: line %d: warning: option skipmask is obsolete, use skip instead", current_path, current_line);
   for (i = 0; i < wordcount; i++)
   {
     char *w = words[i];
 
-    if (i == 0 && isalpha(*w))
+    if (i == 0 && isalpha(*w) && key->option1 == 0)
     {
       if ( !(at = parse_addrtype(w)) )
         return ConfigError("incorrect address type '%s'", w);
       continue;
     }
-    if (i < 2 && maskonly == 0)
+    if (i < 2 && maskonly == 0 && key->option1 == 0)
     {
       if (*w == '-' && w[1] == 0) { sz = -1; continue; }
       if (*w == '!') { destr = 1; w++; }
@@ -1693,6 +1697,7 @@ static int read_skip (KEYWORD *key, int wordcount, char **words)
 
   return 1;
 }
+
 /* check-pkthdr [all|secure|unsecure|listed|unlisted] <ext> */
 static int read_check_pkthdr (KEYWORD *key, int wordcount, char **words)
 {
