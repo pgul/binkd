@@ -1,5 +1,3 @@
-- temp-inbound, inbound, unsecure-inbound and inboxed should be in the
-  same partition, or rename complete file can work as copy+unlink
 - nolog "call to*" "*:unknown host" "some annoing message"
 - set root-domain for every domain
 - crc32 check

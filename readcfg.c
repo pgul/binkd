@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.23  2003/03/25 13:17:53  gul
+ * Check if inbound and temp-inbound are in the same partition
+ *
  * Revision 2.22  2003/03/11 00:04:26  gul
  * Use patches for compile under MSDOS by MSC 6.0 with IBMTCPIP
  *
@@ -382,6 +385,42 @@ static int check_outbox(char *obox)
   return 0;
 }
 
+static int check_boxes(FTN_NODE *node, void *arg)
+{
+  struct stat st;
+  char addr[FTN_ADDR_SZ + 1];
+
+  ftnaddress_to_str(addr, &(node->fa));
+  if (node->obox && node->obox[0])
+  {
+    if (stat(node->obox, &st) || (st.st_mode & S_IFDIR) == 0)
+      Log (0, "Outbox for %s does not exist (link %s)", node->obox, addr);
+    if (check_outbox(node->obox))
+      Log (0, "Outbox cannot point to outbound! (link %s)", addr);
+  }
+  if (node->ibox && node->ibox[0])
+  {
+    if (stat(node->ibox, &st) || (st.st_mode & S_IFDIR) == 0)
+      Log (0, "Inbox for %s does not exist (link %s)", node->ibox, addr);
+    if (arg && st.st_dev != *(dev_t *)arg)
+      Log (0, "Inbox and temp-inbound must be in the same partition (link %s)", addr);
+  }
+  return 0;
+}
+
+static void check_config(void)
+{
+  struct stat st, si;
+  if (temp_inbound[0] && stat(temp_inbound, &st) == 0)
+  {
+    if (stat(inbound, &si) == 0 && st.st_dev != si.st_dev)
+      Log (0, "Inbound and temp-inbound must be in the same partition");
+    if (stat(inbound_nonsecure, &si) == 0 && st.st_dev != si.st_dev)
+      Log (0, "Unsecure-inbound and temp-inbound must be in the same partition");
+  }
+  foreach_node(check_boxes, temp_inbound[0] ? &st.st_dev : NULL);
+}
+
 /*
  * Parses and reads _path as config.file
  */
@@ -409,6 +448,8 @@ void readcfg (char *_path)
 
   if (debugcfg)
     debug_readcfg ();
+
+  check_config();
 }
 
 void readcfg0 (char *_path)
@@ -716,9 +757,6 @@ static void read_node_info (KEYWORD *key, char *s)
     Log (0, "%s: %i: %s: incorrect flavour", path, line, w[3]);
   check_dir_path (w[4]);
   check_dir_path (w[5]);
-
-  if (check_outbox(w[4]))
-    Log (0, "Outbox cannot point to outbound! (link %s)", w[0]);
 
   if (!add_node (&fa, w[1], w[2], (char)(w[3] ? w[3][0] : '-'), w[4], w[5],
 		 NR_flag, ND_flag, crypt_flag, MD_flag, restrictIP))
