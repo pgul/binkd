@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2003/08/18 17:19:13  stream
+ * Partially implemented new configuration parser logic (required for config reload)
+ *
  * Revision 2.11  2003/06/30 22:48:36  hbrew
  * Allow to override -ip, -sip, -md, -nomd in add_node()
  *
@@ -169,11 +172,6 @@ int add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
  * Iterates through nodes while func() == 0.
  */
 int foreach_node (int (*func) (FTN_NODE *fn, void *a2), void *a3);
-
-/*
- * Dump node list
- */
-void print_node_info (FILE *out);
 
 /*
  * Create a poll for an address (in "z:n/n.p" format) (0 -- bad)

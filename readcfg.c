@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.40  2003/08/18 17:19:13  stream
+ * Partially implemented new configuration parser logic (required for config reload)
+ *
  * Revision 2.39  2003/08/18 07:35:08  val
  * multiple changes:
  * - hide-aka/present-aka logic
@@ -207,8 +210,12 @@
 #include "assert.h"
 #include "readflo.h"
 
-static char *path;
-static int line;
+static char *current_path = "<command line>";
+static int   current_line;
+static char  linebuf[MAXCFGLINE + 1];
+static char  spaces[] = " \n\t";
+
+#define UNUSED_ARG(s)  (void)(s)
 
 char siport[MAXSERVNAME + 1] = "";
 char soport[MAXSERVNAME + 1] = "";
@@ -260,7 +267,7 @@ char socks[MAXHOSTNAMELEN + 40] = "";
 #endif
 char bindaddr[16] = "";
 int loglevel = 4;
-int conlog = 0;
+int conlog = 1;
 int send_if_pwd = 0;
 int tzoff = -1; /* autodetect */
 char root_domain[MAXHOSTNAMELEN + 1] = "fidonet.net.";
@@ -300,30 +307,31 @@ typedef struct _KEYWORD KEYWORD;
 struct _KEYWORD
 {
   const char *key;
-  void (*callback) (KEYWORD *key, char *s);
+  int  (*callback) (KEYWORD *key, int wordcount, char **words);
   void *var;
   long option1;
   long option2;
 };
 
-static void passwords (KEYWORD *, char *);
-static void include (KEYWORD *, char *);
-static void read_aka_list (KEYWORD *, char *);
-static void read_domain_info (KEYWORD *, char *);
-static void read_node_info (KEYWORD *, char *);
-static void read_int (KEYWORD *, char *);
-static void read_string (KEYWORD *, char *);
-static void read_bool (KEYWORD *, char *);
-static void read_flag_exec_info (KEYWORD *, char *);
-static void read_rfrule (KEYWORD *, char *);
-static void read_mask (KEYWORD *key, char *s);
-static void read_akamask (KEYWORD *key, char *s);
-static void read_inboundcase (KEYWORD *, char *);
-static void read_skip(KEYWORD *, char *);
-static void read_check_pkthdr(KEYWORD *, char *);
+static int passwords (KEYWORD *key, int wordcount, char **words);
+static int include (KEYWORD *key, int wordcount, char **words);
+static int read_aka_list (KEYWORD *key, int wordcount, char **words);
+static int read_domain_info (KEYWORD *key, int wordcount, char **words);
+static int read_node_info (KEYWORD *key, int wordcount, char **words);
+static int read_int (KEYWORD *key, int wordcount, char **words);
+static int read_string (KEYWORD *key, int wordcount, char **words);
+static int read_bool (KEYWORD *key, int wordcount, char **words);
+static int read_flag_exec_info (KEYWORD *key, int wordcount, char **words);
+static int read_rfrule (KEYWORD *key, int wordcount, char **words);
+static int read_mask (KEYWORD *key, int wordcount, char **words);
+static int read_akamask (KEYWORD *key, int wordcount, char **words);
+static int read_inboundcase (KEYWORD *key, int wordcount, char **words);
+static int read_port (KEYWORD *key, int wordcount, char **words);
+static int read_skip (KEYWORD *key, int wordcount, char **words);
+static int read_check_pkthdr (KEYWORD *key, int wordcount, char **words);
 
 /* Helper functions for shared akas implementation */
-static void read_shares (KEYWORD *, char *);
+static int read_shares (KEYWORD *key, int wordcount, char **words);
 static void add_shares(SHARED_CHAIN * chain);
 static void add_address(SHARED_CHAIN * chain, FTN_ADDR_CHAIN * aka);
 
@@ -353,8 +361,8 @@ KEYWORD keywords[] =
   {"sysop", read_string, sysop, 0, MAXSYSOPNAME},
   {"location", read_string, location, 0, MAXLOCATIONNAME},
   {"nodeinfo", read_string, nodeinfo, 0, MAXNODEINFO},
-  {"iport", read_string, siport, 0, MAXSERVNAME},
-  {"oport", read_string, soport, 0, MAXSERVNAME},
+  {"iport", read_port, &iport, 0, MAXSERVNAME},
+  {"oport", read_port, &oport, 0, MAXSERVNAME},
   {"rescan-delay", read_int, &rescan_delay, 1, DONT_CHECK},
   {"call-delay", read_int, &call_delay, 1, DONT_CHECK},
   {"timeout", read_int, &nettimeout, 1, DONT_CHECK},
@@ -424,28 +432,55 @@ KEYWORD keywords[] =
   {NULL, NULL, NULL, 0, 0}
 };
 
-#define TEST(var) if (!*var) Log (0, "%s: "#var" should be defined", path)
+static void debug_readcfg(void);
 
-void readcfg0 (char *_path);
-void debug_readcfg (void);
+/*
+ * Zero config data and set default values of other variables
+ * Note: must be called on locked config
+ */
+void lock_config_structure(/*struct config_data *c*/)
+{
+//  if (++(c->usageCount) == 1)
+  {
+    /* First-time call: init default values */
+
+    /*c->*/iport             = DEF_PORT;
+    /*c->*/oport             = DEF_PORT;
+    /*c->*/call_delay        = 60;
+    /*c->*/rescan_delay      = 60;
+    /*c->*/nettimeout        = DEF_TIMEOUT;
+    /*c->*/oblksize          = DEF_BLKSIZE;
+    /*c->*/max_servers       = 100;
+    /*c->*/max_clients       = 100;
+    /*c->*/minfree           = -1;
+    /*c->*/minfree_nonsecure = -1;
+    /*c->*/loglevel          = 4;
+    /*c->*/inboundcase       = INB_SAVE;
+    /*c->*/hold_skipped      = 60 * 60;
+
+    strcpy(/*c->*/inbound, ".");
+    strcpy(/*c->*/root_domain, "fidonet.net.");
+  }
+}
 
 /* Check for (personal) outbox pointed to (common) outbound */
 static int check_outbox(char *obox)
 {
-  FTN_DOMAIN *pd=pDomains;
+  FTN_DOMAIN *pd;
 #ifndef UNIX
   char *OBOX, *PATH=NULL;
-  if (obox == NULL) return 0;
-  OBOX = strupper(xstrdup(obox));
-#else
-  if (obox == NULL) return 0;
 #endif
-  for (; pd; pd=pd->next)
+  if (obox == NULL)
+    return 0;
+#ifndef UNIX
+  OBOX = strupper(xstrdup(obox));
+#endif
+  for (pd = pDomains; pd; pd=pd->next)
   {
     if (pd->alias4)
       continue;
     if (pd->path)
-    { 
+    {
       char *s;
 #ifdef UNIX
       if (obox==strstr(obox, pd->path))
@@ -459,7 +494,7 @@ static int check_outbox(char *obox)
       if (OBOX==strstr(OBOX, PATH))
       {
         s = OBOX+strlen(PATH);
-        if ((*s == '\\' || *s == '/') && stricmp(s+1, pd->dir) == 0)
+        if ((*s == '\\' || *s == '/') && STRICMP(s+1, pd->dir) == 0)
         {
           free(PATH);
           free(OBOX);
@@ -476,6 +511,35 @@ static int check_outbox(char *obox)
   return 0;
 }
 
+static int ConfigError(char *format, ...)
+{
+#define MAX_CONFIGERROR_PARAMS 6
+
+  va_list args;
+  int     data[MAX_CONFIGERROR_PARAMS];
+  int     i;
+
+  va_start(args, format);
+  for (i = 0; i < MAX_CONFIGERROR_PARAMS; i++)
+    data[i] = va_arg(args, int);
+  Log(1, "%s: line %d: error in configuration files", current_path, current_line);
+  Log(1, format, data[0], data[1], data[2], data[3], data[4], data[5]);
+  va_end(args);
+  return 0;
+}
+
+static int ConfigNeedNumber(char *s)
+{
+  return ConfigError("%s: expecting a number", s);
+}
+
+static int isDefined(char *value, char *name)
+{
+  if (*value == 0)
+    return ConfigError("'%s' must be defined", name);
+  return 1;
+}
+
 static int check_boxes(FTN_NODE *node, void *arg)
 {
   struct stat st;
@@ -485,37 +549,51 @@ static int check_boxes(FTN_NODE *node, void *arg)
   if (node->obox && node->obox[0])
   {
     if (stat(node->obox, &st) || (st.st_mode & S_IFDIR) == 0)
-      Log (0, "Outbox for %s does not exist (link %s)", node->obox, addr);
+    {
+      ConfigError("Outbox for %s does not exist (link %s)", node->obox, addr);
+      return 1;
+    }
     if (check_outbox(node->obox))
-      Log (0, "Outbox cannot point to outbound! (link %s)", addr);
+    {
+      ConfigError("Outbox cannot point to outbound! (link %s)", addr);
+      return 1;
+    }
   }
   if (node->ibox && node->ibox[0])
   {
     if (stat(node->ibox, &st) || (st.st_mode & S_IFDIR) == 0)
-      Log (0, "Inbox for %s does not exist (link %s)", node->ibox, addr);
+    {
+      ConfigError("Inbox for %s does not exist (link %s)", node->ibox, addr);
+      return 1;
+    }
     if (arg && st.st_dev != *(dev_t *)arg)
-      Log (0, "Inbox and temp-inbound must be in the same partition (link %s)", addr);
+    {
+      ConfigError("Inbox and temp-inbound must be in the same partition (link %s)", addr);
+      return 1;
+    }
   }
   return 0;
 }
 
-static void check_config(void)
+static int check_config(void)
 {
   struct stat st, si;
   if (temp_inbound[0] && stat(temp_inbound, &st) == 0)
   {
     if (stat(inbound, &si) == 0 && st.st_dev != si.st_dev)
-      Log (0, "Inbound and temp-inbound must be in the same partition");
+      return ConfigError("Inbound and temp-inbound must be in the same partition");
     if (stat(inbound_nonsecure, &si) == 0 && st.st_dev != si.st_dev)
-      Log (0, "Unsecure-inbound and temp-inbound must be in the same partition");
+      return ConfigError("Unsecure-inbound and temp-inbound must be in the same partition");
   }
-  foreach_node(check_boxes, temp_inbound[0] ? &st.st_dev : NULL);
+  if (foreach_node(check_boxes, temp_inbound[0] ? &st.st_dev : NULL))
+    return 0;
+  return 1;
 }
 
 static void add_to_config_list(const char *path)
 {
   struct conflist_type *pc;
-    
+
   if (config_list)
   {
     for (pc = config_list; pc->next; pc = pc->next);
@@ -532,244 +610,128 @@ static void add_to_config_list(const char *path)
   pc->mtime = 0;
 }
 
+static int readcfg0 (char *path)
+{
+#define MAX_WORDS_ON_LINE 64
+
+  FILE   *in;
+  char   *words[MAX_WORDS_ON_LINE];
+  int     success;
+
+  if ((in = fopen (path, "r")) == 0)
+    return ConfigError("cannot open %s: %s", path, strerror(errno));
+
+  current_line = 0;
+  current_path = path;
+
+  add_to_config_list (path);
+
+  for (success = 1; success && fgets (linebuf, sizeof (linebuf), in); )
+  {
+    int      wordcount;
+    KEYWORD *k;
+
+    ++current_line;
+
+    /* Get array of all tokens on line */
+    for (wordcount = 0; wordcount < MAX_WORDS_ON_LINE; wordcount++)
+    {
+      words[wordcount] = getword(linebuf, wordcount+1);
+      if (words[wordcount] == NULL)
+        break;
+    }
+    if (wordcount == MAX_WORDS_ON_LINE)
+      ConfigError("warning: more then %d words on line will be ignored", MAX_WORDS_ON_LINE);
+
+    if (wordcount != 0)
+    {
+      for (k = keywords; k->key; k++)
+        if (!STRICMP (k->key, words[0]))
+          break;
+      if (k->key)
+        success = k->callback(k, wordcount-1, words+1);
+      else
+        success = ConfigError("%s: unknown keyword", words[0]);
+    }
+    while (--wordcount > 0)
+      free (words[wordcount]);
+  }
+
+  fclose (in);
+  return success;
+}
+
 /*
  * Parses and reads _path as config.file
  */
 void readcfg (char *_path)
 {
-  readcfg0 (_path);
+  int  success = 0;
 
-  if ((iport = find_port (siport)) == 0
-      || (oport = find_port (soport)) == 0)
-    Log (0, "cannot find the port number");
+  // memset(&work_config, 0, sizeof(work_config));
+  lock_config_structure(/* &work_config */);
 
-  TEST (sysname);
-  TEST (sysop);
-  TEST (location);
-  TEST (nodeinfo);
-
-  if (!*inbound_nonsecure)
-    strcpy (inbound_nonsecure, inbound);
-
-  if (!nAddr)
-    Log (0, "%s: your address should be defined", path);
-
-  if (pDomains == 0)
-    Log (0, "%s: at least one domain should be defined", path);
-
-  if (debugcfg)
-    debug_readcfg ();
-
-  check_config();
-}
-
-void readcfg0 (char *_path)
-{
-  FILE *in;
-  char buf[MAXCFGLINE + 1];
-  char *w;
-
-  line = 0;
-  path = _path;
-
-  if ((in = fopen (path, "r")) == 0)
-    Log (0, "%s: %s", path, strerror (errno));
-
-  if (checkcfg_flag)
-    add_to_config_list (path);
-
-  while (!feof (in))
+  if (readcfg0 (_path)                 &&
+      isDefined(sysname,  "sysname")   &&
+      isDefined(sysop,    "sysop")     &&
+      isDefined(location, "location")  &&
+      isDefined(nodeinfo, "nodeinfo")
+     )
   {
-    if (!fgets (buf, sizeof (buf), in))
-      break;
-    ++line;
-
-    if ((w = getword (buf, 1)) != 0)
+    do
     {
-      int j;
-
-      for (j = 0; keywords[j].key; ++j)
-	if (!STRICMP (keywords[j].key, w))
-	  break;
-
-      if (keywords[j].key)
+      if (!nAddr)
       {
-	keywords[j].callback (keywords + j, buf);
+        ConfigError("your address should be defined");
+        break;
       }
-      else
+      if (pDomains == 0)
       {
-	Log (0, "%s: %i: %s: unknown keyword", path, line, w);
+        ConfigError("at least one domain should be defined");
+        break;
       }
-      free (w);
-    }
+
+      if (!*inbound_nonsecure)
+        strcpy (inbound_nonsecure, inbound);
+
+      if (!check_config())
+        break;
+
+      if (debugcfg)
+        debug_readcfg ();
+
+      /* All checks passed! */
+      success = 1;
+
+    } while (0);
   }
-  fclose (in);
+
+  if (!success)
+  {
+    /* Config error. Abort or continue? */
+//    if (current_config == NULL)
+      Log(0, "error in configuration, aborting");
+//    else
+//    {
+//      Log(1, "error in configuration, using old config");
+//      unlock_config_structure(&work_config);
+//    }
+  }
 }
 
 /*
- *  METHODS TO PROCESS KEYWORDS' ARGUMETS
+ * Check number of arguments for command. Return 0 on error
  */
-
-static void include (KEYWORD *key, char *s)
+static int isArgCount(int expectedCount, int realCount)
 {
-  static int level = 0;
-
-  if (++level > MAXINCLUDELEVEL)
-  {
-    Log (0, "%s: %i: too many nested include commands", path, line);
-  }
-  else
-  {
-    char *old_path = path;
-    int old_line = line;
-    char *w = getword (s, 2);
-
-    if (w)
-    {
-      readcfg0 (w);
-      free (w);
-    }
-    else
-      Log (0, "%s: %i: filename expected", path, line);
-    path = old_path;
-    line = old_line;
-    --level;
-  }
+  if (realCount != expectedCount)
+    return ConfigError("%d argument(s) required", expectedCount);
+  return 1;
 }
 
-static void passwords (KEYWORD *key, char *s)
+static int SyntaxError(KEYWORD *k)
 {
-  FILE *in;
-  char buf[MAXCFGLINE + 1];  
-  char *w = getword(s, 2);
-  FTN_ADDR fa;
-
-  if(!w) 
-    Log (0, "%s: %i: password filename expected", path, line);
-  if((in=fopen(w, "rt"))==NULL)
-    Log (0, "%s: %i: unable to open password file (%s)", path, line, w);
-
-  if (checkcfg_flag)
-    add_to_config_list (w);
-
-  free(w);
-
-  while (!feof (in))
-  {
-    if (!fgets (buf, sizeof (buf), in))
-      break;
-    for(w=buf;isspace(w[0]);w++);  /* skip spaces */
-    if(w!=buf) strcpy(buf, w); 
-    for(w=buf;(w[0])&&(!isspace(w[0]));w++);
-    while(isspace(w[0]))           /* go to the password */
-    {
-      w[0]=0;
-      w++;
-    }
-    if((!w[0])||(!parse_ftnaddress (buf, &fa))) 
-      continue;     /* Do not process if any garbage found */
-    exp_ftnaddress (&fa);
-    strcpy(buf, w);
-    for(w=buf;(w[0])&&(!isspace(w[0]));w++);
-    w[0]=0;
-    if (!add_node (&fa, NULL, buf, '-', NULL, NULL,
-                   NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, HC_USE_OLD))
-      Log (0, "%s: add_node() failed", w[0]);
-  }
-  fclose(in);
-}
-
-static void read_aka_list (KEYWORD *key, char *s)
-{
-  int i;
-  char *w;
-
-  for (i = 1; (w = getword (s, i + 1)) != 0; ++i)
-  {
-    pAddr = xrealloc (pAddr, sizeof (FTN_ADDR) * (nAddr + 1));
-    if (!parse_ftnaddress (w, pAddr + nAddr))
-    {
-      Log (0, "%s: %i: %s: the address cannot be parsed", path, line, w);
-    }
-    if (!is4D (pAddr + nAddr))
-    {
-      Log (0, "%s: %i: %s: must be at least a 4D address", path, line, w);
-    }
-    if (!pAddr[nAddr].domain[0])
-    {
-      if (!pDomains)
-	Log (0, "%s: %i: at least one domain must be defined first", path, line);
-      strcpy (pAddr[nAddr].domain, get_def_domain ()->name);
-    }
-    ++nAddr;
-    free (w);
-  }
-}
-
-static void read_domain_info (KEYWORD *key, char *s)
-{
-  char *w1 = getword (s, 2);
-  char *w2 = getword (s, 3);
-  char *w3 = getword (s, 4);
-  FTN_DOMAIN *new_domain;
-
-  if (!w1 || !w2 || !w3)
-    Log (0, "%s: %i: domain: not enough args", path, line);
-
-  if (get_domain_info (w1) == 0)
-  {
-    new_domain = xalloc (sizeof (FTN_DOMAIN));
-    strnzcpy (new_domain->name, w1, sizeof (new_domain->name));
-    if (!STRICMP (w2, "alias-for"))
-    {
-      FTN_DOMAIN *tmp_domain;
-
-      if ((tmp_domain = get_domain_info (w3)) == 0)
-	Log (0, "%s: %i: %s: undefined domain", path, line, w3);
-      else
-	new_domain->alias4 = tmp_domain;
-      free (w2);
-    }
-    else
-    {
-      char *s;
-      int z;
-
-      if ((z = atoi (w3)) <= 0)
-	Log (0, "%s: %i: invalid zone", path, line);
-
-      new_domain->z = xalloc (sizeof (int) * 2);
-      new_domain->z[0] = z;
-      new_domain->z[1] = 0;
-      new_domain->alias4 = 0;
-
-      for (s = w2 + strlen (w2) - 1; (*s == '/' || *s == '\\') && s >= w2; --s)
-	*s = 0;
-      if ((s = max (strrchr (w2, '\\'), strrchr (w2, '/'))) == 0)
-      {
-	new_domain->dir = w2;
-	new_domain->path = xstrdup (".");
-      }
-      else
-      {
-	new_domain->dir = xstrdup (s + 1);
-	for (; *s == '/' || *s == '\\'; --s)
-	  *s = 0;
-	new_domain->path = w2;
-      }
-      if (strchr (new_domain->dir, '.'))
-	Log (0, "%s: %i: there should be no extension for "
-	     "the base outbound name", path, line);
-    }
-    new_domain->next = pDomains;
-    pDomains = new_domain;
-  }
-  else
-  {
-    Log (0, "%s: %i: %s: duplicate domain", path, line, w1);
-  }
-  free (w1);
-  free (w3);
+  return ConfigError("the syntax is incorrect for '%s'", k->key);
 }
 
 static void check_dir_path (char *s)
@@ -783,93 +745,253 @@ static void check_dir_path (char *s)
   }
 }
 
-static void read_node_info (KEYWORD *key, char *s)
+static int Config_ParseAddress(char *s, FTN_ADDR *a)
+{
+  if (!parse_ftnaddress (s, a /*, &work_config*/))
+    return ConfigError("%s: the address cannot be parsed", s);
+  return 1;
+}
+
+
+/*
+ *  METHODS TO PROCESS KEYWORDS' ARGUMETS
+ */
+
+static int include (KEYWORD *key, int wordcount, char **words)
+{
+  static int level;
+
+  char *old_path;
+  int   old_line;
+  int   success;
+
+  UNUSED_ARG(key);
+
+  if (!isArgCount(1, wordcount))
+    return 0;
+
+  if (level == MAXINCLUDELEVEL)
+    return ConfigError("too many nested include commands");
+
+  ++level;
+  old_path = current_path;
+  old_line = current_line;
+  success  = readcfg0(words[0]);
+  current_path = old_path;
+  current_line = old_line;
+  --level;
+
+  return success;
+}
+
+static int passwords (KEYWORD *key, int wordcount, char **words)
+{
+  FILE *in;
+  FTN_ADDR fa;
+
+  UNUSED_ARG(key);
+
+  if (!isArgCount(1, wordcount))
+    return 0;
+
+  if ((in = fopen(words[0], "rt")) == NULL)
+    return ConfigError("unable to open password file (%s)", words[0]);
+
+  add_to_config_list(words[0]);
+
+  while (fgets (linebuf, sizeof (linebuf), in))
+  {
+    char *node, *password;
+
+    node = strtok(linebuf, spaces);
+    if (node)
+    {
+      password = strtok(NULL, spaces);
+      if (password && parse_ftnaddress (node, &fa /*, &work_config */)) /* Do not process if any garbage found */
+      {
+        exp_ftnaddress (&fa /*, &work_config*/);
+        add_node (&fa, NULL, password, '-', NULL, NULL,
+                  NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, HC_USE_OLD /*, NP_USE_OLD, &work_config */);
+      }
+    }
+  }
+  fclose(in);
+
+  return 1;
+}
+
+static int read_aka_list (KEYWORD *key, int wordcount, char **words)
+{
+  int       i;
+  FTN_ADDR *a;
+
+  if (wordcount == 0)
+    return SyntaxError(key);
+
+  for (i = 0; i < wordcount; i++)
+  {
+    pAddr = xrealloc (pAddr, sizeof (FTN_ADDR) * (nAddr+1));
+    a = pAddr + nAddr;
+
+    if (!Config_ParseAddress(words[i], a))
+      return 0;
+    if (!is4D (a))
+      return ConfigError("%s: must be at least a 4D address", words[i]);
+    if (a->domain[0] == 0)
+    {
+      //if (work_config.pDomains.first == NULL)
+      if (!pDomains)
+        return ConfigError("at least one domain must be defined first");
+      strcpy (a->domain, get_def_domain (/*&work_config*/)->name);
+    }
+    ++nAddr;
+  }
+
+  return 1;
+}
+
+static int read_domain_info (KEYWORD *key, int wordcount, char **words)
+{
+  FTN_DOMAIN new_domain, *tmp_domain;
+
+  UNUSED_ARG(key);
+
+  if (!isArgCount(3, wordcount))
+    return 0;
+
+  if (get_domain_info (words[0] /*, &work_config*/))
+    return ConfigError("%s: duplicate domain", words[0]);
+
+  memset(&new_domain, 0, sizeof(new_domain));
+  strnzcpy (new_domain.name, words[0], sizeof (new_domain.name));
+
+  if (!STRICMP (words[1], "alias-for"))
+  {
+    if ((tmp_domain = get_domain_info (words[2] /*, &work_config*/)) == 0)
+      return ConfigError("%s: undefined domain", words[2]);
+    new_domain.alias4 = tmp_domain;
+  }
+  else
+  {
+    char *s, *new_dir, *new_path;
+    int   z;
+
+    if ((z = atoi (words[2])) <= 0)
+      return ConfigError("%s: invalid zone", words[2]);
+
+    new_domain.z[0] = z;
+    new_domain.z[1] = 0;
+    new_domain.alias4   = 0;
+
+    check_dir_path(words[1]);
+    if ((s = last_slash(words[1])) == 0)
+    {
+      new_dir  = words[1];
+      new_path = ".";
+    }
+    else
+    {
+      *s = 0;
+      new_dir  = s + 1;
+      new_path = words[1];
+      check_dir_path(new_path);
+    }
+
+    if (strchr (new_dir, '.'))
+      return ConfigError("there should be no extension for the base outbound name");
+
+    new_domain.dir  = xstrdup(new_dir);
+    new_domain.path = xstrdup(new_path);
+  }
+
+  /*  simplelist_add(&work_config.pDomains, &new_domain, sizeof(new_domain)); */
+
+  tmp_domain = xalloc(sizeof(FTN_DOMAIN));
+  *tmp_domain = new_domain;
+  tmp_domain->next = pDomains;
+  pDomains = tmp_domain;
+
+  return 1;
+}
+
+static int read_node_info (KEYWORD *key, int wordcount, char **words)
 {
 #define ARGNUM 6
   char *w[ARGNUM], *tmp;
-  int i, j;
-  int NR_flag = NR_USE_OLD, ND_flag = ND_USE_OLD, HC_flag = HC_USE_OLD,
-      MD_flag = MD_USE_OLD, restrictIP = RIP_USE_OLD;
+  int   i, j;
+  int   NR_flag = NR_USE_OLD, ND_flag = ND_USE_OLD, HC_flag = HC_USE_OLD,
+        MD_flag = MD_USE_OLD, restrictIP = RIP_USE_OLD;
+  // int   NP_flag = NP_USE_OLD;
   FTN_ADDR fa;
 
-  memset (w, 0, sizeof (w));
-  i = 0;			       /* index in w[] */
-  j = 2;			       /* number of word in the source string */
-  
-  if(key->option1) /* defnode */
+  memset(w, 0, sizeof(w)); /* init by NULL's */
+  i = 0;                   /* index in w[] */
+
+  if (key->option1) /* defnode */
   {
-	  w[i++]=xstrdup("0:0/0.0@defnode");
-	  havedefnode=1;
+    w[i++] = "0:0/0.0@defnode";
+    havedefnode = 1;
   }
 
-  while (1)
+  for (j = 0; j < wordcount; j++)
   {
-    if ((tmp = getword (s, j++)) == NULL)
-      break;
+    tmp = words[j];
 
-    if (tmp[0] == '-')
+    if (tmp[0] == '-' && tmp[1] != 0)
     {
-      if (tmp[1] != '\0')
+      if (STRICMP (tmp, "-md") == 0)
+        MD_flag = MD_ON;
+      else if (STRICMP (tmp, "-nomd") == 0)
+        MD_flag = MD_OFF;
+      else if (STRICMP (tmp, "-nr") == 0)
+        NR_flag = NR_ON;
+      else if (STRICMP (tmp, "-nd") == 0)
       {
-        if (STRICMP (tmp, "-md") == 0)
-          MD_flag = MD_ON;
-        else if (STRICMP (tmp, "-nomd") == 0)
-          MD_flag = MD_OFF;
-        else if (STRICMP (tmp, "-nr") == 0)
-	  NR_flag = NR_ON;
-	else if (STRICMP (tmp, "-nd") == 0)
-	{
-	  NR_flag = NR_ON;
-	  ND_flag = ND_ON;
-	}
-	else if (STRICMP (tmp, "-ip") == 0)
-	  restrictIP = RIP_ON;  /* allow matched or unresolvable */
-	else if (STRICMP (tmp, "-sip") == 0)
-	  restrictIP = RIP_SIP; /* allow only resolved and matched */
-	else if (STRICMP (tmp, "-crypt") == 0)
-	  Log (1, "%s: %i: obsolete %s option ignored", path, line, tmp);
-        /* val: pkt header check: -hc force on, -nohc force off */
-        else if (STRICMP (tmp, "-hc") == 0)
-          HC_flag = HC_ON;
-        else if (STRICMP (tmp, "-nohc") == 0)
-          HC_flag = HC_OFF;
-	else
-	  Log (0, "%s: %i: %s: unknown option for `node' keyword", path, line, tmp);
+        NR_flag = NR_ON;
+        ND_flag = ND_ON;
       }
+      else if (STRICMP (tmp, "-ip") == 0)
+        restrictIP = RIP_ON;  /* allow matched or unresolvable */
+      else if (STRICMP (tmp, "-sip") == 0)
+        restrictIP = RIP_SIP; /* allow only resolved and matched */
+      else if (STRICMP (tmp, "-crypt") == 0)
+        ConfigError("obsolete %s option ignored", tmp);
+      else if (STRICMP (tmp, "-hc") == 0)
+        HC_flag = HC_ON;
+      else if (STRICMP (tmp, "-nohc") == 0)
+        HC_flag = HC_OFF;
+//      else if (STRICMP (tmp, "-noproxy") == 0)
+//        NP_flag = NP_ON;
       else
-      {
-	/* Process "-": skip w[i]. Let it be filled with default NULL */
-	++i;
-      }
+        return ConfigError("%s: unknown option for `node' keyword", tmp);
     }
     else if (i >= ARGNUM)
-      Log (0, "%s: %i: too many argumets for `node' keyword", path, line);
+      return ConfigError("too many argumets for `node' keyword");
     else
+    {   /* '-' will place default NULL */
+      if (tmp[0] == '-')
+        tmp = NULL;
       w[i++] = tmp;
+    }
   }
 
-  if (i == 0)
-    Log (0, "%s: %i: the address is not specified in the node string", path, line);
-  if (!parse_ftnaddress (w[0], &fa))
-    Log (0, "%s: %i: %s: the address cannot be parsed", path, line, w[0]);
-  else
-    exp_ftnaddress (&fa);
+  if (w[0] == NULL)
+    return ConfigError("missing node address");
+  if (!Config_ParseAddress (w[0], &fa))
+    return 0;
+  exp_ftnaddress (&fa /*, &work_config */);
 
   if (w[2] && w[2][0] == 0)
-    Log (0, "%s: %i: empty password", path, line);
-  if (w[3] && w[3][0] != '-' && !isflvr (w[3][0]))
-    Log (0, "%s: %i: %s: incorrect flavour", path, line, w[3]);
+    return ConfigError("empty password");
+  if (w[3] && !isflvr (w[3][0]))
+    return ConfigError("%s: incorrect flavour", w[3]);
   check_dir_path (w[4]);
   check_dir_path (w[5]);
 
-  if (!add_node (&fa, w[1], w[2], (char)(w[3] ? w[3][0] : '-'), w[4], w[5],
-		 NR_flag, ND_flag, MD_flag, restrictIP, HC_flag))
-    Log (0, "%s: add_node() failed", w[0]);
+  add_node (&fa, w[1], w[2], (char)(w[3] ? w[3][0] : '-'), w[4], w[5],
+            NR_flag, ND_flag, MD_flag, restrictIP, HC_flag /*, NP_flag, &work_config */);
 
-  for (i = 0; i < ARGNUM; ++i)
-    if (w[i])
-      free (w[i]);
-
+  return 1;
 #undef ARGNUM
 }
 
@@ -923,20 +1045,16 @@ int get_host_and_port (int n, char *host, unsigned short *port, char *src, FTN_A
  * or a directory name (key->option1 == 'd')
  * or a file name (key->option1 == 'f')
  */
-static void read_string (KEYWORD *key, char *s)
+static int read_string (KEYWORD *key, int wordcount, char **words)
 {
   struct stat sb;
   char *target = (char *) (key->var);
   char *w;
 
-  if ((w = getword (s, 2)) == NULL)
-    Log (0, "%s: %i: missing an argument for `%s'", path, line, key->key);
+  if (!isArgCount(1, wordcount))
+    return 0;
 
-  if (getword (s, 3) != NULL)
-    Log (0, "%s: %i: extra arguments for `%s'", path, line, key->key);
-
-  strnzcpy (target, w, key->option1 == 0 ? key->option2 : MAXPATHLEN);
-  free (w);
+  strnzcpy (target, words[0], key->option1 == 0 ? key->option2 : MAXPATHLEN);
 
   if (key->option1 != 0)
   {
@@ -944,126 +1062,120 @@ static void read_string (KEYWORD *key, char *s)
     while (w >= target && (*w == '/' || *w == '\\'))
     {
       if (key->option1 == 'f')
-      {
-	Log (0, "%s: %i: unexpected `%c' at the end of filename",
-	     path, line, *w);
-      }
+        return ConfigError("unexpected `%c' at the end of filename", *w);
       *(w--) = 0;
     }
     if (key->option1 == 'd' && (stat (target, &sb) == -1 ||
-				!(sb.st_mode & S_IFDIR)))
+                                !(sb.st_mode & S_IFDIR)))
     {
-      Log (0, "%s: %i: %s: incorrect directory", path, line, target);
+      return ConfigError("%s: incorrect directory", target);
     }
   }
+
+  return 1;
 }
 
-static void read_int (KEYWORD *key, char *s)
+static int read_int (KEYWORD *key, int wordcount, char **words)
 {
-  int *target = (int *) (key->var);
-  char *w;
+  int  *target = (int *) (key->var);
+  char *s;
 
-  if ((w = getword (s, 2)) == NULL)
-    Log (0, "%s: %i: missing an argument for `%s'", path, line, key->key);
+  if (!isArgCount(1, wordcount))
+    return 0;
 
-  if (getword (s, 3) != NULL)
-    Log (0, "%s: %i: extra arguments for `%s'", path, line, key->key);
+  for (s = words[0]; *s; s++)
+  {
+    if (isdigit(*s) || (s == words[0] && *s == '-'))
+      continue;
+    return ConfigNeedNumber(words[0]);
+  }
 
-  *target = atoi (w);
-  free (w);
+  *target = atoi (words[0]);
 
   if ((key->option1 != DONT_CHECK && *target < key->option1) ||
       (key->option2 != DONT_CHECK && *target > key->option2))
-    Log (0, "%s: %i: %i: incorrect value", path, line, *target);
+    return ConfigError("%i: incorrect value", *target);
+
+  return 1;
 }
 
-static void read_inboundcase (KEYWORD *key, char *s)
+static int read_bool (KEYWORD *key, int wordcount, char **words)
+{
+  if (wordcount != 0)
+    return SyntaxError(key);
+
+  (void) words;
+  *(int *) (key->var) = 1;
+  return 1;
+}
+
+static int read_inboundcase (KEYWORD *key, int wordcount, char **words)
 {
   enum inbcasetype *target = (enum inbcasetype *) (key->var);
-  char *w;
 
-  if ((w = getword (s, 2)) == NULL)
-    Log (0, "%s: %i: missing an argument for `%s'", path, line, key->key);
+  if (!isArgCount(1, wordcount))
+    return 0;
 
-  if (getword (s, 3) != NULL)
-    Log (0, "%s: %i: extra arguments for `%s'", path, line, key->key);
-
-  *target = 0;
-
-  if (!STRICMP (w, "save"))
+  if (!STRICMP (words[0], "save"))
     *target = INB_SAVE;
-  else if (!STRICMP (w, "upper"))
+  else if (!STRICMP (words[0], "upper"))
     *target = INB_UPPER;
-  else if (!STRICMP (w, "lower"))
+  else if (!STRICMP (words[0], "lower"))
     *target = INB_LOWER;
-  else if (!STRICMP (w, "mixed"))
+  else if (!STRICMP (words[0], "mixed"))
     *target = INB_MIXED;
   else
-    Log (0, "%s: %i: the syntax is incorrect for '%s'", path, line, key->key);
+    return SyntaxError(key);
 
-  free (w);
+  return 1;
 }
 
-
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
-static void read_syslog_facility (KEYWORD *key, char *s)
+static int read_syslog_facility (KEYWORD *key, int wordcount, char **words)
 {
   int *target = (int *) (key->var);
-  char *w;
+  int i;
 
-  if ((w = getword (s, 2)) != 0 && getword (s, 3) == 0)
-  {
-    int i;
+  if (isArgCount(1, wordcount))
+    return 0;
 
-    for (i = 0; facilitynames[i].c_name; ++i)
-      if (!strcmp (facilitynames[i].c_name, w))
-	break;
-
-    if (facilitynames[i].c_name == 0)
-      Log (0, "%s: %i: %s: incorrect facility name", path, line, w);
-    *target = facilitynames[i].c_val;
-    free (w);
-  }
-  else
-    Log (0, "%s: %i: the syntax is incorrect", path, line);
+  for (i = 0; facilitynames[i].c_name; ++i))
+    if (!strcmp (facilitynames[i].c_name, words[0]))
+    {
+      *target = facilitynames[i].c_val;
+      return 1;
+    }
+  return ConfigError("%s: incorrect facility name", words[0]);
 }
 #endif
 
-static void read_rfrule (KEYWORD *key, char *s)
+static int read_rfrule (KEYWORD *key, int wordcount, char **words)
 {
-  char *w1, *w2;
+  UNUSED_ARG(key);
 
-  if ((w1 = getword (s, 2)) != 0 &&
-      (w2 = getword (s, 3)) != 0 &&
-      getword (s, 4) == 0)
-  {
-    rf_rule_add (w1, w2);
-  }
-  else
-    Log (0, "%s: %i: the syntax is incorrect", path, line);
+  if (!isArgCount(2, wordcount))
+    return 0;
+
+  rf_rule_add(xstrdup(words[0]), xstrdup(words[1]));
+
+  return 1;
 }
 
 static void mask_add(char *mask, struct maskchain **chain)
 {
-  struct maskchain *ps;
-  int len = strlen(mask);
+  struct maskchain *ps, *newmask;
+
+  newmask = xalloc(sizeof(*newmask));
+  newmask->next = NULL;
+  newmask->mask = xstrdup(mask);
 
   if (*chain == NULL)
-  {
-    *chain = xalloc(sizeof(**chain));
-    ps = *chain;
-  }
+    *chain = newmask;
   else
   {
     for (ps = *chain; ps->next; ps = ps->next);
-    ps->next = xalloc(sizeof(*ps));
-    ps = ps->next;
+    ps->next = newmask;
   }
-  ps->next = NULL;
-  if (*mask == '"' && mask[len-1] == '"') {
-    ps->mask = xstrdup(mask+1); ps->mask[len-2] = 0;
-  }
-  else ps->mask = xstrdup(mask);
 }
 
 char *mask_test(char *s, struct maskchain *chain)
@@ -1076,70 +1188,67 @@ char *mask_test(char *s, struct maskchain *chain)
   return NULL;
 }
 
-static void read_mask (KEYWORD *key, char *s)
+static int read_mask (KEYWORD *key, int wordcount, char **words)
 {
-  char *w;
   int i;
 
-  for (i=2; (w = getword (s, i)) != NULL; i++)
-    mask_add (w, (struct maskchain **) (key->var));
-  if (i == 2)
-    Log (0, "%s: %i: the syntax is incorrect", path, line);
-}
+  if (wordcount == 0)
+    return SyntaxError(key);
 
-static int akamask_add(char *aka, char *mask, struct akachain **chain, int type) {
-  struct akachain *ps, *psprev = NULL;
-  int len = strlen(mask);
+  for (i = 0; i < wordcount; i++)
+    mask_add(words[i], (struct maskchain **) (key->var));
 
-  if (*chain == NULL)
-  {
-    *chain = xalloc(sizeof(**chain));
-    ps = *chain;
-  }
-  else
-  {
-    for (ps = *chain; ps->next; ps = ps->next);
-    ps->next = xalloc(sizeof(*ps));
-    psprev = ps;
-    ps = ps->next;
-  }
-  ps->next = NULL;
-  if ( !parse_ftnaddress(aka, &(ps->fa)) ) {
-    free(ps);
-    if (psprev) psprev->next = NULL; else *chain = NULL;
-    return 0;
-  }
-  exp_ftnaddress(&(ps->fa));
-  if (*mask == '!') { mask++; len--; type |= 0x80; }
-  if (*mask == '"' && mask[len-1] == '"') {
-    ps->mask = xstrdup(mask+1); ps->mask[len-2] = 0;
-  }
-  else ps->mask = xstrdup(mask);
-  ps->type = type;
   return 1;
 }
 
-static void read_akamask (KEYWORD *key, char *s) {
-  char *aka, *mask;
+static int akamask_add(char *aka, char *mask, struct akachain **chain, int type)
+{
+  struct akachain *ps, *newmask;
 
-  aka  = getword(s, 2);
-  mask = getword(s, 3);
-  if (!aka || !mask)
-    Log (0, "%s: %i: the syntax is incorrect", path, line);
-  if (!akamask_add(aka, mask, (struct akachain**)(key->var), key->option1))
-    Log (0, "%s: %i: error parsing address %s", path, line, aka);
+  newmask = xalloc(sizeof(*newmask));
+
+  newmask->next = NULL;
+  if (!Config_ParseAddress(aka, &(newmask->fa)))
+  {
+    free(newmask);
+    return 0;
+  }
+  exp_ftnaddress(&(newmask->fa));
+  if (*mask == '!') { mask++; type |= 0x80; }
+  newmask->type = type;
+  newmask->mask = xstrdup(mask);
+
+  if (*chain == NULL)
+    *chain = newmask;
+  else
+  {
+    for (ps = *chain; ps->next; ps = ps->next);
+    ps->next = newmask;
+  }
+
+  return 1;
 }
 
-static addrtype parse_addrtype(char *w) {
-   if (STRICMP (w, "all") == 0) return A_ALL;
-   else if (STRICMP (w, "secure") == 0) return A_PROT;
-   else if (STRICMP (w, "unsecure") == 0) return A_UNPROT;
-   else if (STRICMP (w, "listed") == 0) return A_LST;
-   else if (STRICMP (w, "unlisted") == 0) return A_UNLST;
-   else return 0;
+static int read_akamask (KEYWORD *key, int wordcount, char **words)
+{
+  if (!isArgCount(2, wordcount))
+    return 0;
+
+  return akamask_add(words[0], words[1], (struct akachain**)(key->var), key->option1);
 }
 
-void skip_add(char *mask, off_t sz, addrtype at, int destr) {
+static addrtype parse_addrtype(char *w)
+{
+  if (STRICMP (w, "all") == 0) return A_ALL;
+  else if (STRICMP (w, "secure") == 0) return A_PROT;
+  else if (STRICMP (w, "unsecure") == 0) return A_UNPROT;
+  else if (STRICMP (w, "listed") == 0) return A_LST;
+  else if (STRICMP (w, "unlisted") == 0) return A_UNLST;
+  else return 0;
+}
+
+void skip_add(char *mask, off_t sz, addrtype at, int destr)
+{
   struct skipchain *ps = skipmask;
 
   if (!skipmask) { ps = skipmask = xalloc(sizeof(*ps)); }
@@ -1151,179 +1260,378 @@ void skip_add(char *mask, off_t sz, addrtype at, int destr) {
   ps->destr = destr;
 }
 /* skip [all|listed|unlisted|secure|unsecure] [!]<size>|- <mask>... */
-static void read_skip (KEYWORD *key, char *s)
+static int read_skip (KEYWORD *key, int wordcount, char **words)
 {
-  char *w;
-  int i, destr = 0;
+  int i, destr = 0, maskonly = 0;
   off_t sz = 0;
   addrtype at = A_ALL;
 
-  for (i=2; (w = getword (s, i)) != NULL; i++) {
-    if (i == 2 && isalpha(*w)) {
-      if ( !(at = parse_addrtype(w)) ) break; else continue;
+  for (i = 0; i < wordcount; i++)
+  {
+    char *w = words[i];
+
+    if (i == 0 && isalpha(*w))
+    {
+      if ( !(at = parse_addrtype(w)) )
+        return ConfigError("incorrect address type '%s'", w);
+      continue;
     }
-    if (i <= 3) {
+    if (i < 2 && maskonly == 0)
+    {
       if (*w == '-' && w[1] == 0) { sz = -1; continue; }
-      if (*w == '!') { destr = 1; w++; } 
-      if (!isdigit(*w)) break; else { sz = atoi(w); continue; }
+      if (*w == '!') { destr = 1; w++; }
+      if (!isdigit(*w))
+        return ConfigNeedNumber(w);
+      sz = atoi(w);
+      maskonly = 1; /* size detected, only masks are allowed further */
+      continue;
     }
     skip_add(w, sz, at, destr);
+    maskonly = 2; /* at least one filemask present */
   }
-  if (i <= 3)
-    Log (0, "%s: %i: the syntax is incorrect", path, line);
+
+  if (maskonly != 2)
+    return ConfigError("expecting at least one filemask");
+
+  return 1;
 }
 /* check-pkthdr [all|secure|unsecure|listed|unlisted] <ext> */
-static void read_check_pkthdr (KEYWORD *key, char *s)
+static int read_check_pkthdr (KEYWORD *key, int wordcount, char **words)
 {
   char *w;
 
-  if ( (w = getword(s, 2)) == NULL) {
-    Log (0, "%s: %i: the syntax is incorrect", path, line);
-    return;
-  }
+  if (wordcount == 0)
+    return SyntaxError(key);
 
-  if ((pkthdr_type = parse_addrtype(w)) != 0) {
-    if ( (w = getword(s, 3)) == NULL ) {
-      Log (0, "%s: %i: the syntax is incorrect", path, line);
-      return;
-    }
-  }
-
-  pkthdr_bad = (w[0] == '.') ? w+1 : w;
-}
-
-static void read_bool (KEYWORD *key, char *s)
-{
-  if (getword (s, 2) == 0)
+  w = words[0];
+  if ((pkthdr_type = parse_addrtype(w)) != 0)
   {
-    *(int *) (key->var) = 1;
+    w = words[1];
+    if (!isArgCount(2, wordcount))
+      return 0;
   }
   else
-    Log (0, "%s: %i: the syntax is incorrect", path, line);
+  {
+    pkthdr_type = A_ALL;
+    if (!isArgCount(1, wordcount))
+      return 0;
+  }
+
+  if (*w == '.')
+    w++;
+  pkthdr_bad = xstrdup(w);
+
+  return 1;
 }
 
-static void read_flag_exec_info (KEYWORD *key, char *s)
+static int read_port (KEYWORD *key, int wordcount, char **words)
 {
-  EVT_FLAG *tmp;
-  char *path, *w, **body;
-  int i;
-  static EVT_FLAG *last = 0;
+  int *target = (int *) (key->var);
 
-  if ((path = getword (s, 2)) == 0)
-    Log (0, "%s: %i: the syntax is incorrect", path, line);
-  for (i = 2; (w = getword (s, i + 1)) != 0; ++i)
+  if (!isArgCount(1, wordcount))
+    return 0;
+
+  if ((*target = find_port (words[0])) == 0)
+    return ConfigError("%s: bad port number", words[0]);
+
+  return 1;
+}
+
+static int read_flag_exec_info (KEYWORD *key, int wordcount, char **words)
+{
+  EVT_FLAG *new_event, *last;
+  char     *path;
+  int      i;
+  char     **body;
+
+  if (wordcount < 2)
+    return SyntaxError(key);
+
+  last = evt_flags;
+  if (last)
+    for (; last->next; last = last->next)
+      ;
+
+  path = words[0];
+  for (i = 1; i < wordcount; i++)
   {
-    tmp = xalloc (sizeof (EVT_FLAG));
-    memset (tmp, 0, sizeof (EVT_FLAG));
+    new_event = xalloc(sizeof(*new_event));
+    memset(new_event, 0, sizeof(*new_event));
+
     if (key->option1 == 'f')
-      body = &(tmp->path);
+      body = &(new_event->path);
     else if (key->option1 == 'e')
-      body = &(tmp->command);
+      body = &(new_event->command);
     else
       continue; /* should never happens */
-    *body = path;
-    if (**body == '!')
+    if (*path == '!')
     {
-      tmp->imm = 1;
-      body[0]++;
+      new_event->imm = 1;
+      *body = xstrdup(path + 1);
     }
-    tmp->pattern = w;
-    /*strlower (tmp->pattern);*/
-
-    tmp->next = 0;
-    if (last == 0)
-      evt_flags = tmp;
     else
-      last->next = tmp;
-    last = tmp;
+      *body = xstrdup(path);
+    new_event->pattern = xstrdup(words[i]);
+    /* strlower (new_event->pattern); */
+
+    if (last == NULL)
+      evt_flags = new_event;
+    else
+      last->next = new_event;
+    last = new_event;
+
+   /* simplelist_add(&work_config.evt_flags, &new_event, sizeof(new_event)); */
   }
+
+  return 1;
 }
 
-void debug_readcfg (void)
+static int print_node_info_1 (FTN_NODE *fn, void *arg)
 {
-  int i;
-  char buf[80];
-  FTN_DOMAIN *curr_domain;
+  char szfa[FTN_ADDR_SZ + 1];
 
-  printf ("addr:");
-  for (i = 0; i < nAddr; ++i)
+  ftnaddress_to_str (szfa, &fn->fa);
+  printf ("\n    %-20.20s %s %s %c %s %s%s%s%s%s%s%s%s%s",
+	   szfa, fn->hosts ? fn->hosts : "-", fn->pwd,
+	   fn->obox_flvr, fn->obox ? fn->obox : "-",
+	   fn->ibox ? fn->ibox : "-",
+	   (fn->NR_flag == NR_ON) ? " -nr" : "",
+	   (fn->ND_flag == ND_ON) ? " -nd" : "",
+	   (fn->ND_flag == MD_ON) ? " -md" : "",
+	   (fn->ND_flag == MD_OFF) ? " -nomd" : "",
+	   (fn->HC_flag == HC_ON) ? " -hc" : "",
+	   (fn->HC_flag == HC_OFF) ? " -nohc" : "",
+	   (fn->restrictIP == RIP_ON) ? " -ip" : "",
+	   (fn->restrictIP == RIP_SIP) ? " -sip" : "");
+  return 0;
+}
+
+static char *describe_addrtype(addrtype a)
+{
+  switch (a)
   {
-    ftnaddress_to_str (buf, pAddr + i);
-    printf (" %s", buf);
+  case A_ALL:    return "all";
+  case A_PROT:   return "secure";
+  case A_UNPROT: return "unsecure";
+  case A_LST:    return "listed";
+  case A_UNLST:  return "unlisted";
   }
-  printf ("\n");
-  for (curr_domain = pDomains; curr_domain; curr_domain = curr_domain->next)
+  return "???";
+}
+
+static void debug_readcfg (void)
+{
+  KEYWORD *k;
+  char szfa[FTN_ADDR_SZ + 1];
+
+  for (k = keywords; k->key; k++)
   {
-    if (curr_domain->alias4 == 0)
-      printf ("`%s', `%s', `%s'.\n",
-	      curr_domain->name,
-	      curr_domain->path,
-	      curr_domain->dir);
+    printf("%-24s ", k->key);
+    if (k->callback == read_string)
+      printf("\"%s\"", k->var);
+    else if (k->callback == read_int || k->callback == read_port)
+      printf("%d", *(int *)(k->var));
+    else if (k->callback == read_bool)
+      printf(*(int *)(k->var) ? "[yes]" : "<not defined>");
+    else if (k->callback == include)
+    {
+      struct conflist_type *c;
+      for (c = /*work_config.*/config_list/*.first*/; c; c = c->next)
+        printf("\n    %s", c->path);
+    }
+    else if (k->callback == read_domain_info)
+    {
+      FTN_DOMAIN *c;
+      for (c = /*work_config.*/pDomains/*.first*/; c; c = c->next)
+        if (c->alias4)
+          printf("\n    %s alias-for %s", c->name, c->alias4->name);
+        else
+          printf("\n    %s %s/%s %d", c->name, c->path, c->dir, c->z[0]);
+    }
+    else if (k->callback == read_aka_list)
+    {
+      int  i;
+
+      for (i = 0; i < /*work_config.*/nAddr; i++)
+      {
+        ftnaddress_to_str (szfa, /*work_config.*/pAddr + i);
+        printf("\n    %s", szfa);
+      }
+    }
+    else if (k->callback == read_node_info)
+    {
+      if (k->option1 == 0) /* not defnode */
+        foreach_node (print_node_info_1, 0 /*, &work_config*/);
+      else
+        printf(/*work_config.*/havedefnode ? "[see 0:0/0@defnode]" : "<not defined>");
+    }
+    else if (k->callback == read_flag_exec_info)
+    {
+      EVT_FLAG *c;
+      char     *s;
+
+      for (c = /*work_config.*/evt_flags/*.first*/; c; c = c->next)
+      {
+        s = (k->option1 == 'f' ? c->path : c->command);
+        if (s)
+          printf("\n    %s\"%s\" on \"%s\"", (c->imm ? "[Imm] " : ""),
+                 s, c->pattern);
+      }
+    }
+    /*
+     else if (k->callback == read_string_list)
+     {
+     struct simplelistheader *l = k->var;
+     struct simplelist *c;
+
+     for (c = l->first; c; c = c->next)
+     printf("\n    %s", c->data);
+     }*/
+    else if (k->callback == read_rfrule)
+    {
+      RF_RULE *c;
+
+      for (c = /*work_config.*/rf_rules/*.first*/; c; c = c->next)
+        printf("\n    \"%s\" => \"%s\"", c->from, c->to);
+    }
+    else if (k->callback == read_inboundcase)
+    {
+      switch (/*work_config.*/inboundcase)
+      {
+      case INB_SAVE:  printf("save");  break;
+      case INB_UPPER: printf("upper"); break;
+      case INB_LOWER: printf("lower"); break;
+      case INB_MIXED: printf("mixed"); break;
+      default:        printf("???");   break;
+      }
+    }
+    else if (k->callback == read_skip)
+    {
+      struct skipchain *sk;
+      for (sk = skipmask; sk; sk = sk->next)
+        printf("\n    %s %c%d \"%s\"", describe_addrtype(sk->atype),
+               (sk->destr ? '!' : ' '), (sk->size < 0 ? sk->size : sk->size >> 10),
+               sk->mask);
+    }
+    else if (k->callback == read_mask)
+    {
+      struct maskchain *p;
+
+      for (p = *(struct maskchain **)k->var; p; p = p->next)
+        printf("\n    \"%s\"", p->mask);
+    }
+    else if (k->callback == read_akamask)
+    {
+      if (k->option1 == ACT_HIDE)
+        printf("\n    [see present-aka]");
+      else
+      {
+        struct akachain *p;
+
+        for (p = *(struct akachain **)k->var; p; p = p->next)
+        {
+          ftnaddress_to_str(szfa, &p->fa);
+          printf("\n    %s %s %c%s", ((p->type & 0x7F) == ACT_HIDE ? "hide-aka" : "present-aka"),
+                 szfa, (p->type & 0x80 ? '!' : ' '), p->mask);
+        }
+      }
+    }
+    else if (k->callback == read_check_pkthdr)
+    {
+      if (pkthdr_type == 0)
+        printf("<disabled>");
+      else
+        printf("%s %s", describe_addrtype(pkthdr_type), pkthdr_bad);
+    }
+    else if (k->callback == read_shares)
+    {
+      SHARED_CHAIN   *ch;
+      FTN_ADDR_CHAIN *fch;
+
+      for (ch = shares; ch; ch = ch->next)
+      {
+        ftnaddress_to_str(szfa, &ch->sha);
+        printf("\n    %s", szfa);
+        for (fch = ch->sfa; fch; fch = fch->next)
+        {
+          ftnaddress_to_str(szfa, &fch->fa);
+          printf(" %s", szfa);
+        }
+      }
+    }
+#ifdef HTTPS
+    /*
+     else if (k->callback == read_proxy)
+     {
+     struct proxy_info *prox;
+
+     if (k->option1 == 'p')
+     for (prox = work_config.proxylist.first; prox; prox=prox->next)
+     printf("\n    %s %s:%d user=`%s' password=`%s'",
+     connect_method_name[prox->method],
+     prox->host, prox->port, prox->username, prox->password);
+     else
+     printf("[see `proxy']");
+     }*/
+#endif
     else
-      printf ("`%s' alias for `%s'.\n",
-	      curr_domain->name,
-	      curr_domain->alias4->name);
+      printf("[this item cannot be displayed]");
+    printf("\n");
   }
-  printf ("\n");
-  print_node_info (stdout);
-  printf ("\n");
 }
 
 /*
  * Read shared akas info:
  * share  share_address  node1 [node2 [...]]
  */
-static void read_shares (KEYWORD *key, char *s)
+static int read_shares (KEYWORD *key, int wordcount, char **words)
 {
   int i;
-  char *w;
-  SHARED_CHAIN *chn;
+  SHARED_CHAIN   *chn;
   FTN_ADDR_CHAIN *fchn;
+  KEYWORD        *k;
 
-  w = getword (s, 2);
+  if (wordcount < 2)
+    return SyntaxError(key);
+
   chn = xalloc(sizeof(SHARED_CHAIN));
   chn->next = 0;
   chn->sfa  = 0;
-  if (!parse_ftnaddress(w, &chn->sha))
+  if (!Config_ParseAddress(words[0], &chn->sha))
   {
-    Log (0, "%s: %i: %s: the address cannot be parsed", path, line, w);
+    free(chn);
+    return 0;
   }
   exp_ftnaddress(&chn->sha);
-  free (w);
 
   /* To scan outgoing mails to shared node
    * `node share_addr' string is simulated
    */
-  for (i = 0; keywords[i].key; ++i)
-    if (!STRICMP (keywords[i].key, "node")) break;
-  if (keywords[i].key)
-  {
-    char s[FTN_ADDR_SZ + 1+8];
-    char szFTNAddr[FTN_ADDR_SZ + 1];
-    ftnaddress_to_str (szFTNAddr, &chn->sha);
-    strcpy(s, "node ");
-    strcat(s, szFTNAddr);
-    read_node_info(&keywords[i], s);
-  }
+  for (k = keywords; k->key; k++)
+    if (!STRICMP (k->key, "node"))
+    {
+      /* Our first argument passed to read_node_info as-is, with argc = 1 */
+      if (read_node_info(k, 1, words) == 0)
+      {
+        free(chn);
+        return 0;
+      }
+      break;
+    }
 
-  for (i = 1; (w = getword (s, i + 2)) != 0; ++i)
+  for (i = 1; i < wordcount; ++i)
   {
     fchn = xalloc(sizeof(FTN_ADDR_CHAIN));
     fchn->own  = chn;
     fchn->next = 0;
-    if (!parse_ftnaddress (w, &fchn->fa))
-    {
-      Log (0, "%s: %i: %s: the address cannot be parsed", path, line, w);
-    }
+    if (!Config_ParseAddress (words[i], &fchn->fa))
+      return 0;  /* !!! known memory leak - will be fixed !!! */
     exp_ftnaddress(&fchn->fa);
     add_address(chn, fchn);
-    free (w);
   }
-  if (chn->sfa == 0)
-  {
-    Log (0, "%s: %i: need at least one real address", path, line);
-  }
+
   add_shares(chn);
+  return 1;
 }
 
 static void add_shares(SHARED_CHAIN *chain)
@@ -1349,4 +1657,3 @@ static void add_address(SHARED_CHAIN *chain, FTN_ADDR_CHAIN *aka)
     fac->next = aka;
   }
 }
-
