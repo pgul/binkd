@@ -13,10 +13,7 @@
 /*
  * $Id$
  *
- * $Log$
- * Revision 2.7  2003/09/24 22:13:58  hbrew
- * Fix cvs macro
- *
+ * $Log $
  *
  */
 
@@ -37,15 +34,15 @@ int do_decompress(int type, char *dst, int *dst_len, char *src, int src_len);
 #else
 
 #define Z_DEFAULT_COMPRESSION 6
-typedef uLong unsigned long;
-typedef uLongf *uLong;
+typedef unsigned long uLong;
+typedef uLong FAR     uLongf;
 #ifdef WIN32
 # define ZLIB_CALLCONV __stdcall
 #endif
 
 /* type for compress() and decompress() */
-typedef int ZLIB_CALLCONV zlib_compress_func(char *, uLongf, const char *, int, int);
-typedef int ZLIB_CALLCONV zlib_uncompress_func(char *, uLongf, const char *, int);
+typedef int ZLIB_CALLCONV zlib_compress_func(char*, uLongf*, const char*, int, int);
+typedef int ZLIB_CALLCONV zlib_uncompress_func(char*, uLongf*, const char*, int);
 
 /* actual compress() and decompress() */
 extern zlib_compress_func *dl_compress;

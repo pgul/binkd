@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/09/25 06:41:43  val
+ * fix compilation under win32
+ *
  * Revision 2.5  2003/09/24 09:53:16  val
  * fix warnings
  *
@@ -105,7 +108,7 @@ int do_compress(int type, char *dst, int *dst_len, char *src, int src_len,
 #endif
 #ifdef WITH_ZLIB
     case 1: {
-      uLong d;
+      uLongf d;
       if (lvl == 0) lvl = Z_DEFAULT_COMPRESSION;
       rc = compress2(dst, &d, src, src_len, lvl);
       *dst_len = (int)d;
@@ -131,7 +134,7 @@ int do_decompress(int type, char *dst, int *dst_len, char *src, int src_len) {
 #endif
 #ifdef WITH_ZLIB
     case 1: {
-      uLong d;
+      uLongf d;
       rc = uncompress(dst, &d, src, src_len);
       *dst_len = (int)d;
       return rc;

@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2003/09/25 06:41:43  val
+ * fix compilation under win32
+ *
  * Revision 2.14  2003/09/24 07:32:16  val
  * bzlib2 compression support, new compression keyword: zlevel
  *
@@ -73,18 +76,6 @@
 #define _PROTOCO2_H_
 
 #include "prothlp.h"
-
-#ifdef WITH_ZLIB
-# ifndef ZLIBDL
-#  include <zconf.h>
-# else
-#  define uLongf unsigned long
-# endif
-#endif
-
-#if defined(WITH_BZLIB) || !defined(ZLIBDL)
-# include <bzlib.h>
-#endif
 
 #define BLK_HDR_SIZE 2
 
