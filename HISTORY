@@ -1,3 +1,8 @@
+2004/02/29 10:51:17 1.0a-375 gul
+srif.c,2.15,2.16
+Fixed *A@ macro on event calls
+(patch from Victor Levenets).
+
 2004/02/08 23:13:26 1.0a-374 gul
 ftnq.c,2.31,2.32
 Inhibit redundrant error message in log about filebox under unix
