@@ -1,3 +1,7 @@
+2004/10/15 13:24:16 1.0a-406 stas
+TCPErr.c,2.14,2.15
+binkd/win32/win95: Add "W32 API error" string into system error messages
+
 2004/10/08 11:30:37 1.0a-405 gul
 binlog.c,2.11,2.12
 binlog rev.2.11 bugfix
