@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2001/07/28 08:53:07  gul
+ * set ND-mode bugfix
+ *
  * Revision 2.6  2001/05/23 16:48:03  gul
  * msvc warnings fixed
  *
@@ -159,10 +162,10 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to)
   state->files_sent = state->files_rcvd = 0;
   state->to = to;
   state->NR_flag = (to && to->NR_flag == NR_ON) ? WANT_NR : NO_NR;
-  state->ND_flag = (to && to->ND_flag == ND_ON) ? WE_ND : NO_ND;
+  state->ND_flag = (!to || to->ND_flag == ND_ON) ? WE_ND : NO_ND;
   state->MD_flag = 0;
   state->MD_challenge = NULL;
-  state->crypt_flag = (!to || (to && to->crypt_flag == CRYPT_ON)) ? WE_CRYPT : NO_CRYPT;
+  state->crypt_flag = (!to || to->crypt_flag == CRYPT_ON) ? WE_CRYPT : NO_CRYPT;
   strcpy (state->expected_pwd, "-");
   state->skip_all_flag = state->r_skipped_flag = 0;
   state->maxflvr = 'h';
@@ -1732,10 +1735,12 @@ static void banner (STATE *state)
   }
   msg_send2 (state, M_ADR, szAkas, 0);
 
-  if (state->NR_flag == WANT_NR || (state->crypt_flag & WE_CRYPT) || !state->to)
+  if (state->NR_flag == WANT_NR ||
+      (state->crypt_flag & WE_CRYPT) ||
+      (state->ND_flag & WE_ND))
     msg_sendf (state, M_NUL, "OPT%s%s%s",
                state->NR_flag == WANT_NR ? " NR" : "",
-               ((state->ND_flag & WE_ND) || !state->to) ? " ND" : "",
+               (state->ND_flag & WE_ND) ? " ND" : "",
                (state->crypt_flag & WE_CRYPT) ? " CRYPT" : "");
   free (szAkas);
 }
