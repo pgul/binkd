@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.56  2003/05/03 20:36:45  gul
+ * Print diagnostic message to log on failed session
+ *
  * Revision 2.55  2003/05/03 11:04:58  gul
  * Fix typo
  *
@@ -494,9 +497,11 @@ static int send_block (STATE *state)
       {
 	state->io_error = 1;
 	if (!binkd_exit)
+	{
 	  Log (1, "send: %s", save_err);
-	if (state->to)
-	  bad_try (&state->to->fa, save_err);
+	  if (state->to)
+	    bad_try (&state->to->fa, save_err);
+	}
 	return 0;
       }
       Log (7, "data transfer would block");
@@ -1736,7 +1741,10 @@ static int recv_block (STATE *state)
 	}
 
 	if (rc == 0)
+	{
+	  state->iread = 0;
 	  return 0;
+	}
       }
       else if (state->in.f)
       {
@@ -2212,9 +2220,24 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
     }
   }
 
+  /* Flush input queue */
+  while (!state.io_error)
+  {
+    if ((no = recv(socket, state.ibuf, BLK_HDR_SIZE + MAX_BLKSIZE, 0)) == 0)
+      break;
+    if (no < 0)
+    {
+      if (TCPERRNO != TCPERR_WOULDBLOCK && TCPERRNO != TCPERR_AGAIN)
+	state.io_error = 1;
+      break;
+    }
+    else
+      Log (9, "Purged %d bytes from input queue", no);
+  }
+
   /* Still have something to send */
   while (!state.io_error &&
-	 (state.msgs || (state.optr && state.oleft)) && send_block (&state));
+        (state.msgs || (state.optr && state.oleft)) && send_block (&state));
 
   if (state.local_EOB && state.remote_EOB && state.sent_fls == 0 &&
       state.GET_FILE_balance == 0 && state.in.f == 0 && state.out.f == 0)
