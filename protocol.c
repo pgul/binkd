@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67.2.3  2003/06/24 07:11:47  gul
+ * Migrate try/hold behavior from current branch
+ *
  * Revision 2.67.2.2  2003/06/21 19:36:13  gul
  * Fixed remote ip check
  *
@@ -1963,7 +1966,13 @@ static int recv_block (STATE *state)
   if (no == 0 && sz > 0)
   {
     state->io_error = 1;
-    Log (1, "recv: connection closed by foreign host");
+    if (!binkd_exit)
+    { 
+      const char *s_err = "connection closed by foreign host";
+      Log (1, "recv: %s", s_err);
+      if (state->to)
+	bad_try (&state->to->fa, s_err);
+    }
     return 0;
   }
   else
