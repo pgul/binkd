@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.21  2003/04/28 07:30:17  gul
+ * Bugfix: Log() changes TCPERRNO
+ *
  * Revision 2.20  2003/03/31 19:53:08  gul
  * Close socket before exit
  *
@@ -221,6 +224,7 @@ void servmgr (void *arg)
   socklen_t client_addr_len;
   struct sockaddr_in serv_addr, client_addr;
   int opt = 1;
+  int save_errno;
 
   srand(time(0));
   setproctitle ("server manager");
@@ -272,6 +276,7 @@ void servmgr (void *arg)
       case -1:
         if (TCPERRNO == EINTR)
           continue;
+	save_errno = TCPERRNO;
 	Log (1, "select: %s", TCPERR ());
         goto accepterr;
     }
@@ -284,18 +289,19 @@ void servmgr (void *arg)
     if ((new_sockfd = accept (sockfd, (struct sockaddr *) & client_addr,
 			      &client_addr_len)) == INVALID_SOCKET)
     {
-      if (TCPERRNO != EINVAL && TCPERRNO != EINTR)
+      save_errno = TCPERRNO;
+      if (save_errno != EINVAL && save_errno != EINTR)
       {
 	Log (1, "accept: %s", TCPERR ());
 #ifdef UNIX
-	if (TCPERRNO == ECONNRESET ||
-	    TCPERRNO == ETIMEDOUT ||
-	    TCPERRNO == EHOSTUNREACH)
+	if (save_errno == ECONNRESET ||
+	    save_errno == ETIMEDOUT ||
+	    save_errno == EHOSTUNREACH)
 	   continue;
 #endif
 accepterr:
 #ifdef OS2
-	if (TCPERRNO == ENOTSOCK)
+	if (save_errno == ENOTSOCK)
 	{ /* os/2 ugly hack */
 	  if (config_list)
 	  { config_list->mtime--;

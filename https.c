@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2003/04/28 07:30:16  gul
+ * Bugfix: Log() changes TCPERRNO
+ *
  * Revision 2.13  2003/03/26 10:44:40  gul
  * Code cleanup
  *
@@ -268,7 +271,10 @@ int h_connect(int so, char *host)
 		if (!sauth)
 		{
 			if ((hp=find_host(host, &he, &defaddr)) == NULL)
+			{
+				SetTCPError(PR_ERROR);
 				return 1;
+			}
 		}
 		else
 		{

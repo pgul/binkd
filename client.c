@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.37  2003/04/28 07:30:16  gul
+ * Bugfix: Log() changes TCPERRNO
+ *
  * Revision 2.36  2003/04/25 12:51:18  gul
  * Fix diagnostics on exit
  *
@@ -344,6 +347,7 @@ static int call0 (FTN_NODE *node)
   int i, rc;
   char host[MAXHOSTNAMELEN + 5 + 1];       /* current host/port */
   unsigned short port;
+  char *save_err;
 
   ftnaddress_to_str (szDestAddr, &node->fa);
   Log (2, "call to %s", szDestAddr);
@@ -461,7 +465,7 @@ static int call0 (FTN_NODE *node)
       {
 	if (setjmp(jmpbuf))
 	{
-	  errno = ETIMEDOUT;
+	  save_err = strerror (ETIMEDOUT);
 	  goto badtry;
 	}
 	signal(SIGALRM, chld);
@@ -478,6 +482,7 @@ static int call0 (FTN_NODE *node)
 	break;
       }
 
+      save_err = TCPERR ();
 #ifdef HAVE_FORK
 badtry:
       alarm(0);
@@ -485,8 +490,8 @@ badtry:
 #endif
       if (!binkd_exit)
       {
-	Log (1, "unable to connect: %s", TCPERR ());
-	bad_try (&node->fa, TCPERR ());
+	Log (1, "unable to connect: %s", save_err);
+	bad_try (&node->fa, save_err);
       }
       del_socket(sockfd);
       soclose (sockfd);

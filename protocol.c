@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.50  2003/04/28 07:30:16  gul
+ * Bugfix: Log() changes TCPERRNO
+ *
  * Revision 2.49  2003/04/04 13:54:28  gul
  * Bugfix in localtime detection
  *
@@ -453,13 +456,16 @@ static void current_file_was_sent (STATE *state)
  */
 static int send_block (STATE *state)
 {
-  int i, n;
+  int i, n, save_errno;
+  char *save_err;
 
   /* Have something to send in buffers */
   if (state->optr && state->oleft)
   {
     Log (7, "sending %li byte(s)", (long) (state->oleft));
     n = send (state->s, state->optr, state->oleft, 0);
+    save_errno = TCPERRNO;
+    save_err = TCPERR ();
     Log (7, "send() done, rc=%i", n);
     if (n == state->oleft)
     {
@@ -469,13 +475,13 @@ static int send_block (STATE *state)
     }
     else if (n == SOCKET_ERROR)
     {
-      if (TCPERRNO != TCPERR_WOULDBLOCK && TCPERRNO != TCPERR_AGAIN)
+      if (save_errno != TCPERR_WOULDBLOCK && save_errno != TCPERR_AGAIN)
       {
 	state->io_error = 1;
 	if (!binkd_exit)
-	  Log (1, "send: %s", TCPERR ());
+	  Log (1, "send: %s", save_err);
 	if (state->to)
-	  bad_try (&state->to->fa, TCPERR ());
+	  bad_try (&state->to->fa, save_err);
 	return 0;
       }
       Log (7, "data transfer would block");
@@ -1663,11 +1669,14 @@ static int recv_block (STATE *state)
     }
     else
     {
+      char *save_err = TCPERR();
       state->io_error = 1;
       if (!binkd_exit)
-	Log (1, "recv: %s", TCPERR ());
-      if (state->to)
-	bad_try (&state->to->fa, TCPERR ());
+      {
+	Log (1, "recv: %s", save_err);
+	if (state->to)
+	  bad_try (&state->to->fa, save_err);
+      }
       return 0;
     }
   }
@@ -2031,6 +2040,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
   struct sockaddr_in peer_name;
   socklen_t peer_name_len = sizeof (peer_name);
   char host[MAXHOSTNAMELEN + 1];
+  char *save_err;
 
   if (!init_protocol (&state, socket, to))
     return;
@@ -2149,6 +2159,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
       tv.tv_usec = 0;
       Log (8, "tv.tv_sec=%li, tv.tv_usec=%li", (long) tv.tv_sec, (long) tv.tv_usec);
       no = select (socket + 1, &r, &w, 0, &tv);
+      save_err = TCPERR ();
       Log (8, "selected %i (r=%i, w=%i)", no, FD_ISSET (socket, &r), FD_ISSET (socket, &w));
       bsy_touch ();		       /* touch *.bsy's */
       if (no == 0)
@@ -2163,9 +2174,11 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
       {
 	state.io_error = 1;
 	if (!binkd_exit)
-	  Log (1, "select: %s (args: %i %i)", TCPERR (), socket, tv.tv_sec);
-	if (to)
-	  bad_try (&to->fa, TCPERR ());
+	{
+	  Log (1, "select: %s (args: %i %i)", save_err, socket, tv.tv_sec);
+	  if (to)
+	    bad_try (&to->fa, save_err);
+	}
 	break;
       }
       if (FD_ISSET (socket, &r))       /* Have something to read */
