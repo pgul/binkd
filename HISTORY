@@ -1,3 +1,7 @@
+2003/09/19 16:54:32 0.9.6a-184 gul
+protocol.c,2.123,2.124
+undef VAL_STYLE ip check by default
+
 2003/09/19 16:37:16 0.9.6a-183 val
 ftnnode.c,2.23,2.24
 old get_defnode_info() logic returned for a while
