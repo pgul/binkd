@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of Sep 11 2003
+        Version of Sep 27 2003
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -100,19 +100,19 @@ http://beemail.gexonline.net/)
     - T-mail-style and The Brake!-style fileboxes are supported
     - translation of a FTN-address into a domain name (*.fidonet.net) is
       supported
-    - a password file in the style of T-mail, Bink/+ is supported beginning
+    - a password file in the style of T-mail, Bink/+ is supported starting
       with version 0.9.4
     - file requests using SRIF are supported
     - a flag on receiving files (using a template) may be created
     - a program on receiving files (using a template) may be started
-    - receiving files (using a template) may be refused beginning with
+    - receiving files (using a template) may be refused starting with
       version 0.9.4
-    - working via a HTTP or SOCKS proxy server (beginning with version
+    - working via a HTTP or SOCKS proxy server (starting with version
       0.9.3.https)
-    - password encryption (MD5) beginning with 0.9.4 release
-    - traffic encryption beginning with version 0.9.5
+    - password encryption (MD5) starting with 0.9.4 release
+    - traffic encryption starting with version 0.9.5
     - the remote node IP-address check for an incoming connection is
-      supported beginning with version 0.9.5
+      supported starting with version 0.9.5
 
 
 ----------------------------------------------------------------------------
@@ -128,10 +128,10 @@ RFC-1700 (request for comments, issued by IANA).
 FTN mailer BinkD. Port 24554 is used on default.
 
     There are two versions of the protocol: 1.0 and 1.1. They are backwards
-compatible.  The main difference of version 1.1 is in a possibility of
-making a FREQ during a session.  Besides binkp 1.1 has at present NR option
+compatible.  The main difference of version 1.1 is a possibility of making
+a FREQ during a session.  Besides binkp 1.1 has at present NR option
 (non-reliable mode dealing with a non-reliable channel) and ND option (no
-dupes mode protecting against repeated file transmission), MD5 (password
+dupes mode protecting from repeated file transmission), MD5 (password
 hashing), CRYPT (traffic encryption).
 
     Protocol version 1.1 is supported by BinkD and Internet Rex (version
@@ -164,8 +164,8 @@ at port 24554 using the BinkP protocol twenty four hours a day.
 
         BinkD Doesn't Connect. What Should I Do?
 
-    1. Using the 'telnet' command please check whether the remote node
-responds at port 24554.  If a connection is not set check whether your
+    1. Please check whether the remote node responds at port 24554 using
+the 'telnet' command.  If a connection is not set check whether your
 computer is connected to the net at this moment (using ping command). If
 the checks are successful then check BinkD configuration. Increasing the
 loglevel to 6 or more can help here.
@@ -221,7 +221,7 @@ That does not influence BinkD performance.
 
     Such a reply means that your computer could not find a DNS entry for the
 node.  Check the DNS configuration in your system. If it is correct make
-shure the DNS server works and the remote node address is correct.
+sure the DNS server works and the remote node address is correct.
 
 
 
@@ -251,11 +251,11 @@ via HTTP-proxy" and "How Can BinkD Work via SOCKS-proxy").
 
     The node works but the link channel between the partners is overloaded or
 too slow.  Because of that BinkD connects not at every try (some IP packets
-are lost) or it does not connect at all (the time to wait for the remote node
-reply is too small).  You cannot get it over in the first case because the
-packets are lost in their way and you cannot improve it. In the second case
-one should increase timeouts in the BinkD configuration file (the values
-are in seconds):
+are lost) or it does not connect at all (the time to wait for the remote
+node reply is too small).  You cannot get it over in the first case because
+the packets are lost in their way and you cannot improve it. In the second
+case one should increase timeouts in the BinkD configuration file (the
+values are in seconds):
 
     timeout 60
     connect-timeout 300
@@ -481,7 +481,7 @@ the BinkD configuration file. Binkd would exit faster.
         I Have Changed BinkD Configuration File On-The-Fly. When Will It Be
 Reloaded?
 
-    Beginning with the version 0.9.1 BinkD could feel that its configuration
+    Starting with the version 0.9.1 BinkD could feel that its configuration
 file changed. It exited with code 3 if it had been started with option -C.
 Modification time was checked after each ingoing session. Here is the batch
 file for starting BinkD versions 0.9.1-0.9.3 and 0.9.4/w32:
@@ -496,7 +496,7 @@ file for starting BinkD versions 0.9.1-0.9.3 and 0.9.4/w32:
 
     In the versions 0.9.4/unix and /os2-emx (and in these ones only) BinkD
 restarts automatically if it is started with -C command line option.
-Besides that beginning with version 0.9.4 the files included into the
+Besides that starting with version 0.9.4 the files included into the
 configuration file with the help of 'include' keyword are tested not only
 on incoming sessions but also in every 'rescan-delay' seconds.
 
@@ -537,6 +537,11 @@ BinkP protocol whereas T-mail/IP uses EMSI etc.
 
     You can find several different generators at Nick Soveiko's site:
 http://www.doe.carleton.ca/~nsoveiko/fido/binkd/statistics_generators/
+
+    There also exists BndStat program:
+    BNDST101.ZIP   34812 14-Aug-01 (AREA:AFTNMISC)
+    BndStat 1.01. With sources. BinkD statistics generator. Compiled for all
+    platforms. Included win32 binaries. (C) Dmitry Rusov, 2:5090/94
 
 
 ----------------------------------------------------------------------------
@@ -737,7 +742,9 @@ address 1:2/3.4@fidonet.net will be dealt with as 1:2/3.4@fidonet.
     There are two bugs here, one of them had been fixed before a branch for
 binkd 0.9.5-stable was created.
 
-    1. The fact is that unlike others the MS Visual C run-time library does
+    1. The fact is that the error number was not stored in a pair of places
+in BinkD code but it became apparent nowhere except the Windows version. It
+showed there because unlike others the MS Visual C run-time library does
 not correspond to the standard. 'errno' and 'h_errno' are macros in MSVC
 RTL and they expand to system calls which in the end call GetLastError().
 And the variable errno to which the function returns its value is cleared
@@ -749,7 +756,7 @@ if there were no more errors). The influence of the bug is fixed in BinkD:
     * Bugfix: Log() changes TCPERRNO
 
     2. A Winsock bug: select() always returns successful for a non-blocked
-socket.  The influence of this and other Winsock bugs is fixed:
+socket.  The influence of this and other Winsock bugs is partially fixed:
 
     2003/06/06 16:27:44  gul
     * Workaround winsock bug - giveup CPU when sending file
@@ -758,6 +765,10 @@ socket.  The influence of this and other Winsock bugs is fixed:
     2003/08/24 00:29:31  hbrew
     * win9x-select-workaround fix, thanks to Pavel Gulchouck)
 
+    At the high log level many messages of the 'data transfer would block'
+type and debug info on select() execution is still logged. It does not
+influence a regular work mode. It could be fixed but Pavel decided not to
+complicate the code.
 
 ----------------------------------------------------------------------------
 
@@ -817,7 +828,7 @@ piece of detailed log (loglevel more than 5).
         I Want To Talk To Developers
 
     Dmitry Malov who is the author of the first BinkD versions does not
-develop it any more now.  Beginning with year 2000-2001 the project is
+develop it any more now.  Starting with year 2000-2001 the project is
 coordinated by Pavel Gulchouck 2:463/68 (Pavel Gulchouck <gul@gul.kiev.ua>).
 He also writes the most part of the code.
 
