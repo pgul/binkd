@@ -117,19 +117,6 @@ binkd9x при указании ключа -C автоматически перезапускается при изменении
  Если этого не сделать, то возможны ошибки компиляции или неправильное 
  функционирование binkd и binkd9x.
 
- При компиляции MinGW из-под MSYS необходимо в Makefile в строке
-  SHELL=bash.exe
- заменить bash.exe на sh.exe:
-  SHELL=sh.exe
- Также может не работать make clean, т.к. в MSYS отсутствует del. Его можно 
- заменить на rm. Вместо строк:
-  clean:
-  	  -del /n *.RES *.obj *.o nt\*.o ntlm\*.o *.map *~ *.bak *.b *.ini *.err core >nul 2> nul
- написать:
-  clean:  
-  	  -rm *.RES *.obj *.o nt/*.o ntlm/*.o *.map *~ *.bak *.b *.ini *.err core >nul 2> nul
-  
-
 Я буду рад, если binkd9x пригодится кому-то кроме меня.
 
 Alexander Reznikov, 2:4600/220@fidonet
