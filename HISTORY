@@ -1,3 +1,8 @@
+2004/09/21 11:27:55 1.0a-402 val
+ftnnode.c,2.33,2.34 ftnnode.h,2.19,2.20 readcfg.c,2.72,2.73
+distinguish nodes, listed in binkd config and passwords file - overwrite defnode parameters (e.g. host) for the later
+(hope, it'll fix reported bug with not calling defnode)
+
 2004/09/11 17:37:17 1.0a-401 gul
 readcfg.c,2.71,2.72
 Fix erroneously applied previous patch
