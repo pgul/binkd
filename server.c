@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.26  2003/08/23 15:51:51  stream
+ * Implemented common list routines for all linked records in configuration
+ *
  * Revision 2.25  2003/08/18 09:41:00  gul
  * Little cleanup in handle perl errors
  *
@@ -206,41 +209,6 @@ void serv (void *arg)
 #endif
 }
 
-int checkcfg (void)
-{
-  struct stat sb;
-  struct conflist_type *pc;
-#ifdef HAVE_FORK
-  extern jmp_buf jb;
-#endif
-
-  for (pc = config_list; pc; pc = pc->next)
-  {
-    if (pc->path == NULL || stat (pc->path, &sb))
-      continue;
-    if (pc->mtime == 0)
-    {
-      pc->mtime = (unsigned long)sb.st_mtime;
-    }
-    else if ((time_t)pc->mtime != sb.st_mtime)
-    {
-#if defined(HAVE_FORK)
-      Log (2, "%s changed! Restart binkd...", pc->path);
-      longjmp(jb, 1);
-#else
-#if defined(BINKDW9X)
-      Log (2, "%s changed! Restart binkd...", pc->path);
-#else
-      Log (2, "%s changed! exit(3)...", pc->path);
-#endif
-      checkcfg_flag=2;
-#endif
-      exit (3);
-    }
-  }
-  return 0;
-}
-
 void servmgr (void *arg)
 {
   SOCKET new_sockfd;
@@ -328,10 +296,12 @@ accepterr:
 #ifdef OS2
 	if (save_errno == ENOTSOCK)
 	{ /* os/2 ugly hack */
+#if 0 // !!! will be fixed nicely later (already fixed in -dev-rt)
 	  if (config_list)
 	  { config_list->mtime--;
 	    checkcfg();
 	  }
+#endif
 	}
 #endif
         exit(1);

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.17  2003/08/23 15:51:51  stream
+ * Implemented common list routines for all linked records in configuration
+ *
  * Revision 2.16  2003/07/07 08:38:18  val
  * safe pkthdr-reading function (to byte order and struct alignment)
  *
@@ -457,7 +460,7 @@ int inb_done (char *netname, off_t size, time_t time,
   }
 #endif
 
-  if (mask_test(netname, overwrite) && !ispkt(netname) && !isarcmail(netname))
+  if (mask_test(netname, overwrite.first) && !ispkt(netname) && !isarcmail(netname))
   {
     for(i=0; ; i++)
     {

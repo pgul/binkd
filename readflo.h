@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/08/23 15:51:51  stream
+ * Implemented common list routines for all linked records in configuration
+ *
  * Revision 2.1  2003/06/20 10:37:02  val
  * Perl hooks for binkd - initial revision
  *
@@ -34,17 +37,11 @@
 typedef struct _RF_RULE RF_RULE;
 struct _RF_RULE
 {
-  char *from, *to;
   RF_RULE *next;
+  char *from, *to;
 };
 
-extern RF_RULE *rf_rules;
-
-/*
- * Add a translation rule for trans_flo_line ()
- * (From and to are saved as pointers!)
- */
-void rf_rule_add (char *from, char *to);
+extern DEFINE_LIST(_RF_RULE) rf_rules;
 
 /*
  * Reads a line from a flo to dst[MAXPATHLEN], sets action

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/08/23 15:51:51  stream
+ * Implemented common list routines for all linked records in configuration
+ *
  * Revision 2.1  2002/11/12 17:27:46  gul
  * Ignore empty (\r\n) line in lo-files
  *
@@ -32,10 +35,11 @@
 #include <ctype.h>
 
 #include "Config.h"
+#include "readcfg.h"
 #include "readflo.h"
 #include "assert.h"
 
-RF_RULE *rf_rules = 0;
+TYPE_LIST(_RF_RULE) rf_rules;
 
 /*
  * Reads a line from a flo to dst[MAXPATHLEN], sets action
@@ -88,12 +92,12 @@ char *trans_flo_line (char *s)
   RF_RULE *curr;
   char buf[MAXPATHLEN + 1];
 
-  if (rf_rules)
+  if (rf_rules.first)
   {
     char *w;
 
     strnzcpy (buf, s, MAXPATHLEN);
-    for (curr = rf_rules; curr; curr = curr->next)
+    for (curr = rf_rules.first; curr; curr = curr->next)
     {
       w = ed (buf, curr->from, curr->to, NULL);
       strnzcpy (buf, w, MAXPATHLEN);
@@ -103,23 +107,4 @@ char *trans_flo_line (char *s)
   }
   else
     return 0;
-}
-
-/*
- * Add a translation rule for trans_flo_line ()
- * (From and to are saved as pointers!)
- */
-void rf_rule_add (char *from, char *to)
-{
-  static RF_RULE *last_rule = 0;
-  RF_RULE *new_rule = xalloc (sizeof (RF_RULE));
-
-  memset (new_rule, 0, sizeof (RF_RULE));
-  new_rule->from = from;
-  new_rule->to = to;
-  if (last_rule)
-    last_rule->next = new_rule;
-  else
-    rf_rules = new_rule;
-  last_rule = new_rule;
 }

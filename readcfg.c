@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.43  2003/08/23 15:51:51  stream
+ * Implemented common list routines for all linked records in configuration
+ *
  * Revision 2.42  2003/08/19 19:41:39  gul
  * Fix warnings
  *
@@ -223,6 +226,63 @@ static char  spaces[] = " \n\t";
 
 #define UNUSED_ARG(s)  (void)(s)
 
+struct conflist_type
+{
+  struct conflist_type *next;
+  char                 *path;
+  time_t                mtime;
+};
+
+/*
+ * Add static object to list (allocate new entry and copy static data)
+ */
+static void simplelist_add(struct list_linkpoint *lp, void *data, int size)
+{
+  DEFINE_LIST(__dummy__) *l = (TYPE_LIST(__dummy__) *) lp; /* linkpoint always at the beginning of list */
+
+  void *p = xalloc(size);  /* new data element - variable size! */
+
+  memcpy(p, data, size);
+  ((struct list_itemlink *)p)->next = NULL;  /* item.next always at the beginning of structure */
+
+  if (l->linkpoint.last == NULL)
+  {
+    l->first = p;
+    l->linkpoint.last = p;
+  }
+  else
+    l->linkpoint.last = l->linkpoint.last->next = p;
+}
+
+#if 0
+/*
+ * Destroy list and all its entries
+ */
+static void simplelist_free(struct simplelist *l, void (*destructor)(void *))
+{
+  struct simplelist_data *p, *next_p;
+
+  for (p = l->first; p; p = next_p)
+  {
+    if (destructor)
+      destructor(p);
+    next_p = p->next;
+    free(p);
+  }
+  l->first = l->last = NULL;
+}
+
+/*
+ * Destructors for list entries
+ */
+static void destroy_configlist(void *p)
+{
+  struct conflist_type *pp = p;
+
+  xfree(pp->path);
+}
+#endif
+
 char siport[MAXSERVNAME + 1] = "";
 char soport[MAXSERVNAME + 1] = "";
 int havedefnode=0;
@@ -280,7 +340,7 @@ char root_domain[MAXHOSTNAMELEN + 1] = "fidonet.net.";
 int prescan = 0;
 enum inbcasetype inboundcase = INB_SAVE;
 int connect_timeout = 0;
-struct conflist_type *config_list = NULL;
+static DEFINE_LIST(conflist_type) config_list;
 addrtype pkthdr_type = 0;
 char *pkthdr_bad = NULL;
 #ifdef AMIGADOS_4D_OUTBOUND
@@ -291,8 +351,8 @@ char perl_script[MAXPATHLEN + 1] = "";
 char perl_dll[MAXPATHLEN + 1] = "";
 int perl_strict = 0;
 #endif
-struct maskchain *nolog = NULL;
-struct akachain *akamask = NULL;
+TYPE_LIST(maskchain) nolog;
+TYPE_LIST(akachain)  akamask;
 
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
 
@@ -303,8 +363,8 @@ int syslog_facility = -1;
 int tries = 0;
 int hold = 0;
 int hold_skipped = 60 * 60;
-struct maskchain *overwrite = NULL;
-struct skipchain *skipmask = NULL;
+TYPE_LIST(maskchain) overwrite;
+TYPE_LIST(skipchain) skipmask;
 
 int nAddr = 0;
 FTN_ADDR *pAddr = 0;
@@ -330,7 +390,7 @@ static int read_bool (KEYWORD *key, int wordcount, char **words);
 static int read_flag_exec_info (KEYWORD *key, int wordcount, char **words);
 static int read_rfrule (KEYWORD *key, int wordcount, char **words);
 static int read_mask (KEYWORD *key, int wordcount, char **words);
-static int read_akamask (KEYWORD *key, int wordcount, char **words);
+static int read_akachain (KEYWORD *key, int wordcount, char **words);
 static int read_inboundcase (KEYWORD *key, int wordcount, char **words);
 static int read_port (KEYWORD *key, int wordcount, char **words);
 static int read_skip (KEYWORD *key, int wordcount, char **words);
@@ -433,8 +493,8 @@ KEYWORD keywords[] =
 #endif
 
   {"nolog", read_mask, &nolog, 0, 0},
-  {"hide-aka", read_akamask, &akamask, ACT_HIDE, 0},
-  {"present-aka", read_akamask, &akamask, ACT_PRESENT, 0},
+  {"hide-aka", read_akachain, &akamask, ACT_HIDE, 0},
+  {"present-aka", read_akachain, &akamask, ACT_PRESENT, 0},
   {NULL, NULL, NULL, 0, 0}
 };
 
@@ -596,24 +656,48 @@ static int check_config(void)
   return 1;
 }
 
+int checkcfg (void)
+{
+  struct stat sb;
+  struct conflist_type *pc;
+#ifdef HAVE_FORK
+  extern jmp_buf jb;
+#endif
+
+  for (pc = config_list.first; pc; pc = pc->next)
+  {
+    if (pc->path == NULL || stat (pc->path, &sb))
+      continue;
+    if (pc->mtime == 0)
+    {
+      pc->mtime = (unsigned long)sb.st_mtime;
+    }
+    else if ((time_t)pc->mtime != sb.st_mtime)
+    {
+#if defined(HAVE_FORK)
+      Log (2, "%s changed! Restart binkd...", pc->path);
+      longjmp(jb, 1);
+#else
+#if defined(BINKDW9X)
+      Log (2, "%s changed! Restart binkd...", pc->path);
+#else
+      Log (2, "%s changed! exit(3)...", pc->path);
+#endif
+      checkcfg_flag=2;
+#endif
+      exit (3);
+    }
+  }
+  return 0;
+}
+
 static void add_to_config_list(const char *path)
 {
-  struct conflist_type *pc;
+  struct  conflist_type new_entry;
 
-  if (config_list)
-  {
-    for (pc = config_list; pc->next; pc = pc->next);
-    pc->next = xalloc(sizeof(*pc));
-    pc = pc->next;
-  }
-  else
-  {
-    config_list = xalloc(sizeof(*pc));
-    pc = config_list;
-  }
-  pc->next = NULL;
-  pc->path = xstrdup(path);
-  pc->mtime = 0;
+  new_entry.path  = xstrdup(path);
+  new_entry.mtime = 0;
+  simplelist_add(&/*work_config.*/config_list.linkpoint, &new_entry, sizeof(new_entry));
 }
 
 static int readcfg0 (char *path)
@@ -760,7 +844,7 @@ static int Config_ParseAddress(char *s, FTN_ADDR *a)
 
 
 /*
- *  METHODS TO PROCESS KEYWORDS' ARGUMETS
+ *  METHODS TO PROCESS KEYWORDS' ARGUMENTS
  */
 
 static int include (KEYWORD *key, int wordcount, char **words)
@@ -1157,31 +1241,18 @@ static int read_syslog_facility (KEYWORD *key, int wordcount, char **words)
 
 static int read_rfrule (KEYWORD *key, int wordcount, char **words)
 {
+  RF_RULE new_entry;
+
   UNUSED_ARG(key);
 
   if (!isArgCount(2, wordcount))
     return 0;
 
-  rf_rule_add(xstrdup(words[0]), xstrdup(words[1]));
+  new_entry.from = xstrdup(words[0]);
+  new_entry.to   = xstrdup(words[1]);
+  simplelist_add(&rf_rules.linkpoint, &new_entry, sizeof(new_entry));
 
   return 1;
-}
-
-static void mask_add(char *mask, struct maskchain **chain)
-{
-  struct maskchain *ps, *newmask;
-
-  newmask = xalloc(sizeof(*newmask));
-  newmask->next = NULL;
-  newmask->mask = xstrdup(mask);
-
-  if (*chain == NULL)
-    *chain = newmask;
-  else
-  {
-    for (ps = *chain; ps->next; ps = ps->next);
-    ps->next = newmask;
-  }
 }
 
 char *mask_test(char *s, struct maskchain *chain)
@@ -1197,50 +1268,45 @@ char *mask_test(char *s, struct maskchain *chain)
 static int read_mask (KEYWORD *key, int wordcount, char **words)
 {
   int i;
+  struct maskchain new_entry;
 
   if (wordcount == 0)
     return SyntaxError(key);
 
   for (i = 0; i < wordcount; i++)
-    mask_add(words[i], (struct maskchain **) (key->var));
-
-  return 1;
-}
-
-static int akamask_add(char *aka, char *mask, struct akachain **chain, int type)
-{
-  struct akachain *ps, *newmask;
-
-  newmask = xalloc(sizeof(*newmask));
-
-  newmask->next = NULL;
-  if (!Config_ParseAddress(aka, &(newmask->fa)))
   {
-    free(newmask);
-    return 0;
-  }
-  exp_ftnaddress(&(newmask->fa));
-  if (*mask == '!') { mask++; type |= 0x80; }
-  newmask->type = type;
-  newmask->mask = xstrdup(mask);
-
-  if (*chain == NULL)
-    *chain = newmask;
-  else
-  {
-    for (ps = *chain; ps->next; ps = ps->next);
-    ps->next = newmask;
+    new_entry.mask = xstrdup(words[i]);
+    simplelist_add(key->var, &new_entry, sizeof(new_entry));
   }
 
   return 1;
 }
 
-static int read_akamask (KEYWORD *key, int wordcount, char **words)
+static int read_akachain (KEYWORD *key, int wordcount, char **words)
 {
+  struct akachain new_entry;
+  int    type;
+  char   *mask;
+
   if (!isArgCount(2, wordcount))
     return 0;
 
-  return akamask_add(words[0], words[1], (struct akachain**)(key->var), key->option1);
+  if (!Config_ParseAddress(words[0], &new_entry.fa))  /* aka */
+    return 0;
+  exp_ftnaddress(&new_entry.fa);
+
+  mask = words[1];
+  type = key->option1;
+  if (*mask == '!')
+  {
+    mask++;
+    type |= 0x80;
+  }
+  new_entry.type = type;
+  new_entry.mask = xstrdup(mask);
+  simplelist_add(key->var, &new_entry, sizeof(new_entry));
+
+  return 1;
 }
 
 static addrtype parse_addrtype(char *w)
@@ -1253,24 +1319,13 @@ static addrtype parse_addrtype(char *w)
   else return 0;
 }
 
-void skip_add(char *mask, off_t sz, addrtype at, int destr)
-{
-  struct skipchain *ps = skipmask;
-
-  if (!skipmask) { ps = skipmask = xalloc(sizeof(*ps)); }
-  else { while (ps->next) ps = ps->next; ps = ps->next = xalloc(sizeof(*ps)); }
-  ps->next = NULL;
-  ps->mask = xstrdup(mask);
-  ps->size = sz > 0 ? sz << 10 : sz; /* to kilobytes if > 0 */
-  ps->atype = at;
-  ps->destr = destr;
-}
 /* skip [all|listed|unlisted|secure|unsecure] [!]<size>|- <mask>... */
 static int read_skip (KEYWORD *key, int wordcount, char **words)
 {
   int i, destr = 0, maskonly = 0;
   off_t sz = 0;
   addrtype at = A_ALL;
+  struct skipchain new_entry;
 
   for (i = 0; i < wordcount; i++)
   {
@@ -1292,7 +1347,13 @@ static int read_skip (KEYWORD *key, int wordcount, char **words)
       maskonly = 1; /* size detected, only masks are allowed further */
       continue;
     }
-    skip_add(w, sz, at, destr);
+    /* Add new entry */
+    new_entry.mask  = xstrdup(w);
+    new_entry.size  = (sz > 0 ? sz << 10 : sz);
+    new_entry.atype = at;
+    new_entry.destr = destr;
+    simplelist_add(&skipmask.linkpoint, &new_entry, sizeof(new_entry));
+
     maskonly = 2; /* at least one filemask present */
   }
 
@@ -1345,7 +1406,7 @@ static int read_port (KEYWORD *key, int wordcount, char **words)
 
 static int read_flag_exec_info (KEYWORD *key, int wordcount, char **words)
 {
-  EVT_FLAG *new_event, *last;
+  EVT_FLAG new_event;
   char     *path;
   int      i;
   char     **body;
@@ -1353,40 +1414,28 @@ static int read_flag_exec_info (KEYWORD *key, int wordcount, char **words)
   if (wordcount < 2)
     return SyntaxError(key);
 
-  last = evt_flags;
-  if (last)
-    for (; last->next; last = last->next)
-      ;
-
   path = words[0];
   for (i = 1; i < wordcount; i++)
   {
-    new_event = xalloc(sizeof(*new_event));
-    memset(new_event, 0, sizeof(*new_event));
+    memset(&new_event, 0, sizeof(new_event));
 
     if (key->option1 == 'f')
-      body = &(new_event->path);
+      body = &(new_event.path);
     else if (key->option1 == 'e')
-      body = &(new_event->command);
+      body = &(new_event.command);
     else
       continue; /* should never happens */
     if (*path == '!')
     {
-      new_event->imm = 1;
+      new_event.imm = 1;
       *body = xstrdup(path + 1);
     }
     else
       *body = xstrdup(path);
-    new_event->pattern = xstrdup(words[i]);
+    new_event.pattern = xstrdup(words[i]);
     /* strlower (new_event->pattern); */
 
-    if (last == NULL)
-      evt_flags = new_event;
-    else
-      last->next = new_event;
-    last = new_event;
-
-   /* simplelist_add(&work_config.evt_flags, &new_event, sizeof(new_event)); */
+    simplelist_add(&evt_flags.linkpoint, &new_event, sizeof(new_event));
   }
 
   return 1;
@@ -1442,7 +1491,7 @@ static void debug_readcfg (void)
     else if (k->callback == include)
     {
       struct conflist_type *c;
-      for (c = /*work_config.*/config_list/*.first*/; c; c = c->next)
+      for (c = /*work_config.*/config_list.first; c; c = c->next)
         printf("\n    %s", c->path);
     }
     else if (k->callback == read_domain_info)
@@ -1474,30 +1523,20 @@ static void debug_readcfg (void)
     else if (k->callback == read_flag_exec_info)
     {
       EVT_FLAG *c;
-      char     *s;
 
-      for (c = /*work_config.*/evt_flags/*.first*/; c; c = c->next)
+      for (c = /*work_config.*/evt_flags.first; c; c = c->next)
       {
-        s = (k->option1 == 'f' ? c->path : c->command);
+        char *s = (k->option1 == 'f' ? c->path : c->command);
         if (s)
           printf("\n    %s\"%s\" on \"%s\"", (c->imm ? "[Imm] " : ""),
                  s, c->pattern);
       }
     }
-    /*
-     else if (k->callback == read_string_list)
-     {
-     struct simplelistheader *l = k->var;
-     struct simplelist *c;
-
-     for (c = l->first; c; c = c->next)
-     printf("\n    %s", c->data);
-     }*/
     else if (k->callback == read_rfrule)
     {
       RF_RULE *c;
 
-      for (c = /*work_config.*/rf_rules/*.first*/; c; c = c->next)
+      for (c = /*work_config.*/rf_rules.first; c; c = c->next)
         printf("\n    \"%s\" => \"%s\"", c->from, c->to);
     }
     else if (k->callback == read_inboundcase)
@@ -1514,7 +1553,7 @@ static void debug_readcfg (void)
     else if (k->callback == read_skip)
     {
       struct skipchain *sk;
-      for (sk = skipmask; sk; sk = sk->next)
+      for (sk = skipmask.first; sk; sk = sk->next)
         printf("\n    %s %c%ld \"%s\"", describe_addrtype(sk->atype),
                (sk->destr ? '!' : ' '),
 	       (long)(sk->size < 0 ? sk->size : sk->size >> 10),
@@ -1524,10 +1563,10 @@ static void debug_readcfg (void)
     {
       struct maskchain *p;
 
-      for (p = *(struct maskchain **)k->var; p; p = p->next)
+      for (p = ((TYPE_LIST(maskchain) *)k->var)->first; p; p = p->next)
         printf("\n    \"%s\"", p->mask);
     }
-    else if (k->callback == read_akamask)
+    else if (k->callback == read_akachain)
     {
       if (k->option1 == ACT_HIDE)
         printf("\n    [see present-aka]");
@@ -1535,7 +1574,7 @@ static void debug_readcfg (void)
       {
         struct akachain *p;
 
-        for (p = *(struct akachain **)k->var; p; p = p->next)
+        for (p = ((TYPE_LIST(akachain) *)k->var)->first; p; p = p->next)
         {
           ftnaddress_to_str(szfa, &p->fa);
           printf("\n    %s %s %c%s", ((p->type & 0x7F) == ACT_HIDE ? "hide-aka" : "present-aka"),

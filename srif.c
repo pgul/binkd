@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2003/08/23 15:51:51  stream
+ * Implemented common list routines for all linked records in configuration
+ *
  * Revision 2.10  2003/08/12 09:23:00  val
  * migrate from pmatch() to pmatch_ncase()
  *
@@ -76,7 +79,7 @@
 #include "run.h"
 #include "tools.h"
 
-EVT_FLAG *evt_flags = 0;
+TYPE_LIST(_EVT_FLAG) evt_flags;
 
 static EVTQ *evt_queue(EVTQ *eq, char evt_type, char *path)
 {
@@ -101,7 +104,7 @@ int evt_test (EVTQ **eq, char *filename)
   EVT_FLAG *curr;
   int rc=0;
 
-  for (curr = evt_flags; curr; curr = curr->next)
+  for (curr = evt_flags.first; curr; curr = curr->next)
   {
     if (pmatch_ncase(curr->pattern, filename))
     {
@@ -237,7 +240,7 @@ static FTNQ *parse_response (FTNQ *q, char *rsp, FTN_ADDR *fa)
 }
 
 static char valid_filename_chars[]=".\\-_:/@";
-static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa, 
+static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa,
              int nfa, int prot, int listed, char *peer_name, STATE *st, int imm)
 {
   char *sp, *w;
@@ -273,7 +276,7 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa,
     else  /* We don't like inet_ntoa ;-) */
     {
       sin.sin_addr.s_addr=htonl(sin.sin_addr.s_addr);
-      sprintf(ipaddr, "%d.%d.%d.%d", 
+      sprintf(ipaddr, "%d.%d.%d.%d",
                 (int)(sin.sin_addr.s_addr>>24),
                 (int)((sin.sin_addr.s_addr>>16)&0xFF),
                 (int)((sin.sin_addr.s_addr>>8)&0xFF),
@@ -385,7 +388,7 @@ FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename,
 {
   EVT_FLAG *curr;
 
-  for (curr = evt_flags; curr; curr = curr->next)
+  for (curr = evt_flags.first; curr; curr = curr->next)
   {
     if (curr->command && pmatch_ncase(curr->pattern, filename))
     {

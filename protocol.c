@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.102  2003/08/23 15:51:51  stream
+ * Implemented common list routines for all linked records in configuration
+ *
  * Revision 2.101  2003/08/19 10:16:12  gul
  * Rename trunc() -> trunc_file() due to conflict under OS/2 EMX
  *
@@ -462,7 +465,7 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to)
 #ifdef WITH_PERL
   state->perl_set_lvl = 0;
 #endif
-  state->delay_ADR = (akamask != NULL) ? 1 : 0;
+  state->delay_ADR = (akamask.first != NULL) ? 1 : 0;
 #ifdef WITH_PERL
   state->delay_ADR |= (perl_ok & (1<<4)) != 0;
 #endif
@@ -562,7 +565,7 @@ static void mkhdr (char *s, unsigned u)
  * right after the current data block.
  */
 #ifndef WITH_PERL
-static 
+static
 #endif
        void msg_send2 (STATE *state, t_msg m, char *s1, char *s2)
 {
@@ -1631,18 +1634,21 @@ static int OK (STATE *state, char *buf, int sz)
 }
 
 /* val: checks file against skip rules */
-struct skipchain *skip_test(STATE *state) {
-  struct skipchain *ps = skipmask;
+struct skipchain *skip_test(STATE *state)
+{
+  struct skipchain *ps;
   addrtype amask = 0;
 
   amask |= (state->listed_flag) ? A_LST : A_UNLST;
   amask |= (state->state == P_SECURE) ? A_PROT : A_UNPROT;
-  while (ps) {
-    if ( (ps->atype & amask) && pmatch_ncase(ps->mask, state->in.netname) ) {
-      if (ps->size >=0 && state->in.size >= ps->size) return ps;
-      else return NULL;
+  for (ps = skipmask.first; ps; ps = ps->next)
+  {
+    if ( (ps->atype & amask) && pmatch_ncase(ps->mask, state->in.netname) )
+    {
+      if (ps->size >=0 && state->in.size >= ps->size)
+        return ps;
+      return NULL;
     }
-    ps = ps->next;
   }
   return NULL;
 }
@@ -2344,7 +2350,7 @@ static void send_ADR (STATE *state) {
   char szFTNAddr[FTN_ADDR_SZ + 1];
   char *szAkas;
   int i, N;
-  struct akachain *ps = akamask;
+  struct akachain *ps;
 
   Log(7, "send_ADR(): got %d remote addresses", state->nfa);
 
@@ -2355,7 +2361,8 @@ static void send_ADR (STATE *state) {
   }
 
   N = state->nAddr;
-  while (ps) {
+  for (ps = akamask.first; ps; ps = ps->next)
+  {
     int t = (ps->type & 0x7f);
     int rc = ftnamask_cmpm(ps->mask, state->nfa, state->fa) == (ps->type & 0x80 ? -1 : 0);
     /* hide aka */
@@ -2388,7 +2395,6 @@ static void send_ADR (STATE *state) {
         memcpy(state->pAddr+state->nAddr-1, &(ps->fa), sizeof(FTN_ADDR));
       }
     }
-    ps = ps->next;
   }
 
   szAkas = xalloc (state->nAddr * (FTN_ADDR_SZ + 1));

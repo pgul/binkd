@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/08/23 15:51:51  stream
+ * Implemented common list routines for all linked records in configuration
+ *
  * Revision 2.1  2002/02/22 00:18:34  gul
  * Run by-file events with the same command-line once after session
  *
@@ -45,7 +48,7 @@ struct _EVT_FLAG
   int imm;				    /* Immediate flag */
 };
 
-extern EVT_FLAG *evt_flags;
+extern DEFINE_LIST(_EVT_FLAG) evt_flags;
 
 /*
  * Tests if filename matches any of EVT_FLAG's patterns.
@@ -56,7 +59,7 @@ int evt_test (EVTQ **eq, char *filename);
  * Runs external programs using S.R.I.F. interface
  * if the name matches one of our "exec"'s
  */
-FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename0, FTN_ADDR *fa, 
+FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename0, FTN_ADDR *fa,
                int nfa, int prot, int listed, char *peer_name, STATE *st);
 
 /*

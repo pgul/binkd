@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.47  2003/08/23 15:51:51  stream
+ * Implemented common list routines for all linked records in configuration
+ *
  * Revision 2.46  2003/08/21 07:24:40  gul
  * Use local buffer in Log() with HAVE_FORK
  *
@@ -483,7 +486,7 @@ void Log (int lev, char *s,...)
   if (!perl_on_log(buf, sizeof(buf), &lev)) ok = 0;
 #endif
   /* match against nolog */
-  if ( mask_test(buf, nolog) != NULL ) ok = 0;
+  if ( mask_test(buf, nolog.first) != NULL ) ok = 0;
   /* log output */
   if (ok)
 { /* if (ok) */

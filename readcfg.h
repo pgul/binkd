@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19  2003/08/23 15:51:51  stream
+ * Implemented common list routines for all linked records in configuration
+ *
  * Revision 2.18  2003/08/18 07:35:09  val
  * multiple changes:
  * - hide-aka/present-aka logic
@@ -113,6 +116,17 @@
 /* val: enum for checks */
 typedef enum { A_ALL=-1, A_LST=1, A_UNLST=2, A_PROT=4, A_UNPROT=8 } addrtype;
 
+struct list_itemlink  { void *next; };  /* in the beginning of each item! */
+struct list_linkpoint { struct list_itemlink *last; }; /* in the beginning of each list! */
+
+#define TYPE_LIST(itemtype)  struct simplelist_##itemtype
+#define DEFINE_LIST(itemtype)       \
+  TYPE_LIST(itemtype)               \
+  {                                 \
+  struct list_linkpoint linkpoint;  \
+  struct itemtype *first;           \
+  }
+
 extern int nAddr;
 extern FTN_ADDR *pAddr;
 extern int iport;
@@ -180,35 +194,35 @@ extern char perl_script[MAXPATHLEN + 1];
 extern char perl_dll[MAXPATHLEN + 1];
 extern int perl_strict;
 #endif
-extern struct conflist_type 
-  { char *path;
-    struct conflist_type *next;
-    time_t mtime;
-  } *config_list;
+
 /* val: use for overwrite and nolog */
-extern struct maskchain
-  {
-    struct maskchain *next;
-    char *mask;
-  } *overwrite;
-extern struct maskchain *nolog;
+struct maskchain
+{
+  struct maskchain *next;
+  char *mask;
+};
+extern DEFINE_LIST(maskchain) overwrite, nolog;
+
 /* val: struct for skipmask */
-extern struct skipchain
-  {
-    struct skipchain *next;
-    char *mask;
-    addrtype atype;
-    off_t size;
-    int destr;
-  } *skipmask;
+struct skipchain
+{
+  struct skipchain *next;
+  char *mask;
+  addrtype atype;
+  off_t size;
+  int destr;
+};
+extern DEFINE_LIST(skipchain) skipmask;
+
 /* val: struct for hide-aka, present-aka */
-extern struct akachain
-  {
-    struct akachain *next;
-    FTN_ADDR fa;
-    char *mask;
-    enum { ACT_UNKNOWN=0, ACT_HIDE, ACT_PRESENT } type;
-  } *akamask;
+struct akachain
+{
+  struct akachain *next;
+  FTN_ADDR fa;
+  char *mask;
+  enum { ACT_UNKNOWN=0, ACT_HIDE, ACT_PRESENT } type;
+};
+extern DEFINE_LIST(akachain) akamask;
 
 /*
  * Parses and reads the path as a config
