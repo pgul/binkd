@@ -1,3 +1,9 @@
+2004/11/04 10:55:20 1.0a-422 stream
+ftndom.c,2.5,2.6
+Bugfix to previous bugfix.
+Also log warning if we have to guess default domain name from main AKA
+or first domain.
+
 2004/11/04 08:22:04 1.0a-421 stas
 ftndom.c,2.4,2.5
 BUGFIX: segfault if 1st address is 4D
