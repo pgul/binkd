@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2003/09/08 17:05:42  stream
+ * Big memory leak in evt_queue()
+ *
  * Revision 2.13  2003/08/26 21:01:10  gul
  * Fix compilation under unix
  *
@@ -95,7 +98,7 @@ static EVTQ *evt_queue(EVTQ *eq, char evt_type, char *path)
   }
   tmp = xalloc(sizeof(EVTQ));
   tmp->evt_type = evt_type;
-  tmp->path = path;
+  tmp->path = xstrdup(path);
   tmp->next = eq;
   return tmp;
 }
@@ -143,7 +146,6 @@ void evt_set (EVTQ *eq)
     {
       Log (4, "Running %s", eq->path);
       run(eq->path);
-      free(eq->path);
     }
     else
     {
@@ -151,6 +153,7 @@ void evt_set (EVTQ *eq)
       create_empty_sem_file(eq->path);
     }
     curr = eq->next;
+    free(eq->path);
     free(eq);
     eq = curr;
   }
@@ -368,17 +371,12 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa,
   }
 
   if((fn!=filename0) && (use_fn))
-  {
     Log(1, "Security problem. Execution aborted...");
-    free(w);
-  }
-  else if (imm)
-  { /* immediate event */
+  else if (imm) /* immediate event */
     run(w);
-    free(w);
-  }
   else
     eq = evt_queue(eq, 'e', w);
+  free(w);
   return eq;
 }
 
