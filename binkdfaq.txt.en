@@ -438,8 +438,7 @@ because the poll has been made by a command of the type
 
     echo . >> xxxxyyyy.flo
 
-    you should change it to "cd . >> xxxxyyyy.flo" or 
-"type nul >> xxxxyyyy.flo" (Windows, DOS or OS/2 only).
+    you should change it to "cd . >> xxxxyyyy.flo"
 
 
 ----------------------------------------------------------------------------
