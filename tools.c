@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.43  2003/08/18 15:44:51  stream
+ * New function last_slash(): Return pointer to last directory separator
+ * in file name, or NULL if no path present.
+ *
  * Revision 2.42  2003/08/18 08:23:02  gul
  * Return log semaphoring
  *
@@ -267,7 +271,7 @@ int mkpath0 (const char *path0)
       errno = ENOMEM;
       return -1;
     }
-    if ((s = max (strrchr (path, '\\'), strrchr (path, '/'))) != 0)
+    if ((s = last_slash(path)) != 0)
     {
       *(s++) = 0;
       if (*path && mkpath0 (path) == -1)
@@ -304,7 +308,7 @@ int mkpath (char *s)
   char path[MAXPATHLEN];
 
   strnzcpy (path, s, MAXPATHLEN);
-  if ((s = max (strrchr (path, '\\'), strrchr (path, '/'))) == 0)
+  if ((s = last_slash(path)) == 0)
     return 0;
   *s = 0;
   return mkpath0 (path);
@@ -486,7 +490,7 @@ void Log (int lev, char *s,...)
   /* match against nolog */
   if ( mask_test(buf, nolog) != NULL ) ok = 0;
   /* log output */
-  if (ok) 
+  if (ok)
 { /* if (ok) */
 
   struct tm tm;
@@ -811,9 +815,9 @@ char *ed (char *s, char *a, char *b, size_t *size)
    size_t len_a=a?strlen(a):0;
    size_t len_b=b?strlen(b):0;
    char *r=s;
-   
+
    if ((!len_a) || (!s)) return r;
-   if (!size) 
+   if (!size)
    {
      sz=strlen(s)+1;
      r=xstrdup(s);
@@ -1023,8 +1027,8 @@ char **mkargv (int argc, char **argv)
 char *makeinboundcase (char *s)
 {
   int i;
-  
-  switch (inboundcase) 
+
+  switch (inboundcase)
   {
       case INB_UPPER:
 	s = strupper(s);
@@ -1078,10 +1082,21 @@ long safe_atol(char* str, char** msg){
   return (long)ul;
 }
 
+/* Return last directory separator in file name, or NULL if no path present */
+char * last_slash(char *s)
+{
+  char *ret;
+
+  for (ret = NULL; *s; s++)
+    if (*s == '/' || *s == '\\')
+      ret = s;
+  return ret;
+}
+
 /* Extract filename from path */
 char *extract_filename(char *s)
 {
-  char *tmp = max(max(strrchr(s, '\\'), strrchr(s, '/')), strrchr(s, ':'));
+  char *tmp = max(last_slash(s), strrchr(s, ':'));
   return tmp? tmp+1: s;
 }
 
