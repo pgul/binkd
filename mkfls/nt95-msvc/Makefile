@@ -5,8 +5,8 @@
 #
 
 !ifdef DLLRTL
-RTLSUFFIX=-dll
 RTLTYPE=D
+RTLSUFFIX=-dll
 !else
 RTLTYPE=T
 RTLSUFFIX=
