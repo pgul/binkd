@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2003/10/23 16:45:33  gul
+ * Fix win32 zlibdl compilation
+ *
  * Revision 2.13  2003/10/23 16:36:24  gul
  * Fix warning
  *
@@ -39,17 +42,25 @@
 #ifdef WITH_ZLIB
 
 #ifdef ZLIBDL
-#define deflateInit_	(*dl_deflateInit_)
-#define deflate		(*dl_deflate)
-#define deflateEnd	(*dl_deflateEnd)
-#define inflateInit_	(*dl_inflateInit_)
-#define inflate		(*dl_inflate)
-#define inflateEnd	(*dl_inflateEnd)
-
 #ifdef WIN32
 #define WINDOWS  1
+#ifdef VISUALCPP
+#define ZEXP __stdcall
+#else
 #define ZLIB_DLL 1
 #endif
+#endif
+
+#ifndef ZEXP
+#define ZEXP
+#endif
+
+#define deflateInit_	(ZEXP *dl_deflateInit_)
+#define deflate		(ZEXP *dl_deflate)
+#define deflateEnd	(ZEXP *dl_deflateEnd)
+#define inflateInit_	(ZEXP *dl_inflateInit_)
+#define inflate		(ZEXP *dl_inflate)
+#define inflateEnd	(ZEXP *dl_inflateEnd)
 #endif
 
 #include "zconf.h"
