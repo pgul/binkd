@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.17  2003/10/27 23:23:51  gul
+ * Fix static ZLIB/BZLIB linking
+ *
  * Revision 2.16  2003/10/24 06:41:11  val
  * ZLIBDL fix to restore linking with MSVC (bzlib2 still crashes)
  *
@@ -44,16 +47,33 @@
 #ifndef _ZLIBDL_H_
 #define _ZLIBDL_H_
 
+#ifdef ZLIBDL
+#if defined(VISUALCPP)
+#define ZEXP WINAPI
+#define ZEXT
+#elif defined(__MINGW32__)
+#define ZEXT WINAPI
+#define ZEXP
+#else
+#define ZEXP
+#define ZEXT
+#endif
+#endif
+
 /* ---------------- zlib stuff --------------- */
 #ifdef WITH_ZLIB
 
 #ifdef WIN32
 #define WINDOWS  1
+#ifdef ZLIBDL
 #define ZLIB_DLL 1
+#endif
 #endif
 
 #include "zconf.h"
 #include "zlib.h"
+
+#ifdef ZLIBDL
 
 #define deflateInit_	(*dl_deflateInit_)
 #define deflate		(*dl_deflate)
@@ -62,12 +82,14 @@
 #define inflate		(*dl_inflate)
 #define inflateEnd	(*dl_inflateEnd)
 
-extern int (*dl_deflateInit_)();
-extern int (*dl_deflate)();
-extern int (*dl_deflateEnd)();
-extern int (*dl_inflateInit_)();
-extern int (*dl_inflate)();
-extern int (*dl_inflateEnd)();
+extern int ZEXT (ZEXP *dl_deflateInit_)(z_stream *, int, const char *, int);
+extern int ZEXT (ZEXP *dl_deflate)(z_stream *, int);
+extern int ZEXT (ZEXP *dl_deflateEnd)(z_stream *);
+extern int ZEXT (ZEXP *dl_inflateInit_)(z_stream *, const char *, int);
+extern int ZEXT (ZEXP *dl_inflate)(z_stream *, int);
+extern int ZEXT (ZEXP *dl_inflateEnd)(z_stream *);
+
+#endif /* ZLIBDL */
 
 #endif /* WITH_ZLIB */
 
@@ -77,11 +99,12 @@ extern int (*dl_inflateEnd)();
 #ifdef WIN32
 #define _WIN32    1
 #define BZLIB_DLL 1
-#define BZ_IMPORT 1
 #endif
 
 #include <stdio.h>
 #include "bzlib.h"
+
+#ifdef ZLIBDL
 
 #define BZ2_bzCompressInit	(*dl_BZ2_bzCompressInit)
 #define BZ2_bzCompress		(*dl_BZ2_bzCompress)
@@ -90,12 +113,14 @@ extern int (*dl_inflateEnd)();
 #define BZ2_bzDecompress	(*dl_BZ2_bzDecompress)
 #define BZ2_bzDecompressEnd	(*dl_BZ2_bzDecompressEnd)
 
-extern int (*dl_BZ2_bzCompressInit)();
-extern int (*dl_BZ2_bzCompress)();
-extern int (*dl_BZ2_bzCompressEnd)();
-extern int (*dl_BZ2_bzDecompressInit)();
-extern int (*dl_BZ2_bzDecompress)();
-extern int (*dl_BZ2_bzDecompressEnd)();
+extern int ZEXT (ZEXP *dl_BZ2_bzCompressInit)(bz_stream*, int, int, int);
+extern int ZEXT (ZEXP *dl_BZ2_bzCompress)(bz_stream *, int);
+extern int ZEXT (ZEXP *dl_BZ2_bzCompressEnd)(bz_stream *);
+extern int ZEXT (ZEXP *dl_BZ2_bzDecompressInit)(bz_stream *, int, int);
+extern int ZEXT (ZEXP *dl_BZ2_bzDecompress)(bz_stream *);
+extern int ZEXT (ZEXP *dl_BZ2_bzDecompressEnd)(bz_stream *);
+
+#endif
 
 #endif /* WITH_BZLIB */
 
