@@ -1,3 +1,7 @@
+2003/08/26 19:46:25 0.9.6a-143 gul
+perlhooks.c,2.17,2.18
+binkd/2 perl dynamic DLL load
+
 2003/08/26 19:06:59 0.9.6a-142 stream
 Config.h,2.155,2.156 binkd.c,2.56,2.57 binlog.c,2.8,2.9 binlog.h,2.1,2.2 branch.c,2.5,2.6 breaksig.c,2.2,2.3 bsy.c,2.5,2.6 bsy.h,2.1,2.2 client.c,2.41,2.42 common.h,2.8,2.9 exitproc.c,2.21,2.22 ftnaddr.c,2.5,2.6 ftnaddr.h,2.2,2.3 ftndom.c,2.2,2.3 ftndom.h,2.4,2.5 ftnnode.c,2.17,2.18 ftnnode.h,2.12,2.13 ftnq.c,2.22,2.23 ftnq.h,2.5,2.6 https.c,2.15,2.16 https.h,2.2,2.3 inbound.c,2.18,2.19 inbound.h,2.3,2.4 iphdr.h,2.14,2.15 iptools.c,2.10,2.11 iptools.h,2.5,2.6 md5b.c,2.6,2.7 md5b.h,2.4,2.5 prothlp.c,2.3,2.4 prothlp.h,2.3,2.4 protoco2.h,2.9,2.10 protocol.c,2.107,2.108 protocol.h,2.2,2.3 readcfg.c,2.46,2.47 readcfg.h,2.19,2.20 readflo.c,2.2,2.3 readflo.h,2.2,2.3 sem.h,2.10,2.11 server.c,2.28,2.29 server.h,2.2,2.3 srif.c,2.11,2.12 srif.h,2.2,2.3 tools.c,2.47,2.48 tools.h,2.19,2.20 xalloc.c,2.1,2.2
 Reload configuration on-the fly.
