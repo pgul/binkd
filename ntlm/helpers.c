@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+#include "../iphdr.h"
 #include "des.h"
 #include "md4.h"
 
@@ -164,14 +166,11 @@ typedef struct {
 } Type3message;
 
 
-#ifdef L_ENDIAN
-#define mkls(x) (x)
-#else
 short mkls(short x)
 {
+  x = htons(x);
   return ((x>>8) & 0xFF)| ((x&0xFF)<<8);
 }
-#endif
 
 static char b64t[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 static int enbase64(char *data, int size, char *p)

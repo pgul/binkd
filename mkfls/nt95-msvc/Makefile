@@ -26,8 +26,6 @@ NULL=
 NULL=nul
 !ENDIF 
 
-NTLM_FLAGS=-DL_ENDIAN
-
 !IF  "$(CFG)" == "binkd - Win32 Debug"
 
 OUTDIR=.\Debug

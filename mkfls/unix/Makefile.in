@@ -21,7 +21,8 @@ all: compile banner
 compile: $(APPL)
 
 $(APPL): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
+	@echo Linking $(APPL)...
+	@$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
 
 banner:
 	@echo
@@ -42,7 +43,7 @@ banner:
 	@echo
 
 .version: Config.h
-	$(AWK) -F '"' '/#define[\t ]*MYVER[\t ]*".*"/    \
+	@$(AWK) -F '"' '/#define[\t ]*MYVER[\t ]*".*"/    \
 		{ print $$2; }' < Config.h > $@
 
 install: compile .version
@@ -56,7 +57,7 @@ install: compile .version
 	$(INSTALL) -m 644 $(APPL).cfg $(PREFIX)/etc/$(APPL).conf-dist
 
 clean:
-	rm -f *.[bo] unix/*.[bo] *.BAK *.core *.obj *.err 
+	rm -f *.[bo] unix/*.[bo] ntlm/*.[bo] *.BAK *.core *.obj *.err 
 	rm -f *~ core config.cache config.log config.status
 
 cleanall: clean
@@ -69,15 +70,17 @@ distclean: cleanall
 realclean: cleanall
 
 .c.o:
-	$(CC) -c $(CFLAGS) -o $*.o $*.c
+	@echo Compiling $*.c...
+	@$(CC) -c $(CFLAGS) -o $*.o $*.c
 
 depend Makefile.dep:   Makefile
-	  $(CC) -MM $(CFLAGS) $(SRCS) $(SYS) | \
+	@echo Making depends...
+	@$(CC) -MM $(CFLAGS) $(SRCS) $(SYS) | \
 	      $(AWK) '{ if ($$1 != prev) { if (rec != "") print rec; \
 		  rec = $$0; prev = $$1; } \
 		  else { if (length(rec $$2) > 78) { print rec; rec = $$0; } \
 		  else rec = rec " " $$2 } } \
-		  END { print rec }' | tee Makefile.dep
+		  END { print rec }' > tee Makefile.dep
 
 
 include Makefile.dep

@@ -105,10 +105,6 @@
  *	defaults to 2 if not states otherwise.
  * HASH_LBLOCK
  *	assumed to be HASH_CBLOCK/4 if not stated otherwise.
- * HASH_BLOCK_DATA_ORDER_ALIGNED
- *	alternative "block" function capable of treating
- *	aligned input message in original (data) order,
- *	implemented externally.
  *
  * MD5 example:
  *
@@ -156,14 +152,8 @@
 #error "HASH_BLOCK_HOST_ORDER must be defined!"
 #endif
 
-#if 0
-/*
- * Moved below as it's required only if HASH_BLOCK_DATA_ORDER_ALIGNED
- * isn't defined.
- */
 #ifndef HASH_BLOCK_DATA_ORDER
 #error "HASH_BLOCK_DATA_ORDER must be defined!"
-#endif
 #endif
 
 #ifndef HASH_LBLOCK
@@ -174,119 +164,10 @@
 #define HASH_LONG_LOG2	2
 #endif
 
-/*
- * Engage compiler specific rotate intrinsic function if available.
- */
-#undef ROTATE
-#ifndef PEDANTIC
-# if defined(_MSC_VER)
-#  define ROTATE(a,n)	_lrotl(a,n)
-# elif defined(__MWERKS__)
-#  if defined(__POWERPC__)
-#   define ROTATE(a,n)	__rlwinm(a,n,0,31)
-#  elif defined(__MC68K__)
-    /* Motorola specific tweak. <appro@fy.chalmers.se> */
-#   define ROTATE(a,n)	( n<24 ? __rol(a,n) : __ror(a,32-n) )
-#  else
-#   define ROTATE(a,n)	__rol(a,n)
-#  endif
-# elif defined(__GNUC__) && __GNUC__>=2 && !defined(NO_ASM) && !defined(NO_INLINE_ASM)
-  /*
-   * Some GNU C inline assembler templates. Note that these are
-   * rotates by *constant* number of bits! But that's exactly
-   * what we need here...
-   *
-   * 					<appro@fy.chalmers.se>
-   */
-#  if defined(__i386)
-#   define ROTATE(a,n)	({ register unsigned int ret;	\
-				asm (			\
-				"roll %1,%0"		\
-				: "=r"(ret)		\
-				: "I"(n), "0"(a)	\
-				: "cc");		\
-			   ret;				\
-			})
-#  elif defined(__powerpc) || defined(__ppc)
-#   define ROTATE(a,n)	({ register unsigned int ret;	\
-				asm (			\
-				"rlwinm %0,%1,%2,0,31"	\
-				: "=r"(ret)		\
-				: "r"(a), "I"(n));	\
-			   ret;				\
-			})
-#  endif
-# endif
-
-/*
- * Engage compiler specific "fetch in reverse byte order"
- * intrinsic function if available.
- */
-# if defined(__GNUC__) && __GNUC__>=2 && !defined(NO_ASM) && !defined(NO_INLINE_ASM)
-  /* some GNU C inline assembler templates by <appro@fy.chalmers.se> */
-#  if defined(__i386) && !defined(I386_ONLY)
-#   define BE_FETCH32(a)	({ register unsigned int l=(a);\
-				asm (			\
-				"bswapl %0"		\
-				: "=r"(l) : "0"(l));	\
-			  l;				\
-			})
-#  elif defined(__powerpc)
-#   define LE_FETCH32(a)	({ register unsigned int l;	\
-				asm (			\
-				"lwbrx %0,0,%1"		\
-				: "=r"(l)		\
-				: "r"(a));		\
-			   l;				\
-			})
-
-#  elif defined(__sparc) && defined(ULTRASPARC)
-#  define LE_FETCH32(a)	({ register unsigned int l;		\
-				asm (				\
-				"lda [%1]#ASI_PRIMARY_LITTLE,%0"\
-				: "=r"(l)			\
-				: "r"(a));			\
-			   l;					\
-			})
-#  endif
-# endif
-#endif /* PEDANTIC */
-
-#if HASH_LONG_LOG2==2	/* Engage only if sizeof(HASH_LONG)== 4 */
-/* A nice byte order reversal from Wei Dai <weidai@eskimo.com> */
 #ifdef ROTATE
-/* 5 instructions with rotate instruction, else 9 */
-#define REVERSE_FETCH32(a,l)	(					\
-		l=*(const HASH_LONG *)(a),				\
-		((ROTATE(l,8)&0x00FF00FF)|(ROTATE((l&0x00FF00FF),24)))	\
-				)
-#else
-/* 6 instructions with rotate instruction, else 8 */
-#define REVERSE_FETCH32(a,l)	(				\
-		l=*(const HASH_LONG *)(a),			\
-		l=(((l>>8)&0x00FF00FF)|((l&0x00FF00FF)<<8)),	\
-		ROTATE(l,16)					\
-				)
-/*
- * Originally the middle line started with l=(((l&0xFF00FF00)>>8)|...
- * It's rewritten as above for two reasons:
- *	- RISCs aren't good at long constants and have to explicitely
- *	  compose 'em with several (well, usually 2) instructions in a
- *	  register before performing the actual operation and (as you
- *	  already realized:-) having same constant should inspire the
- *	  compiler to permanently allocate the only register for it;
- *	- most modern CPUs have two ALUs, but usually only one has
- *	  circuitry for shifts:-( this minor tweak inspires compiler
- *	  to schedule shift instructions in a better way...
- *
- *				<appro@fy.chalmers.se>
- */
+#undef ROTATE
 #endif
-#endif
-
-#ifndef ROTATE
 #define ROTATE(a,n)     (((a)<<(n))|(((a)&0xffffffff)>>(32-(n))))
-#endif
 
 /*
  * Make some obvious choices. E.g., HASH_BLOCK_DATA_ORDER_ALIGNED
@@ -296,41 +177,6 @@
  *
  *				<appro@fy.chalmers.se>
  */
-#if defined(B_ENDIAN)
-#  if defined(DATA_ORDER_IS_BIG_ENDIAN)
-#    if !defined(HASH_BLOCK_DATA_ORDER_ALIGNED) && HASH_LONG_LOG2==2
-#      define HASH_BLOCK_DATA_ORDER_ALIGNED	HASH_BLOCK_HOST_ORDER
-#    endif
-#  elif defined(DATA_ORDER_IS_LITTLE_ENDIAN)
-#    ifndef HOST_FETCH32
-#      ifdef LE_FETCH32
-#        define HOST_FETCH32(p,l)	LE_FETCH32(p)
-#      elif defined(REVERSE_FETCH32)
-#        define HOST_FETCH32(p,l)	REVERSE_FETCH32(p,l)
-#      endif
-#    endif
-#  endif
-#elif defined(L_ENDIAN)
-#  if defined(DATA_ORDER_IS_LITTLE_ENDIAN)
-#    if !defined(HASH_BLOCK_DATA_ORDER_ALIGNED) && HASH_LONG_LOG2==2
-#      define HASH_BLOCK_DATA_ORDER_ALIGNED	HASH_BLOCK_HOST_ORDER
-#    endif
-#  elif defined(DATA_ORDER_IS_BIG_ENDIAN)
-#    ifndef HOST_FETCH32
-#      ifdef BE_FETCH32
-#        define HOST_FETCH32(p,l)	BE_FETCH32(p)
-#      elif defined(REVERSE_FETCH32)
-#        define HOST_FETCH32(p,l)	REVERSE_FETCH32(p,l)
-#      endif
-#    endif
-#  endif
-#endif
-
-#if !defined(HASH_BLOCK_DATA_ORDER_ALIGNED)
-#ifndef HASH_BLOCK_DATA_ORDER
-#error "HASH_BLOCK_DATA_ORDER must be defined!"
-#endif
-#endif
 
 #if defined(DATA_ORDER_IS_BIG_ENDIAN)
 
@@ -473,30 +319,6 @@ void HASH_UPDATE (HASH_CTX *c, const void *data_, unsigned long len)
 	sw=len/HASH_CBLOCK;
 	if (sw > 0)
 		{
-#if defined(HASH_BLOCK_DATA_ORDER_ALIGNED)
-		/*
-		 * Note that HASH_BLOCK_DATA_ORDER_ALIGNED gets defined
-		 * only if sizeof(HASH_LONG)==4.
-		 */
-		if ((((unsigned long)data)%4) == 0)
-			{
-			/* data is properly aligned so that we can cast it: */
-			HASH_BLOCK_DATA_ORDER_ALIGNED (c,(HASH_LONG *)data,sw);
-			sw*=HASH_CBLOCK;
-			data+=sw;
-			len-=sw;
-			}
-		else
-#if !defined(HASH_BLOCK_DATA_ORDER)
-			while (sw--)
-				{
-				memcpy (p=c->data,data,HASH_CBLOCK);
-				HASH_BLOCK_DATA_ORDER_ALIGNED(c,p,1);
-				data+=HASH_CBLOCK;
-				len-=HASH_CBLOCK;
-				}
-#endif
-#endif
 #if defined(HASH_BLOCK_DATA_ORDER)
 			{
 			HASH_BLOCK_DATA_ORDER(c,data,sw);
@@ -525,18 +347,6 @@ void HASH_UPDATE (HASH_CTX *c, const void *data_, unsigned long len)
 
 void HASH_TRANSFORM (HASH_CTX *c, const unsigned char *data)
 	{
-#if defined(HASH_BLOCK_DATA_ORDER_ALIGNED)
-	if ((((unsigned long)data)%4) == 0)
-		/* data is properly aligned so that we can cast it: */
-		HASH_BLOCK_DATA_ORDER_ALIGNED (c,(HASH_LONG *)data,1);
-	else
-#if !defined(HASH_BLOCK_DATA_ORDER)
-		{
-		memcpy (c->data,data,HASH_CBLOCK);
-		HASH_BLOCK_DATA_ORDER_ALIGNED (c,c->data,1);
-		}
-#endif
-#endif
 #if defined(HASH_BLOCK_DATA_ORDER)
 	HASH_BLOCK_DATA_ORDER (c,data,1);
 #endif
