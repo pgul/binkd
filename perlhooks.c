@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2003/08/26 07:43:54  stream
+ * Use generic lists
+ *
  * Revision 2.15  2003/08/25 14:09:03  gul
  * Added exp_ftnaddress() to refresh_queue()
  *
@@ -1042,7 +1045,7 @@ void perl_setup(void) {
   av = perl_get_av("ftrans", TRUE);
   av_clear(av);
   {
-    RF_RULE *cur = rf_rules;
+    RF_RULE *cur = rf_rules.first;
     while (cur) {
       hv2 = newHV();
       VK_ADD_HASH_str(hv2, sv, "from", cur->from);
@@ -1057,7 +1060,7 @@ void perl_setup(void) {
   av = perl_get_av("overwrite", TRUE);
   av_clear(av);
   {
-    struct maskchain *cur = overwrite;
+    struct maskchain *cur = overwrite.first;
     while (cur) {
       sv = newSVpv(cur->mask, 0);
       SvREADONLY_on(sv);
@@ -1070,7 +1073,7 @@ void perl_setup(void) {
   av = perl_get_av("skip", TRUE);
   av_clear(av);
   {
-    struct skipchain *cur = skipmask;
+    struct skipchain *cur = skipmask.first;
     while (cur) {
       hv2 = newHV();
       VK_ADD_HASH_str(hv2, sv, "mask", cur->mask);
