@@ -1,3 +1,8 @@
+2003/09/12 12:10:11 0.9.6a-175 val
+protoco2.h,2.11,2.12 protocol.c,2.117,2.118 zlibdl.c,2.1,2.2 zlibdl.h,2.1,2.2
+zlib compression support and configure for unix (my first try to write
+autoconf script, i hope it works on your system ;-)
+
 2003/09/12 10:38:30 0.9.6a-174 val
 zlibdl.c,NONE,2.1 zlibdl.h,NONE,2.1 binkd.c,2.62,2.63 protoco2.h,2.10,2.11 protocol.c,2.116,2.117 readcfg.c,2.51,2.52 readcfg.h,2.21,2.22
 compression support via zlib (preliminary)
