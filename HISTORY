@@ -1,3 +1,7 @@
+2003/10/05 13:01:17 1.0a-204 stas
+service.c,2.21,2.22
+Remove unused code
+
 2003/10/05 12:38:15 1.0a-203 stas
 binkd.c,2.65,2.66 common.h,2.10,2.11 tools.c,2.52,2.53
 Optimize binkd/nt start: use hack to determine if we're running as a service without waiting for the service control manager to fail
