@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.50  2003/08/04 12:17:49  gul
+ * Remove extra error message
+ *
  * Revision 2.49  2003/07/19 06:59:34  hbrew
  * Complex patch:
  * * nt/w32tools.c: Fix warnings
@@ -559,8 +562,9 @@ char *parseargs (int argc, char *argv[])
 	      usage();
 
 	    default:  /* unknown parameter/option */
+	      /* getopt() already print error message
 	      Log (0, "%s: %s: unknown command line switch", extract_filename(argv[0]), argv[curind]);
-
+	      */ exit(1);
 	  }
 	curind = optind;
   }
