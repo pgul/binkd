@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/03/01 18:06:45  gul
+ * Add include <sys/types.h>
+ *
  * Revision 2.1  2003/01/29 19:32:03  gul
  * Code cleanup, prevent segfault on bad config
  *
@@ -17,6 +20,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <sys/types.h>
 
 #include "getw.h"
 
