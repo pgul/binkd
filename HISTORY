@@ -1,3 +1,8 @@
+2003/09/21 20:34:29 0.9.6a-185 gul
+client.c,2.44,2.45 common.h,2.9,2.10 perlhooks.c,2.24,2.25 reapchld.inc,2.2,2.3 tools.c,2.50,2.51
+Change perl stderr handling for thread vertions,
+some small changes.
+
 2003/09/19 16:54:32 0.9.6a-184 gul
 protocol.c,2.123,2.124
 undef VAL_STYLE ip check by default
