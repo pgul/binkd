@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.58  2003/08/26 18:18:51  gul
+ * Process "-?" commandline switch as "-h"
+ *
  * Revision 2.57  2003/08/26 16:06:26  stream
  * Reload configuration on-the fly.
  *
@@ -416,7 +419,7 @@ int tray_flag = 0;                     /* minimize to tray */
 #endif
 #endif
 
-const char *optstring = "CchmP:pqrsv-:"
+const char *optstring = "CchmP:pqrsv-:?"
 #ifdef BINKD_DAEMONIZE
 			"D"
 #endif
@@ -570,13 +573,15 @@ char *parseargs (int argc, char *argv[])
 	      break;
 #endif
 
-	    case 'h': /* display command line help */
-	      usage();
-
 	    default:  /* unknown parameter/option */
+	      if (optopt != '?')
 	      /* getopt() already print error message
 	      Log (0, "%s: %s: unknown command line switch", extract_filename(argv[0]), argv[curind]);
 	      */ exit(1);
+
+	    case 'h': /* display command line help */
+	      usage();
+
 	  }
 	curind = optind;
   }
