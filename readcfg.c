@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.81  2004/11/22 15:51:14  stas
+ * Change error level to -1 for the config file parameter error (binkd/w32 will display message box with error message)
+ *
  * Revision 2.80  2004/11/21 11:55:24  val
  * remove old commented code for limit-rate debug output
  *
@@ -810,7 +813,7 @@ static int ConfigError(char *format, ...)
   va_start(args, format);
   for (i = 0; i < MAX_CONFIGERROR_PARAMS; i++)
     data[i] = va_arg(args, int);
-  Log(1, "%s: line %d: error in configuration files", current_path, current_line);
+  Log(-1, "%s: line %d: error in configuration files", current_path, current_line);
   Log(1, format, data[0], data[1], data[2], data[3], data[4], data[5]);
   va_end(args);
   return 0;
