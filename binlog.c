@@ -26,6 +26,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.8  2003/08/17 19:07:10  gul
+ * Fix typo
+ *
  * Revision 2.7  2003/08/17 10:38:55  gul
  * Return semaphoring for log and binlog
  *
@@ -136,9 +139,9 @@ void TLogStat (char *status, STATE *state)
 		if ((fl = fopen(binlogpath,"ab")) != NULL) {
 			fwrite(&TS,sizeof(TS),1,fl);
 			fclose(fl);
-			ReleaseSem(&blsem)
+			ReleaseSem(&blsem);
 		} else {
-			ReleaseSem(&blsem)
+			ReleaseSem(&blsem);
 			Log(1,"unable to open binary log file `%s'",binlogpath);
 		}
 	}
@@ -198,11 +201,11 @@ void FDLogStat (STATE *state)
 	{
 		fwrite ( &std, (size_t) sizeof(std), (size_t) 1, fp);
 		fclose( fp );
-		ReleaseSem(&blsem)
+		ReleaseSem(&blsem);
 	}
 	else
 	{
-		ReleaseSem(&blsem)
+		ReleaseSem(&blsem);
 		Log (1, "failed to write to %s", (state->to ? fdouthist : fdinhist));
 	}
 }
