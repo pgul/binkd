@@ -404,8 +404,8 @@ $(OUTDIR)\perlhooks.obj: \
 
 !ifdef ZLIB
 $(OUTDIR)\zlibdl.obj: \
-	"compress.h"
-	"zlibdl.h"
+	"compress.h" \
+	"zlibdl.h" \
 	"tools.h"
 !endif
 
