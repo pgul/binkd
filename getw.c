@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/04/07 18:24:54  gul
+ * Move functions declaration to header-file
+ *
  * Revision 2.3  2003/03/01 20:16:27  gul
  * OS/2 IBM C support
  *
@@ -26,11 +29,7 @@
 #include <sys/types.h>
 #include <stddef.h>
 
-#include "getw.h"
-
-/* external wrappers for realloc() and strdup() */
-void *xrealloc (void *ptr, size_t size);
-void *xstrdup (const char *str);
+#include "tools.h"
 
 char *getwordx2 (char *src, int n, int flags, char *fldsep, char *fldskip)
 {

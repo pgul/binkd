@@ -154,6 +154,7 @@ $(OUTDIR)\ftnq.obj: \
 	"nt\wsock.h"
 
 $(OUTDIR)\getw.obj: \
+	"tools.h" \
 	"getw.h"
 
 $(OUTDIR)\https.obj: \
