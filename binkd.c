@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30.2.8  2004/08/03 19:52:56  gul
+ * Change SIGCHLD handling, make signal handler more clean,
+ * prevent occasional hanging (mutex deadlock) under linux kernel 2.6.
+ *
  * Revision 2.30.2.7  2003/08/28 09:22:25  stas
  * Cosmetics
  *
@@ -244,6 +248,17 @@ static void hup (int signo)
 }
 #endif
 
+#if defined(BLOCK_CHLD)
+void switchsignal(int how)
+{
+  sigset_t sigset;
+
+  sigemptyset(&sigset);
+  sigaddset(&sigset, SIGCHLD);
+  sigprocmask(how, &sigset, NULL);
+}
+#endif
+
 void usage (void)
 {
 #if defined(WIN32) && !defined(BINKDW9X)
@@ -251,10 +266,10 @@ void usage (void)
 	if(checkservice() > 0)
 	{
 	  s="iu\0  -i       install WindowsNT service\n"
-                "  -u       uninstall WindowsNT service\n"
-                "  -S srvn  name of WindowsNT service (default: "
-                DEFAULT_SRVNAME ")"
-                "\n";
+	        "  -u       uninstall WindowsNT service\n"
+	        "  -S srvn  name of WindowsNT service (default: "
+	        DEFAULT_SRVNAME ")"
+	        "\n";
 	}
 #endif
 
@@ -264,7 +279,7 @@ void usage (void)
 
   printf ("usage: binkd [-Ccpqrsvmh"
 #if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
-          "D"
+	  "D"
 #endif
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
 	  "i"
@@ -389,10 +404,10 @@ int main (int argc, char *argv[], char *envp[])
 	      if (!strcmp (s + 1, "help"))
 	      {
 #if defined(WIN32) && !defined (BINKDW9X)
-              if (!isService)
+	      if (!isService)
 #endif
 		usage ();
-              }
+	      }
 #if defined (BINKDW9X)
 	      else
 	      if (!strcmp(argv[i], Win9xStartService))
@@ -418,7 +433,7 @@ int main (int argc, char *argv[], char *envp[])
 #endif
 	    case 'S': /* Skip option and parameter in all win* versions */
 #if defined (BINKDW9X)
-            case 't': /* Skip option and parameter in win9x version */
+	    case 't': /* Skip option and parameter in win9x version */
 #endif
 	      if (!s[1]){ ++i; }
 	      goto BREAK_WHILE;
@@ -463,18 +478,18 @@ int main (int argc, char *argv[], char *envp[])
 #endif
 	    case 'h':
 #if defined(WIN32) && !defined(BINKDW9X)
-              if (isService)
-                 break;
+	      if (isService)
+	         break;
 #endif
-              usage();
+	      usage();
 	    default:
 	      Log (0, "%s: -%c: unknown command line switch", extract_filename(argv[0]), *s);
 	    case '\0':
 #if defined(WIN32) && !defined (BINKDW9X)
-              if (isService)
-                 break;
+	      if (isService)
+	         break;
 #endif
-              usage();
+	      usage();
 	  }
 	++s;
       }
@@ -654,7 +669,7 @@ binkdrestart:
   if (*pid_file)
   {
     if ( unlink (pid_file) == 0 ) /* successfully unlinked, i.e.
-                                     an old pid_file was found */
+	                             an old pid_file was found */
 	Log (1, "unexpected pid_file: %s: unlinked", pid_file);
     else
     {

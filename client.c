@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.39.2.2  2004/08/03 19:52:56  gul
+ * Change SIGCHLD handling, make signal handler more clean,
+ * prevent occasional hanging (mutex deadlock) under linux kernel 2.6.
+ *
  * Revision 2.39.2.1  2003/09/14 12:20:04  gul
  * Clean use pointers to pNod array
  *
@@ -231,7 +235,7 @@ static void chld (int signo)
 #else
 void SLEEP (time_t s)
 {
-  while ((s = sleep (s)) > 0);
+  while ((s = sleep (s)) > 0 && !binkd_exit);
 }
 #endif
 
@@ -280,6 +284,7 @@ void clientmgr (void *arg)
   {
     FTN_NODE r;
 
+    blockchld();
     if (checkcfg_flag && client_flag && !server_flag && !poll_flag)
       checkcfg();
     if (q_empty)
@@ -302,15 +307,16 @@ void clientmgr (void *arg)
 	  bsy_test (&r.fa, F_BSY) &&
 	  bsy_test (&r.fa, F_CSY))
       {
-        rel_grow_handles (6);
+	rel_grow_handles (6);
 	threadsafe(++n_clients);
 	if ((pid = branch (call, (void *) &r, sizeof (r))) < 0)
 	{
-          rel_grow_handles (-6);
+	  rel_grow_handles (-6);
 	  threadsafe(--n_clients);
 	  PostSem(&eothread);
 	  Log (1, "cannot branch out");
-          SLEEP(1);
+	  unblockchld();
+	  SLEEP(1);
 	}
 	else
 	{
@@ -325,14 +331,17 @@ void clientmgr (void *arg)
 	  break;
 	}
 	q_empty = 1;
+	unblockchld();
 	SLEEP (rescan_delay);
       }
     }
     else
     {
+      unblockchld();
       SLEEP (call_delay);
     }
   }
+  unblockchld();
 #ifdef HAVE_THREADS
   pidcmgr = 0;
   if (server_flag) {
@@ -418,8 +427,8 @@ static int call0 (FTN_NODE *node)
     {
       if ((hp = find_host(host, &he, &defaddr)) == NULL)
       {
-        bad_try(&node->fa, "Cannot gethostbyname");
-        continue;
+	bad_try(&node->fa, "Cannot gethostbyname");
+	continue;
       }
       sin.sin_port = htons(port);
     }
@@ -456,19 +465,19 @@ static int call0 (FTN_NODE *node)
 #endif
       {
 	if (port == oport)
-          Log (4, "trying %s...", inet_ntoa (sin.sin_addr));
+	  Log (4, "trying %s...", inet_ntoa (sin.sin_addr));
 	else
-          Log (4, "trying %s:%u...", inet_ntoa (sin.sin_addr), port);
+	  Log (4, "trying %s:%u...", inet_ntoa (sin.sin_addr), port);
       }
       releasehostsem();
       if (bindaddr[0])
       {
-        struct sockaddr_in src_sin;
-        memset(&src_sin, 0, sizeof(src_sin));
-        src_sin.sin_addr.s_addr = inet_addr(bindaddr);
-        src_sin.sin_family = AF_INET;
-        if (bind(sockfd, (struct sockaddr *)&src_sin, sizeof(src_sin)))
-          Log(4, "bind: %s", TCPERR());
+	struct sockaddr_in src_sin;
+	memset(&src_sin, 0, sizeof(src_sin));
+	src_sin.sin_addr.s_addr = inet_addr(bindaddr);
+	src_sin.sin_family = AF_INET;
+	if (bind(sockfd, (struct sockaddr *)&src_sin, sizeof(src_sin)))
+	  Log(4, "bind: %s", TCPERR());
       }
 #ifdef HAVE_FORK
       if (connect_timeout)
@@ -517,16 +526,16 @@ badtry:
     if (sockfd != INVALID_SOCKET && (proxy[0] || socks[0])) {
       if (h_connect(sockfd, host) != 0) {
 	if (!binkd_exit)
-          bad_try (&node->fa, TCPERR ());
-        del_socket(sockfd);
-        soclose (sockfd);
-        sockfd = INVALID_SOCKET;
+	  bad_try (&node->fa, TCPERR ());
+	del_socket(sockfd);
+	soclose (sockfd);
+	sockfd = INVALID_SOCKET;
       }
       else if (port == oport) {
-        char *pp;
-        if( (pp = strchr(host, ':')) ){
-          *pp = '\0';
-        }
+	char *pp;
+	if( (pp = strchr(host, ':')) ){
+	  *pp = '\0';
+	}
       }
     }
 #endif

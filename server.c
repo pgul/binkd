@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.23.2.2  2004/08/03 19:52:56  gul
+ * Change SIGCHLD handling, make signal handler more clean,
+ * prevent occasional hanging (mutex deadlock) under linux kernel 2.6.
+ *
  * Revision 2.23.2.1  2003/08/24 13:28:06  stream
  * Socket wasn't closed if branch() failed
  *
@@ -243,6 +247,7 @@ void servmgr (void *arg)
   checkcfg ();
 
 #ifdef HAVE_FORK
+  blockchld();
   signal (SIGCHLD, chld);
 #endif
 
@@ -270,24 +275,28 @@ void servmgr (void *arg)
   for (;;)
   {
     struct timeval tv;
+    int n;
     fd_set r;
 
     FD_ZERO (&r);
     FD_SET (sockfd, &r);
     tv.tv_usec = 0;
     tv.tv_sec  = CHECKCFG_INTERVAL;
-    switch (select(sockfd+1, &r, NULL, NULL, &tv))
+    unblockchld();
+    n = select(sockfd+1, &r, NULL, NULL, &tv);
+    blockchld();
+    switch (n)
     { case 0: /* timeout */
-        /* Test config mtime */
-        if (checkcfg_flag)
-          checkcfg();
-        continue;
+	/* Test config mtime */
+	if (checkcfg_flag)
+	  checkcfg();
+	continue;
       case -1:
-        if (TCPERRNO == EINTR)
-          continue;
+	if (TCPERRNO == EINTR)
+	  continue;
 	save_errno = TCPERRNO;
 	Log (1, "select: %s", TCPERR ());
-        goto accepterr;
+	goto accepterr;
     }
 
     /* Test config mtime */
@@ -319,7 +328,7 @@ accepterr:
 	  }
 	}
 #endif
-        exit(1);
+	exit(1);
       }
     }
     else
@@ -338,13 +347,15 @@ accepterr:
       threadsafe(++n_servers);
       if ((pid = branch (serv, (void *) &new_sockfd, sizeof (new_sockfd))) < 0)
       {
-        del_socket(new_sockfd);
-        soclose(new_sockfd);
-        rel_grow_handles (-6);
+	del_socket(new_sockfd);
+	soclose(new_sockfd);
+	rel_grow_handles (-6);
 	threadsafe(--n_servers);
 	PostSem(&eothread);
 	Log (1, "cannot branch out");
-        sleep(1);
+	unblockchld();
+	sleep(1);
+	blockchld();
       }
       else
       {
