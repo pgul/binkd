@@ -1,3 +1,7 @@
+2003/10/27 23:32:00 1.0a-279 gul
+perlhooks.c,2.35,2.36
+Autodetect perl version, fix warning
+
 2003/10/27 18:16:27 1.0a-278 gul
 perlhooks.c,2.34,2.35
 Fix warnings with perl58
