@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67.2.9  2003/08/24 00:35:46  hbrew
+ * Cosmetic change for previous patch
+ *
  * Revision 2.67.2.8  2003/08/24 00:29:31  hbrew
  * win9x-select-workaround fix, thanks to Pavel Gulchouck)
  *
@@ -2398,10 +2401,10 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
 	  FD_ZERO (&r);
 	  FD_SET (socket, &r);
 	  tv.tv_sec = 0;
-	  tv.tv_usec = w9x_workaround_timeout; /* see iphdr.h */
+	  tv.tv_usec = w9x_workaround_sleep; /* see iphdr.h */
 	  if (!select (socket + 1, &r, 0, 0, &tv))
 	  {
-	    t_out += w9x_workaround_timeout;
+	    t_out += w9x_workaround_sleep;
 	  } else { t_out = 0; }
         }
         else { t_out = 0; }
