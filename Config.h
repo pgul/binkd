@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.88  2003/07/28 10:24:07  val
+ * Auto increase patchlevel, set 0.9.6a-76
+ * Perl DLL dynamic load for Win32, config keyword perl-dll, nmake PERLDL=1
+ *
  * Revision 2.87  2003/07/19 07:00:08  hbrew
  * Auto increase patchlevel, set 0.9.6a-75
  * Complex patch:
@@ -383,7 +387,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-75"
+#define MYVER "0.9.6a-76"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
