@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.48  2004/11/15 10:32:11  gul
+ * Fixed compilation multithread version with perl
+ *
  * Revision 2.47  2004/10/18 15:22:20  gul
  * Change handle perl errors method
  *
@@ -1347,16 +1350,6 @@ void perl_done(int master) {
   if (perl) {
     /* run on_exit() */
     if (master) perl_on_exit();
-#ifdef HAVE_THREADS
-    /* exit err_thread */
-    if (perl_olderr)
-    {
-      fflush(perl_olderr);
-      fflush(stderr);
-      dup2(fileno(perl_olderr), fileno(stderr)); /* close handled stderr */
-      WaitSem (&eothread, 1);
-    }
-#endif
     /* de-allocate */
     Log(LL_DBG, "perl_done(): destructing perl %p", perl);
 #ifndef _MSC_VER
