@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.94  2003/08/11 08:33:18  val
+ * Auto increase patchlevel, set 0.9.6a-82
+ * better error handling in perl hooks
+ *
  * Revision 2.93  2003/08/05 05:36:16  hbrew
  * Auto increase patchlevel, set 0.9.6a-81
  * 'static const char rcsid[]' removed
@@ -407,7 +411,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-81"
+#define MYVER "0.9.6a-82"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
