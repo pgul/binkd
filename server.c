@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2001/09/14 07:23:06  gul
+ * bindaddr bugfix, did not work on freebsd
+ *
  * Revision 2.2  2001/08/24 13:23:28  da
  * binkd/binkd.c
  * binkd/readcfg.c
@@ -184,6 +187,7 @@ void servmgr (void *arg)
 		  (char *) &opt, sizeof opt) == SOCKET_ERROR)
     Log (1, "setsockopt (SO_REUSEADDR): %s", TCPERR ());
 
+  memset(&serv_addr, 0, sizeof serv_addr);
   serv_addr.sin_family = AF_INET;
   if (bindaddr[0])
     serv_addr.sin_addr.s_addr = inet_addr (bindaddr);
