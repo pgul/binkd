@@ -126,6 +126,12 @@ AC_ARG_WITH(debug,
             [  --with-debug[[=nofork]]   produce debug info (default no)],
             do_debug=$withval, do_debug=no)
 
+AC_ARG_WITH(warn,
+            [  --with-warn[[=level]]     print gcc compilation warnings
+                          no|yes|full|pedantic (default yes)],
+            do_warn=$withval, do_warn=yes)
+
+
 AC_ARG_WITH(https,
             [  --with-https            https support (default no)],
             do_https=yes, do_https=no)
@@ -163,6 +169,25 @@ case x$do_debug in
    AC_MSG_WARN([Unknown debug option $do_debug ignored])
    ;;
 esac
+
+case x$do_warn in
+  xyes)
+   CFLAGS="-Wall -Wno-char-subscripts $CFLAGS"
+   ;;
+  xno)
+   ;;
+  xfull)
+   CFLAGS="-Wall -Wno-char-subscripts -W -Wconversion -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls -Wnested-externs -Wunreachable-code -Waggregate-return -Wpointer-arith -Wshadow -Wundef -Wfloat-equal $CFLAGS"
+   ;;
+  xpedantic)
+   CFLAGS="-pedantic $CFLAGS"
+   ;;
+  *)
+   CFLAGS="-Wall -Wno-char-subscripts $CFLAGS"
+   AC_MSG_WARN([Unknown warn option $do_warn ignored])
+   ;;
+esac
+
 
 AC_ARG_WITH(aso,
             [  --with-aso              Amiga Style Outbound (ASO) support (default no)],

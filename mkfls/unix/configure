@@ -841,6 +841,8 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-debug[=nofork]   produce debug info (default no)
+  --with-warn[=level]     print gcc compilation warnings
+                          no|yes|full|pedantic (default yes)
   --with-https            https support (default no)
   --with-ntlm             NTLM authorization support (default no)
   --with-aso              Amiga Style Outbound (ASO) support (default no)
@@ -5455,6 +5457,16 @@ else
 fi;
 
 
+# Check whether --with-warn or --without-warn was given.
+if test "${with_warn+set}" = set; then
+  withval="$with_warn"
+  do_warn=$withval
+else
+  do_warn=yes
+fi;
+
+
+
 # Check whether --with-https or --without-https was given.
 if test "${with_https+set}" = set; then
   withval="$with_https"
@@ -5511,6 +5523,26 @@ case x$do_debug in
 echo "$as_me: WARNING: Unknown debug option $do_debug ignored" >&2;}
    ;;
 esac
+
+case x$do_warn in
+  xyes)
+   CFLAGS="-Wall -Wno-char-subscripts $CFLAGS"
+   ;;
+  xno)
+   ;;
+  xfull)
+   CFLAGS="-Wall -Wno-char-subscripts -W -Wconversion -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls -Wnested-externs -Wunreachable-code -Waggregate-return -Wpointer-arith -Wshadow -Wundef -Wfloat-equal $CFLAGS"
+   ;;
+  xpedantic)
+   CFLAGS="-pedantic $CFLAGS"
+   ;;
+  *)
+   CFLAGS="-Wall -Wno-char-subscripts $CFLAGS"
+   { echo "$as_me:$LINENO: WARNING: Unknown warn option $do_warn ignored" >&5
+echo "$as_me: WARNING: Unknown warn option $do_warn ignored" >&2;}
+   ;;
+esac
+
 
 
 # Check whether --with-aso or --without-aso was given.
