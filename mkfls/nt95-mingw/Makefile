@@ -30,9 +30,9 @@ BINKDTYPE=mingw32
 
 CFLAGS+= -mno-cygwin -mthreads -pipe -funsigned-char \
 	-Wall -Wno-char-subscripts -Wno-comment
-CDEFS+= -DHAVE_THREADS -DHAVE_SNPRINTF -DHAVE_VSNPRINTF -DHAVE_UNISTD        \
-        -DWIN32 -DHAVE_IO_H -DHAVE_DOS_H -DHAVE_STDARG_H -DHAVE_SNPRINTF     \
-        -DHAVE_VSNPRINTF -DHAVE_WAITPID -DHTTPS -DNTLM                       \
+CDEFS+= -DHAVE_THREADS -DHAVE_UNISTD        \
+        -DWIN32 -DHAVE_IO_H -DHAVE_DOS_H -DHAVE_STDARG_H     \
+        -DHAVE_WAITPID -DHTTPS -DNTLM                        \
         -DAMIGADOS_4D_OUTBOUND -DHASATTRIBUTE
 
 C_DIRS=
@@ -45,7 +45,7 @@ SRCS= binkd.c readcfg.c tools.c ftnaddr.c ftnq.c client.c server.c protocol.c \
       bsy.c inbound.c branch.c ftndom.c ftnnode.c srif.c pmatch.c readflo.c   \
       prothlp.c iptools.c run.c binlog.c exitproc.c getw.c xalloc.c setpttl.c \
       https.c md5b.c crypt.c getopt.c nt/breaksig.c nt/getfree.c nt/sem.c     \
-      nt/TCPErr.c nt/WSock.c nt/w32tools.c nt/tray.c      \
+      nt/TCPErr.c nt/WSock.c nt/w32tools.c nt/tray.c snprintf.c     \
       ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c ntlm/des_enc.c ntlm/helpers.c
 
 RES=  nt/binkdres.rc

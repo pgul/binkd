@@ -100,7 +100,7 @@ ZLIB_LLIBS= $(ZLIB_LLIBS) $(BZLIB2_SRC)\libbz2.lib
 !endif
 
 CC=        cl
-CDEFS=     $(CDEBUG) $(DEBUGCHILD_CDEFS) $(BINKD9X_DEFINES) $(RTL_DEFINES) $(PERL_CDEFS) $(ZLIB_CDEFS) -D"HTTPS" -D"WIN32" -D"HAVE_THREADS" -D"HAVE_IO_H" -D"HAVE_DOS_H" -D"HAVE_STDARG_H" -D"HAVE_SNPRINTF" -D"HAVE_VSNPRINTF" -D"VISUALCPP" -D"AMIGADOS_4D_OUTBOUND"  -D"NTLM"
+CDEFS=     $(CDEBUG) $(DEBUGCHILD_CDEFS) $(BINKD9X_DEFINES) $(RTL_DEFINES) $(PERL_CDEFS) $(ZLIB_CDEFS) -D"HTTPS" -D"WIN32" -D"HAVE_THREADS" -D"HAVE_IO_H" -D"HAVE_DOS_H" -D"HAVE_STDARG_H" -D"VISUALCPP" -D"AMIGADOS_4D_OUTBOUND"  -D"NTLM"
 COPT=      $(BINKDSBR) $(PERL_COPT) $(ZLIB_COPT) -Fo"$(OUTDIR)\\" -Fp"$(OUTDIR)\$(BINKDEXE).pch" -YX -Fd"$(OUTDIR)\\"
 LINK=      link
 LFLAGS=    /nologo /machine:I386
@@ -136,7 +136,7 @@ OBJS= \
  "$(OUTDIR)\run.obj"      "$(OUTDIR)\binlog.obj"   "$(OUTDIR)\exitproc.obj"\
  "$(OUTDIR)\getw.obj"     "$(OUTDIR)\xalloc.obj"   "$(OUTDIR)\setpttl.obj" \
  "$(OUTDIR)\https.obj"    "$(OUTDIR)\md5b.obj"     "$(OUTDIR)\crypt.obj"   \
- "$(OUTDIR)\getopt.obj"                                                    \
+ "$(OUTDIR)\getopt.obj"   "$(OUTDIR)\snprintf.obj"                         \
  $(NT_OBJS) $(NTSERVICE_OBJ) $(BINKD9X_OBJ) $(NTLM_OBJS) $(PERL_OBJS) $(ZLIB_OBJS)
 
 RESOBJS= \
