@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.134  2003/10/20 18:24:07  gul
+ * Compression bugfix
+ *
  * Revision 2.133  2003/10/19 22:44:17  gul
  * Add xstrcat(), use dynamic strings for OPT
  *
@@ -2036,8 +2039,8 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
     {
       decompress_deinit(state->z_recv, state->z_idata);
       state->z_idata = NULL;
-      state->z_recv = 0;
     }
+    state->z_recv = 0;
     state->z_isize = state->z_cisize = 0;
 #endif
     if (state->in.f &&		       /* Already receiving smthing */
