@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.74  2003/06/21 19:35:45  gul
+ * Fixed remote ip check
+ *
  * Revision 2.73  2003/06/21 15:31:48  hbrew
  * Fix warning
  *
@@ -1133,8 +1136,8 @@ static int ADR (STATE *state, char *s, int sz)
         ipok = 2;
       }
 
-      for (i = 1; ipok == 0 && n.hosts && (rc = get_host_and_port
-		  (i, host, &port, n.hosts, &n.fa)) != -1; ++i)
+      for (i = 1; n.hosts &&
+           (rc = get_host_and_port(i, host, &port, n.hosts, &n.fa)) != -1; ++i)
       {
 	if (rc == 0)
 	{
