@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2002/02/22 00:18:34  gul
+ * Run by-file events with the same command-line once after session
+ *
  * Revision 2.0  2001/01/10 12:12:39  gul
  * Binkd is under CVS again
  *
@@ -39,7 +42,6 @@ struct _EVT_FLAG
   char *path;				    /* Set this flag if != NULL */
   char *command;			    /* Run this command if != NULL */
   char *pattern;
-  int flag;
   int imm;				    /* Immediate flag */
 };
 
@@ -48,18 +50,18 @@ extern EVT_FLAG *evt_flags;
 /*
  * Tests if filename matches any of EVT_FLAG's patterns.
  */
-int evt_test (char *filename);
+int evt_test (EVTQ **eq, char *filename);
 
 /*
  * Runs external programs using S.R.I.F. interface
  * if the name matches one of our "exec"'s
  */
-FTNQ *evt_run (FTNQ *q, char *filename0, FTN_ADDR *fa, 
+FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename0, FTN_ADDR *fa, 
                int nfa, int prot, int listed, char *peer_name, STATE *st);
 
 /*
  * Sets flags for all matched with evt_test events
  */
-void evt_set (void);
+void evt_set (EVTQ *eq);
 
 #endif

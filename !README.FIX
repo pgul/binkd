@@ -483,3 +483,5 @@ NT/95:  ctrl-c problems fixed
 	New option bindaddr in binkd.cfg - bind to specified interface
 	(Dima Afanasiev <da@4u.net>).
 
+	Run by-file events with the same command-line once after session.
+

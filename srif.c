@@ -3,7 +3,7 @@
  *
  *  srif.c is a part of binkd project
  *
- *  Copyright (C) 1996-1997  Dima Maloff, 5047/13
+ *  Copyright (C) 1996-2002  Dima Maloff, 5047/13 and others
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2002/02/22 00:18:34  gul
+ * Run by-file events with the same command-line once after session
+ *
  * Revision 2.2  2001/10/27 08:07:19  gul
  * run and run_args returns exit code of calling process
  *
@@ -54,10 +57,25 @@
 
 EVT_FLAG *evt_flags = 0;
 
+static EVTQ *evt_queue(EVTQ *eq, char evt_type, char *path)
+{
+  EVTQ *tmp;
+
+  for (tmp=eq; tmp; tmp=tmp->next)
+  { if (tmp->evt_type == evt_type && strcmp(tmp->path, path) == 0)
+      return eq; /* already exists */
+  }
+  tmp = xalloc(sizeof(EVTQ));
+  tmp->evt_type = evt_type;
+  tmp->path = path;
+  tmp->next = eq;
+  return tmp;
+}
+
 /*
  * Tests if filename matches any of EVT_FLAG's patterns.
  */
-int evt_test (char *filename0)
+int evt_test (EVTQ **eq, char *filename0)
 {
   EVT_FLAG *curr;
   char filename[MAXPATHLEN + 1];
@@ -71,20 +89,15 @@ int evt_test (char *filename0)
     {
       if (curr->path)
       {
+	Log (4, "got %s, %screating %s", curr->pattern, curr->imm ? "" : "delayed ", curr->path);
 	if (curr->imm)
-	{
-	  Log (4, "got %s, creating %s", curr->pattern, curr->path);
 	  create_empty_sem_file (curr->path);
-	}
 	else
-	{
-	  ++curr->flag;
-	  break;
-	}
+	  *eq = evt_queue(*eq, 'f', filename);
       }
-      else if ((curr->command) && (curr->imm))
+      else if (curr->command)
       {
-	Log (4, "got %s, starting %s", curr->pattern, curr->command);
+	Log (4, "got %s, %sstarting %s", curr->pattern, curr->imm ? "" : "delayed ", curr->command);
 	rc=1;
       }
     }
@@ -95,19 +108,26 @@ int evt_test (char *filename0)
 /*
  * Sets flags for all matched with evt_test events
  */
-void evt_set (void)
+void evt_set (EVTQ *eq)
 {
-  EVT_FLAG *curr;
+  EVTQ *curr;
 
-  for (curr = evt_flags; curr; curr = curr->next)
+  while (eq)
   {
-    if (curr->flag > 0)
+    if (eq->evt_type == 'e')
     {
-      Log (4, "got %s (%i), creating %s",
-	   curr->pattern, curr->flag, curr->path);
-      curr->flag = 0;
-      create_empty_sem_file (curr->path);
+      Log (4, "Running %s", eq->path);
+      run(eq->path);
+      free(eq->path);
     }
+    else
+    {
+      Log (4, "Creating %s", eq->path);
+      create_empty_sem_file(eq->path);
+    }
+    curr = eq->next;
+    free(eq);
+    eq = curr;
   }
 }
 
@@ -195,8 +215,8 @@ static FTNQ *parse_response (FTNQ *q, char *rsp, FTN_ADDR *fa)
 }
 
 static char valid_filename_chars[]=".\\-_:/@";
-static int run_args(char *cmd, char *filename0, FTN_ADDR *fa, 
-                 int nfa, int prot, int listed, char *peer_name, STATE *st)
+static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa, 
+             int nfa, int prot, int listed, char *peer_name, STATE *st, int imm)
 {
   char *sp, *w;
   char *fn=filename0;
@@ -204,7 +224,7 @@ static int run_args(char *cmd, char *filename0, FTN_ADDR *fa,
   char ipaddr[16];
   char aka[4];
   char adr[FTN_ADDR_SZ + 2];
-  int i, rc=-1;
+  int i;
   unsigned int l;
   unsigned int sw=1024;
   int use_fn=0;
@@ -246,7 +266,7 @@ static int run_args(char *cmd, char *filename0, FTN_ADDR *fa,
 
   strcpy(aka, "*A0");
 
-  for(l=0;(l<strlen(w)) && ((sp=strchr(w+l, '*'))!=NULL); l++)
+  for(l=0; (l<strlen(w)) && ((sp=strchr(w+l, '*'))!=NULL); l++)
   {
     l=sp-w;
     switch(toupper(sp[1]))
@@ -301,20 +321,27 @@ static int run_args(char *cmd, char *filename0, FTN_ADDR *fa,
   }
 
   if((fn!=filename0) && (use_fn))
+  {
     Log(1, "Security problem. Execution aborted...");
+    free(w);
+  }
+  else if (imm)
+  { /* immediate event */
+    run(w);
+    free(w);
+  }
   else
-    rc=run(w);
-  free(w);
-  return rc;
+    eq = evt_queue(eq, 'e', w);
+  return eq;
 }
 
 /*
  * Runs external programs using S.R.I.F. interface
  * if the name matches one of our "exec"'s
  */
-FTNQ *evt_run (FTNQ *q, char *filename0,
-	        FTN_ADDR *fa, int nfa,
-	        int prot, int listed, char *peer_name, STATE *st)
+FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename0,
+	       FTN_ADDR *fa, int nfa,
+	       int prot, int listed, char *peer_name, STATE *st)
 {
   EVT_FLAG *curr;
   char filename[MAXPATHLEN + 1];
@@ -323,34 +350,35 @@ FTNQ *evt_run (FTNQ *q, char *filename0,
   strlower (filename);
   for (curr = evt_flags; curr; curr = curr->next)
   {
-    if (curr->command && pmatch (curr->pattern, filename) && 
-        ((!st && !curr->imm) || (curr->imm && st)) )
+    if (curr->command && pmatch (curr->pattern, filename))
     {
-      char srf[MAXPATHLEN + 1], rsp[MAXPATHLEN + 1];
-
       if (strstr (curr->command, "*S") || strstr (curr->command, "*s"))
       {
-	if (mksrifpaths (fa, srf, rsp))
+	if (!st)
 	{
-	  char *w = ed (curr->command, "*S", srf, NULL);
-
-	  if (srif_fill (srf, fa, nfa, filename0, rsp, prot, listed, peer_name))
+	  char srf[MAXPATHLEN + 1], rsp[MAXPATHLEN + 1];
+	  if (mksrifpaths (fa, srf, rsp))
 	  {
-            if (!run_args (w, filename0, fa, nfa, prot, listed, peer_name, st))
-              delete(filename0);
+	    char *w = ed (curr->command, "*S", srf, NULL);
+
+	    if (srif_fill (srf, fa, nfa, filename0, rsp, prot, listed, peer_name))
+	    {
+	      if (!run_args (NULL, w, filename0, fa, nfa, prot, listed, peer_name, st, 1))
+	        delete(filename0);
+	    }
+	    else
+	      Log (1, "srif_fill: error");
+	    free (w);
+	    q = parse_response (q, rsp, fa);
+	    delete (srf);
+	    delete (rsp);
 	  }
 	  else
-	    Log (1, "srif_fill: error");
-	  free (w);
-	  q = parse_response (q, rsp, fa);
-	  delete (srf);
-	  delete (rsp);
+	    Log (1, "mksrifpaths: error");
 	}
-	else
-	  Log (1, "mksrifpaths: error");
       }
       else
-        run_args (curr->command, filename0, fa, nfa, prot, listed, peer_name, st);
+	*eq = run_args(*eq, curr->command, filename0, fa, nfa, prot, listed, peer_name, st, curr->imm);
     }
   }
   return q;

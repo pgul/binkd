@@ -3,7 +3,7 @@
  *
  *  readcfg.c is a part of binkd project
  *
- *  Copyright (C) 1996-1997  Dima Maloff, 5047/13
+ *  Copyright (C) 1996-2002  Dima Maloff, 5047/13 and others
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2002/02/22 00:18:34  gul
+ * Run by-file events with the same command-line once after session
+ *
  * Revision 2.2  2001/08/24 13:23:28  da
  * binkd/binkd.c
  * binkd/readcfg.c
@@ -770,7 +773,7 @@ static void read_bool (KEYWORD *key, char *s)
 static void read_flag_exec_info (KEYWORD *key, char *s)
 {
   EVT_FLAG *tmp;
-  char *path, *w;
+  char *path, *w, **body;
   int i;
   static EVT_FLAG *last = 0;
 
@@ -780,30 +783,20 @@ static void read_flag_exec_info (KEYWORD *key, char *s)
   {
     tmp = xalloc (sizeof (EVT_FLAG));
     memset (tmp, 0, sizeof (EVT_FLAG));
-    if (key->option1 == 'f' && *path == '!')
-    {
-      tmp->imm = 1;		       /* Immediate flag */
-      tmp->path = path + 1;
-    }
+    if (key->option1 == 'f')
+      body = &(tmp->path);
+    else if (key->option1 == 'e')
+      body = &(tmp->command);
     else
+      continue; // should never happens
+    *body = path;
+    if (**body == '!')
     {
-      tmp->imm = 0;
-      tmp->path = path;
-    }
-    if (key->option1 == 'e')
-    {
-      if(*path == '!')
-      {
-        tmp->imm = 1;		       /* Immediate flag */
-        tmp->command = path + 1;
-      }
-      else
-      tmp->command = path;
-      tmp->path = 0;
+      tmp->imm = 1;
+      body[0]++;
     }
     tmp->pattern = w;
     strlower (tmp->pattern);
-    tmp->flag = 0;
 
     tmp->next = 0;
     if (last == 0)

@@ -3,7 +3,7 @@
  *
  *  protocol.c is a part of binkd project
  *
- *  Copyright (C) 1996-1998  Dima Maloff, 5047/13
+ *  Copyright (C) 1996-2002  Dima Maloff, 5047/13 and others
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2002/02/22 00:18:34  gul
+ * Run by-file events with the same command-line once after session
+ *
  * Revision 2.10  2001/07/28 17:26:26  gul
  * Avoid compiler warnings
  *
@@ -188,6 +191,7 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to)
   TF_ZERO (&state->in_complete);
   state->ND_addr.z = -1;
   state->start_time = time (NULL);
+  state->evt_queue = NULL;
   Log (6, "binkp init done, socket # is %i", state->s);
   return 1;
 }
@@ -250,9 +254,9 @@ FTNQ *process_rcvdlist (STATE *state, FTNQ *q)
   Log (6, "processing rcvd list");
   for (i = 0; i < state->n_rcvdlist; ++i)
   {
-    q = evt_run (q, state->rcvdlist[i].name, state->fa, state->nfa,
-		 state->state == P_SECURE, state->listed_flag,
-		 state->peer_name, NULL);
+    q = evt_run(&(state->evt_queue), q, state->rcvdlist[i].name, state->fa,
+		state->nfa, state->state == P_SECURE, state->listed_flag,
+		state->peer_name, NULL);
   }
   return q;
 }
@@ -1099,9 +1103,9 @@ static int start_file_recv (STATE *state, char *args, int sz)
       if (*realname)
       {
         /* Set flags */
-        if(evt_test (realname))
-          state->q = evt_run (state->q, realname, state->fa, state->nfa,
-                 state->state == P_SECURE, state->listed_flag,
+        if(evt_test(&(state->evt_queue), realname))
+          state->q = evt_run(&(state->evt_queue), state->q, realname, state->fa,
+	         state->nfa, state->state == P_SECURE, state->listed_flag,
                  state->peer_name, state);
         /* We will run external programs using this list */
         add_to_rcvdlist (&state->rcvdlist, &state->n_rcvdlist, realname);
@@ -1490,9 +1494,9 @@ static int EOB (STATE *state, char *buf, int sz)
     if (*realname)
     {
       /* Set flags */
-      if(evt_test (realname))
-        state->q = evt_run (state->q, realname, state->fa, state->nfa,
-               state->state == P_SECURE, state->listed_flag,
+      if (evt_test(&(state->evt_queue), realname))
+        state->q = evt_run(&(state->evt_queue), state->q, realname, state->fa,
+	       state->nfa, state->state == P_SECURE, state->listed_flag,
                state->peer_name, state);
       /* We will run external programs using this list */
       add_to_rcvdlist (&state->rcvdlist, &state->n_rcvdlist, realname);
@@ -1616,10 +1620,10 @@ static int recv_block (STATE *state)
 	    if (*realname)
 	    {
 	      /* Set flags */
-              if (evt_test (realname))
-                state->q = evt_run (state->q, realname, state->fa, state->nfa,
-                       state->state == P_SECURE, state->listed_flag,
-                       state->peer_name, state);
+              if (evt_test(&(state->evt_queue), realname))
+                state->q = evt_run(&(state->evt_queue), state->q, realname,
+		       state->fa, state->nfa, state->state == P_SECURE,
+		       state->listed_flag, state->peer_name, state);
 	      /* We will run external programs using this list */
 	      add_to_rcvdlist (&state->rcvdlist, &state->n_rcvdlist, realname);
 	    }
@@ -2081,5 +2085,6 @@ void protocol (SOCKET socket, FTN_NODE *to)
 
   Log (4, "session closed, quitting...");
   deinit_protocol (&state);
-  evt_set ();
+  evt_set (state.evt_queue);
+  state.evt_queue = NULL;
 }
