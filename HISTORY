@@ -1,3 +1,7 @@
+2003/12/29 12:55:18 1.0a-318 val
+pmatch.c,2.2,2.3
+fix to pmatch(): symbol after '*' was case-sensitive in any case
+
 2003/12/29 12:49:42 1.0a-317 gul
 getw.c,2.7,2.8 !README.FIX,2.36,2.37
 Comments in config now starts by "#" only if prev char is space
