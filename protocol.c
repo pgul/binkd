@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.146  2003/12/28 10:23:25  gul
+ * Print file offset on "receiving interrupted" log message
+ *
  * Revision 2.145  2003/12/26 21:12:06  gul
  * Change unixtime and file length/offset to unsigned in protocol messages
  *
@@ -654,14 +657,16 @@ static int close_partial (STATE *state, BINKD_CONFIG *config)
 
   if (state->in.f)
   {
+    s = ftell (state->in.f);
+    Log (1, "receiving of %s interrupted at %lu", state->in.netname,
+	 (unsigned long) s);
     if (ispkt (state->in.netname))
     {
       Log (2, "%s: partial .pkt", state->in.netname);
       s = 0;
     }
-    else
+    else if (s == 0)
     {
-      if ((s = ftell (state->in.f)) == 0)
       Log (4, "%s: empty partial", state->in.netname);
     }
     fclose (state->in.f);
@@ -2093,7 +2098,6 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
 	strcmp (argv[0], state->in.netname))	/* ...a file with another *
 						 * name! */
     {
-      Log (1, "receiving of %s interrupted", state->in.netname);
       close_partial (state, config);
     }
     if ((state->ND_flag & THEY_ND) && state->in_complete.netname[0])
@@ -2672,9 +2676,7 @@ static int EOB (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
   state->delay_EOB = 0; /* val: we can do it anyway now :) */
   if (state->in.f)
   {
-    fclose (state->in.f);
-    Log (1, "receiving of %s interrupted", state->in.netname);
-    TF_ZERO (&state->in);
+    close_partial(state, config);
   }
   if ((state->ND_flag & THEY_ND) && state->in_complete.netname[0])
   { /* rename complete received file to its true form */
