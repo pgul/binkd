@@ -99,9 +99,9 @@ $(OUTDIR)\exitproc.obj: \
 	"iphdr.h" \
 	"readcfg.h" \
 	"sem.h" \
+	"server.h" \
 	"sys.h" \
 	"tools.h" \
-	"server.h" \
 	"nt\wsock.h"
 
 $(OUTDIR)\ftnaddr.obj: \
@@ -154,8 +154,8 @@ $(OUTDIR)\ftnq.obj: \
 	"nt\wsock.h"
 
 $(OUTDIR)\getw.obj: \
-	"tools.h" \
-	"getw.h"
+	"getw.h" \
+	"tools.h"
 
 $(OUTDIR)\https.obj: \
 	"Config.h" \
@@ -357,6 +357,9 @@ $(OUTDIR)\tools.obj: \
 $(OUTDIR)\xalloc.obj: \
 	"getw.h" \
 	"tools.h"
+
+$(OUTDIR)\TCPErr.obj: \
+	"sem.h"
 
 $(OUTDIR)\WSock.obj: \
 	"getw.h" \
