@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.61  2003/12/26 07:51:11  val
+ * up to 3 comma-separated passwords in <passwords> file are parsed
+ *
  * Revision 2.60  2003/11/21 19:39:59  stream
  * Initial support for "-noproxy" node option
  *
@@ -1099,6 +1102,16 @@ static int passwords (KEYWORD *key, int wordcount, char **words)
       password = strtok(NULL, spaces);
       if (password && parse_ftnaddress (node, &fa, work_config.pDomains.first)) /* Do not process if any garbage found */
       {
+        /* parse "in_pwd,pkt_pwd,out_pwd" to password,pkt_pwd,out_pwd */
+        /* if any (pkt|out)_pwd is omitted, set pointer to NULL not to "" */
+        char *pkt_pwd = strchr(password, ','), *out_pwd = NULL;
+        if (pkt_pwd) {
+          *(pkt_pwd++) = 0; 
+          out_pwd = strchr(pkt_pwd, ',');
+          if (out_pwd) *(out_pwd++) = 0;
+          if (!*pkt_pwd) pkt_pwd = NULL;
+          if (!*out_pwd) out_pwd = NULL;
+        }
         exp_ftnaddress (&fa, work_config.pAddr, work_config.nAddr, work_config.pDomains.first);
         add_node (&fa, NULL, password, '-', NULL, NULL,
                   NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, HC_USE_OLD, NP_USE_OLD, &work_config);
