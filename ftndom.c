@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2004/11/05 05:30:55  stas
+ * Checks for NULL pointer in get_matched_domain()
+ *
  * Revision 2.6  2004/11/04 08:55:10  stream
  * Bugfix to previous bugfix.
  * Also log warning if we have to guess default domain name from main AKA
@@ -80,12 +83,13 @@ char *get_matched_domain (int zone, FTN_ADDR *pAddr, int nAddr, FTN_DOMAIN *pDom
       return curr->name;
  
   /* Do we have an AKA with this zone? */
-  for (n = 0; n < nAddr; n++)
-    if (zone == pAddr[n].z)
-      return pAddr[n].domain;
+  if(pAddr)
+    for (n = 0; n < nAddr; n++)
+      if (zone == pAddr[n].z)
+        return pAddr[n].domain;
 
   /* No defined domain, try to guess defaults */
-  if (nAddr)
+  if (nAddr && pAddr)
     p = pAddr[0].domain;   /* If we have nodes defined, use main AKA */
   else
     p = pDomains->name;    /* Use first domain (at least one always defined at this point) */
