@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.36  2003/10/19 10:28:10  gul
+ * Minor DEBUGCHILD fix
+ *
  * Revision 2.35  2003/10/07 20:50:07  gul
  * Wait for servmanager exit from exitproc()
  * (Patch from Alexander Reznikov)
@@ -203,7 +206,7 @@ static void serv (void *arg)
   void *cperl;
 #endif
 
-#ifdef HAVE_FORK
+#if defined(HAVE_FORK) && !defined(DEBUGCHILD)
   pidcmgr = 0;
   soclose(sockfd);
   sockfd = INVALID_SOCKET;
@@ -227,7 +230,7 @@ static void serv (void *arg)
   threadsafe(--n_servers);
   PostSem(&eothread);
   _endthread();
-#elif defined(DOS)
+#elif defined(DOS) || defined(DEBUGCHILD)
   --n_servers;
 #endif
 }
