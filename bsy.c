@@ -2,6 +2,15 @@
  * You must be VERY CAREFUL with this module. Note, this
  * code is working in VERY diff. ways in forking vs. threading versions!!
  */
+/*
+ * $Id$
+ *
+ * $Log$
+ * Revision 2.0  2001/01/10 12:12:37  gul
+ * Binkd is under CVS again
+ *
+ *
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

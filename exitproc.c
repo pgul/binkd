@@ -12,11 +12,11 @@
  */
 
 /*
- *  $Id$
+ * $Id$
  *
- *  $Log$
- *  Revision 1.1  2001/01/10 11:34:58  gul
- *  Initial revision
+ * $Log$
+ * Revision 2.0  2001/01/10 12:12:37  gul
+ * Binkd is under CVS again
  *
  * Revision 1.2  1997/10/23  04:13:35  mff
  * pidfiles are now killed only by servmgrs, misc

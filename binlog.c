@@ -22,13 +22,12 @@
 /*--------------------------------------------------------------------*/
 
 /*
- *    $Id$
+ * $Id$
  *
- *    Revision history:
- *    $Log$
- *    Revision 1.1  2001/01/10 11:34:57  gul
- *    Initial revision
- *
+ * Revision history:
+ * $Log$
+ * Revision 2.0  2001/01/10 12:12:37  gul
+ * Binkd is under CVS again
  *
  * Revision 0.02  1997/07/11  11:40:19  maxb
  *      Added FrontDoor aka Bink/+ statistics

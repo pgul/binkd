@@ -15,8 +15,8 @@
  * $Id$
  *
  * $Log$
- * Revision 1.1  2001/01/10 11:34:58  gul
- * Initial revision
+ * Revision 2.0  2001/01/10 12:12:39  gul
+ * Binkd is under CVS again
  *
  * Revision 1.7  1997/10/23  03:44:03  mff
  * +fdinhist, +fdouthist, +root_domain

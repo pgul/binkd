@@ -1,3 +1,12 @@
+/*
+ * $Id$
+ *
+ * $Log$
+ * Revision 2.0  2001/01/10 12:12:37  gul
+ * Binkd is under CVS again
+ *
+ *
+ */
 #ifndef _ftnaddr_h
 #define _ftnaddr_h
 

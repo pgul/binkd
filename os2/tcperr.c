@@ -1,3 +1,13 @@
+/*
+ * $Id$
+ *
+ * Revision history:
+ * $Log$
+ * Revision 2.0  2001/01/10 12:12:40  gul
+ * Binkd is under CVS again
+ *
+ *
+ */
 #include <nerrno.h>
 
 static const char *sockerrors[] =

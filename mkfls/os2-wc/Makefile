@@ -1,4 +1,5 @@
 # from "Pavel Gulchouck" <gul@gul.kiev.ua>
+# $Id$
 
 .SUFFIXES:
 .SUFFIXES: .res .rc .lst .obj .c .asm .hlp .itl .ipf .cpp

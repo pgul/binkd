@@ -14,11 +14,11 @@
  */
 
 /*
- *  $Id$
+ * $Id$
  *
- *  $Log$
- *  Revision 1.1  2001/01/10 11:34:59  gul
- *  Initial revision
+ * $Log$
+ * Revision 2.0  2001/01/10 12:12:39  gul
+ * Binkd is under CVS again
  *
  * Revision 1.3  1997/10/23  03:34:15  mff
  * many, many changes (forget to ci a version or two)

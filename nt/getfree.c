@@ -20,13 +20,12 @@
 /*--------------------------------------------------------------------*/
 
 /*
- *    $Id$
+ * $Id$
  *
- *    Revision history:
- *    $Log$
- *    Revision 1.1  2001/01/10 11:34:59  gul
- *    Initial revision
- *
+ * Revision history:
+ * $Log$
+ * Revision 2.0  2001/01/10 12:12:40  gul
+ * Binkd is under CVS again
  *
  * Revision 0.01  1997/01/08  09:00:25 ufm
  *      First revision

@@ -1,4 +1,13 @@
 /*
+ * $Id$
+ *
+ * $Log$
+ * Revision 2.0  2001/01/10 12:12:38  gul
+ * Binkd is under CVS again
+ *
+ *
+ */
+/*
 
    binkp's frames:
 

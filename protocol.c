@@ -15,8 +15,8 @@
  * $Id$
  *
  * $Log$
- * Revision 1.1  2001/01/10 11:34:58  gul
- * Initial revision
+ * Revision 2.0  2001/01/10 12:12:38  gul
+ * Binkd is under CVS again
  *
  * Revision 1.35  1997/11/04  23:37:11  mff
  * send_block() changed to send as many msgs as possible with one send()

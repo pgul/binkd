@@ -1,7 +1,15 @@
-/* $Id$ */
 /*
  * Common part of SIGCHLD handling for diff.parts of binkd
  * Should be included in chld()
+ */
+/* 
+ * $Id$
+ *
+ * $Log$
+ * Revision 2.0  2001/01/10 12:12:39  gul
+ * Binkd is under CVS again
+ *
+ *
  */
 {
   int old_errno = errno;

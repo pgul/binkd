@@ -20,21 +20,20 @@
 /*--------------------------------------------------------------------*/
 
 /*
- *    $Id$
+ * $Id$
  *
- *    Revision history:
- *    $Log$
- *    Revision 1.1  2001/01/10 11:35:00  gul
- *    Initial revision
- *
- *
- * Revision 0.01  1996/12/03  12:15:15  ufm
- *      First revision
+ * Revision history:
+ * $Log$
+ * Revision 2.0  2001/01/10 12:12:40  gul
+ * Binkd is under CVS again
  *
  * Revision 0.02  1996/12/15  18:58:09  ufm
  *      Fixed bug with wrong IP Errors numeration.
  *      For sample, Error "Connection refused" (61) says as
  *      "Too many levels of symbolic links"  (62)
+ *
+ * Revision 0.01  1996/12/03  12:15:15  ufm
+ *      First revision
  *
  */
 

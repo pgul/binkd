@@ -1,4 +1,5 @@
 # Microsoft Developer Studio Generated NMAKE File, Based on binkd.dsp
+# $Id$
 !IF "$(CFG)" == ""
 CFG=binkd - Win32 Release
 !MESSAGE No configuration specified. Defaulting to binkd - Win32 Release.

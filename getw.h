@@ -2,6 +2,15 @@
  * getwordx public domain library v.2.0
  * (c) 1995,1996,1997 <maloff@tts.magadan.su>
  */
+/*
+ * $Id$
+ *
+ * $Log$
+ * Revision 2.0  2001/01/10 12:12:38  gul
+ * Binkd is under CVS again
+ *
+ *
+ */
 
 #define MAX_ENV_VAR_NAME 256
 

@@ -15,8 +15,8 @@
  * $Id$
  *
  * $Log$
- * Revision 1.1  2001/01/10 11:34:58  gul
- * Initial revision
+ * Revision 2.0  2001/01/10 12:12:38  gul
+ * Binkd is under CVS again
  *
  * Revision 1.14  1998/05/05  04:23:52  mff
  * create_poll() now makes all the required intermediate
