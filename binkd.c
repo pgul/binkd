@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.45  2003/07/16 15:42:53  stas
+ * Fix: restore -T option
+ *
  * Revision 2.44  2003/07/16 15:08:49  stas
  * Fix NT services to use getopt(). Improve logging for service
  *
@@ -626,6 +629,10 @@ int main (int argc, char *argv[], char *envp[])
     if (service(argc, argv, envp) && service_flag!=w32_run_as_service) {
       Log(0, "Windows NT service error");
     }
+/*  if (tray_flag)
+    {
+     _beginthread(wndthread, 0, NULL);
+    }*/
 #endif
 
   /* No command line options: run both client and server */
