@@ -1,3 +1,7 @@
+2004/10/29 16:05:14 1.0a-417 stas
+getfree.c,2.9,2.10
+Add diagnostic about free space great 4Tb (win32 only)
+
 2004/10/29 14:16:37 1.0a-416 gul
 inbound.c,2.33,2.34
 Fixed bug with check required free space if off_t is signed long
