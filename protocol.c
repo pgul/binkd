@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67.2.4  2003/08/11 08:41:55  gul
+ * workaround winsock bug (patch by Alexander Reznikov)
+ *
  * Revision 2.67.2.3  2003/06/24 07:11:47  gul
  * Migrate try/hold behavior from current branch
  *
@@ -547,17 +550,7 @@ static int send_block (STATE *state)
 	return 0;
       }
       Log (7, "data transfer would block");
-#if defined(WIN32) /* workaround winsock bug - give up CPU */
-      {
-	struct timeval tv;
-	fd_set r;
-	FD_ZERO (&r);
-	FD_SET (state->s, &r);
-	tv.tv_sec = 0;
-	tv.tv_usec = 10000; /* 10 ms */
-	select (state->s + 1, &r, 0, 0, &tv);
-      }
-#endif
+      return 2;
     }
     else
     {
@@ -2206,7 +2199,11 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
   STATE state;
   struct timeval tv;
   fd_set r, w;
-  int no;
+  int no, rd;
+#ifdef WIN32
+  unsigned long t_out = 0;
+  unsigned long u_nettimeout = nettimeout*100000;
+#endif
   struct sockaddr_in peer_name;
   socklen_t peer_name_len = sizeof (peer_name);
   char host[MAXHOSTNAMELEN + 1];
@@ -2325,12 +2322,24 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
 	}
       }
 
+#if defined(WIN32) /* workaround winsock bug */
+    if (t_out < u_nettimeout)
+    {
+#endif
       tv.tv_sec = nettimeout;	       /* Set up timeout for select() */
       tv.tv_usec = 0;
       Log (8, "tv.tv_sec=%li, tv.tv_usec=%li", (long) tv.tv_sec, (long) tv.tv_usec);
       no = select (socket + 1, &r, &w, 0, &tv);
       save_err = TCPERR ();
       Log (8, "selected %i (r=%i, w=%i)", no, FD_ISSET (socket, &r), FD_ISSET (socket, &w));
+#if defined(WIN32) /* workaround winsock bug */
+    }
+    else
+    {
+      Log (8, "win9x winsock workaround: timeout detected (nettimeout=%u sec, t_out=%lu sec)", nettimeout, t_out/100000);
+      no = 0;
+    }
+#endif
       bsy_touch ();		       /* touch *.bsy's */
       if (no == 0)
       {
@@ -2351,15 +2360,31 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
 	}
 	break;
       }
-      if (FD_ISSET (socket, &r))       /* Have something to read */
+      rd = FD_ISSET (socket, &r);
+      if (rd)       /* Have something to read */
       {
 	if (!recv_block (&state))
 	  break;
       }
       if (FD_ISSET (socket, &w))       /* Clear to send */
       {
-	if (!send_block (&state))
+	no = send_block (&state);
+	if (!no)
 	  break;
+#if defined(WIN32) /* workaround winsock bug - give up CPU */
+        if (!rd && no == 2)
+        {
+	  FD_ZERO (&r);
+	  FD_SET (socket, &r);
+	  tv.tv_sec = 0;
+	  tv.tv_usec = 10000; /* 10 ms */
+	  if (!select (socket + 1, &r, 0, 0, &tv))
+	  {
+	    t_out += tv.tv_usec;
+	  } else { t_out = 0; }
+        }
+        else { t_out = 0; }
+#endif
       }
     }
   }
