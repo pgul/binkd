@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2002/04/02 13:10:32  gul
+ * Put real remote addr to log "session with ..." if connect via socks or proxy
+ *
  * Revision 2.1  2001/09/14 07:24:20  gul
  * bindaddr works on outgoing connections now
  *
@@ -331,6 +334,7 @@ static int call0 (FTN_NODE *node)
       }
 #endif
 #ifdef HTTPS
+      node->current_addr = sin.sin_addr.s_addr;
       if (h_connect (&sockfd, &sin) == 0)
 #else
       if (connect (sockfd, (struct sockaddr *) & sin, sizeof (sin)) == 0)
