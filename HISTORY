@@ -1,3 +1,7 @@
+2003/08/27 01:19:23 0.9.6a-149 gul
+WSock.c,2.2,2.3 getfree.c,2.5,2.6 sem.c,2.7,2.8 service.c,2.17,2.18 w32tools.c,2.6,2.7
+Fix compilation under w32-mingw and os2-emx
+
 2003/08/27 01:18:51 0.9.6a-148 gul
 sem.c,2.4,2.5
 Fix compilation under w32-mingw and os2-emx
