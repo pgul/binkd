@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.61  2003/07/08 06:48:05  gul
+ * Auto increase patchlevel, set 0.9.6a-50
+ * cosmetics
+ *
  * Revision 2.60  2003/07/07 18:38:58  hbrew
  * Auto increase patchlevel, set 0.9.6a-49
  * Fix gcc(mingw) warnings:
@@ -253,7 +257,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-49"
+#define MYVER "0.9.6a-50"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
