@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/06/04 10:36:58  stas
+ * Thread-safety tcperr() implementation on Win32
+ *
  * Revision 2.9  2003/03/30 10:14:40  gul
  * Use HAVE_SOCKLEN_T macro
  *
@@ -113,6 +116,7 @@
 #if defined(IBMTCPIP)
 const char *tcperr (void);
 
+  #define ReleaseErrorList()
   #define TCPERR() tcperr()
   #define TCPERRNO (sock_errno())
   #include <nerrno.h>
@@ -125,6 +129,7 @@ const char *tcperr (void);
 #elif defined(IBMTCPIPDOS)
 const char *tcperr (void);
 
+  #define ReleaseErrorList()
   #define TCPERR() tcperr()
   #define TCPERRNO (tcperrno)
   #include <stdio.h>
@@ -135,9 +140,10 @@ const char *tcperr (void);
   #define TCPERR_AGAIN EAGAIN
   #define sock_deinit()
 #elif defined(WIN32)
-const char *tcperr (void);
+const char *tcperr (int);
+void ReleaseErrorList(void);
 
-  #define TCPERR() tcperr()
+  #define TCPERR() tcperr(h_errno)
   #define TCPERRNO (h_errno)
   #define TCPERR_WOULDBLOCK WSAEWOULDBLOCK
   #define TCPERR_AGAIN WSAEWOULDBLOCK
@@ -147,6 +153,7 @@ const char *tcperr (void);
   #define soclose(h) closesocket(h)
 #else
   #include <errno.h>
+  #define ReleaseErrorList()
   #define TCPERR() strerror(errno)
   #define TCPERRNO errno
   #define TCPERR_WOULDBLOCK EWOULDBLOCK
