@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12.2.1  2003/06/30 22:49:39  hbrew
+ * Allow to override -ip, -sip, -md, -nomd in add_node()
+ *
  * Revision 2.12  2003/05/04 08:49:05  gul
  * Fix previous patch
  *
@@ -152,18 +155,17 @@ static int add_node_nolock(FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
     pNod[cn].obox_flvr = 'f';
     pNod[cn].NR_flag = NR_OFF;
     pNod[cn].ND_flag = ND_OFF;
-    pNod[cn].MD_flag = 0;
-    pNod[cn].restrictIP = 0;
+    pNod[cn].MD_flag = MD_USE_OLD;
+    pNod[cn].restrictIP = RIP_OFF;
 
     /* We've broken the order... */
     nNodSorted = 0;
   }
 
-  if(!pNod[cn].MD_flag) 
+  if (MD_flag != MD_USE_OLD)
     pNod[cn].MD_flag = MD_flag;
-  if(!pNod[cn].restrictIP) 
+  if (restrictIP != RIP_USE_OLD) 
     pNod[cn].restrictIP = restrictIP;
-
   if (NR_flag != NR_USE_OLD)
     pNod[cn].NR_flag = NR_flag;
   if (ND_flag != ND_USE_OLD)
