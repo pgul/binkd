@@ -1,3 +1,7 @@
+2004/01/04 17:51:08 1.0a-347 stas
+w32tools.c,2.14,2.15
+Fix service name convertion: now Service Display Name (parameter of the '-S' command line option) may be content a '\' and '/' characters
+
 2004/01/04 17:19:39 1.0a-346 stas
 service.c,2.49,2.50
 Use Service Display Name to display (log, windows title)
