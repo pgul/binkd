@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.23  2003/05/23 18:10:57  stas
+ * Do not report errors when threads exits by exitfunc
+ *
  * Revision 2.22  2003/05/04 08:45:30  gul
  * Lock semaphores more safely for resolve and IP-addr print
  *
@@ -295,7 +298,8 @@ void servmgr (void *arg)
       save_errno = TCPERRNO;
       if (save_errno != EINVAL && save_errno != EINTR)
       {
-	Log (1, "accept: %s", TCPERR ());
+	if (!binkd_exit)
+	  Log (1, "accept: %s", TCPERR ());
 #ifdef UNIX
 	if (save_errno == ECONNRESET ||
 	    save_errno == ETIMEDOUT ||
