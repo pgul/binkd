@@ -1,3 +1,8 @@
+2003/10/20 22:17:59 1.0a-264
+ gul
+binkd.c,2.69,2.70 !README.FIX,2.35,2.36 todo.lst,2.40,2.41
+Print optional compiled-in extensions by -vv command-line switch
+
 2003/10/20 21:44:55 1.0a-263
  gul
 protocol.c,2.134,2.135
