@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.145  2003/08/25 05:39:28  stas
+ * Auto increase patchlevel, set 0.9.6a-132
+ * Bugfix: "readcfg.c:938: `fa\' undeclared" compilation error
+ *
  * Revision 2.144  2003/08/24 19:42:11  gul
  * Auto increase patchlevel, set 0.9.6a-131
  * Get FTN-domain from matched zone in exp_ftnaddress()
@@ -622,7 +626,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-131"
+#define MYVER "0.9.6a-132"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
