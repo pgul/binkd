@@ -1,3 +1,7 @@
+2003/10/08 13:30:37 1.0a-226 gul
+exitproc.c,2.30,2.31
+Fixed debug logging (thx to Alexander Reznikov)
+
 2003/10/08 08:48:59 1.0a-225 stas
 breaksig.c,2.15,2.16
 Fix w9x compilation
