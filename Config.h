@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.91  2003/08/04 12:17:51  gul
+ * Auto increase patchlevel, set 0.9.6a-79
+ * Remove extra error message
+ *
  * Revision 2.90  2003/08/04 12:12:28  gul
  * Auto increase patchlevel, set 0.9.6a-78
  * Add opterr and optopt vars
@@ -395,7 +399,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-78"
+#define MYVER "0.9.6a-79"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
