@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.100  2003/08/13 08:20:47  val
+ * Auto increase patchlevel, set 0.9.6a-88
+ * try to avoid mixing Log() output and Perl errors in stderr
+ *
  * Revision 2.99  2003/08/13 08:02:53  val
  * Auto increase patchlevel, set 0.9.6a-87
  * define DELAY_ADR ifdef WITH_PERL (todo: provide more flexible logic)
@@ -431,7 +435,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-87"
+#define MYVER "0.9.6a-88"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
