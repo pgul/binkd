@@ -52,7 +52,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-178"
+#define MYVER "0.9.6a-179"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 

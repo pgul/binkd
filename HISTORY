@@ -1,3 +1,7 @@
+2003/09/16 09:38:46 0.9.6a-179 val
+ftnnode.c,2.22,2.23 protocol.c,2.120,2.121
+correct IP checking algorithms (gul's one is buggy), correct get_defnode_info()
+
 2003/09/16 00:10:12 0.9.6a-178 gul
 protocol.c,2.119,2.120
 Fix remote IP check logic
