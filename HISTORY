@@ -1,3 +1,7 @@
+2003/12/26 23:12:10 1.0a-314 gul
+btypes.h,2.2,2.3 ftnq.c,2.29,2.30 inbound.c,2.26,2.27 protocol.c,2.144,2.145
+Change unixtime and file length/offset to unsigned in protocol messages
+
 2003/12/26 22:11:34 1.0a-313 gul
 binkd.8,2.3,2.4 binkd.c,2.74,2.75 readcfg.c,2.61,2.62 readcfg.h,2.27,2.28 todo.lst,2.42,2.43
 Add -d commandline switch - dump parsed config and exit;
