@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.16  2003/08/20 07:33:38  hbrew
+ * Addon for 'Avoid double exitfunc() call' patch
+ *
  * Revision 2.15  2003/07/19 06:59:35  hbrew
  * Complex patch:
  * * nt/w32tools.c: Fix warnings
@@ -367,9 +370,9 @@ static void Win9xWindowThread(void *p)
                 DispatchMessage(&msg);
         }
         mainHWND = NULL;
-        win9xAtExit();
        	if (SigType!=-1)
        		phandler(SigType);
+       	exit(0);
 }
 
 void CreateWin9xThread(PHANDLER_ROUTINE phandler)
