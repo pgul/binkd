@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2003/06/25 07:25:01  stas
+ * Simple code, continue bugfix to responce negative timestamp
+ *
  * Revision 2.12  2003/06/12 08:21:44  val
  * 'skipmask' is replaced with 'skip', which allows more skipping features
  *
@@ -234,5 +237,14 @@ char *makeinboundcase (char *s);
 struct tm *safe_localtime(time_t *t, struct tm *tm);
 struct tm *safe_gmtime(time_t *t, struct tm *tm);
 time_t safe_time(void);
+
+
+/* Safe string to long conversion: negative converts using atol,
+ * positive: strtoul();
+ * leading spaces - impossibled!
+ * Return error message in msg[0] (static string) and set errno.
+ * errno set to zero if no error
+ */
+long safe_atol(char* str, char** msg);
 
 #endif

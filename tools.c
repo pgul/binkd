@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.25  2003/06/25 07:25:00  stas
+ * Simple code, continue bugfix to responce negative timestamp
+ *
  * Revision 2.24  2003/06/10 07:43:35  gul
  * sdelete() - reliable delete file (wait for lock)
  *
@@ -972,4 +975,34 @@ char *makeinboundcase (char *s)
   }
 
   return s;
+}
+
+/* Safe string to long conversion: negative converts using atol,
+ * positive: strtoul();
+ * leading spaces - impossibled!
+ * Return error message in msg[0] (static string) and set errno.
+ * errno set to zero if no error
+ */
+long safe_atol(char* str, char** msg){
+  unsigned long ul=0;
+  long l;
+
+  if(str){
+    errno = 0;
+    if( str[0]=='-' ){  /* negative value */
+      l = atol(str);
+      if(errno==ERANGE && msg){
+         *msg = "Out of range: number too small";
+      }
+      return l;
+    }
+    ul = strtoul(str,NULL,10);
+    if(errno==ERANGE && msg){
+       *msg = "Out of range: number too big";
+    }
+  }else{
+    errno = EINVAL;
+    *msg = "Invalid argument (NULL instead string)";
+  }
+  return (long)ul;
 }

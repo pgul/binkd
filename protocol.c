@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.79  2003/06/25 07:25:00  stas
+ * Simple code, continue bugfix to responce negative timestamp
+ *
  * Revision 2.78  2003/06/24 13:46:32  stas
  * Fix max value of type time_t
  *
@@ -1606,24 +1609,15 @@ static int start_file_recv (STATE *state, char *args, int sz)
       TF_ZERO (&state->in_complete);
     }
     if (state->in.f == 0)
-    {
+    { char *errmesg=NULL;
+
       state->in.start = safe_time();
       strnzcpy (state->in.netname, argv[0], MAX_NETNAME);
       state->in.size = atol (argv[1]);
-      state->in.time = atol (argv[2]);
-      if(errno==ERANGE){
-        if(state->in.time>0)
-          Log ( 1, "File time too big! (M_FILE \"%s %s %s %s\")", argv[0], argv[1], argv[0], argv[2], argv[3] );
-        else if(state->in.time<0){
-          Log ( 1, "Illegal file time: too big and negative! (M_FILE \"%s %s %s %s\")", argv[0], argv[1], argv[0], argv[2], argv[3] );
-          state->in.time=(time_t)((((unsigned long)(-1))>>1)); /* max positive value */
-        }
-      }else if(state->in.time<0){
-        if(argv[2][0]=='-')
-          Log ( 1, "Illegal file time: negative! (M_FILE \"%s %s %s %s\")", argv[0], argv[1], argv[0], argv[2], argv[3] );
-        else
-          Log ( 1, "Illegal file time: too big! (M_FILE \"%s %s %s %s\")", argv[0], argv[1], argv[0], argv[2], argv[3] );
-        state->in.time=0;
+      errno=0;
+      state->in.time = safe_atol (argv[2], &errmesg);
+      if(errmesg){
+          Log ( 1, "File time parsing error: %s! (M_FILE \"%s %s %s %s\")", errmesg, argv[0], argv[1], argv[0], argv[2], argv[3] );
       }
     }
     offset = (off_t) atol (argv[3]);
@@ -1787,26 +1781,16 @@ static int GET (STATE *state, char *args, int sz)
   const int argc = 4;
   char *argv[4];
   int i, rc = 0;
-  off_t offset, fsize;
-  time_t ftime;
+  off_t offset, fsize=0;
+  time_t ftime=0;
 
   if (parse_msg_args (argc, argv, args, "M_GET", state))
-  {
-    fsize = atol (argv[1]);
-    ftime = atol (argv[2]);
-    if(errno==ERANGE){
-      if(ftime>0)
-        Log ( 1, "File time too big! (M_GET \"%s %s %s %s\")", argv[0], argv[1], argv[0], argv[2], argv[3] );
-      else if(ftime<0){
-        Log ( 1, "Illegal file time: too big and negative! (M_GET \"%s %s %s %s\")", argv[0], argv[1], argv[0], argv[2], argv[3] );
-        ftime=(time_t)((((unsigned long)(-1))>>1)); /* max positive value */
+  { {char *errmesg = NULL;
+      fsize = atol (argv[1]);
+      ftime = safe_atol (argv[2], &errmesg);
+      if(errmesg){
+        Log ( 1, "File time parsing error: %s! (M_GET \"%s %s %s %s\")", errmesg, argv[0], argv[1], argv[0], argv[2], argv[3] );
       }
-    }else if(ftime<0){
-      if(argv[2][0]=='-')
-        Log ( 1, "Illegal file time: negative! (M_GET \"%s %s %s %s\")", argv[0], argv[1], argv[0], argv[2], argv[3] );
-      else
-        Log ( 1, "Illegal file time: too big! (M_GET \"%s %s %s %s\")", argv[0], argv[1], argv[0], argv[2], argv[3] );
-      ftime=0;
     }
     /* Check if the file was already sent */
     for (i = 0; i < state->n_sent_fls; ++i)
@@ -1905,21 +1889,17 @@ static int SKIP (STATE *state, char *args, int sz)
   const int argc = 3;
   char *argv[3];
   int n;
-  time_t ftime;
-  off_t  fsize;
+  time_t ftime=0;
+  off_t  fsize=0;
 
   if (parse_msg_args (argc, argv, args, "M_SKIP", state))
-  {
-    fsize = atol (argv[1]);
-    ftime = atol (argv[2]);
-    if(ftime<0){
-      if(errno==ERANGE){
-        ftime=(time_t)((((unsigned long)(-1))>>1)); /* max positive value */
+  { {char *errmesg=NULL;
+      fsize = atol (argv[1]);
+      ftime = safe_atol (argv[2], &errmesg);
+      if(errmesg){
+        Log ( 1, "File time parsing error: %s! (M_SKIP \"%s %s %s\")", errmesg, argv[0], argv[1], argv[0], argv[2] );
       }
-    }else{
-      ftime=0;
     }
-
     for (n = 0; n < state->n_sent_fls; ++n)
     {
       if (!tfile_cmp (state->sent_fls + n, argv[0], fsize, ftime))
@@ -1958,25 +1938,22 @@ static int GOT (STATE *state, char *args, int sz)
   char *argv[3];
   int n, rc=1;
   char *status = NULL;
-  time_t ftime;
-  off_t  fsize;
+  time_t ftime=0;
+  off_t  fsize=0;
 
   if (state->ND_flag & WE_ND)
     status = strdup(args);
   else
     ND_set_status("", &state->ND_addr, state);
   if (parse_msg_args (argc, argv, args, "M_GOT", state))
-  {
-    fsize = atol (argv[1]);
-    ftime = atol (argv[2]);
-    if(ftime<0){
-      if(errno==ERANGE){
-        ftime=(time_t)((((unsigned long)(-1))>>1)); /* max positive value */
+  { {char *errmesg = NULL;
+      fsize = atol (argv[1]);
+      errno = 0;
+      ftime = safe_atol (argv[2], &errmesg);
+      if(errmesg){
+        Log ( 1, "File time parsing error: %s! (M_GOT \"%s %s %s\")", errmesg, argv[0], argv[1], argv[0], argv[2] );
       }
-    }else{
-      ftime=0;
     }
-
     if (!tfile_cmp (&state->out, argv[0], fsize, ftime))
     {
       Log (2, "remote already has %s", state->out.netname);
