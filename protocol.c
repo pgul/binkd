@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2001/07/28 09:10:04  gul
+ * minor fix in log messages
+ *
  * Revision 2.7  2001/07/28 08:53:07  gul
  * set ND-mode bugfix
  *
@@ -1427,7 +1430,7 @@ static int GOT (STATE *state, char *args, int sz)
 	{
 	  char szAddr[FTN_ADDR_SZ + 1];
 
-	  ftnaddress_to_str (szAddr, state->fa);
+	  ftnaddress_to_str (szAddr, &state->out_addr);
 	  state->bytes_sent += state->sent_fls[n].size;
 	  ++state->files_sent;
           memcpy(&state->ND_addr, &state->out_addr, sizeof(state->out_addr));
