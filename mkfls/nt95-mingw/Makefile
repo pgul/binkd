@@ -20,7 +20,7 @@ endif
 OUTDIR=bin/mingw32
 BINKDTYPE=mingw32
 
-CFLAGS= -mno-cygwin -mthreads -Wall -funsigned-char -Wno-char-subscripts
+CFLAGS= -mno-cygwin -mthreads -Wall -funsigned-char -Wno-char-subscripts -pipe
 CDEFS=  -DHAVE_THREADS -DHAVE_SNPRINTF -DHAVE_VSNPRINTF -DHAVE_UNISTD        \
         -DWIN32 -DHAVE_IO_H -DHAVE_DOS_H -DHAVE_STDARG_H -DHAVE_SNPRINTF     \
         -DHAVE_VSNPRINTF -DHAVE_WAITPID -DHTTPS -DNTLM                       \
