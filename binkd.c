@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.63  2003/09/12 07:37:57  val
+ * compression support via zlib (preliminary)
+ *
  * Revision 2.62  2003/09/05 06:49:06  val
  * Perl support restored after config reloading patch
  *
@@ -286,6 +289,10 @@
 #include "perlhooks.h"
 #endif
 
+#if defined(WITH_ZLIB) && defined(ZLIBDL)
+#include "zlibdl.h"
+#endif
+
 #ifdef UNIX
 #include "unix/daemonize.h"
 #endif
@@ -422,6 +429,9 @@ int verbose_flag = 0;		       /* Be verbose / print version (-v) */
 int checkcfg_flag = 0;		       /* exit(3) on config change (-C) */
 int no_MD5 = 0;			       /* disable MD5 flag (-m) */
 int no_crypt = 0;		       /* disable CRYPT (-r) */
+#ifdef WITH_ZLIB
+int no_gz = 0;                         /* disable compression */
+#endif
 
 static TYPE_LIST(maskchain) psPolls;   /* Create polls (-P) */
 
@@ -747,6 +757,13 @@ int main (int argc, char *argv[], char *envp[])
   /* Set up break handler, set up exit list if needed */
   if (!set_break_handlers ())
     Log (0, "cannot install break handlers");
+
+#if defined(WITH_ZLIB) && defined(ZLIBDL)
+  if (!zlib_init("zlib.dll")) {
+    Log (3, "cannot load zlib.dll, compression disabled");
+    no_gz = 1;
+  }
+#endif
 
 #ifdef WITH_PERL
   if (current_config->perl_script[0]) {

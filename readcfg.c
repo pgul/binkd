@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.52  2003/09/12 07:37:57  val
+ * compression support via zlib (preliminary)
+ *
  * Revision 2.51  2003/09/08 16:39:39  stream
  * Fixed race conditions when accessing array of nodes in threaded environment
  * ("jumpimg node structures")
@@ -394,6 +397,9 @@ void lock_config_structure(BINKD_CONFIG *c)
     c->rescan_delay      = 60;
     c->nettimeout        = DEF_TIMEOUT;
     c->oblksize          = DEF_BLKSIZE;
+#ifdef WITH_ZLIB
+    c->zblksize          = min(4*DEF_BLKSIZE, MAX_BLKSIZE-64);
+#endif
     c->max_servers       = 100;
     c->max_clients       = 100;
     c->minfree           = -1;
@@ -549,6 +555,9 @@ static KEYWORD keywords[] =
   {"call-delay", read_int, &work_config.call_delay, 1, DONT_CHECK},
   {"timeout", read_int, &work_config.nettimeout, 1, DONT_CHECK},
   {"oblksize", read_int, &work_config.oblksize, MIN_BLKSIZE, MAX_BLKSIZE},
+#ifdef WITH_ZLIB
+  {"zblksize", read_int, &work_config.zblksize, MIN_BLKSIZE, MAX_BLKSIZE-64},
+#endif
   {"maxservers", read_int, &work_config.max_servers, 0, DONT_CHECK},
   {"maxclients", read_int, &work_config.max_clients, 0, DONT_CHECK},
   {"inbound", read_string, work_config.inbound, 'd', 0},

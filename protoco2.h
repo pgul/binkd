@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2003/09/12 07:37:57  val
+ * compression support via zlib (preliminary)
+ *
  * Revision 2.10  2003/08/26 16:06:26  stream
  * Reload configuration on-the fly.
  *
@@ -171,6 +174,11 @@ struct _STATE
   EVTQ *evt_queue;		/* Queue of by-files events */
 #ifdef WITH_PERL
   int perl_set_lvl;             /* Level of already set Perl vars */
+#endif
+#ifdef WITH_ZLIB
+  int z_ok, z_recv, z_send;     /* gzip is on for current file */
+  int z_ocnt, z_icnt;           /* length of actual data */
+  char *z_obuf, *z_ibuf;        /* compression and decompression buffers */
 #endif
   int delay_ADR, delay_EOB;     /* delay sending of the command */
 };

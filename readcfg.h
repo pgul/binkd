@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22  2003/09/12 07:37:58  val
+ * compression support via zlib (preliminary)
+ *
  * Revision 2.21  2003/09/08 16:39:39  stream
  * Fixed race conditions when accessing array of nodes in threaded environment
  * ("jumpimg node structures")
@@ -180,6 +183,9 @@ struct _BINKD_CONFIG
   int        iport;
   int        oport;
   int        oblksize;
+#ifdef WITH_ZLIB
+  int        zblksize;
+#endif
   int        nettimeout;
   int        connect_timeout;
   int        rescan_delay;

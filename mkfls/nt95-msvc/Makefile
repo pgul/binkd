@@ -1,7 +1,7 @@
 # Microsoft Visual C++ Makefile
 # $Id$
 #
-# Usage: nmake [DEBUG=1] [DLLRTL=1] [BINKD9X=1] [PERL=1] [PERLDL=1]
+# Usage: nmake [DEBUG=1] [DLLRTL=1] [BINKD9X=1] [PERL=1] [PERLDL=1] [ZLIB=1]
 #
 
 !ifdef PERL
@@ -54,8 +54,13 @@ PERL_CDEFS= -D"WITH_PERL" -D"PERLDL" -DNDEBUG -DWIN32 -D_CONSOLE -DNO_STRICT -DH
 PERL_OBJS= $(OUTDIR)\perlhooks.obj
 !endif
 
+!ifdef ZLIB
+ZLIB_CDEFS= -DWITH_ZLIB -DZLIBDL
+ZLIB_OBJS = $(OUTDIR)\zlibdl.obj
+!endif
+
 CC=        cl
-CDEFS=     $(CDEBUG) $(BINKD9X_DEFINES) $(PERL_CDEFS) -D"HTTPS" -D"WIN32" -D"HAVE_THREADS" -D"HAVE_IO_H" -D"HAVE_DOS_H" -D"HAVE_STDARG_H" -D"HAVE_SNPRINTF" -D"HAVE_VSNPRINTF" -D"VISUALCPP" -D"AMIGADOS_4D_OUTBOUND"
+CDEFS=     $(CDEBUG) $(BINKD9X_DEFINES) $(PERL_CDEFS) $(ZLIB_CDEFS) -D"HTTPS" -D"WIN32" -D"HAVE_THREADS" -D"HAVE_IO_H" -D"HAVE_DOS_H" -D"HAVE_STDARG_H" -D"HAVE_SNPRINTF" -D"HAVE_VSNPRINTF" -D"VISUALCPP" -D"AMIGADOS_4D_OUTBOUND"
 COPT=      $(BINKDSBR) $(PERL_COPT) -Fo"$(OUTDIR)\\" -Fp"$(OUTDIR)\$(BINKDEXE).pch" -YX -Fd"$(OUTDIR)\\"
 LINK=      link
 LFLAGS=    /nologo /machine:I386
@@ -91,7 +96,7 @@ OBJS= \
  "$(OUTDIR)\getw.obj"     "$(OUTDIR)\xalloc.obj"   "$(OUTDIR)\setpttl.obj" \
  "$(OUTDIR)\https.obj"    "$(OUTDIR)\md5b.obj"     "$(OUTDIR)\crypt.obj"   \
  "$(OUTDIR)\getopt.obj"                                                    \
- $(NT_OBJS) $(NTSERVICE_OBJ) $(BINKD9X_OBJ) $(NTLM_OBJS) $(PERL_OBJS)
+ $(NT_OBJS) $(NTSERVICE_OBJ) $(BINKD9X_OBJ) $(NTLM_OBJS) $(PERL_OBJS) $(ZLIB_OBJS)
 
 !ifdef DEBUG
 SBRS= $(OBJS:.obj=.sbr)

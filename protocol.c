@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.117  2003/09/12 07:37:57  val
+ * compression support via zlib (preliminary)
+ *
  * Revision 2.116  2003/09/08 16:39:39  stream
  * Fixed race conditions when accessing array of nodes in threaded environment
  * ("jumpimg node structures")
@@ -466,6 +469,14 @@
 #include "perlhooks.h"
 #endif
 
+#ifdef WITH_ZLIB
+# ifdef ZLIBDL
+#  include "zlibdl.h"
+# else
+#  include "zlib.h"
+# endif
+#endif
+
 static char *scommand[] = {"NUL", "ADR", "PWD", "FILE", "OK", "EOB",
                            "GOT", "ERR", "BSY", "GET", "SKIP"};
 
@@ -513,6 +524,11 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to, BINKD_CONFI
 #endif
   state->delay_EOB = 0;
   state->state_ext = P_NA;
+#ifdef WITH_ZLIB
+  state->z_ok = state->z_ocnt = state->z_icnt = 0;
+  state->z_ibuf = xalloc (MAX_BLKSIZE + 1);
+  state->z_obuf = xalloc (MAX_BLKSIZE + 1);
+#endif
   setsockopts (state->s = socket);
   TF_ZERO (&state->in);
   TF_ZERO (&state->out);
@@ -570,6 +586,10 @@ static int deinit_protocol (STATE *state, BINKD_CONFIG *config)
     free_killlist (&state->killlist, &state->n_killlist);
   if (state->rcvdlist)
     free_rcvdlist (&state->rcvdlist, &state->n_rcvdlist);
+#ifdef WITH_ZLIB
+  xfree (state->z_ibuf);
+  xfree (state->z_obuf);
+#endif
   xfree (state->ibuf);
   xfree (state->obuf);
   xfree (state->msgs);
@@ -782,7 +802,12 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
 
       if (state->out.f)
       {
+#ifdef WITH_ZLIB
+        sz = (off_t) (state->z_ok ? config->zblksize : config->oblksize);
+        sz = min (sz, state->out.size - ftell (state->out.f));
+#else
 	sz = min ((off_t) config->oblksize, state->out.size - ftell (state->out.f));
+#endif
 	if (config->percents && state->out.size > 0)
 	{
 	  printf ("%-20.20s %3.0f%%\r", state->out.netname,
@@ -864,6 +889,17 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
             }
           }
         }
+#ifdef WITH_ZLIB
+        if (state->z_send) {
+          state->z_ocnt = MAX_BLKSIZE;
+          compress(state->z_obuf, &(state->z_ocnt), 
+                   state->obuf + BLK_HDR_SIZE, sz);
+          Log(7, "compress: %d -> %d", sz, state->z_ocnt);
+          mkhdr(state->obuf, state->z_ocnt);
+          memcpy(state->obuf + BLK_HDR_SIZE, state->z_obuf, state->z_ocnt);
+          sz = state->z_ocnt;
+        }
+#endif
       }
 
       if (state->out.f && (sz == 0 || state->out.size == ftell(state->out.f)))
@@ -1108,6 +1144,13 @@ static int NUL (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
 	xfree(state->MD_challenge);
 	state->MD_challenge=MD_getChallenge(w, NULL);
       }
+#ifdef WITH_ZLIB
+      if (!strcmp (w, "GZ"))
+      {
+        Log(2, "Remote supports GZ mode");
+        state->z_ok = 1;
+      }
+#endif
       free (w);
     }
   }
@@ -1721,13 +1764,17 @@ struct skipchain *skip_test(STATE *state, BINKD_CONFIG *config)
 /*
  * Handles M_FILE msg from the remote
  * M_FILE args: "%s %li %lu %li", filename, size, time, offset
+ * M_FILE ext.: "%s %li %lu %li %s...", space-separated params
+ *     currently, only GZ parameter supported
  */
 static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 {
   const int argc = 4;
   char *argv[4];
   off_t offset;
-
+#ifdef WITH_ZLIB
+  char *args0 = xstrdup(args);
+#endif
   UNUSED_ARG(sz);
 
   if (parse_msg_args (argc, argv, args, "M_FILE", state))
@@ -1891,6 +1938,17 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
 
     Log (3, "receiving %s (%li byte(s), off %li)",
 	 state->in.netname, (long) (state->in.size), (long) offset);
+#ifdef WITH_ZLIB
+    {
+      char *s2 = strstr(args0, " GZ");
+      if (s2 && (s2[3] == 0 || s2[3] == ' ')) {
+        state->z_recv = 1;
+        Log (4, "gzip mode is on for %s", state->in.netname);
+      }
+      else state->z_recv = 0;
+      xfree(args0);
+    }
+#endif
 
     if (fseek (state->in.f, offset, SEEK_SET) == -1)
     {
@@ -2337,6 +2395,16 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
       }
       else if (state->in.f)
       {
+#ifdef WITH_ZLIB
+        if (state->z_recv) {
+          state->z_icnt = MAX_BLKSIZE;
+          decompress(state->z_ibuf, &(state->z_icnt), 
+                     state->ibuf, state->isize);
+          Log (7, "decompress: %d -> %d", state->isize, state->z_icnt);
+          memcpy(state->ibuf, state->z_ibuf, state->z_icnt);
+          state->isize = state->z_icnt;
+        }
+#endif
 	if (state->isize != 0 &&
 	    (fwrite (state->ibuf, state->isize, 1, state->in.f) < 1 ||
 	     fflush (state->in.f)))
@@ -2545,10 +2613,17 @@ static void banner (STATE *state, BINKD_CONFIG *config)
   if (state->to || !state->delay_ADR) send_ADR (state, config);
 
   if (state->to)
-    msg_sendf (state, M_NUL, "OPT NDA%s%s%s",
+    msg_sendf (state, M_NUL, "OPT NDA"
+#ifdef WITH_ZLIB
+                                 " GZ"
+#endif
+                                      "%s%s%s",
                (state->NR_flag & WANT_NR) ? " NR" : "",
                (state->ND_flag & THEY_ND) ? " ND" : "",
                (state->crypt_flag & WE_CRYPT) ? " CRYPT" : "");
+#ifdef WITH_ZLIB
+    else msg_sendf (state, M_NUL, "OPT GZ");
+#endif
 }
 
 static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
@@ -2556,6 +2631,7 @@ static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
   struct stat sb;
   FILE *f = NULL;
   int action = -1;
+  char *extra = "";
 
   if (state->out.f)
     fclose (state->out.f);
@@ -2674,23 +2750,30 @@ static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
 #endif
   Log (3, "sending %s as %s (%li)",
        state->out.path, state->out.netname, (long) state->out.size);
+#ifdef WITH_ZLIB
+  if (state->z_ok/* && gz_mask_test(state->out.netname)*/) {
+    extra = " GZ"; state->z_send = 1;
+    Log (4, "gzip mode is on for %s", state->out.netname);
+  }
+  else state->z_send = 0;
+#endif
 
   if (state->NR_flag & WE_NR)
   {
-    msg_sendf (state, M_FILE, "%s %li %lu -1",
+    msg_sendf (state, M_FILE, "%s %li %lu -1%s",
 	       state->out.netname, (long) state->out.size,
-	       (unsigned long) state->out.time);
+	       (unsigned long) state->out.time, extra);
     state->off_req_sent = 1;
   }
   else if (state->out.f == NULL)
     /* status with no NR-mode */
-    msg_sendf (state, M_FILE, "%s %li %lu %li",
+    msg_sendf (state, M_FILE, "%s %li %lu %li%s",
 	       state->out.netname, (long) state->out.size,
-	       (unsigned long) state->out.time, (long) state->out.size);
+	       (unsigned long) state->out.time, (long) state->out.size, extra);
   else
-    msg_sendf (state, M_FILE, "%s %li %lu 0",
+    msg_sendf (state, M_FILE, "%s %li %lu 0%s",
 	       state->out.netname, (long) state->out.size,
-	       (unsigned long) state->out.time);
+	       (unsigned long) state->out.time, extra);
 
   return 1;
 }
