@@ -1,3 +1,7 @@
+2003/09/16 00:10:12 0.9.6a-178 gul
+protocol.c,2.119,2.120
+Fix remote IP check logic
+
 2003/09/15 09:57:11 0.9.6a-177 val
 !README.FIX,2.31,2.32 !README.perl,2.3,2.4 binkd.cfg,2.23,2.24 perlhooks.c,2.22,2.23 protoco2.h,2.12,2.13 protocol.c,2.118,2.119 readcfg.c,2.52,2.53 readcfg.h,2.22,2.23 zlibdl.c,2.2,2.3 zlibdl.h,2.2,2.3
 compression support via zlib: config keywords, improvements, OS/2 code
