@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19.2.4  2003/12/02 19:28:48  gul
+ * Prevent several clients calls to the same node
+ *
  * Revision 2.19.2.3  2003/10/19 12:51:42  stream
  * Missing return value for q_scan_boxes()
  *
@@ -997,7 +1000,10 @@ static int qn_not_empty (FTN_NODE *fn, void *arg)
     {
       a->maxflvr = MAXFLVR (fn->mail_flvr, fn->files_flvr);
       if (a->fn)
+      {
         memcpy (a->fn, fn, sizeof (*fn));
+        fn->busy = 'c';
+      }
     }
   }
   return 0;
