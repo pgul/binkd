@@ -13,7 +13,10 @@
 /*
  * $Id$
  *
- * $Log $
+ * $Log$
+ * Revision 2.7  2003/09/24 22:13:58  hbrew
+ * Fix cvs macro
+ *
  *
  */
 
