@@ -24,8 +24,8 @@
  *
  *    Revision history:
  *    $Log$
- *    Revision 1.1  2001/01/10 11:35:00  gul
- *    Initial revision
+ *    Revision 1.1.1.1  2001/01/10 11:35:00  gul
+ *    BinkD sources are under CVS again
  *
  *    Revision 1.2  1996/11/05 04:06:06  mff
  *    Added support for multiple semaphores

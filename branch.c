@@ -15,8 +15,8 @@
  * $Id$
  *
  * $Log$
- * Revision 1.1  2001/01/10 11:34:57  gul
- * Initial revision
+ * Revision 1.1.1.1  2001/01/10 11:34:57  gul
+ * BinkD sources are under CVS again
  *
  * Revision 1.3  1997/10/23  04:19:38  mff
  * Amiga port, argument copying (DUP() removed)

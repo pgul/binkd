@@ -15,8 +15,8 @@
  * $Id$
  *
  * $Log$
- * Revision 1.1  2001/01/10 11:34:58  gul
- * Initial revision
+ * Revision 1.1.1.1  2001/01/10 11:34:58  gul
+ * BinkD sources are under CVS again
  *
  * Revision 1.3  1998/06/19  05:19:33  mff
  * changes in get_hostname()

@@ -15,8 +15,8 @@
  * $Id$
  *
  * $Log$
- * Revision 1.1  2001/01/10 11:34:59  gul
- * Initial revision
+ * Revision 1.1.1.1  2001/01/10 11:34:59  gul
+ * BinkD sources are under CVS again
  *
  * Revision 1.18  1998/05/05  04:37:54  mff
  * Now we add trailing '\n' to pids in pidfiles, added 2nd arg to strquote(),

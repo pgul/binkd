@@ -15,8 +15,8 @@
  * $Id$
  *
  * $Log$
- * Revision 1.1  2001/01/10 11:34:59  gul
- * Initial revision
+ * Revision 1.1.1.1  2001/01/10 11:34:59  gul
+ * BinkD sources are under CVS again
  *
  * Revision 1.1  1998/05/08  03:37:28  mff
  * Initial revision

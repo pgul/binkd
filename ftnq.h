@@ -14,8 +14,8 @@
 /* $Id$
  *
  * $Log$
- * Revision 1.1  2001/01/10 11:34:58  gul
- * Initial revision
+ * Revision 1.1.1.1  2001/01/10 11:34:58  gul
+ * BinkD sources are under CVS again
  *
  * Revision 1.8  1998/05/05  23:59:33  mff
  * Added comment about FTNQ.time.
