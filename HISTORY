@@ -1,3 +1,7 @@
+2003/10/28 22:20:20 1.0a-284 stas
+service.c,2.41,2.42 service.h,2.12,2.13 tray.c,2.3,2.4 w32tools.h,2.5,2.6
+Rewrite NT service code, remove obsoleted code and add some checks. Found a thread-not-safety problem.
+
 2003/10/28 15:38:46 1.0a-283 gul
 brw32sig.h,2.5,2.6
 Remove redundrant declaration
