@@ -7,7 +7,7 @@ NAME
        TCP/IP
 
 SYNOPSIS
-       binkd [-CcDipqrsvmh] [ -P node ] config-file
+       binkd [-CcDipqrsvdmh] [ -P node ] config-file
 
 DESCRIPTION
        Binkd is a Fidonet mailer designed to operate  via  TCP/IP
@@ -59,6 +59,10 @@ OPTIONS
        -v     Be verbose.  Binkd -v will dump binkd's version and
               quit.
 
+       -vv    Dump version and compiled-in options.
+
+       -d     Dump parsed config and exit.
+
        -m     Disable CRAM-MD5 authorization. Implies -r.
 
        -h     Print help message.
@@ -66,6 +70,13 @@ OPTIONS
 
 SIGNALS
        SIGHUP Causes Binkd to reload it's config.
+
+
+ENVIROMENT
+       BINKD_LOG
+              log file name.  Binkd uses this enviroment variable
+              if the logfile token is not defined in  the  config
+              file
 
 
 SEE ALSO
@@ -92,4 +103,4 @@ REPORTING BUGS
 
 
 
-                            4 Apr 2003                   BINKD(8)
+                            7 Jan 2004                   BINKD(8)
