@@ -27,7 +27,7 @@ documentation and/or software.
 #include <stdlib.h>
 #include <ctype.h>
 #include <time.h>
-#ifndef VISUALCPP
+#ifndef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
 #include "tools.h"
