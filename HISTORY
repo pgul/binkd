@@ -1,3 +1,7 @@
+2004/08/04 14:33:13 1.0a-384 gul
+ftnq.c,2.33,2.34 ftnq.h,2.8,2.9 inbound.c,2.31,2.32 protocol.c,2.153,2.154 sys.h,2.17,2.18
+Attemp to support large files (>4G)
+
 2004/08/04 09:41:11 1.0a-383 gul
 ftnq.c,2.32,2.33 sys.h,2.16,2.17
 Use uintmax_t and PRIuMAX for printing file size (off_t)
