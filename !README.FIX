@@ -537,3 +537,8 @@ NT/95:  ctrl-c problems fixed
 
 	Fixed compilation under SuSe and OS2-emx.
 
+0.9.9
+-----
+	Fixed bug in client manager, sometimes node was not polled
+	(Roman Trunov).
+
