@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.7  2004/01/02 21:20:17  stas
+ * GetMainWindow(): function retrieves the window handle used by the main window of application
+ *
  * Revision 2.6  2003/10/28 20:20:10  stas
  * Rewrite NT service code, remove obsoleted code and add some checks. Found a thread-not-safety problem.
  *
@@ -79,3 +82,9 @@ int build_service_arguments(char **asp, char *argv[], int use_argv0);
  * Windows 9x/Me: service indicated via undocumented command line option  *
  */
 int isService();
+
+/**************************************************************************
+ * The GetMainWindow function retrieves the window handle used by the main
+ * window.
+ */
+HWND GetMainWindow(void);

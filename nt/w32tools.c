@@ -20,6 +20,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.11  2004/01/02 21:20:17  stas
+ * GetMainWindow(): function retrieves the window handle used by the main window of application
+ *
  * Revision 2.10  2003/10/18 18:50:48  stas
  * Move to new 'tray.c' file several functions when is related with 'minimize to tray' feature
  *
@@ -250,4 +253,51 @@ int isService()
   }
 
   return _isService;
+}
+
+/* The prototype of the GetConsoleWindow() function is not declared in
+   wincon.h that was included with the Platform SDK for Windows 2000.
+   GetConsoleWindow() is not exists in Windows NT and 9x  */
+typedef HWND (WINAPI* GCW)(VOID);
+
+/**************************************************************************
+ * The GetMainWindow function retrieves the window handle used by the main
+ * window.
+ */
+HWND GetMainWindow(void)
+{ static HWND wh=NULL;
+  GCW pGetConsoleWindow;
+
+  if(wh) return wh;
+
+  pGetConsoleWindow = (GCW) GetProcAddress( GetModuleHandle("kernel32.dll"),
+                           "GetConsoleWindow");
+  if(pGetConsoleWindow) /* Windows 2000 and above */
+  {
+    wh = pGetConsoleWindow();
+  }
+  else /* Windows NT and Windows 9x: searching for window is needed */
+  {
+    if(!isService())
+    { DWORD i;
+      char buf[160], bn[21];
+
+      i = GetConsoleTitle(buf, sizeof(buf)); /* don't detect code page, may be need? */
+      buf[i] = 0;
+      snprintf( bn, sizeof(bn), "%lx", (unsigned long)GetCurrentThreadId() );
+      SetConsoleTitle(bn);
+      wh = FindWindow(NULL, bn);
+      SetConsoleTitle(buf);
+    }
+    else
+    {
+      if(service_name)
+      {
+         SetConsoleTitle(service_name);
+         wh = FindWindow(NULL, service_name);
+      }
+    }
+  }
+
+  return wh;
 }
