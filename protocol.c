@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.140  2003/10/30 11:11:31  gul
+ * Drop incoming session if secure remote AKA is busy
+ *
  * Revision 2.139  2003/10/30 10:57:46  gul
  * Change inb_done arguments, optimize a bit
  *
@@ -1717,6 +1720,14 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
     else
     {
       Log (2, "addr: %s (n/a or busy)", szFTNAddr);
+#if 1
+      if (pn && pn->pwd && strcmp(pn->pwd, "-") && state->to == 0)
+      {
+	Log (1, "Secure AKA %s busy, drop the session", szFTNAddr);
+	msg_sendf (state, M_BSY, "Secure AKA %s busy", szFTNAddr);
+	return 0;
+      }
+#endif
       state->fa = xrealloc (state->fa, sizeof (FTN_ADDR) * ++state->nallfa);
       memcpy (state->fa + state->nallfa - 1, &fa, sizeof (FTN_ADDR));
     }
