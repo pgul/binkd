@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.39  2003/06/30 22:42:27  hbrew
+ * Print only binkd name (without path) in error messages
+ *
  * Revision 2.38  2003/06/20 10:37:02  val
  * Perl hooks for binkd - initial revision
  *
@@ -382,10 +385,10 @@ char *parseargs (int argc, char *argv[])
         if( (s=strchr(service_name,')')) ){
           *s='\0';
         }else{
-          Log (0, "%s: parenthness mismatched in parameter '%s'", argv[0], argv[i]);
+          Log (0, "%s: parenthness mismatched in parameter '%s'", extract_filename(argv[0]), argv[i]);
         }
       }else{
-        Log(0, "%s: illegal parameter '%s'!", argv[0], argv[i]);
+        Log(0, "%s: illegal parameter '%s'!", extract_filename(argv[0]), argv[i]);
       }
       break; /* skip command line processing */
     }
@@ -404,7 +407,7 @@ char *parseargs (int argc, char *argv[])
 	      if (!strcmp (s + 1, "help"))
 		usage ();
 	      else
-		Log (0, "%s: --%s: unknown command line switch", argv[0], s + 1);
+		Log (0, "%s: --%s: unknown command line switch", extract_filename(argv[0]), s + 1);
 	    case 'C':
 	      checkcfg_flag = 1;
 	      break;
@@ -425,7 +428,7 @@ char *parseargs (int argc, char *argv[])
 
 	    case 't': /* service control/query */
               if ((service_flag != w32_noservice) && (service_flag != w32_run_as_service)) {
-                Log (0, "%s: '-t' command line switch can't mixed with '-i', '-u' and other '-t'", argv[0]);
+                Log (0, "%s: '-t' command line switch can't mixed with '-i', '-u' and other '-t'", extract_filename(argv[0]));
               }
               switch (*(++s)){
               case '(':  /* -t(servicename) */
@@ -445,7 +448,7 @@ char *parseargs (int argc, char *argv[])
                   s+=4;
                 }
                 else{
-                  Log (0, "%s: '-t': invalid argument '%s'", argv[0], s);
+                  Log (0, "%s: '-t': invalid argument '%s'", extract_filename(argv[0]), s);
                 }
                 break;
               case 'r':
@@ -453,11 +456,11 @@ char *parseargs (int argc, char *argv[])
                   service_flag = w32_restartservice;
                   s+=7;
                 }else{
-                  Log (0, "%s: '-t': invalid argument '%s'", argv[0], s);
+                  Log (0, "%s: '-t': invalid argument '%s'", extract_filename(argv[0]), s);
                 }
                 break;
               default:
-                Log (0, "%s: '-t': invalid argument '%s'", argv[0], s);
+                Log (0, "%s: '-t': invalid argument '%s'", extract_filename(argv[0]), s);
               }
 
               switch ( *s ){
@@ -465,7 +468,7 @@ char *parseargs (int argc, char *argv[])
                 if( (st=strchr(s,')')) ){
                   if (service_flag != w32_run_as_service){ /* skip if run as service*/
                     if (service_name){ /* prevent overwrite service name */
-                      Log(0, "%s: '%s': service name specified before, can't overwrite!", argv[0], argv[i]);
+                      Log(0, "%s: '%s': service name specified before, can't overwrite!", extract_filename(argv[0]), argv[i]);
                       usage();
                     }else{
                       *st='\0';
@@ -475,7 +478,7 @@ char *parseargs (int argc, char *argv[])
                   }
                   s=st+1;
                 }else{
-                  Log (0, "%s: '-t': parenthness mismatched in argument '%s'", argv[0], s);
+                  Log (0, "%s: '-t': parenthness mismatched in argument '%s'", extract_filename(argv[0]), s);
                   usage();
                 }
               case '\0':
@@ -492,7 +495,7 @@ char *parseargs (int argc, char *argv[])
                 || service_flag==w32_restartservice
                 || service_flag==w32_stopservice
                  ){
-                Log (0, "%s: '-i' command line switch can't mixed with '-i', '-t' and other '-u'", argv[0]);
+                Log (0, "%s: '-i' command line switch can't mixed with '-i', '-t' and other '-u'", extract_filename(argv[0]));
               }
               switch ( *++s ){
               case '(':
@@ -504,7 +507,7 @@ char *parseargs (int argc, char *argv[])
                   }
                   s=st+1;
                 }else{
-                  Log (0, "%s: '-i': parenthness mismatched in argument '%s'", argv[0], s);
+                  Log (0, "%s: '-i': parenthness mismatched in argument '%s'", extract_filename(argv[0]), s);
                 }
                 if(!service_flag)
                   service_flag = w32_installservice;
@@ -524,7 +527,7 @@ char *parseargs (int argc, char *argv[])
                 || service_flag==w32_restartservice
                 || service_flag==w32_stopservice
                  ){
-                Log (0, "%s: '-u' command line switch can't mixed with '-i', '-t' and other '-u'", argv[0]);
+                Log (0, "%s: '-u' command line switch can't mixed with '-i', '-t' and other '-u'", extract_filename(argv[0]));
               }
               switch ( *++s ){
               case '(':
@@ -536,7 +539,7 @@ char *parseargs (int argc, char *argv[])
                   }
                   s=st+1;
                 }else{
-                  Log (0, "%s: '-u': parenthness mismatched in argument '%s'", argv[0], s);
+                  Log (0, "%s: '-u': parenthness mismatched in argument '%s'", extract_filename(argv[0]), s);
                 }
                 if(!service_flag)
                   service_flag = w32_uninstallservice;
@@ -553,7 +556,7 @@ char *parseargs (int argc, char *argv[])
 	      {
 		++i;
 		if (argv[i] == 0)
-		  Log (0, "%s: -P: missing requred argument", argv[0]);
+		  Log (0, "%s: -P: missing requred argument", extract_filename(argv[0]));
 		else{
 		  psP=psPolls;
 		  psPolls = malloc(sizeof(psPolls));
@@ -604,7 +607,7 @@ char *parseargs (int argc, char *argv[])
 	      usage();
 
 	    default:  /* unknown parameter/option */
-	      Log (0, "%s: -%c: unknown command line switch", argv[0], *s);
+	      Log (0, "%s: -%c: unknown command line switch", extract_filename(argv[0]), *s);
 
 	  }
 	++s;
@@ -700,7 +703,7 @@ int main (int argc, char *argv[], char *envp[])
     exit (0);
   }
   else if (argc > 1)
-    Log (0, "%s: invalid command line: config name must be specified", argv[0]);
+    Log (0, "%s: invalid command line: config name must be specified", extract_filename(argv[0]));
   else
     usage ();
 

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2003/06/30 22:42:27  hbrew
+ * Print only binkd name (without path) in error messages
+ *
  * Revision 2.13  2003/06/25 07:25:01  stas
  * Simple code, continue bugfix to responce negative timestamp
  *
@@ -246,5 +249,8 @@ time_t safe_time(void);
  * errno set to zero if no error
  */
 long safe_atol(char* str, char** msg);
+
+/* Extract filename from path */
+char *extract_filename(char *s);
 
 #endif

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/06/30 22:42:27  hbrew
+ * Print only binkd name (without path) in error messages
+ *
  * Revision 2.2  2003/03/01 18:29:52  gul
  * Change size_t to off_t for file sizes and offsets
  *
@@ -47,6 +50,7 @@
 #include "prothlp.h"
 #include "srif.h"
 #include "assert.h"
+#include "tools.h"
 
 int tfile_cmp (TFILE *a, char *netname, off_t size, time_t time)
 {
@@ -138,9 +142,8 @@ void netname (char *s, TFILE *q)
   }
   else
   {
-    char *z = max (max (strrchr (q->path, '\\'), strrchr (q->path, '/')), strrchr (q->path, ':'));
+    char *z = extract_filename(q->path);
 
-    z = z ? z + 1 : q->path;
     strnzcpy (s, z, MAX_NETNAME);
 
     /* gul: bt+ arcshield */

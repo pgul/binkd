@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.27  2003/06/30 22:42:27  hbrew
+ * Print only binkd name (without path) in error messages
+ *
  * Revision 2.26  2003/06/25 08:22:14  gul
  * Change strftime() to printf() to avoid using locale
  *
@@ -1010,4 +1013,11 @@ long safe_atol(char* str, char** msg){
     *msg = "Invalid argument (NULL instead string)";
   }
   return (long)ul;
+}
+
+/* Extract filename from path */
+char *extract_filename(char *s)
+{
+  char *tmp = max(max(strrchr(s, '\\'), strrchr(s, '/')), strrchr(s, ':'));
+  return tmp? tmp+1: s;
 }
