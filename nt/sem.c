@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.4  2003/03/31 19:56:11  gul
+ * minor fix in close semaphores functions
+ *
  * Revision 2.3  2003/03/31 19:35:17  gul
  * Clean semaphores usage
  *
@@ -95,7 +98,10 @@ int _InitSem(void *vpSem) {
 /*--------------------------------------------------------------------*/
 
 int _CleanSem(void *vpSem) {
-   CloseHandle(BsySem);
+   if (BsySem) {
+      CloseHandle(BsySem);
+      BsySem = 0;
+   }
    return(0);
 }
 
@@ -172,7 +178,10 @@ int _WaitSem(void *vpSem, int timeout) {
 /*--------------------------------------------------------------------*/
 
 int _CleanEventSem(void *vpSem) {
-   CloseHandle(EvtSem);
+   if (EvtSem) {
+      CloseHandle(EvtSem);
+      EvtSem = 0;
+   }
    return(0);
 }
 

@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.3  2003/03/31 19:56:12  gul
+ * minor fix in close semaphores functions
+ *
  * Revision 2.2  2003/03/31 19:35:17  gul
  * Clean semaphores usage
  *
@@ -88,7 +91,10 @@ int _InitEventSem(void *vpSem) {
 /*--------------------------------------------------------------------*/
 
 int _CleanSem(void *vpSem) {
-  DosCloseMutexSem (hmtx);
+  if (hmtx)
+  { DosCloseMutexSem (hmtx);
+    hmtx = 0;
+  }
   return (0);
 }
 
@@ -146,6 +152,9 @@ int _WaitSem(void *vpSem, int timeout) {
 /*--------------------------------------------------------------------*/
 
 int _CleanEventSem(void *vpSem) {
-  return (DosCloseEventSem (hevt) ? -1 : 0);
+  if (hevt)
+  { DosCloseEventSem (hevt);
+    hevt = 0;
+  }
 }
 
