@@ -1,3 +1,10 @@
+2003/08/26 19:06:29 0.9.6a-141 stream
+breaksig.c,2.9,2.10
+Reload configuration on-the fly.
+
+Warning! Lot of code can be broken (Perl for sure). 
+Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+
 2003/08/26 17:36:50 0.9.6a-140 gul
 perlhooks.c,2.16,2.17 binkd.c,2.55,2.56
 Perl hooks in os2-emx
