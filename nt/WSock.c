@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.1.2.1  2003/08/05 05:38:43  hbrew
+ * 'static const char rcsid[]' removed
+ *
  * Revision 2.1  2003/02/13 19:44:45  gul
  * Change \r\n -> \n
  *
@@ -34,9 +37,6 @@
  *      First revision
  *
  */
-
- static const char rcsid[] =
-      "$Id$";
 
 /*--------------------------------------------------------------------*/
 /*                        System include files                        */
