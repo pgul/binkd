@@ -527,3 +527,5 @@ NT/95:  ctrl-c problems fixed
 
 	Perl hooks (val khokhlov <val@vk.kiev.ua>).
 
+        Bugfix: do not transmit negative value of file time in binkp commands
+        and check file time in received frames (Stas Degteff <g@ural.org>)
