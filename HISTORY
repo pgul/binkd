@@ -1,3 +1,7 @@
+2004/08/06 10:05:31 1.0a-389 gul
+sys.h,2.20,2.21
+Fixed typo in prev patch
+
 2004/08/04 22:52:17 1.0a-388 gul
 binkd.c,2.88,2.89 client.c,2.53,2.54 server.c,2.37,2.38 sys.h,2.19,2.20
 Change SIGCHLD handling, make signal handler more clean,
