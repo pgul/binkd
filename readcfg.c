@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.25  2003/05/28 08:56:33  gul
+ * Reread config if passwords file changed when -C switch specified
+ *
  * Revision 2.24  2003/05/01 09:55:01  gul
  * Remove -crypt option, add global -r option (disable crypt).
  *
@@ -424,6 +427,26 @@ static void check_config(void)
   foreach_node(check_boxes, temp_inbound[0] ? &st.st_dev : NULL);
 }
 
+static void add_to_config_list(const char *path)
+{
+  struct conflist_type *pc;
+    
+  if (config_list)
+  {
+    for (pc = config_list; pc->next; pc = pc->next);
+    pc->next = xalloc(sizeof(*pc));
+    pc = pc->next;
+  }
+  else
+  {
+    config_list = xalloc(sizeof(*pc));
+    pc = config_list;
+  }
+  pc->next = NULL;
+  pc->path = xstrdup(path);
+  pc->mtime = 0;
+}
+
 /*
  * Parses and reads _path as config.file
  */
@@ -468,24 +491,7 @@ void readcfg0 (char *_path)
     Log (0, "%s: %s", path, strerror (errno));
 
   if (checkcfg_flag)
-  {
-    struct conflist_type *pc;
-    
-    if (config_list)
-    {
-      for (pc = config_list; pc->next; pc = pc->next);
-      pc->next = xalloc(sizeof(*pc));
-      pc = pc->next;
-    }
-    else
-    {
-      config_list = xalloc(sizeof(*pc));
-      pc = config_list;
-    }
-    pc->next = NULL;
-    pc->path = xstrdup(path);
-    pc->mtime = 0;
-  }
+    add_to_config_list (path);
 
   while (!feof (in))
   {
@@ -557,6 +563,10 @@ static void passwords (KEYWORD *key, char *s)
     Log (0, "%s: %i: password filename expected", path, line);
   if((in=fopen(w, "rt"))==NULL)
     Log (0, "%s: %i: unable to open password file (%s)", path, line, w);
+
+  if (checkcfg_flag)
+    add_to_config_list (path);
+
   free(w);
 
   while (!feof (in))
