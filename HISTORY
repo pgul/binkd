@@ -1,3 +1,7 @@
+2004/01/07 15:12:33 1.0a-355 gul
+binkd.8,2.5,2.6 binkd.c,2.84,2.85 protocol.c,2.147,2.148 readcfg.c,2.64,2.65
+Update 2003->2004 in copyright notices
+
 2004/01/07 14:23:42 1.0a-354 gul
 !README.FIX,2.45,2.46 !README.perl,2.4,2.5 binkd.cfg,2.39,2.40 perlhooks.c,2.42,2.43 protocol.c,2.146,2.147 readcfg.c,2.63,2.64 readcfg.h,2.28,2.29 todo.lst,2.43,2.44
 Remove zaccept keyword, receiving compressed files possibility
