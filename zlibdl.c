@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/10/19 22:02:38  gul
+ * OS/2 ZLIBDL fix
+ *
  * Revision 2.9  2003/10/19 12:21:47  gul
  * Stream compression
  *
@@ -73,7 +76,7 @@ int zlib_init(const char *dll_name) {
 #elif defined(OS2)
   char buf[256];
   HMODULE hl;
-  if (DosLoadModule(buf, sizeof(buf), dll_name, &hl))
+  if (DosLoadModule(buf, sizeof(buf), dll_name, &hl) == 0)
 #endif
   { int loaded = 1;
     LOADFUNC(deflateInit_);
