@@ -10,7 +10,7 @@
 /*                             FIDONet 2:5020/79                      */
 /*                                                                    */
 /*  This program is  free software;  you can  redistribute it and/or  */
-/*  modify it  under  the terms of the GNU General Public License as  */ 
+/*  modify it  under  the terms of the GNU General Public License as  */
 /*  published  by the  Free Software Foundation; either version 2 of  */
 /*  the License, or (at your option) any later version. See COPYING.  */
 /*--------------------------------------------------------------------*/
@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.8  2003/08/24 17:28:31  hbrew
+ * Fix work with sighandler on win32
+ *
  * Revision 2.7  2003/08/19 18:08:08  gul
  * Avoid double exitfunc() call
  *
@@ -107,6 +110,7 @@ extern int isService;
 #endif
 
 BOOL SigHandler(DWORD SigType) {
+   Log(8, "SigHandler(%lu)", SigType);
    switch (SigType) {
       case CTRL_C_EVENT:
       case CTRL_BREAK_EVENT:
@@ -138,7 +142,20 @@ BOOL SigHandler(DWORD SigType) {
 }
 
 /*--------------------------------------------------------------------*/
-/*    int HandleSignals(void)                                         */
+/*    BOOL SigHandlerExit(DWORD SigType)                              */
+/*                                                                    */
+/*    Signal handler, exit(0) after SigHandler() call                 */
+/*--------------------------------------------------------------------*/
+
+BOOL SigHandlerExit(DWORD SigType) {
+   Log(8, "SigHandlerExit(%lu)", SigType);
+   SigHandler(SigType);
+   exit(0);
+   return FALSE;
+}
+
+/*--------------------------------------------------------------------*/
+/*    int set_break_handlers(void)                                    */
 /*                                                                    */
 /*    Set signal handler                                              */
 /*--------------------------------------------------------------------*/
@@ -148,7 +165,7 @@ int set_break_handlers (void) {
 #if BINKDW9X
    CreateWin9xThread((PHANDLER_ROUTINE) &SigHandler);
 #else
-   if (SetConsoleCtrlHandler((PHANDLER_ROUTINE) &SigHandler,TRUE) != TRUE) {
+   if (SetConsoleCtrlHandler((PHANDLER_ROUTINE) &SigHandlerExit, TRUE) != TRUE) {
       return (0);
    }
 #endif
