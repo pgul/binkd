@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2002/11/22 14:40:42  gul
+ * Check free space on inbox if defined
+ *
  * Revision 2.0  2001/01/10 12:12:38  gul
  * Binkd is under CVS again
  *
@@ -22,7 +25,7 @@ int inb_test (char *filename, size_t size, time_t t,
  * Creates it if the file does not exist
  */
 FILE *inb_fopen (char *netname, size_t size, time_t t,
-		  FTN_ADDR *from, int nfa, char *inbound);
+		  FTN_ADDR *from, int nfa, char *inbound, int state);
 
 /*
  * File is complete, rename it to it's realname. 1=ok, 0=failed.

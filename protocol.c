@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2002/11/22 14:40:42  gul
+ * Check free space on inbox if defined
+ *
  * Revision 2.15  2002/10/22 20:29:46  gul
  * Do not send zero-length data packet as EOF
  * Prevent incorrect "remote already has ..." message
@@ -1185,7 +1188,7 @@ static int start_file_recv (STATE *state, char *args, int sz)
       {
 	if ((state->in.f = inb_fopen (state->in.netname, state->in.size,
 				      state->in.time, state->fa, state->nallfa,
-				      state->inbound)) == 0)
+				      state->inbound, state->state)) == 0)
 	{
 	  state->skip_all_flag = 1;
 	}

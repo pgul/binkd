@@ -498,3 +498,5 @@ NT/95:  ctrl-c problems fixed
 
 	Run as service under win9x (Alexander Reznikov 2:4600/220@fidonet).
 
+	Check free space on inbox if defined.
+

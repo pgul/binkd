@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2002/11/22 14:40:42  gul
+ * Check free space on inbox if defined
+ *
  * Revision 2.6  2002/10/03 10:23:26  gul
  * Check fprintf() & fclose() retcodes
  *
@@ -251,8 +254,8 @@ int find_tmp_name (char *s, char *file, size_t size,
   return found;
 }
 
-FILE *inb_fopen (char *netname, size_t size,
-		  time_t time, FTN_ADDR *from, int nfa, char *inbound)
+FILE *inb_fopen (char *netname, size_t size, time_t time, FTN_ADDR *from,
+                 int nfa, char *inbound, int secure_flag)
 {
   char buf[MAXPATHLEN + 1];
   struct stat sb;
@@ -275,16 +278,19 @@ FILE *inb_fopen (char *netname, size_t size,
   if (fstat (fileno (f), &sb) == 0)
   {
     /* Free space req-d (Kbytes) */
-    int req_free = (strcmp (inbound, inbound_nonsecure) ?
-		    minfree : minfree_nonsecure);
+    unsigned long freespace, freespace2;
+    int req_free = ((secure_flag == P_SECURE) ? minfree : minfree_nonsecure);
 
+    freespace = getfree(buf);
+    freespace2 = getfree(inbound);
+    if (freespace < freespace2) freespace = freespace2;
     if (req_free >= 0 &&
-	getfree (inbound) < (size - sb.st_size + 1023) / 1024 + req_free)
+	freespace < (size - sb.st_size + 1023) / 1024 + req_free)
     {
-      Log (1, "no enough free space in %s (%liK, req-d %liK)",
-	   inbound,
-	   (long) getfree (inbound),
-	   (long) (size - sb.st_size + 1023) / 1024 + req_free);
+      Log (1, "no enough free space in %s (%luK, req-d %luK)",
+	   (freespace == freespace2) ? inbound : temp_inbound,
+	   freespace,
+	   (unsigned long) (size - sb.st_size + 1023) / 1024 + req_free);
       fclose (f);
       return 0;
     }
