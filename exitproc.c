@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30  2003/10/07 20:50:07  gul
+ * Wait for servmanager exit from exitproc()
+ * (Patch from Alexander Reznikov)
+ *
  * Revision 2.29  2003/10/07 17:57:09  gul
  * Some small changes in close threads function.
  * Inhibit errors "socket operation on non-socket" on break.
@@ -162,6 +166,15 @@ int del_socket(SOCKET sockfd)
 extern int perl_skipexitfunc;
 #endif
 
+void close_srvmgr_socket(void)
+{
+  if (sockfd != INVALID_SOCKET)
+  { Log (5, "Closing server socket # %i", sockfd);
+    soclose (sockfd);
+    sockfd = INVALID_SOCKET;
+  }
+}
+
 void exitfunc (void)
 {
   BINKD_CONFIG *config;
@@ -170,6 +183,7 @@ void exitfunc (void)
   if (perl_skipexitfunc) return;
 #endif
   Log(7, "exitfunc()");
+
 #ifdef HAVE_FORK
   if (pidcmgr)
   { int i;
@@ -177,33 +191,46 @@ void exitfunc (void)
     kill (i, SIGTERM);
     /* sleep (1); */
   }
+  close_srvmgr_socket();
 #elif defined(HAVE_THREADS)
   /* exit all threads */
   { SOCKET h;
+    int timeout = 0;
     /* wait for threads exit */
     binkd_exit = 1;
     for (;;)
+#ifdef OS2
       if (n_servers || n_clients || (pidcmgr && server_flag))
+#else
+      if (n_servers || n_clients || pidcmgr || pidsmgr)
+#endif
       {
+	close_srvmgr_socket();
 	if (pidcmgr)
 	  PostSem(&exitcmgr);
 	/* close active sockets */
 	for (h=0; h < max_socket; h++)
 	  if (FD_ISSET(h, &sockets))
 	    soclose (h);
+
 	if (WaitSem (&eothread, 1))
-	  break; /* timeout */
+	{
+	  timeout++;
+	  if (timeout == 4) /* 4 sec */
+	  {
+	    Log(5, "exitfunc(): warning, threads exit timeout (%i sec)!", timeout);
+	    break;
+	  }
+	}
+	else
+	  timeout = 0;
       }
       else
 	break;
   }
   Log(8, "exitproc: all threads finished");
 #endif
-  if (sockfd != INVALID_SOCKET)
-  { Log (5, "Closing socket # %i", sockfd);
-    soclose (sockfd);
-    sockfd = INVALID_SOCKET;
-  }
+
   config = lock_current_config();
   if (config)
     bsy_remove_all (config);

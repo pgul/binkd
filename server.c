@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.35  2003/10/07 20:50:07  gul
+ * Wait for servmanager exit from exitproc()
+ * (Patch from Alexander Reznikov)
+ *
  * Revision 2.34  2003/10/07 17:57:09  gul
  * Some small changes in close threads function.
  * Inhibit errors "socket operation on non-socket" on break.
@@ -245,7 +249,7 @@ static int do_server(BINKD_CONFIG *config)
 
   if (setsockopt (sockfd, SOL_SOCKET, SO_REUSEADDR,
                   (char *) &opt, sizeof opt) == SOCKET_ERROR)
-    Log (1, "setsockopt (SO_REUSEADDR): %s", TCPERR ());
+    Log (1, "servmgr setsockopt (SO_REUSEADDR): %s", TCPERR ());
 
   memset(&serv_addr, 0, sizeof serv_addr);
   serv_addr.sin_family = AF_INET;
@@ -256,7 +260,7 @@ static int do_server(BINKD_CONFIG *config)
   serv_addr.sin_port = htons ((unsigned short) config->iport);
 
   if (bind (sockfd, (struct sockaddr *) & serv_addr, sizeof (serv_addr)) != 0)
-    Log (0, "bind: %s", TCPERR ());
+    Log (0, "servmgr bind(): %s", TCPERR ());
 
   listen (sockfd, 5);
   setproctitle ("server manager (listen %u)", (unsigned) config->iport);
@@ -280,7 +284,8 @@ static int do_server(BINKD_CONFIG *config)
       if (TCPERRNO == EINTR)
         continue;
       save_errno = TCPERRNO;
-      Log (1, "select: %s", TCPERR ());
+      if (!binkd_exit) /* Suppress servmgr socket error at binkd exit */
+        Log (1, "servmgr select(): %s", TCPERR ());
       goto accepterr;
     }
 
@@ -296,7 +301,7 @@ static int do_server(BINKD_CONFIG *config)
       if (save_errno != EINVAL && save_errno != EINTR)
       {
         if (!binkd_exit)
-          Log (1, "accept: %s", TCPERR ());
+          Log (1, "servmgr accept(): %s", TCPERR ());
 #ifdef UNIX
         if (save_errno == ECONNRESET ||
             save_errno == ETIMEDOUT ||
@@ -341,7 +346,7 @@ static int do_server(BINKD_CONFIG *config)
         rel_grow_handles (-6);
         threadsafe(--n_servers);
         PostSem(&eothread);
-        Log (1, "cannot branch out");
+        Log (1, "servmgr branch(): cannot branch out");
         sleep(1);
       }
       else
@@ -376,7 +381,7 @@ void servmgr (void)
   do
   {
     if ((sockfd = socket (AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
-      Log (0, "socket: %s", TCPERR ());
+      Log (0, "servmgr socket(): %s", TCPERR ());
 
     status = do_server(current_config);
 
@@ -384,4 +389,7 @@ void servmgr (void)
     sockfd = INVALID_SOCKET;
 
   } while (status == 0 && !binkd_exit);
+  Log(4, "downing servmgr...");
+  pidsmgr = 0;
+  PostSem(&eothread);
 }

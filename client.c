@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.49  2003/10/07 20:50:07  gul
+ * Wait for servmanager exit from exitproc()
+ * (Patch from Alexander Reznikov)
+ *
  * Revision 2.48  2003/10/07 17:57:09  gul
  * Some small changes in close threads function.
  * Inhibit errors "socket operation on non-socket" on break.
@@ -395,15 +399,16 @@ void clientmgr (void *arg)
     unlock_config_structure(config);
   } while (status == 0 && !binkd_exit);
 
+  Log (5, "downing clientmgr...");
 #ifdef HAVE_THREADS
   pidcmgr = 0;
-  if (server_flag) {
-    PostSem(&eothread);
+  PostSem(&eothread);
+/*
+  if (binkd_exit)
     _endthread();
-  }
-#else
-  exit (0);
+*/
 #endif
+  exit (0);
 }
 
 static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
