@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.32  2004/08/04 11:32:29  gul
+ * Attemp to support large files (>4G)
+ *
  * Revision 2.31  2004/01/08 13:07:40  val
  * use new pkt header parsing function in check-pkthdr, remove older function
  *
@@ -194,9 +197,9 @@ static int creat_tmp_name (char *s, TFILE *file, FTN_ADDR *from, char *inbound)
 	return 0;
       }
       ftnaddress_to_str (node, from);
-      if (fprintf (f, "%s %lu %lu %s\n", file->netname,
-                   (unsigned long int) file->size,
-                   (unsigned long int) file->time, node) <= 0)
+      if (fprintf (f, "%s %" PRIuMAX " %" PRIuMAX " %s\n", file->netname,
+                   (uintmax_t) file->size,
+                   (uintmax_t) file->time, node) <= 0)
       {
 	Log (1, "%s: %s", s, strerror (errno));
 	fclose (f);
@@ -377,19 +380,19 @@ fopen_again:
       freespace = freespace2;
     if (sb.st_size > state->in.size)
     {
-      Log (1, "Partial size %lu > %lu (file size), delete partial", 
-           (unsigned long) sb.st_size, (unsigned long) state->in.size);
+      Log (1, "Partial size %" PRIuMAX " > %" PRIuMAX " (file size), delete partial", 
+           (uintmax_t) sb.st_size, (uintmax_t) state->in.size);
       fclose (f);
       if (trunc_file (buf) && sdelete (buf)) return 0;
       goto fopen_again;
     }
     if (req_free >= 0 &&
-	freespace < (unsigned long)(state->in.size - sb.st_size + 1023) / 1024 + req_free)
+	(off_t) freespace < (state->in.size - sb.st_size + 1023) / 1024 + req_free)
     {
-      Log (1, "no enough free space in %s (%luK, req-d %luK)",
+      Log (1, "no enough free space in %s (%luK, req-d %" PRIuMAX "K)",
 	   (freespace == freespace2) ? state->inbound : config->temp_inbound,
 	   freespace,
-	   (unsigned long) (state->in.size - sb.st_size + 1023) / 1024 + req_free);
+	   (uintmax_t) (state->in.size - sb.st_size + 1023) / 1024 + req_free);
       fclose (f);
       return 0;
     }

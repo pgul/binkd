@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.34  2004/08/04 11:32:29  gul
+ * Attemp to support large files (>4G)
+ *
  * Revision 2.33  2004/08/04 06:40:27  gul
  * Use uintmax_t and PRIuMAX for printing file size (off_t)
  *
@@ -1004,7 +1007,7 @@ FTNQ *select_next_file (FTNQ *q, FTN_ADDR *fa, int nAka)
 /*
  * get size of files in the queue
  */
-void q_get_sizes (FTNQ *q, unsigned long *netsize, unsigned long *filessize)
+void q_get_sizes (FTNQ *q, uintmax_t *netsize, uintmax_t *filessize)
 {
   FTNQ *curr;
   struct stat st;

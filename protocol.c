@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.154  2004/08/04 11:32:29  gul
+ * Attemp to support large files (>4G)
+ *
  * Revision 2.153  2004/01/23 18:09:31  gul
  * Fixed erroneous "Unknown option ... ignored" message
  *
@@ -686,9 +689,9 @@ static int close_partial (STATE *state, BINKD_CONFIG *config)
 
   if (state->in.f)
   {
-    s = ftell (state->in.f);
-    Log (1, "receiving of %s interrupted at %lu", state->in.netname,
-	 (unsigned long) s);
+    s = ftello (state->in.f);
+    Log (1, "receiving of %s interrupted at %" PRIuMAX, state->in.netname,
+	 (uintmax_t) s);
     if (ispkt (state->in.netname))
     {
       Log (2, "%s: partial .pkt", state->in.netname);
@@ -942,14 +945,14 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
       if (state->out.f)
       {
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
-        if (state->z_send)
-        { sz = ZBLKSIZE - state->z_oleft;
-          buf = state->z_obuf + state->z_oleft;
-        } else
-          sz = config->oblksize;
-        sz = min ((off_t) sz, state->out.size - ftell (state->out.f));
+	if (state->z_send)
+	{ sz = ZBLKSIZE - state->z_oleft;
+	  buf = state->z_obuf + state->z_oleft;
+	} else
+	  sz = config->oblksize;
+	sz = min ((off_t) sz, state->out.size - ftello (state->out.f));
 #else
-	sz = min ((off_t) config->oblksize, state->out.size - ftell (state->out.f));
+	sz = min ((off_t) config->oblksize, state->out.size - ftello (state->out.f));
 #endif
       }
       else
@@ -975,7 +978,7 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
          *  3. pkt destination is shared address
          *  change destination address to main aka.
          */
-        if ((ftell(state->out.f)==(long)sz) && (sz >= 60) /* size of pkt header + 2 bytes */
+        if ((ftello(state->out.f)==(off_t)sz) && (sz >= 60) /* size of pkt header + 2 bytes */
             && ispkt(state->out.netname))
         {
           short cz, cnet, cnode, cp;
@@ -1026,7 +1029,7 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
         {
           ocnt = config->oblksize - nput;
           nget = sz;
-          fleft = state->out.size - ftell(state->out.f);
+          fleft = state->out.size - ftello(state->out.f);
           rc = do_compress(state->z_send,
                            state->obuf + BLK_HDR_SIZE + nput, &ocnt,
                            state->z_obuf, &nget,
@@ -1075,12 +1078,12 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
       {
         LockSem(&lsem);
         printf ("%-20.20s %3.0f%%\r", state->out.netname,
-                100.0 * ftell (state->out.f) / (float) state->out.size);
+                100.0 * ftello (state->out.f) / (float) state->out.size);
         fflush (stdout);
         ReleaseSem(&lsem);
       }
 
-      if (state->out.f && (sz == 0 || state->out.size == ftell(state->out.f))
+      if (state->out.f && (sz == 0 || state->out.size == ftello(state->out.f))
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
           && !state->z_send
 #endif
@@ -1172,7 +1175,7 @@ static int remove_from_spool (STATE *state, char *flopath,
     if (state->flo.f && !strcmp (state->flo.path, flopath))
     {
       flo = state->flo.f;
-      offset = (off_t) ftell (flo);
+      offset = ftello (flo);
       fseek (flo, 0, SEEK_SET);
       seek_flag = 1;
     }
@@ -1187,7 +1190,7 @@ static int remove_from_spool (STATE *state, char *flopath,
 
     while (!feof (flo))
     {
-      curr_offset = (off_t) ftell (flo);
+      curr_offset = ftello (flo);
       if (!fgets (buf, MAXPATHLEN, flo))
 	break;
       for (i = strlen (buf) - 1; i >= 0 && isspace (buf[i]); --i)
@@ -1198,7 +1201,7 @@ static int remove_from_spool (STATE *state, char *flopath,
 		 ((*buf == '^' || *buf == '#') && !strcmp (file, buf + 1))))
       {
 	clearerr (flo);
-	if (fseek (flo, curr_offset, SEEK_SET) == EOF)
+	if (fseeko (flo, curr_offset, SEEK_SET) == EOF)
 	  Log (1, "remove_from_spool: fseek(%s): %s", flopath,
 	       strerror (errno));
 	else if (putc ('~', flo) == EOF)
@@ -1221,7 +1224,7 @@ static int remove_from_spool (STATE *state, char *flopath,
     }
     if (seek_flag)
     {
-      fseek (flo, offset, SEEK_SET);
+      fseeko (flo, offset, SEEK_SET);
       fflush (flo);
     }
     else
@@ -1264,14 +1267,14 @@ static void remove_from_sent_files_queue (STATE *state, int n)
 static void do_prescan(STATE *state, BINKD_CONFIG *config)
 {
   char s[64];
-  unsigned long netsize, filessize;
+  uintmax_t netsize, filessize;
   int i;
 
   if (OK_SEND_FILES (state, config) && config->prescan)
   {
     state->q = q_scan_addrs (0, state->fa, state->nfa, state->to ? 1 : 0, config);
     q_get_sizes (state->q, &netsize, &filessize);
-    sprintf(s, "%lu %lu", netsize, filessize);
+    sprintf(s, "%" PRIuMAX " %" PRIuMAX, netsize, filessize);
     msg_send2 (state, M_NUL, "TRF ", s);
     if (state->major * 100 + state->minor <= 100)
       for (i = q_freq_num (state->q); i>0; i--)
@@ -2153,8 +2156,9 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
       ftnaddress_to_str (szAddr, state->fa);
       state->bytes_rcvd += state->in_complete.size;
       ++state->files_rcvd;
-      Log (2, "rcvd: %s (%lu, %.2f CPS, %s)", state->in_complete.netname,
-	   (unsigned long) state->in_complete.size,
+      Log (2, "rcvd: %s (%" PRIuMAX ", %.2f CPS, %s)",
+	   state->in_complete.netname,
+	   (uintmax_t) state->in_complete.size,
 	   (double) (state->in_complete.size) /
 	   (safe_time() == state->in_complete.start ?
 	                1 : (safe_time() - state->in_complete.start)), szAddr);
@@ -2172,7 +2176,7 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
           Log ( 1, "File time parsing error: %s! (M_FILE \"%s %s %s %s\")", errmesg, argv[0], argv[1], argv[0], argv[2], argv[3] );
       }
     }
-    offset = (off_t) strtoul (argv[3], NULL, 10);
+    offset = (off_t) strtoumax (argv[3], NULL, 10);
     if (!strcmp (argv[3], "-1"))
     {
       off_req = 1;
@@ -2193,37 +2197,39 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
       int rc;
 
       if ((rc = perl_before_recv(state, offset)) > 0) {
-	Log (1, "skipping %s (%sdestructive, %lu byte(s), by Perl before_recv)",
+	Log (1, "skipping %s (%sdestructive, %" PRIuMAX " byte(s), by Perl before_recv)",
 	     state->in.netname, rc == SKIP_D ? "" : "non-",
-	     (unsigned long) state->in.size);
-	msg_sendf (state, (t_msg)(rc == SKIP_D ? M_GOT : M_SKIP), "%s %lu %lu",
+	     (uintmax_t) state->in.size);
+	msg_sendf (state, (t_msg)(rc == SKIP_D ? M_GOT : M_SKIP),
+		   "%s %" PRIuMAX " %" PRIuMAX,
 		   state->in.netname,
-		   (unsigned long) state->in.size,
-		   (unsigned long) state->in.time);
+		   (uintmax_t) state->in.size,
+		   (uintmax_t) state->in.time);
 	return 1;
       }
 #endif
       /* val: skip check */
       if ((mask = skip_test(state, config)) != NULL) {
-	Log (1, "skipping %s (%sdestructive, %lu byte(s), mask %s)",
+	Log (1, "skipping %s (%sdestructive, %" PRIuMAX " byte(s), mask %s)",
 	     state->in.netname, mask->destr ? "" : "non-",
-	     (unsigned long) state->in.size, mask->mask);
-	msg_sendf (state, (t_msg)(mask->destr ? M_GOT : M_SKIP), "%s %lu %lu",
+	     (uintmax_t) state->in.size, mask->mask);
+	msg_sendf (state, (t_msg)(mask->destr ? M_GOT : M_SKIP),
+		   "%s %" PRIuMAX " %" PRIuMAX,
 		   state->in.netname,
-		   (unsigned long) state->in.size,
-		   (unsigned long) state->in.time);
+		   (uintmax_t) state->in.size,
+		   (uintmax_t) state->in.time);
 	return 1;
       }
       /* val: /skip check */
       if (inb_test (state->in.netname, state->in.size,
 		    state->in.time, state->inbound, realname))
       {
-	Log (2, "already have %s (%s, %lu byte(s))",
-	     state->in.netname, realname, (unsigned long) state->in.size);
-	msg_sendf (state, M_GOT, "%s %lu %lu",
+	Log (2, "already have %s (%s, %" PRIuMAX " byte(s))",
+	     state->in.netname, realname, (uintmax_t) state->in.size);
+	msg_sendf (state, M_GOT, "%s %" PRIuMAX " %" PRIuMAX,
 		   state->in.netname,
-		   (unsigned long) state->in.size,
-		   (unsigned long) state->in.time);
+		   (uintmax_t) state->in.size,
+		   (uintmax_t) state->in.time);
 	return 1;
       }
       else if (!state->skip_all_flag)
@@ -2246,10 +2252,10 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
       if (state->skip_all_flag)
       {
 	Log (2, "skipping %s (non-destructive)", state->in.netname);
-	msg_sendf (state, M_SKIP, "%s %lu %lu",
+	msg_sendf (state, M_SKIP, "%s %" PRIuMAX " %" PRIuMAX,
 		   state->in.netname,
-		   (unsigned long) state->in.size,
-		   (unsigned long) state->in.time);
+		   (uintmax_t) state->in.size,
+		   (uintmax_t) state->in.time);
 	if (state->in.f)
 	  fclose (state->in.f);
 	TF_ZERO (&state->in);
@@ -2257,13 +2263,14 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
       }
     }
 
-    if (off_req || offset != (off_t) ftell (state->in.f))
+    if (off_req || offset != ftello (state->in.f))
     {
-      Log (2, "have %lu byte(s) of %s",
-	   (unsigned long) ftell (state->in.f), state->in.netname);
-      msg_sendf (state, M_GET, "%s %lu %lu %lu", state->in.netname,
-		 (unsigned long) state->in.size, (unsigned long) state->in.time,
-		 (unsigned long) ftell (state->in.f));
+      Log (2, "have %" PRIuMAX " byte(s) of %s",
+	   (uintmax_t) ftello (state->in.f), state->in.netname);
+      msg_sendf (state, M_GET, "%s %" PRIuMAX " %" PRIuMAX " %" PRIuMAX,
+		 state->in.netname,
+		 (uintmax_t) state->in.size, (uintmax_t) state->in.time,
+		 (uintmax_t) ftello (state->in.f));
       ++state->GET_FILE_balance;
       fclose (state->in.f);
       TF_ZERO (&state->in);
@@ -2274,9 +2281,8 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
       --state->GET_FILE_balance;
     }
 
-    Log (3, "receiving %s (%lu byte(s), off %lu)",
-	 state->in.netname, (unsigned long) (state->in.size),
-	 (unsigned long) offset);
+    Log (3, "receiving %s (%" PRIuMAX " byte(s), off %" PRIuMAX ")",
+	 state->in.netname, (uintmax_t) (state->in.size), (uintmax_t) offset);
 
     for (argc = 1; (w = getwordx (args, argc, 0)) != 0; ++argc)
     {
@@ -2310,7 +2316,7 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
     }
 #endif
 
-    if (fseek (state->in.f, offset, SEEK_SET) == -1)
+    if (fseeko (state->in.f, offset, SEEK_SET) == -1)
     {
       Log (1, "fseek: %s", strerror (errno));
       return 0;
@@ -2473,10 +2479,10 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
       { /* response for status */
 	rc = 1;
 	/* to satisfy remote GET_FILE_balance */
-	msg_sendf (state, M_FILE, "%s %lu %lu %lu", state->out.netname,
-	           (unsigned long) state->out.size,
-		   (unsigned long) state->out.time, strtoul(argv[3], NULL, 10));
-	if (strtoul(argv[3], NULL, 10) == (unsigned long) state->out.size &&
+	msg_sendf (state, M_FILE, "%s %" PRIuMAX " %" PRIuMAX " %" PRIuMAX,
+		   state->out.netname, (uintmax_t) state->out.size,
+		   (uintmax_t) state->out.time, strtoul(argv[3], NULL, 10));
+	if (strtoumax(argv[3], NULL, 10) == (uintmax_t) state->out.size &&
 	    (state->ND_flag & WE_ND))
 	{
 	  state->send_eof = 1;
@@ -2490,11 +2496,11 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 	  ND_set_status("", &state->out.fa, state, config);
 	TF_ZERO(&state->out);
       }
-      else if ((offset = strtoul (argv[3], NULL, 10)) > state->out.size ||
-               fseek (state->out.f, offset, SEEK_SET) == -1)
+      else if ((offset = (off_t)strtoumax (argv[3], NULL, 10)) > state->out.size ||
+               fseeko (state->out.f, offset, SEEK_SET) == -1)
       {
-	Log (1, "GET: error seeking %s to %lu: %s",
-	     argv[0], (unsigned long) offset, strerror (errno));
+	Log (1, "GET: error seeking %s to %" PRIuMAX ": %s",
+	     argv[0], (uintmax_t) offset, strerror (errno));
 	/* touch the file and drop session */
 	fclose(state->out.f);
 	state->out.f=NULL;
@@ -2503,7 +2509,7 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
       }
       else
       {
-	Log (2, "sending %s from %lu", argv[0], (unsigned long) offset);
+	Log (2, "sending %s from %" PRIuMAX, argv[0], (uintmax_t) offset);
 	for (argc = 1; (extra = getwordx (args, argc, 0)) != 0; ++argc)
 	{
 	  if (strcmp(extra, "GZ") == 0 || strcmp(extra, "BZ2") == 0) ;
@@ -2514,10 +2520,11 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 	}
 	z_send_stop(state);
 	if (!nz) z_send_init(state, config, &extra);
-	msg_sendf (state, M_FILE, "%s %lu %lu %lu%s", state->out.netname,
-		   (unsigned long) state->out.size,
-		   (unsigned long) state->out.time,
-		   (unsigned long) offset, extra);
+	msg_sendf (state, M_FILE, "%s %" PRIuMAX " %" PRIuMAX " %" PRIuMAX "%s",
+		   state->out.netname,
+		   (uintmax_t) state->out.size,
+		   (uintmax_t) state->out.time,
+		   (uintmax_t) offset, extra);
 	rc = 1;
       }
     }
@@ -2555,11 +2562,14 @@ static int SKIP (STATE *state, char *args, int sz, BINKD_CONFIG *config)
   UNUSED_ARG(sz);
 
   if (parse_msg_args (argc, argv, args, "M_SKIP", state))
-  { {char *errmesg=NULL;
-      fsize = atol (argv[1]);
+  {
+    {
+      char *errmesg=NULL;
+      fsize = (off_t)strtoumax (argv[1], NULL, 10);
       ftime = safe_atol (argv[2], &errmesg);
-      if(errmesg){
-        Log ( 1, "File time parsing error: %s! (M_SKIP \"%s %s %s\")", errmesg, argv[0], argv[1], argv[0], argv[2] );
+      if (errmesg)
+      {
+	Log ( 1, "File time parsing error: %s! (M_SKIP \"%s %s %s\")", errmesg, argv[0], argv[1], argv[0], argv[2] );
       }
     }
     for (n = 0; n < state->n_sent_fls; ++n)
@@ -2618,11 +2628,14 @@ static int GOT (STATE *state, char *args, int sz, BINKD_CONFIG *config)
   else
     status = strdup(args);
   if (parse_msg_args (argc, argv, args, "M_GOT", state))
-  { {char *errmesg = NULL;
-      fsize = atol (argv[1]);
+  {
+    {
+      char *errmesg = NULL;
+      fsize = (off_t) strtoumax (argv[1], NULL, 10);
       errno = 0;
       ftime = safe_atol (argv[2], &errmesg);
-      if(errmesg){
+      if (errmesg)
+      {
         Log ( 1, "File time parsing error: %s! (M_GOT \"%s %s %s\")", errmesg, argv[0], argv[1], argv[0], argv[2] );
       }
     }
@@ -2666,8 +2679,9 @@ static int GOT (STATE *state, char *args, int sz, BINKD_CONFIG *config)
           if (state->ND_flag & WE_ND)
              Log (7, "Set ND_addr to %u:%u/%u.%u",
                   state->ND_addr.z, state->ND_addr.net, state->ND_addr.node, state->ND_addr.p);
-	  Log (2, "sent: %s (%lu, %.2f CPS, %s)", state->sent_fls[n].path,
-	       (unsigned long) state->sent_fls[n].size,
+	  Log (2, "sent: %s (%" PRIuMAX ", %.2f CPS, %s)",
+	       state->sent_fls[n].path,
+	       (uintmax_t) state->sent_fls[n].size,
 	       (double) (state->sent_fls[n].size) /
 	       (safe_time() == state->sent_fls[n].start ?
 		1 : (safe_time() - state->sent_fls[n].start)), szAddr);
@@ -2727,8 +2741,8 @@ static int EOB (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
     ftnaddress_to_str (szAddr, state->fa);
     state->bytes_rcvd += state->in_complete.size;
     ++state->files_rcvd;
-    Log (2, "rcvd: %s (%lu, %.2f CPS, %s)", state->in_complete.netname,
-         (unsigned long) state->in_complete.size,
+    Log (2, "rcvd: %s (%" PRIuMAX ", %.2f CPS, %s)", state->in_complete.netname,
+         (uintmax_t) state->in_complete.size,
          (double) (state->in_complete.size) /
          (safe_time() == state->in_complete.start ?
                       1 : (safe_time() - state->in_complete.start)), szAddr);
@@ -2885,11 +2899,11 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
         {
           LockSem(&lsem);
           printf ("%-20.20s %3.0f%%\r", state->in.netname,
-                  100.0 * ftell (state->in.f) / (float) state->in.size);
+                  100.0 * ftello (state->in.f) / (float) state->in.size);
           fflush (stdout);
           ReleaseSem(&lsem);
         }
-        if ((off_t) ftell (state->in.f) == state->in.size)
+        if (ftello (state->in.f) == state->in.size)
         {
           char szAddr[FTN_ADDR_SZ + 1];
           char realname[MAXPATHLEN + 1];
@@ -2905,8 +2919,8 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
           if (state->z_recv)
           {
-            Log (4, "File %s compressed size %lu bytes, compress ratio %.1f%%",
-                 state->in.netname, state->z_cisize,
+            Log (4, "File %s compressed size %" PRIuMAX " bytes, compress ratio %.1f%%",
+                 state->in.netname, (uintmax_t) state->z_cisize,
                  100.0 * state->z_cisize / state->z_isize);
             if (state->z_idata)
             {
@@ -2939,29 +2953,29 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
 	    ftnaddress_to_str (szAddr, state->fa);
 	    state->bytes_rcvd += state->in.size;
 	    ++state->files_rcvd;
-	    Log (2, "rcvd: %s (%lu, %.2f CPS, %s)", state->in.netname,
-	         (unsigned long) state->in.size,
+	    Log (2, "rcvd: %s (%" PRIuMAX ", %.2f CPS, %s)", state->in.netname,
+	         (uintmax_t) state->in.size,
 	         (double) (state->in.size) /
 	         (safe_time() == state->in.start ?
 		  1 : (safe_time() - state->in.start)), szAddr);
 	  }
-	  msg_sendf (state, M_GOT, "%s %lu %lu",
+	  msg_sendf (state, M_GOT, "%s %" PRIuMAX " %" PRIuMAX,
 		     state->in.netname,
-		     (unsigned long) state->in.size,
-		     (unsigned long) state->in.time);
+		     (uintmax_t) state->in.size,
+		     (uintmax_t) state->in.time);
 	  TF_ZERO (&state->in);
 	}
-	else if ((off_t) ftell (state->in.f) > state->in.size)
+	else if (ftello (state->in.f) > state->in.size)
 	{
-	  Log (1, "rcvd %lu extra bytes!",
-	       (unsigned long) ftell (state->in.f) - state->in.size);
+	  Log (1, "rcvd %" PRIuMAX " extra bytes!",
+	       (uintmax_t) (ftello (state->in.f) - state->in.size));
 	  return 0;
 	}
       }
       else if (state->isize > 0)
       {
-	Log (7, "ignoring data block (%lu byte(s))",
-	     (unsigned long) state->isize);
+	Log (7, "ignoring data block (%" PRIuMAX " byte(s))",
+	     (uintmax_t) state->isize);
       }
       state->isize = -1;
     }
@@ -3234,8 +3248,8 @@ static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
   netname (state->out.netname, &state->out, config);
   if (ispkt(state->out.netname) && state->out.size <= 60)
   {
-    Log (3, "skip empty pkt %s, %lu bytes", state->out.path,
-	 (unsigned long) state->out.size);
+    Log (3, "skip empty pkt %s, %" PRIuMAX " bytes", state->out.path,
+	 (uintmax_t) state->out.size);
     if (state->out.f) fclose(state->out.f);
     remove_from_spool (state, state->out.flo,
                        state->out.path, state->out.action, config);
@@ -3252,27 +3266,27 @@ static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
     return 0;
   }
 #endif
-  Log (2, "sending %s as %s (%lu)",
-       state->out.path, state->out.netname, (unsigned long) state->out.size);
+  Log (2, "sending %s as %s (%" PRIuMAX ")",
+       state->out.path, state->out.netname, (uintmax_t) state->out.size);
   z_send_init(state, config, &extra);
 
   if (state->NR_flag & WE_NR)
   {
-    msg_sendf (state, M_FILE, "%s %lu %lu -1%s",
-	       state->out.netname, (unsigned long) state->out.size,
-	       (unsigned long) state->out.time, extra);
+    msg_sendf (state, M_FILE, "%s %" PRIuMAX " %" PRIuMAX " -1%s",
+	       state->out.netname, (uintmax_t) state->out.size,
+	       (uintmax_t) state->out.time, extra);
     state->off_req_sent = 1;
   }
   else if (state->out.f == NULL)
     /* status with no NR-mode */
-    msg_sendf (state, M_FILE, "%s %lu %lu %lu%s",
-	       state->out.netname, (unsigned long) state->out.size,
-	       (unsigned long) state->out.time,
-	       (unsigned long) state->out.size, extra);
+    msg_sendf (state, M_FILE, "%s %" PRIuMAX " %" PRIuMAX " %" PRIuMAX "%s",
+	       state->out.netname, (uintmax_t) state->out.size,
+	       (uintmax_t) state->out.time,
+	       (uintmax_t) state->out.size, extra);
   else
-    msg_sendf (state, M_FILE, "%s %lu %lu 0%s",
-	       state->out.netname, (unsigned long) state->out.size,
-	       (unsigned long) state->out.time, extra);
+    msg_sendf (state, M_FILE, "%s %" PRIuMAX " %" PRIuMAX " 0%s",
+	       state->out.netname, (uintmax_t) state->out.size,
+	       (uintmax_t) state->out.time, extra);
 
   return 1;
 }
@@ -3293,7 +3307,7 @@ static void log_end_of_session (char *status, STATE *state, BINKD_CONFIG *config
   else
     strcpy (szFTNAddr, "?");
 
-  Log (2, "done (%s%s, %s, S/R: %i/%i (%lu/%lu bytes))",
+  Log (2, "done (%s%s, %s, S/R: %i/%i (%" PRIuMAX "/%" PRIuMAX " bytes))",
        state->to ? "to " : (state->fa ? "from " : ""), szFTNAddr,
        status,
        state->files_sent, state->files_rcvd,

@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.18  2004/08/04 11:32:29  gul
+ * Attemp to support large files (>4G)
+ *
  * Revision 2.17  2004/08/04 06:40:27  gul
  * Use uintmax_t and PRIuMAX for printing file size (off_t)
  *
@@ -205,7 +208,7 @@ int vsnprintf (char *str, size_t count, const char *fmt, va_list args);
 
 typedef unsigned char u8;
 typedef unsigned short u16;
-typedef unsigned long u32;
+typedef unsigned long u32;	/* FIXME: long can be 64-bit */
 
 #ifndef PRIdMAX
 #define PRIdMAX "ld"
@@ -214,6 +217,14 @@ typedef unsigned long u32;
 #ifndef HAVE_INTMAX_T
 typedef long int intmax_t;
 typedef unsigned long int uintmax_t;
+#endif
+#ifndef HAVE_STRTOUMAX
+#define STRTOUMAX(ptr, endptr, base)	strtoul(ptr, endptr, base)
+#endif
+
+#ifndef HAVE_FSEEKO
+#define fseeko(f, offset, whence)	fseek(f, (long)(offset), whence)
+#define ftello(f)			(off_t)ftell(f)
 #endif
 
 #define UNUSED_ARG(s)  (void)(s)

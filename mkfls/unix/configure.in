@@ -18,7 +18,9 @@ dnl Checks for typedefs, structures, and compiler characteristics.
 
 dnl Checks for library functions.
 AC_CHECK_FUNCS(snprintf vsnprintf vsyslog waitpid statvfs statfs uname)
-AC_CHECK_FUNCS(daemon setsid getopt localtime_r)
+AC_CHECK_FUNCS(daemon setsid getopt localtime_r strtoumax)
+AC_SYS_LARGEFILE
+AC_FUNC_FSEEKO
 
 dnl Checks for libraries.
 AC_CHECK_FUNC(socket)
