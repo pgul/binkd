@@ -1,7 +1,9 @@
 # Microsoft Visual C++ Makefile
 # $Id$
 #
-# Usage: nmake [DEBUG=1] [DLLRTL=1] [BINKD9X=1] [PERL=1] [PERLDL=1] [ZLIB=1] [BZLIB2=1]
+# Usage: nmake [DEBUG=1] [DLLRTL=1] [BINKD9X=1] [PERL=1] [PERLDL=1]
+#              [ZLIB=1] [BZLIB2=1] [DEBUGCHILD=1]
+#
 #
 
 !ifdef PERL
@@ -45,6 +47,10 @@ BINKDSBR=  -FR"$(OUTDIR)\\"
 LDEBUG=    /incremental:yes /map:"$(OUTDIR)\$(BINKDEXE).map" /debug
 !endif
 
+!ifdef DEBUGCHILD
+DEBUGCHILD_CDEFS=-D"CDEBUGCHILD"
+!endif
+
 !ifdef PERL
 PERL_COPT= -I"$(PERL_BASE)\lib\core"
 !ifndef PERLDL
@@ -68,7 +74,7 @@ ZLIB_OBJS = $(OUTDIR)\zlibdl.obj
 !endif
 
 CC=        cl
-CDEFS=     $(CDEBUG) $(BINKD9X_DEFINES) $(RTL_DEFINES) $(PERL_CDEFS) $(ZLIB_CDEFS) -D"HTTPS" -D"WIN32" -D"HAVE_THREADS" -D"HAVE_IO_H" -D"HAVE_DOS_H" -D"HAVE_STDARG_H" -D"HAVE_SNPRINTF" -D"HAVE_VSNPRINTF" -D"VISUALCPP" -D"AMIGADOS_4D_OUTBOUND"
+CDEFS=     $(CDEBUG) $(DEBUGCHILD_CDEFS) $(BINKD9X_DEFINES) $(RTL_DEFINES) $(PERL_CDEFS) $(ZLIB_CDEFS) -D"HTTPS" -D"WIN32" -D"HAVE_THREADS" -D"HAVE_IO_H" -D"HAVE_DOS_H" -D"HAVE_STDARG_H" -D"HAVE_SNPRINTF" -D"HAVE_VSNPRINTF" -D"VISUALCPP" -D"AMIGADOS_4D_OUTBOUND"
 COPT=      $(BINKDSBR) $(PERL_COPT) -Fo"$(OUTDIR)\\" -Fp"$(OUTDIR)\$(BINKDEXE).pch" -YX -Fd"$(OUTDIR)\\"
 LINK=      link
 LFLAGS=    /nologo /machine:I386
@@ -114,56 +120,56 @@ BSCTARGET= $(BINKDBSC)
 all:      "$(OUTDIR)" "$(OUTDIR)\$(BINKDEXE).exe" $(BSCTARGET)
 
 "$(OUTDIR)\$(BINKDEXE).exe": "$(OUTDIR)" $(OBJS)
-          $(LINK) $(LFLAGS) $(LOPT) @<<
+	$(LINK) $(LFLAGS) $(LOPT) @<<
 $(LLIBS) $(OBJS)
 <<
 
 $(BINKDBSC): "$(OUTDIR)" $(SBRS)
-          $(BSC) $(BSCFLAGS) @<<
+	$(BSC) $(BSCFLAGS) @<<
 $(SBRS)
 <<
 
 .c{$(OUTDIR)}.obj::
-          $(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
+	$(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
 $<
 <<
 {nt}.c{$(OUTDIR)}.obj::
-          $(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
+	$(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
 $<
 <<
 {ntlm}.c{$(OUTDIR)}.obj::
-          $(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
+	$(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
 $<
 <<
 
 .c{$(OUTDIR)}.sbr::
-          $(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
+	$(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
 $<
 <<
 {nt}.c{$(OUTDIR)}.sbr::
-          $(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
+	$(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
 $<
 <<
 {ntlm}.c{$(OUTDIR)}.sbr::
-          $(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
+	$(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
 $<
 <<
 
 "$(OUTDIR)":
-          mkdir "$(OUTDIR)"
+	mkdir "$(OUTDIR)"
 
 clean:
-          -@del "$(OUTDIR)\*.obj"
-          -@del "$(OUTDIR)\$(BINKDEXE).pch"
-          -@del "$(OUTDIR)\*.sbr"
-          -@del "$(OUTDIR)\*.idb"
-          -@del "$(OUTDIR)\$(BINKDEXE).ilk"
+	-@del "$(OUTDIR)\*.obj"
+	-@del "$(OUTDIR)\$(BINKDEXE).pch"
+	-@del "$(OUTDIR)\*.sbr"
+	-@del "$(OUTDIR)\*.idb"
+	-@del "$(OUTDIR)\$(BINKDEXE).ilk"
 
 distclean: clean
-          -@del "$(OUTDIR)\$(BINKDEXE).exe"
-          -@del "$(OUTDIR)\$(BINKDEXE).bsc"
-          -@del "$(OUTDIR)\$(BINKDEXE).map"
-          -@del "$(OUTDIR)\*.pdb"
+	-@del "$(OUTDIR)\$(BINKDEXE).exe"
+	-@del "$(OUTDIR)\$(BINKDEXE).bsc"
+	-@del "$(OUTDIR)\$(BINKDEXE).map"
+	-@del "$(OUTDIR)\*.pdb"
 
 !if exists("Makefile.dep")
 !include "Makefile.dep"
