@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/07/17 02:53:04  hbrew
+ * Fix MSVC warnings & errors
+ *
  * Revision 2.9  2003/07/16 15:50:44  stas
  * Fix: restore "Minimise to tray"
  *
@@ -811,4 +814,10 @@ int tell_start_ntservice(void)
 }
 
 void do_tray_flag(void)
-{ _beginthread(wndthread, 0, NULL); }
+{
+#ifdef __MINGW32__
+  _beginthread(wndthread, 0, NULL);
+#else
+  _beginthread(wndthread, 0, 0, NULL);
+#endif
+}
