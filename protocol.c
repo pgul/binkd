@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.63  2003/05/30 16:03:10  gul
+ * Asymmetric NR-mode
+ *
  * Revision 2.62  2003/05/22 06:39:41  gul
  * Send CRYPT option only in crypt-mode sessions on answer
  *
@@ -318,7 +321,7 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to)
   state->bytes_sent = state->bytes_rcvd = 0;
   state->files_sent = state->files_rcvd = 0;
   state->to = to;
-  state->NR_flag = (to && to->NR_flag == NR_ON) ? WANT_NR : NO_NR;
+  state->NR_flag = (to && (to->NR_flag == NR_ON || to->ND_flag == ND_ON)) ? WANT_NR : NO_NR;
   state->ND_flag = (to && to->ND_flag == ND_ON) ? WE_ND : NO_ND;
   state->MD_flag = 0;
   state->MD_challenge = NULL;
@@ -829,7 +832,7 @@ static int NUL (STATE *state, char *buf, int sz)
     {
       if (!strcmp (w, "NR"))
       {
-	state->NR_flag = WANT_NR;      /* They want NR mode */
+	state->NR_flag |= WE_NR;      /* They want NR mode - turn it on */
         Log(2, "Remote requests NR mode");
       }
       if (!strcmp (w, "ND"))
@@ -894,9 +897,11 @@ static int ADR (STATE *state, char *s, int sz)
   FTN_ADDR fa;
   FTN_NODE n, *pn;
   char szFTNAddr[FTN_ADDR_SZ + 1];
+  int secure_NR, unsecure_NR;
   int secure_ND, unsecure_ND;
 
   s[sz] = 0;
+  secure_NR = unsecure_NR = NO_NR;
   secure_ND = unsecure_ND = NO_ND;
   for (i = 1; (w = getwordx (s, i, 0)) != 0; ++i)
   {
@@ -1048,12 +1053,27 @@ static int ADR (STATE *state, char *s, int sz)
       }
     }
 
-    if (!state->to && pn && n.ND_flag)
-    {
-      if (n.pwd && strcmp(n.pwd, "-"))
-	secure_ND = WE_ND;
-      else
-	unsecure_ND = WE_ND;
+    if (!state->to && pn)
+    { if (n.ND_flag)
+      {
+	if (n.pwd && strcmp(n.pwd, "-"))
+	{
+	  secure_ND = WE_ND;
+	  secure_NR = WANT_NR;
+	}
+	else
+	{
+	  unsecure_ND = WE_ND;
+	  unsecure_NR = WANT_NR;
+	}
+      }
+      else if (n.NR_flag)
+      {
+	if (n.pwd && strcmp(n.pwd, "-"))
+	  secure_NR = WANT_NR;
+	else
+	  unsecure_NR = WANT_NR;
+      }
     }
   }
   if (state->nfa == 0)
@@ -1083,9 +1103,15 @@ static int ADR (STATE *state, char *s, int sz)
   if (!state->to)
   {
     if (state->expected_pwd[0] && strcmp(state->expected_pwd, "-"))
+    {
       state->ND_flag = secure_ND;
+      state->NR_flag = secure_NR;
+    }
     else
+    {
       state->ND_flag = unsecure_ND;
+      state->NR_flag = unsecure_NR;
+    }
   }
 
   if (state->to)
@@ -1131,10 +1157,6 @@ static char *select_inbound (FTN_ADDR *fa, int secure_flag)
 
 static void complete_login (STATE *state)
 {
-  state->NR_flag =
-  (state->NR_flag == WANT_NR && state->major * 100 + state->minor >= 101) ?
-  WE_NR :
-  NO_NR;
   if (state->ND_flag!=YES_ND) state->ND_flag=NO_ND;
   state->inbound = select_inbound (state->fa, state->state);
   if (OK_SEND_FILES (state) && state->q == NULL)
@@ -1242,11 +1264,11 @@ static int PWD (STATE *state, char *pwd, int sz)
     Log (4, "Crypt allowed only with MD5 authorization");
   }
 
-  if (state->NR_flag == WANT_NR ||
+  if ((state->NR_flag & WANT_NR) ||
       (state->crypt_flag == (WE_CRYPT | THEY_CRYPT)) ||
       (state->ND_flag & WE_ND))
     msg_sendf (state, M_NUL, "OPT%s%s%s",
-               state->NR_flag == WANT_NR ? " NR" : "",
+               (state->NR_flag & WANT_NR) ? " NR" : "",
                (state->ND_flag & WE_ND) ? " ND" : "",
                (state->crypt_flag == (WE_CRYPT | THEY_CRYPT)) ? " CRYPT" : "");
   msg_send2 (state, M_OK, state->state==P_SECURE ? "secure" : "non-secure", 0);
@@ -1331,9 +1353,9 @@ static int start_file_recv (STATE *state, char *args, int sz)
     {
       off_req = 1;
       Log (6, "got offset request for %s", state->in.netname);
-      if (state->NR_flag != THEY_NR)
+      if ((state->NR_flag & THEY_NR) == 0)
       {
-	state->NR_flag = THEY_NR;
+	state->NR_flag |= THEY_NR;
 	if (!state->ND_flag)
 	  Log (3, "remote is in NR mode");
       }
@@ -1409,7 +1431,7 @@ static int start_file_recv (STATE *state, char *args, int sz)
       TF_ZERO (&state->in);
       return 1;
     }
-    else if (offset != 0 || state->NR_flag >= WE_NR)
+    else if (offset != 0 || (state->NR_flag & THEY_NR))
     {
       --state->GET_FILE_balance;
     }
@@ -1435,7 +1457,7 @@ static int ND_set_status(char *status, FTN_ADDR *fa, STATE *state)
   FILE *f;
   int  rc;
 
-  if (state->NR_flag < WE_NR)
+  if ((state->NR_flag & WE_NR) == 0)
     return 1; /* ignoring status if no NR mode */ 
   if (fa->z==-1)
   { Log(8, "ND_set_status: unknown address for '%s'", status);
@@ -1511,7 +1533,7 @@ static int GET (STATE *state, char *args, int sz)
       if (!state->out.f)
       { /* response for status */
 	rc = 1;
-	/* to satisfy remote GET_FILE_ballance */
+	/* to satisfy remote GET_FILE_balance */
 	msg_sendf (state, M_FILE, "%s %li %li %li", state->out.netname,
 	   (long) state->out.size, (long) state->out.time, atol(argv[3]));
 	if (atol(argv[3])==(long)state->out.size && state->ND_flag == YES_ND)
@@ -1596,7 +1618,7 @@ static int SKIP (STATE *state, char *args, int sz)
     }
     ND_set_status("", &state->ND_addr, state);
     state->ND_addr.z=-1;
-    if (state->ND_flag == YES_ND || state->NR_flag >= WE_NR)
+    if (state->ND_flag == YES_ND || (state->NR_flag & WE_NR))
     {
       state->waiting_for_GOT = state->off_req_sent = 0;
       Log(9, "Don't waiting for M_GOT");
@@ -1964,11 +1986,11 @@ static void banner (STATE *state)
   msg_send2 (state, M_ADR, szAkas, 0);
 
   if (state->to && 
-      (state->NR_flag == WANT_NR ||
+      ((state->NR_flag & WANT_NR) ||
        (state->crypt_flag & WE_CRYPT) ||
        (state->ND_flag & WE_ND)))
     msg_sendf (state, M_NUL, "OPT%s%s%s",
-               state->NR_flag == WANT_NR ? " NR" : "",
+               (state->NR_flag & WANT_NR) ? " NR" : "",
                (state->ND_flag & WE_ND) ? " ND" : "",
                (state->crypt_flag & WE_CRYPT) ? " CRYPT" : "");
   free (szAkas);
@@ -2086,7 +2108,7 @@ static int start_file_transfer (STATE *state, FTNQ *file)
   Log (3, "sending %s as %s (%li)",
        state->out.path, state->out.netname, (long) state->out.size);
 
-  if (state->NR_flag >= WE_NR)
+  if (state->NR_flag & WE_NR)
   {
     msg_sendf (state, M_FILE, "%s %li %li -1",
 	       state->out.netname, (long) state->out.size,
@@ -2185,7 +2207,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
 	  if (state.flo.f ||
 	      (q = select_next_file (state.q, state.fa, state.nfa)) != 0)
 	  {
-	    if (q && (q->type=='s') && (state.NR_flag < WE_NR))
+	    if (q && (q->type=='s') && (state.NR_flag & WE_NR) == 0)
 	    { /* TODO: wait for send queue and switch to NR mode */
 	      Log(1, "WARNING: status present and no NR mode!");
 	      continue;

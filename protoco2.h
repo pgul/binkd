@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/05/30 16:03:10  gul
+ * Asymmetric NR-mode
+ *
  * Revision 2.4  2003/03/05 13:21:51  gul
  * Fix warnings
  *
@@ -157,7 +160,7 @@ struct _STATE
 #define NO_NR	0
 #define WANT_NR	1
 #define WE_NR	2
-#define THEY_NR	3
+#define THEY_NR	4
 
 /* state.ND_flag: state of binkp when in ND mode */
 #define NO_ND	0
