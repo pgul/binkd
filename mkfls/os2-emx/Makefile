@@ -1,7 +1,7 @@
 # $Id$
 #
 CC=gcc
-DEFINES=-DHAVE_FORK -DHAVE_SNPRINTF -DHAVE_UNISTD -DOS2 -DHAVE_IO_H -DHAVE_ARPA_INET_H -DEMX -DEMXSIGNALS -DHAVE_WAITPID -DHTTPS
+DEFINES=-DHAVE_FORK -DHAVE_SNPRINTF -DHAVE_UNISTD -DOS2 -DHAVE_IO_H -DHAVE_ARPA_INET_H -DEMX -DEMXSIGNALS -DHAVE_WAITPID -DHTTPS -DNTLM
 CFLAGS=$(DEFINES) -Wall -Zcrtdll -funsigned-char -Wno-char-subscripts
 NTLM_SRC=ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c
 SRCS=binkd.c readcfg.c tools.c ftnaddr.c ftnq.c client.c server.c protocol.c bsy.c inbound.c breaksig.c branch.c os2/gettid.c os2/sem.c  ftndom.c ftnnode.c os2/getfree.c srif.c pmatch.c readflo.c prothlp.c iptools.c run.c binlog.c exitproc.c getw.c xalloc.c setpttl.c https.c md5b.c crypt.c ${NTLM_SRC}
