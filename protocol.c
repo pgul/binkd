@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.92  2003/08/13 11:49:05  gul
+ * correct previous fix
+ *
  * Revision 2.91  2003/08/13 11:35:26  hbrew
  * Fix warning.
  *
@@ -2554,7 +2557,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
   struct sockaddr_in peer_name;
   socklen_t peer_name_len = sizeof (peer_name);
   char host[MAXHOSTNAMELEN + 1];
-  const char *save_err = NULL;
+  const char *save_err;
   int ok = 1;                         /* drop to 0 to abort session */
 #ifdef DELAY_ADR
   int ADR_sent = 0;
@@ -2700,6 +2703,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
     {
       Log (8, "win9x winsock workaround: timeout detected (nettimeout=%u sec, t_out=%lu sec)", nettimeout, t_out/100000);
       no = 0;
+      save_err = tcperr(10060); /* Connection timed out */
     }
 #endif
       bsy_touch ();		       /* touch *.bsy's */
