@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.42  2003/12/24 00:37:26  gul
+ * Fixed mingw with PERLDL compilation
+ *
  * Revision 2.41  2003/11/19 18:07:20  gul
  * Use foreach_node() for fill %node hash
  *
@@ -175,7 +178,7 @@
 #  define WIN32
 #endif
 
-#ifdef _MSC_VER
+#ifdef WIN32
 # define NO_XSLOCKS
 #endif
 #ifndef EXTERN_C
