@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.111  2003/08/15 08:48:52  gul
+ * Auto increase patchlevel, set 0.9.6a-98
+ * Compilation error fixed
+ *
  * Revision 2.110  2003/08/14 14:19:39  gul
  * Auto increase patchlevel, set 0.9.6a-97
  * Drop remote AKA with another password on outgoing sessions
@@ -474,7 +478,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-97"
+#define MYVER "0.9.6a-98"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
