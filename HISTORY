@@ -1,3 +1,7 @@
+2003/09/11 15:23:27 0.9.6a-171 hbrew
+win9x.c,2.22,2.23
+Fix 'suggest parentheses around assignment used as truth value'.
+
 2003/09/11 11:26:13 0.9.6a-170 val
 perlhooks.c,2.21,2.22
 fix for Perl hooks code after steam's patch for pNodArray
