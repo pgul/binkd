@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.33  2003/10/09 17:14:01  stas
+ * Load tray icon from file "binkd.ico"
+ *
  * Revision 2.32  2003/10/09 09:41:07  stas
  * Change service stop sequence
  *
@@ -143,6 +146,8 @@
 #include "service.h"
 #include "w32tools.h"
 #include "brw32sig.h"
+
+#define BINKD_ICON_FILE "binkd.ico" /* place this file into binkd directory and binkd loads it for tray icon */
 
 /* ChangeServiceConfig2() prototype:
  */
@@ -611,6 +616,11 @@ static void wndthread(void *par)
     if (!hi)
     {
         hi = (HICON)SendMessage(mainWindow, WM_GETICON, ICON_BIG, 0);
+    }
+    if (!hi)
+    {
+        hi = LoadImage( NULL, BINKD_ICON_FILE, IMAGE_ICON, 0, 0,
+                        LR_LOADFROMFILE /*| LR_LOADTRANSPARENT*/ );
     }
     if (!hi)
     {
