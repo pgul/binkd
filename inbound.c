@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2001/04/23 07:58:57  gul
+ * getfree() on large drives fixed
+ *
  * Revision 2.0  2001/01/10 12:12:38  gul
  * Binkd is under CVS again
  *
@@ -243,12 +246,12 @@ FILE *inb_fopen (char *netname, size_t size,
 		    minfree : minfree_nonsecure);
 
     if (req_free >= 0 &&
-	getfree (inbound) < size - sb.st_size + req_free * 1024)
+	getfree (inbound) < (size - sb.st_size + 1023) / 1024 + req_free)
     {
-      Log (1, "no enough free space in %s (%li, req-d %li)",
+      Log (1, "no enough free space in %s (%liK, req-d %liK)",
 	   inbound,
 	   (long) getfree (inbound),
-	   (long) size - sb.st_size + req_free * 1024l);
+	   (long) (size - sb.st_size + 1023) / 1024 + req_free);
       fclose (f);
       return 0;
     }

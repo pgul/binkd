@@ -3,6 +3,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.1  2001/04/23 07:58:57  gul
+ * getfree() on large drives fixed
+ *
  * Revision 2.0  2001/01/10 12:12:40  gul
  * Binkd is under CVS again
  *
@@ -65,9 +68,11 @@ unsigned long getfree (char *path)
     Log (1, "cannot statfs \"%s\", assume enough space", path);
     return ULONG_MAX;
   }
+  /* return (sfs.f_bsize * sfs.f_bfree); */
+  if (sfs.f_bsize >= 1024)
+    return ((sfs.f_bsize / 1024l) * sfs.f_bavail);
   else
-    /* return (sfs.f_bsize * sfs.f_bfree); */
-    return (sfs.f_bsize * sfs.f_bavail);
+    return (sfs.f_bavail / (1024l / sfs.f_bsize));
 }
 
 #else

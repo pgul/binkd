@@ -3,6 +3,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.1  2001/04/23 07:58:57  gul
+ * getfree() on large drives fixed
+ *
  * Revision 2.0  2001/01/10 12:12:40  gul
  * Binkd is under CVS again
  *
@@ -41,6 +44,9 @@ unsigned long getfree (char *path)
   }
   else
   {
-    return fsa.cSectorUnit * fsa.cUnitAvail * fsa.cbSector;
+    if (fsa.cSectorUnit * fsa.cbSector >= 1024)
+      return fsa.cUnitAvail * (fsa.cSectorUnit * fsa.cbSector / 1024);
+    else
+      return fsa.cUnitAvail * (1024 / (fsa.cSectorUnit * fsa.cbSector));
   }
 }
