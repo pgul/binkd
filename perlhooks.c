@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/06/27 07:45:36  val
+ * fix to make with perl 5.6.0
+ *
  * Revision 2.2  2003/06/26 10:34:02  val
  * some tips from mod_perl, maybe prevent perl from crashing in client mgr (win32)
  *
@@ -639,7 +642,7 @@ void *perl_init_clone() {
   Log(LL_DBG2, "perl_init_clone(), parent perl=%p", perl);
   if (perl) {
     PERL_SET_CONTEXT(perl);
-#ifdef WIN32
+#if defined(WIN32) && defined(CLONEf_CLONE_HOST)
     cflags |= CLONEf_CLONE_HOST | CLONEf_KEEP_PTR_TABLE;
 #endif
     p = perl_clone(perl, cflags);
