@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.136  2003/08/23 15:51:52  stream
+ * Auto increase patchlevel, set 0.9.6a-123
+ * Implemented common list routines for all linked records in configuration
+ *
  * Revision 2.135  2003/08/22 09:41:38  val
  * Auto increase patchlevel, set 0.9.6a-122
  * add check perl!=NULL in perl_on_handshake
@@ -586,7 +590,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-122"
+#define MYVER "0.9.6a-123"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
