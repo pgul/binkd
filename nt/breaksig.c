@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.16  2003/10/08 05:48:57  stas
+ * Fix w9x compilation
+ *
  * Revision 2.15  2003/10/07 14:41:04  stas
  * Fix NT service shutdown
  *
@@ -173,13 +176,16 @@ BOOL SigHandlerExit(DWORD SigType) {
    if (SigHandler(SigType)==FALSE)
    {
      atexit(NULL);
+#if !defined(BINKDW9X)
      if(!isService())
+#endif
        exit(0);
    }
 
    return TRUE;
 }
 
+#if !defined(BINKDW9X)
 /*--------------------------------------------------------------------*/
 /*  Signal handler for NT console                                     */
 /*--------------------------------------------------------------------*/
@@ -196,7 +202,7 @@ static BOOL CALLBACK SigHandlerNT(DWORD SigType) {
   }
   return TRUE;
 }
-
+#endif
 
 /*--------------------------------------------------------------------*/
 /*    int set_break_handlers(void)                                    */
@@ -205,11 +211,11 @@ static BOOL CALLBACK SigHandlerNT(DWORD SigType) {
 /*--------------------------------------------------------------------*/
 
 int set_break_handlers (void) {
-   if (!IsNT() || !isService())
-     atexit (exitfunc);
 #if BINKDW9X
    CreateWin9xThread(&SigHandler);
 #else
+   if (!IsNT() || !isService())
+     atexit (exitfunc);
    if (SetConsoleCtrlHandler(&SigHandlerNT, TRUE) != TRUE) {
       return (0);
    }
