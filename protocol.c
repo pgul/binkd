@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.58  2003/05/04 10:29:54  gul
+ * Say "OPT ND" on answer only if this option specified in config for this node
+ *
  * Revision 2.57  2003/05/04 08:45:30  gul
  * Lock semaphores more safely for resolve and IP-addr print
  *
@@ -119,7 +122,7 @@
  * Bugfix with locking array of nodes in multithread version
  *
  * Revision 2.23  2003/02/22 12:56:00  gul
- * Do not give unsecure mail to secuse link when send-if-pwd
+ * Do not give unsecure mail to secure link when send-if-pwd
  *
  * Revision 2.22  2003/02/22 12:12:34  gul
  * Cleanup sources
@@ -304,7 +307,7 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to)
   state->files_sent = state->files_rcvd = 0;
   state->to = to;
   state->NR_flag = (to && to->NR_flag == NR_ON) ? WANT_NR : NO_NR;
-  state->ND_flag = (!to || to->ND_flag == ND_ON) ? WE_ND : NO_ND;
+  state->ND_flag = (to && to->ND_flag == ND_ON) ? WE_ND : NO_ND;
   state->MD_flag = 0;
   state->MD_challenge = NULL;
   state->crypt_flag = no_crypt ? NO_CRYPT : WE_CRYPT;
@@ -877,10 +880,12 @@ static int ADR (STATE *state, char *s, int sz)
   int i, j, main_AKA_ok = 0, ip_verified = 0;
   char *w;
   FTN_ADDR fa;
-  FTN_NODE n;
+  FTN_NODE n, *pn;
   char szFTNAddr[FTN_ADDR_SZ + 1];
+  int secure_ND, unsecure_ND;
 
   s[sz] = 0;
+  secure_ND = unsecure_ND = NO_ND;
   for (i = 1; (w = getwordx (s, i, 0)) != 0; ++i)
   {
     if (!parse_ftnaddress (w, &fa) || !is4D (&fa))
@@ -900,8 +905,9 @@ static int ADR (STATE *state, char *s, int sz)
       strcpy (fa.domain, get_def_domain()->name);
 
     ftnaddress_to_str (szFTNAddr, &fa);
+    pn = get_node(&fa, &n);
 
-    if (state->to == 0 && get_node(&fa, &n) && n.restrictIP)
+    if (state->to == 0 && pn && n.restrictIP)
     { int i, ipok = 0, rc;
       struct hostent *hp;
       struct in_addr defaddr;
@@ -1013,7 +1019,7 @@ static int ADR (STATE *state, char *s, int sz)
       memcpy (state->fa + state->nallfa - 1, &fa, sizeof (FTN_ADDR));
     }
 
-    if (state->expected_pwd[0] && get_node(&fa, &n) != 0)
+    if (state->expected_pwd[0] && pn)
     {
       state->listed_flag = 1;
       if (!strcmp (state->expected_pwd, "-"))
@@ -1028,6 +1034,14 @@ static int ADR (STATE *state, char *s, int sz)
 	state->expected_pwd[0] = 0;
       }
     }
+
+    if (!state->to && pn && n.ND_flag)
+    {
+      if (n.pwd && strcmp(n.pwd, "-"))
+	secure_ND = WE_ND;
+      else
+	unsecure_ND = WE_ND;
+    }
   }
   if (state->nfa == 0)
   {
@@ -1039,8 +1053,7 @@ static int ADR (STATE *state, char *s, int sz)
   {
     ftnaddress_to_str (szFTNAddr, &state->to->fa);
     Log (1, "called %s, but remote has no such AKA", szFTNAddr);
-    if (state->to)
-      bad_try (&state->to->fa, "Remote has no needed AKA");
+    bad_try (&state->to->fa, "Remote has no needed AKA");
     return 0;
   }
   if (ip_verified < 0)
@@ -1049,6 +1062,23 @@ static int ADR (STATE *state, char *s, int sz)
     msg_send2 (state, M_ERR, "Bad source IP", 0);
     return 0;
   }
+
+  if (!state->to)
+  {
+    if (state->expected_pwd[0] && strcmp(state->expected_pwd, "-"))
+      state->ND_flag = secure_ND;
+    else
+      state->ND_flag = unsecure_ND;
+
+    if (state->NR_flag == WANT_NR ||
+        (state->crypt_flag & WE_CRYPT) ||
+        (state->ND_flag & WE_ND))
+      msg_sendf (state, M_NUL, "OPT%s%s%s",
+                 state->NR_flag == WANT_NR ? " NR" : "",
+                 (state->ND_flag & WE_ND) ? " ND" : "",
+                 (state->crypt_flag & WE_CRYPT) ? " CRYPT" : "");
+  }
+
   if (state->to)
   {
     do_prescan (state);
@@ -1903,9 +1933,10 @@ static void banner (STATE *state)
   }
   msg_send2 (state, M_ADR, szAkas, 0);
 
-  if (state->NR_flag == WANT_NR ||
-      (state->crypt_flag & WE_CRYPT) ||
-      (state->ND_flag & WE_ND))
+  if (state->to && 
+      (state->NR_flag == WANT_NR ||
+       (state->crypt_flag & WE_CRYPT) ||
+       (state->ND_flag & WE_ND)))
     msg_sendf (state, M_NUL, "OPT%s%s%s",
                state->NR_flag == WANT_NR ? " NR" : "",
                (state->ND_flag & WE_ND) ? " ND" : "",
