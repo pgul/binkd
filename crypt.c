@@ -18,6 +18,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2001/02/15 16:05:59  gul
+ * crypt bugfix
+ *
  * Revision 2.0  2001/02/15 11:02:16  gul
  * Added crypt traffic possibility
  *
@@ -120,7 +123,7 @@ int decrypt_byte (unsigned long keys[3])
 void decrypt (char *buf, unsigned int bufsize, unsigned long keys[3])
 {
   while (bufsize--)
-    update_keys(keys, *buf++ ^ decrypt_byte(keys));
+    update_keys(keys, *buf++ ^= decrypt_byte(keys));
 }
 
 void encrypt (char *buf, unsigned int bufsize, unsigned long keys[3])

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2001/02/15 16:05:59  gul
+ * crypt bugfix
+ *
  * Revision 2.1  2001/02/15 11:03:18  gul
  * Added crypt traffic possibility
  *
@@ -147,7 +150,7 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to)
   state->ND_flag = (to && to->ND_flag == ND_ON) ? WE_ND : NO_ND;
   state->MD_flag = 0;
   state->MD_challenge = NULL;
-  state->crypt_flag = (to && to->crypt_flag == CRYPT_ON) ? WE_CRYPT : NO_CRYPT;
+  state->crypt_flag = (!to || (to && to->crypt_flag == CRYPT_ON)) ? WE_CRYPT : NO_CRYPT;
   strcpy (state->expected_pwd, "-");
   state->skip_all_flag = state->r_skipped_flag = 0;
   state->maxflvr = 'h';
@@ -895,7 +898,6 @@ static void complete_login (STATE *state)
   WE_NR :
   NO_NR;
   if (state->ND_flag!=YES_ND) state->ND_flag=NO_ND;
-  if (state->crypt_flag!=YES_CRYPT) state->crypt_flag=NO_CRYPT;
   state->inbound = select_inbound (state->fa, state->state);
   if (OK_SEND_FILES (state))
     state->q = q_scan_addrs (0, state->fa, state->nfa);
@@ -909,8 +911,9 @@ static void complete_login (STATE *state)
     Log (3, "we are in NR mode");
   if (state->state != P_SECURE)
     state->crypt_flag = NO_CRYPT;
-  else if (state->crypt_flag == YES_CRYPT)
+  else if (state->crypt_flag == (WE_CRYPT|THEY_CRYPT))
   { char *p;
+    state->crypt_flag = YES_CRYPT;
     Log (3, "session in CRYPT mode");
     if (state->to)
     { init_keys(state->keys_out, state->to->pwd);
@@ -924,6 +927,7 @@ static void complete_login (STATE *state)
         update_keys(state->keys_out, (int)*p);
     }
   }
+  if (state->crypt_flag!=YES_CRYPT) state->crypt_flag=NO_CRYPT;
 }
 
 static int PWD (STATE *state, char *pwd, int sz)
@@ -1716,7 +1720,7 @@ static void banner (STATE *state)
     msg_sendf (state, M_NUL, "OPT%s%s%s",
                state->NR_flag == WANT_NR ? " NR" : "",
                ((state->ND_flag & WE_ND) || !state->to) ? " ND" : "",
-               ((state->crypt_flag & WE_CRYPT) || !state->to) ? " CRYPT" : "");
+               (state->crypt_flag & WE_CRYPT) ? " CRYPT" : "");
   free (szAkas);
 }
 
