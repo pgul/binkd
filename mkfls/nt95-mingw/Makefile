@@ -14,6 +14,8 @@
 #BZLIB2_BASE=../bzip2
 #BZLIB2_LIB=bz2
 
+# =============================================================================
+
 CC=gcc
 
 ifeq ($(OSTYPE),msys)
@@ -49,6 +51,7 @@ OBJDIR= $(OUTDIR)/obj
 MAKEDIRSONLY= $(OBJDIR) $(OBJDIR)/nt $(OBJDIR)/ntlm
 MAKEDIRS= $(OUTDIR) $(MAKEDIRSONLY)
 
+# binkd9x +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ifdef BINKD9X
 SRCS+= nt/win9x.c
 CDEFS+= -DBINKDW9X
@@ -61,7 +64,9 @@ SRCS+= nt/service.c
 BINKDNAME=binkd-mingw
 OUTDIR:=$(OUTDIR)-binkd
 endif
+# binkd9x ---------------------------------------------------------------------
 
+# debug +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ifdef DEBUG
 CFLAGS+= -g
 CDEFS+= -DDEBUG -D_DEBUG
@@ -71,14 +76,18 @@ BINKDTYPE:=$(BINKDTYPE), debug
 else
 CFLAGS+= -s -O2
 endif
+# debug (DEBUG) ---------------------------------------------------------------
 
+# debugchild, nofork ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ifdef DEBUGCHILD
 CDEFS+= -DDEBUGCHILD
 BINKDNAME:=$(BINKDNAME)-debugchild
 OUTDIR:=$(OUTDIR)-debugchild
 BINKDTYPE:=$(BINKDTYPE), debugchild
 endif
+# debugchild, nofork ----------------------------------------------------------
 
+# perl support ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # PERLDL implies PERL
 ifdef PERLDL
 ifndef PERL
@@ -116,16 +125,19 @@ OUTDIR:=$(OUTDIR)-perl
 BINKDTYPE:=$(BINKDTYPE), perl
 endif
 endif
+# perl support ----------------------------------------------------------------
 
+# zlib support ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ifdef ZLIB
 CDEFS+= -DWITH_ZLIB
 ZLIB_BZLIB2=1
 
-ifndef ZLIBDL
 ifdef ZLIB_BASE
 C_DIRS+= -I "$(ZLIB_BASE)"
 L_DIRS+= -L "$(ZLIB_BASE)"
 endif
+
+ifndef ZLIBDL
 ifndef ZLIB_LIB
 ZLIB_LIB=z
 endif
@@ -139,16 +151,19 @@ OUTDIR:=$(OUTDIR)-zlibdl
 BINKDTYPE:=$(BINKDTYPE), zlibdl
 endif
 endif
+# zlib support ----------------------------------------------------------------
 
+# bzlib2 support ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ifdef BZLIB2
 CDEFS+= -DWITH_BZLIB2
 ZLIB_BZLIB2=1
 
-ifndef ZLIBDL
 ifdef BZLIB2_BASE
 C_DIRS+= -I "$(BZLIB2_BASE)"
 L_DIRS+= -L "$(BZLIB2_BASE)"
 endif
+
+ifndef ZLIBDL
 ifndef BZLIB2_LIB
 BZLIB2_LIB=bz2
 endif
@@ -162,7 +177,9 @@ OUTDIR:=$(OUTDIR)-bzlib2dl
 BINKDTYPE:=$(BINKDTYPE), bzlib2dl
 endif
 endif
+# bzlib2 support --------------------------------------------------------------
 
+# zlib & bzlib2 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ifdef ZLIB_BZLIB2
 ifdef ZLIBDL
 CDEFS+= -DZLIBDL
@@ -170,6 +187,7 @@ SRCS+= zlibdl.c
 endif
 SRCS+= compress.c
 endif
+# zlib & bzlib2 ---------------------------------------------------------------
 
 BINKDEXE = $(BINKDNAME).exe
 
@@ -190,17 +208,19 @@ ifndef PERLDL
 	@echo "perllib    : $(PERL_LIB)"
 endif
 endif
-ifndef ZLIBDL
 ifdef ZLIB
 ifdef ZLIB_BASE
 	@echo "zlibincl   : $(ZLIB_BASE)"
 endif
+ifndef ZLIBDL
 	@echo "zliblib    : $(ZLIB_LIB)"
+endif
 endif
 ifdef BZLIB2
 ifdef BZLIB2_BASE
 	@echo "bzlib2incl : $(BZLIB2_BASE)"
 endif
+ifndef ZLIBDL
 	@echo "bzlib2lib  : $(BZLIB2_LIB)"
 endif
 endif
