@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30  2003/10/07 14:41:04  stas
+ * Fix NT service shutdown
+ *
  * Revision 2.29  2003/10/06 18:59:58  stas
  * Prevent double calls of ReportStatusToSCMgr(SERVICE_STOPPED,...) and double restart service
  *
@@ -160,12 +163,14 @@ int _isService=-1;
 int init_exit_service_thread = 0;
 
 
-static BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
+BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
                          DWORD dwWin32ExitCode,
                          DWORD dwWaitHint)
 {
   static DWORD dwCheckPoint = 1;
   BOOL fResult = TRUE;
+
+  Log(12,"ReportStatusToSCMgr(%lu, %lu, %lu)",dwCurrentState,dwWin32ExitCode,dwWaitHint);
 
   if (dwCurrentState == SERVICE_START_PENDING)
     sstat.dwControlsAccepted = 0;
@@ -191,7 +196,8 @@ static void WINAPI ServiceCtrl(DWORD dwCtrlCode)
   {
   case SERVICE_CONTROL_STOP:
     ReportStatusToSCMgr(SERVICE_STOP_PENDING, NO_ERROR, 0);
-    SigExit(CTRL_SERVICESTOP_EVENT);
+    SigHandlerExit(CTRL_SERVICESTOP_EVENT);
+    ReportStatusToSCMgr(SERVICE_STOPPED, 0, 0);
     return;
   case SERVICE_CONTROL_INTERROGATE:
   default:
@@ -204,6 +210,8 @@ void atServiceExit(void)
 {
   char *sp;
   Log(10,"atServiceExit()");
+
+  exitfunc();
   if(serv_argv)
   {
     sp=serv_argv[0];
@@ -217,14 +225,6 @@ void atServiceExit(void)
     free(serv_envp);
     free(sp);
     serv_envp=NULL;
-  }
-
-  if( !init_exit_service_thread || (init_exit_service_thread == PID()) ){ /* service control allowed only from one thread only */
-    Log(10,"ReportStatusToSCMgr(SERVICE_STOPPED, %li, 3000) call",dwErr);
-    ReportStatusToSCMgr(SERVICE_STOPPED, dwErr, 3000);
-
-    if((checkcfg_flag==2)&&(res_checkservice>0))
-      service_main(service_main_start);
   }
 }
 
@@ -302,7 +302,6 @@ static void ServiceStart()
     break;
   }
   if(hk) RegCloseKey(hk);
-/*  atServiceExit(); */
 }
 
 static void WINAPI ServiceMain(DWORD argc,LPSTR* args)
@@ -320,8 +319,8 @@ static void WINAPI ServiceMain(DWORD argc,LPSTR* args)
       ServiceStart();
     }
   }
-  if(sshan)
-    atServiceExit();
+/*  if(sshan)
+    atServiceExit();*/
   exit(0);
 }
 

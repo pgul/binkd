@@ -14,13 +14,13 @@ the Free Software Foundation; either version 2 of the License, or
 ******************************************************************************/
 #include <windows.h>
 
-/* thread what initiate exit of service */
-extern int init_exit_service_thread;
-
-/* exit(0) after (SigHandler()==FALSE) call
-  (Wrapper for SigHandlerExit() to prevent mingw compiler warnings)
-*/
-void SigExit(DWORD SigType);
+/*--------------------------------------------------------------------*/
+/*    BOOL SigHandlerExit(DWORD SigType)                              */
+/*                                                                    */
+/*    Signal handler, exit(0) after (SigHandler()==FALSE) call        */
+/*    For "manual" call only, not for OS signal handlers              */
+/*--------------------------------------------------------------------*/
+BOOL SigHandlerExit(DWORD SigType);
 
 /* Set signal handler */
 int set_break_handlers(void);

@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2003/10/07 14:41:04  stas
+ * Fix NT service shutdown
+ *
  * Revision 2.8  2003/10/06 16:50:22  stas
  * Drop excessive numeric values of enumeration in parameter and return values of service_main()
  *
@@ -107,3 +110,12 @@ int tell_start_ntservice(void);
 /* Minimise to tray
  */
 void do_tray_flag(void);
+
+
+/*  wrapper for win32API function SetServiceStatus() */
+BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
+                         DWORD dwWin32ExitCode,
+                         DWORD dwWaitHint);
+
+/* Service-specific cleanup procedure. Not an thread-safe! */
+void atServiceExit(void);

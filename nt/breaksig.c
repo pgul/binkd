@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.15  2003/10/07 14:41:04  stas
+ * Fix NT service shutdown
+ *
  * Revision 2.14  2003/10/06 18:59:58  stas
  * Prevent double calls of ReportStatusToSCMgr(SERVICE_STOPPED,...) and double restart service
  *
@@ -100,6 +103,8 @@
 #ifdef BINKDW9X
 #include "win9x.h"
 #endif
+#include "service.h"
+#include "w32tools.h"
 
 /*--------------------------------------------------------------------*/
 /*                         Global definitions                         */
@@ -123,10 +128,6 @@ extern int pid_file_created;    /* we've created the pid_file */
 /*                                                                    */
 /*    Signal handler                                                  */
 /*--------------------------------------------------------------------*/
-#ifndef BINKDW9X
-extern int isService;
-extern int init_exit_service_thread;
-#endif
 
 static BOOL CALLBACK SigHandler(DWORD SigType) {
    Log(10, "SigHandler(%lu)", SigType);
@@ -140,7 +141,7 @@ static BOOL CALLBACK SigHandler(DWORD SigType) {
          break;
       case CTRL_LOGOFF_EVENT:
 #ifndef BINKDW9X
-         if(isService) return (TRUE);
+         if(isService()) return (TRUE);
 #endif
          Log(1,"Interrupted by LogOff");
          break;
@@ -164,28 +165,38 @@ static BOOL CALLBACK SigHandler(DWORD SigType) {
 /*    BOOL SigHandlerExit(DWORD SigType)                              */
 /*                                                                    */
 /*    Signal handler, exit(0) after (SigHandler()==FALSE) call        */
+/*    For "manual" call only, not for OS signal handlers              */
 /*--------------------------------------------------------------------*/
 
-static BOOL CALLBACK SigHandlerExit(DWORD SigType) {
+BOOL SigHandlerExit(DWORD SigType) {
    Log(10, "SigHandlerExit(%lu)", SigType);
    if (SigHandler(SigType)==FALSE)
    {
-#ifndef BINKD9X
-     init_exit_service_thread = PID();
-#endif
-     exit(0);
+     atexit(NULL);
+     if(!isService())
+       exit(0);
    }
 
    return TRUE;
 }
 
 /*--------------------------------------------------------------------*/
-/*  Wrapper for SigHandlerExit() to prevent mingw compiler warnings   */
+/*  Signal handler for NT console                                     */
 /*--------------------------------------------------------------------*/
+static BOOL CALLBACK SigHandlerNT(DWORD SigType) {
 
-void SigExit(DWORD SigType) {
-  SigHandlerExit(SigType);
+   Log(10, "SigHandlerNT(%lu)", SigType);
+   if (SigHandler(SigType)==FALSE)
+   {
+     if(isService()) {
+       ReportStatusToSCMgr(SERVICE_STOP_PENDING, NO_ERROR, 0);
+       ReportStatusToSCMgr(SERVICE_STOPPED, NO_ERROR, 30000);
+     }
+     exit(0);
+  }
+  return TRUE;
 }
+
 
 /*--------------------------------------------------------------------*/
 /*    int set_break_handlers(void)                                    */
@@ -194,11 +205,12 @@ void SigExit(DWORD SigType) {
 /*--------------------------------------------------------------------*/
 
 int set_break_handlers (void) {
-   atexit (exitfunc);
+   if (!IsNT() || !isService())
+     atexit (exitfunc);
 #if BINKDW9X
    CreateWin9xThread(&SigHandler);
 #else
-   if (SetConsoleCtrlHandler(&SigHandlerExit, TRUE) != TRUE) {
+   if (SetConsoleCtrlHandler(&SigHandlerNT, TRUE) != TRUE) {
       return (0);
    }
 #endif
