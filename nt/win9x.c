@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.14  2003/07/18 10:30:34  stas
+ * New functions: IsNT(), Is9x(); small code cleanup
+ *
  * Revision 2.13  2003/07/18 07:48:57  hbrew
  * binkd9x: Store current dir in registry
  *
@@ -76,6 +79,7 @@
 #include "../iphdr.h"
 #include "../common.h"
 #include "win9x.h"
+#include "w32tools.c"
 
 #if !defined(ENDSESSION_LOGOFF)
 #define ENDSESSION_LOGOFF    0x80000000
@@ -201,7 +205,7 @@ int win9x_process(int argc, char **argv)
 {
   win9x_extend_service_name();
 
-  if (service_flag != w32_noservice && W32_CheckOS(VER_PLATFORM_WIN32_WINDOWS))
+  if (service_flag != w32_noservice && !Is9x())
   {
     if (!quiet_flag)  AllocTempConsole();
     Log((quiet_flag?0:-1), "Can't operate witn Windows 9x services: incompatible OS type%s", quiet_flag?"":"\n");

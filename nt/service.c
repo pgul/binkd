@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2003/07/18 10:30:34  stas
+ * New functions: IsNT(), Is9x(); small code cleanup
+ *
  * Revision 2.11  2003/07/18 04:15:03  hbrew
  * Fix 'tell_start_ntservice(): {120} ...' error on Win9x
  *
@@ -72,23 +75,10 @@
 #include "../common.h"
 #include "../iphdr.h"
 #include "service.h"
+#include "w32tools.h"
 
 extern enum serviceflags service_flag;
-extern char *service_name;
 extern char *configpath;
-extern int tray_flag;
-#ifdef BINKD_DAEMONIZE
-extern int daemon_flag;
-#endif
-extern int server_flag;
-extern int client_flag;
-extern int poll_flag;
-
-extern int quiet_flag;
-extern int verbose_flag;
-extern int checkcfg_flag;
-extern int no_MD5;
-extern int no_crypt;
 
 static char libname[]="ADVAPI32";
 static char *srvname="binkd-service";
@@ -647,7 +637,7 @@ int service(int argc, char **argv, char **envp)
 
   if(service_flag==w32_noservice) return 0;
   else{
-    if( W32_CheckOS(VER_PLATFORM_WIN32_NT) )
+    if( !IsNT() )
     {
       Log(0,"Can't operate witn Windows NT services: incompatible OS type");
       return 1;
@@ -785,6 +775,7 @@ int service(int argc, char **argv, char **envp)
 int checkservice(void)
 {
   if(res_checkservice) return res_checkservice;
+  if(Is9x()) return res_checkservice=(CHKSRV_CANT_INSTALL);
   if(service_main(0)) return res_checkservice=(CHKSRV_CANT_INSTALL);
   if(service_main(1)) return res_checkservice=CHKSRV_NOT_INSTALLED;
   return res_checkservice=CHKSRV_INSTALLED;
@@ -798,11 +789,11 @@ int tell_start_ntservice(void)
   SERVICE_TABLE_ENTRY dt[]= { {"", (LPSERVICE_MAIN_FUNCTION)ServiceMain}, {NULL, NULL}};
   int res=0;
 
-  if( W32_CheckOS(VER_PLATFORM_WIN32_NT) )
+  if( !IsNT() )
     return 1;
 
-  if(!StartServiceCtrlDispatcher(dt)){  /* Can't start service */
-    switch( GetLastError() ){
+  if(!StartServiceCtrlDispatcher(dt)){
+    switch( GetLastError() ){           /* Can't start service */
     case ERROR_FAILED_SERVICE_CONTROLLER_CONNECT:  /*1063*/
        res=1;   /* Program running not an as service */
        break;

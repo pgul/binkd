@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.12  2003/07/18 10:30:34  stas
+ * New functions: IsNT(), Is9x(); small code cleanup
+ *
  * Revision 2.11  2003/06/21 07:58:01  gul
  * Fix typo in error report string
  *
@@ -117,20 +120,6 @@ static pStrErrList errlist;
 /*                    Local functions prototypes                      */
 /*--------------------------------------------------------------------*/
 
-/* Windows version test
- * Parameter: Platform ID (VER_PLATFORM_WIN32_NT or VER_PLATFORM_WIN32_WINDOWS,
- *            see GetVersionEx() if MSDN)
- * Return 0 if match OS, not zero (usually -1) if do not match OS,
- * return 1 if can't retrieve OS version info.
- */
-int W32_CheckOS(unsigned long PlatformId)
-{ OSVERSIONINFO os_ver;
-
-  os_ver.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-  if( GetVersionEx(&os_ver) )
-    return os_ver.dwPlatformId != PlatformId;
-  return 1;
-}
 
 /* Return error string for win32 API error
  * return pointer to malloc'ed string or NULL

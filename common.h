@@ -13,6 +13,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2003/07/18 10:30:33  stas
+ * New functions: IsNT(), Is9x(); small code cleanup
+ *
  * Revision 2.6  2003/07/16 15:08:49  stas
  * Fix NT services to use getopt(). Improve logging for service
  *
@@ -101,6 +104,14 @@ extern int no_crypt;
 extern int server_flag, client_flag;
 extern int poll_flag;
 extern int inetd_flag;
+extern int quiet_flag;
+extern int verbose_flag;
+#ifdef BINKD_DAEMONIZE
+extern int daemon_flag;
+#endif
+#ifdef WIN32
+extern int tray_flag;
 extern int isService;
+#endif
 
 #endif

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2003/07/18 10:30:33  stas
+ * New functions: IsNT(), Is9x(); small code cleanup
+ *
  * Revision 2.11  2003/06/11 09:00:43  stas
  * Don't try to install/uninstall/control service on incompatible OS. Thanks to Alexander Reznikov
  *
@@ -145,7 +148,6 @@ const char *tcperr (void);
 #elif defined(WIN32)
 const char *tcperr (int);
 void ReleaseErrorList(void);
-int W32_CheckOS(unsigned long PlatformId);
 
   #define TCPERR() tcperr(h_errno)
   #define TCPERRNO (h_errno)

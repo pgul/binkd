@@ -45,8 +45,8 @@ LDEBUG=    /incremental:yes /map:"$(OUTDIR)\$(BINKDEXE).map" /debug
 !ifdef PERL
 PERL_COPT= -I"$(PERL_BASE)\lib\core"
 PERL_CDEFS= -D"WITH_PERL" -D"DELAY_ADR" -D"xCLIENT_BUGx" -DNDEBUG -DWIN32 -D_CONSOLE -DNO_STRICT -DHAVE_DES_FCRYPT -DPERL_IMPLICIT_CONTEXT -DPERL_IMPLICIT_SYS -DPERL_MSVCRT_READFIX
-PERL_LLIBS= $(PERL_BASE)\lib\core\perl56.lib 
-#PERL_LLIBS= delayimp.lib $(PERL_BASE)\lib\core\perl56.lib 
+PERL_LLIBS= $(PERL_BASE)\lib\core\perl56.lib
+#PERL_LLIBS= delayimp.lib $(PERL_BASE)\lib\core\perl56.lib
 #PERL_LOPT= /opt:nowin98 /delayload:perl56.dll
 PERL_OBJS= $(OUTDIR)\perlhooks.obj
 !endif
@@ -75,7 +75,8 @@ NTLM_OBJS= \
  "$(OUTDIR)\md4_dgst.obj" "$(OUTDIR)\set_key.obj"
 NT_OBJS= \
  "$(OUTDIR)\breaksig.obj" "$(OUTDIR)\sem.obj"      "$(OUTDIR)\getfree.obj" \
- "$(OUTDIR)\TCPErr.obj"   "$(OUTDIR)\WSock.obj"    "$(OUTDIR)\dirwin32.obj"
+ "$(OUTDIR)\TCPErr.obj"   "$(OUTDIR)\WSock.obj"    "$(OUTDIR)\dirwin32.obj" \
+ "$(OUTDIR)\w32tools.obj"
 OBJS= \
  "$(OUTDIR)\binkd.obj"    "$(OUTDIR)\readcfg.obj"  "$(OUTDIR)\tools.obj"   \
  "$(OUTDIR)\ftnaddr.obj"  "$(OUTDIR)\ftnq.obj"     "$(OUTDIR)\client.obj"  \

@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/07/18 10:30:34  stas
+ * New functions: IsNT(), Is9x(); small code cleanup
+ *
  * Revision 2.4  2003/07/16 15:50:44  stas
  * Fix: restore "Minimise to tray"
  *
@@ -33,6 +36,32 @@
  *
  *
  */
+
+/* service_main types of call */
+#define service_main_services       0 /* Check: we can operate with services */
+#define service_main_testinstalled  1 /* Check: installed or not */
+#define service_main_install        2 /* Install service */
+#define service_main_uninstall      3 /* Uninstall service */
+#define service_main_start          4 /* Start service */
+#define service_main_installstart   5 /* Install and start service */
+#define service_main_testrunning    6 /* Check: service is running */
+#define service_main_stop           7 /* Stop service */
+
+/* service_main return values */
+#define service_main_ret_ok         0
+#define service_test_notinstall     1 /* Service not installed (OpenService() failed or other) */
+#define service_test_fail           2 /* Can't check service: QueryServiceStatus() fail */
+#define service_test_notrunning     3 /* Service not running */
+#define service_main_ret_failinstall 1 /* Service install fail */
+#define service_main_ret_failstart  1 /* Service start failed */
+#define service_main_ret_failstop   1 /* Service stop failed */
+#define service_main_ret_faildelete 1 /* Service delete failed */
+#define service_main_ret_fail       2 /* Can't check service: QueryServiceStatus() fail */
+#define service_main_ret_not        2 /* Can't operate: OpenSCManagerA() dont exist */
+#define service_main_ret_failcontrol 3 /* OpenSCManager failed */
+
+extern char *service_name;
+
 
 /* checkservice() return values */
 #define CHKSRV_CANT_INSTALL  -1
