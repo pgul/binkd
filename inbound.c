@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2002/07/22 19:38:23  gul
+ * overwrite minor fix
+ *
  * Revision 2.4  2002/07/21 10:35:44  gul
  * overwrite option
  *
@@ -335,7 +338,7 @@ int inb_done (char *netname, size_t size, time_t time,
 {
   char tmp_name[MAXPATHLEN + 1];
   char *s, *u;
-  int  unlinked, i;
+  int  unlinked = 0, i;
 
   *real_name = 0;
 
