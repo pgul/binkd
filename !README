@@ -11,7 +11,7 @@ non-UNIX:
 UNIXes:
 
 1. Copy all files from mkfls/unix/ to the root of binkd sources:
-	cd /usr/src/binkd-0.9.6
+	cd /usr/src/binkd-0.9.7
 	cp mkfls/unix/* .
 
 2. Run configure:
