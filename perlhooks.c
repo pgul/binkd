@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.49  2004/11/19 14:59:38  gul
+ * Typo in new perl errors handler
+ *
  * Revision 2.48  2004/11/15 10:32:11  gul
  * Fixed compilation multithread version with perl
  *
@@ -1125,8 +1128,8 @@ int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
   /* Set warn and die hooks */
   if (PL_warnhook) SvREFCNT_dec (PL_warnhook);
   if (PL_diehook ) SvREFCNT_dec (PL_diehook );
-  PL_warnhook = newRV_inc ((SV*) perl_get_cv ("hpt_warn", TRUE));
-  PL_diehook  = newRV_inc ((SV*) perl_get_cv ("hpt_warn", TRUE));
+  PL_warnhook = newRV_inc ((SV*) perl_get_cv ("binkd_warn", TRUE));
+  PL_diehook  = newRV_inc ((SV*) perl_get_cv ("binkd_warn", TRUE));
 
   /* run main program body */
   Log(LL_DBG, "perl_init(): running body");
