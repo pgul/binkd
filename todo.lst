@@ -5,7 +5,6 @@
 - no syslog support under BeOS
 - charsets support, unicode
 - 3 passwords in passwd-file - "incoming,pkt,outgoing"
-- separate child status to signal and retcode
 - aftersession
 - "empty queue" flag (exit if "-p")
 - exit immediately after session in "-p" mode
