@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.34  2003/03/02 14:30:02  gul
+ * Drop unsecure AKA with bad source IP address, no drop session
+ *
  * Revision 2.33  2003/03/01 20:49:21  gul
  * Fix spelling
  *
@@ -886,9 +889,17 @@ static int ADR (STATE *state, char *s, int sz)
 	  ip_verified = -1;
       } else
       { /* not matched */
-	Log (1, "addr: %s (not from allowed remote address)", szFTNAddr);
-        msg_send2 (state, M_ERR, "Bad source IP", 0);
-	return 0;
+	if (n.pwd && strcmp(n.pwd, "-"))
+	{
+	  Log (1, "addr: %s (not from allowed remote address)", szFTNAddr);
+	  msg_send2 (state, M_ERR, "Bad source IP", 0);
+	  return 0;
+	} else
+	{ /* drop unsecure AKA with bad IP-addr */
+	  if (ip_verified == 0)
+	    ip_verified = -1;
+	  continue;
+	}
       }
     }
     else
@@ -955,7 +966,7 @@ static int ADR (STATE *state, char *s, int sz)
   }
   if (ip_verified < 0)
   { /* strict IP check and no address resolved */
-    Log (1, "IP check failed, no address for check found");
+    Log (1, "Source IP check failed");
     msg_send2 (state, M_ERR, "Bad source IP", 0);
     return 0;
   }
