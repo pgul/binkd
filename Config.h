@@ -52,7 +52,13 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "1.0a-257"
+#define MAJOR 1
+#define MINOR 0
+#define SUFFIX "a"
+#define PATCHLEVEL 257
+#define MYVER_S(s) _MYVER_S(s)
+#define _MYVER_S(s) #s
+#define MYVER MYVER_S(MAJOR) "." MYVER_S(MINOR) SUFFIX "-" MYVER_S(PATCHLEVEL)
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
