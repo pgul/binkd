@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.4.2.5  2003/09/12 09:44:57  hbrew
+ * Fix old noncritical bug in binkd9x (STD_OUTPUT_HANDLE --> STD_INPUT_HANDLE)
+ *
  * Revision 2.4.2.4  2003/08/28 06:29:51  hbrew
  * Update binkd9x for compability with binkd 0.9.6 commandline; put binkd9x.txt from current
  *
@@ -873,7 +876,7 @@ void FreeTempConsole(void)
 
         printf("Press any key...\n");
 
-        in = GetStdHandle(STD_OUTPUT_HANDLE);
+        in = GetStdHandle(STD_INPUT_HANDLE);
         FlushConsoleInputBuffer(in);
         hCrt = _open_osfhandle((long) in, 0x4000);
         hf = _fdopen( hCrt, "r" );
