@@ -1,3 +1,7 @@
+2003/10/12 15:58:43 1.0a-235 gul
+protocol.c,2.128,2.129
+No changes ;)
+
 2003/10/11 20:31:30 1.0a-234 stas
 breaksig.c,2.18,2.19
 cosmetics (indent nt/breaksig.c)
