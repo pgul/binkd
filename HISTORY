@@ -1,3 +1,7 @@
+2004/01/08 14:48:18 1.0a-360 val
+binkd.c,2.86,2.87
+add missing 'break' for -d option case
+
 2004/01/08 14:46:12 1.0a-359 val
 compress.c,2.3,2.4 zlibdl.c,2.14,2.15
 correct macrodef for msvc (_msc_ver instead of __msc__)
