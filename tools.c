@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.59  2004/01/03 13:35:29  stas
+ * Fix log file name usage (from enviroment)
+ *
  * Revision 2.58  2004/01/02 20:58:56  stas
  * Log file may be defined in enviroment variable BINKD_LOG
  *
@@ -549,6 +552,7 @@ void Log (int lev, char *s,...)
   if (ok)
 { /* if (ok) */
 
+  char *__logpath=NULL;
   struct tm tm;
   time_t t;
   static const char *marks = "!?+-";
@@ -571,15 +575,14 @@ void Log (int lev, char *s,...)
       return;
   }
 
-  if (lev <= current_loglevel /*&& *current_logpath*/)
+  __logpath = (current_logpath && *current_logpath) ?
+                               current_logpath : getenv(BINKD_LOGPATH_ENVIRON);
+  if (lev <= current_loglevel && __logpath)
   {
     FILE *logfile = 0;
     int i;
-    char *__logpath;
 
     LockSem(&lsem);
-    __logpath = (current_logpath && *current_logpath) ?
-                               current_logpath : getenv(BINKD_LOGPATH_ENVIRON);
     for (i = 0; logfile == 0 && i < 10; ++i)
     {
       logfile = fopen (__logpath, "a");
@@ -594,7 +597,7 @@ void Log (int lev, char *s,...)
       first_time = 0;
     }
     else
-      fprintf (my_stderr, "Cannot open %s: %s!\n", current_logpath, strerror (errno));
+      fprintf (my_stderr, "Cannot open %s: %s!\n", __logpath, strerror (errno));
     ReleaseSem(&lsem);
   }
 #ifdef WIN32
