@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19  2003/10/05 04:59:11  stas
+ * Fix service handler function definition; get service name from OS
+ *
  * Revision 2.18  2003/08/26 22:18:49  gul
  * Fix compilation under w32-mingw and os2-emx
  *
@@ -192,7 +195,7 @@ void atServiceExit(void)
 }
 
 int binkd_main(int argc, char **argv, char **envp);
-static void ServiceStart(LPTSTR args)
+static void ServiceStart()
 {
   HKEY hk;
   LONG rc;
@@ -269,16 +272,20 @@ static void ServiceStart(LPTSTR args)
   atServiceExit();
 }
 
-static void WINAPI ServiceMain(LPTSTR args)
+static void WINAPI ServiceMain(DWORD argc,LPSTR* args)
 {
+
+  if(argc && args && args[0]) srvname = strdup(args[0]); /* save service name */
+
   sshan=RegisterServiceCtrlHandler(srvname, ServiceCtrl);
-  while(sshan)
+  if(sshan)
   {
     sstat.dwServiceType = SERVICE_WIN32_OWN_PROCESS | (tray_flag? SERVICE_INTERACTIVE_PROCESS : 0);
     sstat.dwServiceSpecificExitCode = 0;
-    if (!ReportStatusToSCMgr(SERVICE_START_PENDING, NO_ERROR, 3000)) break;
-    ServiceStart(args);
-    break;
+    if (ReportStatusToSCMgr(SERVICE_START_PENDING, NO_ERROR, 3000))
+    {
+      ServiceStart();
+    }
   }
   if(sshan)
     atServiceExit();
@@ -778,7 +785,7 @@ int checkservice(void)
  */
 int tell_start_ntservice(void)
 {
-  SERVICE_TABLE_ENTRY dt[]= { {"", (LPSERVICE_MAIN_FUNCTION)ServiceMain}, {NULL, NULL}};
+  SERVICE_TABLE_ENTRY dt[]= { {"", ServiceMain}, {NULL, NULL}};
   int res=0;
 
   if( !IsNT() )
