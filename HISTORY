@@ -1,3 +1,7 @@
+2004/10/18 18:16:40 1.0a-408 gul
+protocol.c,2.160,2.161
+Minor bugfix (patch from Victor Levenets <aq@takas.lt>)
+
 2004/10/18 13:29:35 1.0a-407 gul
 md5b.c,2.8,2.9
 Bugfix in MD_getChallenge(), thanks to Victor Levenets <aq@takas.lt>
