@@ -1,3 +1,7 @@
+2004/01/03 21:26:13 1.0a-344 stas
+service.c,2.48,2.49
+Decrease delay for service operations
+
 2004/01/03 21:04:52 1.0a-343 stas
 w32tools.h,2.9,2.10 w32tools.c,2.13,2.14
 New functions: public w32Init() and hidden w32exitfunc()
