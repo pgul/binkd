@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.78  2004/11/05 07:45:12  gul
+ * Bugfix in passwords and defnode processing logic
+ *
  * Revision 2.77  2004/10/26 17:36:59  gul
  * Set time intervals in human-readable form (12h instead of 43200 etc.)
  *
@@ -924,7 +927,7 @@ static int read_passwords(char *filename)
                   BW_DEF, BW_DEF,
 #endif
                   &work_config);
-        if (pn) pn->listed = NL_PASSWORDS;
+        if (pn && !pn->listed) pn->listed = NL_PASSWORDS;
       }
     }
   }
