@@ -1,3 +1,7 @@
+2003/11/04 02:46:54 1.0a-293 hbrew
+confopt.h,NONE,2.1 binkd.c,2.72,2.73
+confopt added.
+
 2003/10/30 13:11:34 1.0a-292 gul
 protocol.c,2.139,2.140
 Drop incoming session if secure remote AKA is busy
