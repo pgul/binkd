@@ -952,7 +952,7 @@ CP/M и многих других):
 
     cd . >>NNNNMMMM.flo
 
-    В DOS, Windows, OS/2 таке работает:
+    В DOS, Windows, OS/2 также работает:
 
     type nul >>NNNNMMMM.flo
 
