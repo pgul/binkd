@@ -1,3 +1,7 @@
+2003/09/08 11:21:22 0.9.6a-166 stream
+exitproc.c,2.25,2.26 ftnnode.c,2.19,2.20 readcfg.c,2.49,2.50
+Cleanup config semaphore, free memory of base config on exit.
+
 2003/09/08 09:36:53 0.9.6a-165 val
 exitproc.c,2.24,2.25 perlhooks.c,2.20,2.21
 (a) don't call exitfunc for perlhook fork'ed process
