@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2003/03/10 10:39:23  gul
+ * New include file common.h
+ *
  * Revision 2.13  2003/03/10 08:38:07  gul
  * Make n_servers/n_clients changes thread-safe
  *
@@ -108,6 +111,7 @@
 
 #include "Config.h"
 #include "iphdr.h"
+#include "common.h"
 #include "iptools.h"
 #include "tools.h"
 #include "readcfg.h"
@@ -132,8 +136,6 @@ static void chld (int signo)
 #endif
 
 SOCKET sockfd = (SOCKET)-1;
-extern int checkcfg_flag;	       /* exit(3) on config change */
-extern int pidcmgr;
 
 void serv (void *arg)
 {

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/03/10 10:39:23  gul
+ * New include file common.h
+ *
  * Revision 2.1  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -38,13 +41,12 @@
 #include <signal.h>
 #include "Config.h"
 #include "sys.h"
+#include "common.h"
 #include "bsy.h"
 #include "tools.h"
 #include "iphdr.h"
 #include "readcfg.h"
 #include "binlog.h"
-
-extern int pidcmgr;		/* pid for clientmgr */
 
 static void exitsig (int arg)
 {

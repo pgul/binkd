@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22  2003/03/10 10:39:23  gul
+ * New include file common.h
+ *
  * Revision 2.21  2003/03/10 08:38:07  gul
  * Make n_servers/n_clients changes thread-safe
  *
@@ -136,6 +139,7 @@
 #include "Config.h"
 #include "sys.h"
 #include "iphdr.h"
+#include "common.h"
 #include "readcfg.h"
 #include "server.h"
 #include "client.h"
@@ -542,8 +546,6 @@ int main (int argc, char *argv[], char *envp[])
 #if defined(UNIX) || defined(AMIGA) || (defined(OS2) && defined(HAVE_FORK))
   if (setjmp (jb))
   {
-    extern SOCKET sockfd;
-
     Log (5, "Closing socket # %i", sockfd);
     soclose (sockfd);
 binkdrestart:

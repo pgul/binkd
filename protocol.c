@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.42  2003/03/10 10:39:23  gul
+ * New include file common.h
+ *
  * Revision 2.41  2003/03/05 13:21:51  gul
  * Fix warnings
  *
@@ -210,6 +213,7 @@
 #include "Config.h"
 #include "sys.h"
 #include "iphdr.h"
+#include "common.h"
 #include "iptools.h"
 #include "tools.h"
 #include "readcfg.h"
@@ -227,9 +231,6 @@
 #include "sem.h"
 #include "md5b.h"
 #include "crypt.h"
-
-extern int no_MD5;
-extern int binkd_exit;
 
 static char *scommand[] = {"NUL", "ADR", "PWD", "FILE", "OK", "EOB",
                            "GOT", "ERR", "BSY", "GET", "SKIP"};
@@ -1999,7 +2000,6 @@ void log_end_of_session (char *status, STATE *state)
 
 void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
 {
-  extern int n_servers;
   STATE state;
   struct timeval tv;
   fd_set r, w;

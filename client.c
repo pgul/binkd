@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19  2003/03/10 10:39:23  gul
+ * New include file common.h
+ *
  * Revision 2.18  2003/03/10 08:38:07  gul
  * Make n_servers/n_clients changes thread-safe
  *
@@ -125,6 +128,7 @@
 #include "client.h"
 #include "readcfg.h"
 #include "iphdr.h"
+#include "common.h"
 #include "iptools.h"
 #include "sys.h"
 #include "ftnq.h"
@@ -139,17 +143,13 @@
 #include "https.h"
 #endif
 
-int checkcfg (void);
 static void call (void *arg);
 
 int n_clients = 0;
 
-extern int binkd_exit;
-
 #ifdef HAVE_FORK
 
 static jmp_buf jmpbuf;
-extern int connect_timeout;
 
 static void chld (int signo)
 {
@@ -203,12 +203,6 @@ void rel_grow_handles(int nh)
 
 void clientmgr (void *arg)
 {
-  extern int pidcmgr;
-  extern int poll_flag;
-  extern int server_flag;
-  extern int client_flag;
-  extern int checkcfg_flag;	       /* exit(3) on config change */
-
   int pid;
   int q_empty = 1;
 

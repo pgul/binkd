@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2003/03/10 10:39:23  gul
+ * New include file common.h
+ *
  * Revision 2.7  2003/03/10 08:38:07  gul
  * Make n_servers/n_clients changes thread-safe
  *
@@ -51,17 +54,13 @@
 #include <sys/types.h>
 #include "Config.h"
 #include "sys.h"
+#include "common.h"
 #include "bsy.h"
 #include "tools.h"
 #include "iphdr.h"
 #include "readcfg.h"
 #include "binlog.h"
 #include "sem.h"
-
-extern int pidcmgr;		       /* pid for clientmgr */
-extern int pidsmgr;		       /* pid for server */
-extern int server_flag;
-extern int n_servers, n_clients;
 
 int binkd_exit;
 

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2003/03/10 10:39:23  gul
+ * New include file common.h
+ *
  * Revision 2.7  2003/03/01 18:52:49  gul
  * use time_t for mtime
  *
@@ -116,6 +119,7 @@ extern int prescan;
 extern enum inbcasetype { INB_SAVE,INB_UPPER,INB_LOWER,INB_MIXED } inboundcase;
 extern int deletedirs;
 extern int havedefnode;
+extern int connect_timeout;
 #ifdef MAILBOX
 /* FileBoxes dir */
 extern char tfilebox[MAXPATHLEN + 1];

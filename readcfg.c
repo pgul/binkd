@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.20  2003/03/10 10:39:23  gul
+ * New include file common.h
+ *
  * Revision 2.19  2003/03/01 15:00:17  gul
  * Join skipmask and overwrite into common maskchain
  *
@@ -131,6 +134,7 @@
 #endif
 
 #include "Config.h"
+#include "common.h"
 #include "readcfg.h"
 #include "tools.h"
 #include "ftnaddr.h"
@@ -408,7 +412,6 @@ void readcfg0 (char *_path)
   FILE *in;
   char buf[MAXCFGLINE + 1];
   char *w;
-  extern int checkcfg_flag;
 
   line = 0;
   path = _path;

@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/03/10 10:39:23  gul
+ * New include file common.h
+ *
  * Revision 2.5  2003/03/05 11:40:12  gul
  * Fix win32 compilation
  *
@@ -108,42 +111,5 @@
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned long u32;
-
-/*
- * Get free space in a directory
- */
-unsigned long getfree (char *path);
-
-/*
- * Set up break handler, set up exit list if needed
- */
-int set_break_handlers (void);
-
-/*
- * Runs a new thread or forks
- */
-int branch (void (*) (void *), void *, size_t);
-
-/*
- * From breaksig.c -- binkd runs this from exitlist or
- * from signal handler (Under NT)
- */
-void exitfunc (void);
-
-#if defined(OS2) && defined(HAVE_THREADS)
-void rel_grow_handles(int nh);
-#else
-#define rel_grow_handles(nh)
-#endif
-
-#ifdef _iphdrs_h /* SOCKET type defined */
-#ifdef HAVE_THREADS
-int add_socket(SOCKET sockfd);
-int del_socket(SOCKET sockfd);
-#else
-#define add_socket(sockfd)
-#define del_socket(sockfd)
-#endif
-#endif
 
 #endif

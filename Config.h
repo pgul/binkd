@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2003/03/10 10:39:23  gul
+ * New include file common.h
+ *
  * Revision 2.6  2003/03/01 20:16:27  gul
  * OS/2 IBM C support
  *
@@ -44,7 +47,14 @@
 #define _Config_h
 
 #ifdef __WATCOMC__
-  #include <direct.h>
+  /* #include <direct.h> */ /* commented out due to bug */
+  #ifndef NAME_MAX
+    #if defined(__OS2__) || defined(__NT__)
+       #define NAME_MAX	255		/* maximum filename for HPFS or NTFS */
+    #else
+       #define NAME_MAX	12		/* 8 chars + '.' +  3 chars */
+    #endif
+  #endif
   #ifndef MAXPATHLEN
     #define MAXPATHLEN NAME_MAX
   #endif
