@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of Nov 17 2003
+        Version of Nov 19 2003
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -613,12 +613,22 @@ configuration file full path:
 
         16. Can One Make a File Request From BinkD?
 
-    It's a piece of cake! Configure BinkD for calling an external file
-request processor supporting SRIF (e.g. Allfix). Please read the
-"!SRIF.TXT" file and the comment to 'exec' in the configuration file.
+    It's a piece of cake! BinkD supports WAZOO FREQ.
 
-    Here are the examples of lines in configuration file for DOS-based OS and
-for *nix (you should use regular expressions in the latter case):
+    To request files from a remote system it is necessary to create a file
+of type nnnnmmmm.REQ and to put it in the outbound directory near *.?ut and
+*.?lo files. But *.REQ files do not initiate BinkD to call a link so to
+make a FREQ it is necessary to make a poll.
+
+    One can configure BinkD for calling an external file request processor
+supporting SRIF (e.g. Allfix) for receiving and handling FREQs in BinkD.
+Please read the "!SRIF.TXT" file and the comment to 'exec' in the
+configuration file.
+
+    Here are the examples of lines in configuration file for DOS-based OS
+and for *nix (you should use regular expressions in the latter case for
+BinkD to match both upper-case and lower-case letters, e.g. both *.REQ and
+*.req):
 
     exec "\\ftn\\allfix\\allfix.exe RP -SRIF *S" *.req
 
