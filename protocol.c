@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.84  2003/07/03 05:43:41  gul
+ * Another fix for previous patch
+ *
  * Revision 2.83  2003/07/02 18:16:43  gul
  * Bugfix fot patch about send status without NR-mode
  *
@@ -1998,7 +2001,7 @@ static int GOT (STATE *state, char *args, int sz)
 	{
 	  char szAddr[FTN_ADDR_SZ + 1];
 
-	  ftnaddress_to_str (szAddr, &state->out.fa);
+	  ftnaddress_to_str (szAddr, &state->sent_fls[n].fa);
 	  state->bytes_sent += state->sent_fls[n].size;
 	  ++state->files_sent;
 	  memcpy (&state->ND_addr, &state->sent_fls[n].fa, sizeof(FTN_ADDR));
@@ -2416,6 +2419,7 @@ static int start_file_transfer (STATE *state, FTNQ *file)
 	break;
       }
     }
+    memcpy (&state->out.fa, &state->flo.fa, sizeof(FTN_ADDR));
   }
 
   if (action == -1)
