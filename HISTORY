@@ -1,3 +1,8 @@
+2003/10/21 21:17:22 1.0a-266
+ stas
+tray.c,2.2,2.3
+Log message 'Icon for systray is loaded from <file>'
+
 2003/10/20 23:27:10 1.0a-265
  gul
 binkd.c,2.70,2.71
