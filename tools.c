@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.64  2004/10/18 15:22:20  gul
+ * Change handle perl errors method
+ *
  * Revision 2.63  2004/08/03 20:46:46  gul
  * Use localtime_r() and gmtime_r() if exists
  *
@@ -583,9 +586,9 @@ void Log (int lev, char *s,...)
      )
   {
     LockSem(&lsem);
-    fprintf (my_stderr, "%30.30s\r%c %02d:%02d [%u] %s%s", " ", ch,
+    fprintf (stderr, "%30.30s\r%c %02d:%02d [%u] %s%s", " ", ch,
          tm.tm_hour, tm.tm_min, (unsigned) PID (), buf, (lev >= 0) ? "\n" : "");
-    fflush (my_stderr);
+    fflush (stderr);
     ReleaseSem(&lsem);
     if (lev < 0)
       return;
@@ -613,7 +616,7 @@ void Log (int lev, char *s,...)
       first_time = 0;
     }
     else
-      fprintf (my_stderr, "Cannot open %s: %s!\n", __logpath, strerror (errno));
+      fprintf (stderr, "Cannot open %s: %s!\n", __logpath, strerror (errno));
     ReleaseSem(&lsem);
   }
 #ifdef WIN32

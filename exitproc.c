@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.40  2004/10/18 15:22:19  gul
+ * Change handle perl errors method
+ *
  * Revision 2.39  2004/02/07 14:06:06  hbrew
  * Macros: RTLDLL-->RTLSTATIC, BINKDW9X-->BINKD9X
  *
@@ -193,10 +196,6 @@ int del_socket(SOCKET sockfd)
 
 #endif
 
-#if defined(WITH_PERL) && defined(HAVE_FORK)
-extern int perl_skipexitfunc;
-#endif
-
 void close_srvmgr_socket(void)
 {
   if (sockfd != INVALID_SOCKET)
@@ -225,9 +224,6 @@ void exitfunc (void)
   }
 #endif
 
-#if defined(WITH_PERL) && defined(HAVE_FORK)
-  if (perl_skipexitfunc) return;
-#endif
   Log(7, "exitfunc()");
 
 #ifdef HAVE_FORK

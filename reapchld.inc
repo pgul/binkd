@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2004/10/18 15:22:20  gul
+ * Change handle perl errors method
+ *
  * Revision 2.4  2003/12/26 21:31:45  gul
  * Report exit code or signal number of exited processes
  *
@@ -21,7 +24,6 @@
  *
  * Revision 2.0  2001/01/10 12:12:39  gul
  * Binkd is under CVS again
- *
  *
  */
 {
@@ -44,12 +46,7 @@
       exit(4);
     }
 #ifdef CHILDCOUNT
-#ifdef WITH_PERL
-    if (pid == perl_errpid)
-      perl_errpid = 0;
-    else
-#endif
-      CHILDCOUNT--;
+    CHILDCOUNT--;
 #endif
     if (WIFSIGNALED(status))
       Log (2, "process %u exited by signal %u", pid, WTERMSIG(status));
