@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/03/22 08:59:58  gul
+ * opendir() return NULL if directori does not exist
+ *
  * Revision 2.2  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -33,29 +36,20 @@
 #ifndef _DIRWIN32_H_
 #define _DIRWIN32_H_
 
-#include <io.h>
 #include <stdlib.h>
 
-typedef struct dirent {
+struct dirent {
    char        d_name[_MAX_PATH+1];  /* file's name */
-#if 0
-   char        d_dta[ 21 ];            /* disk transfer area */
-   char        d_attr;                 /* file's attribute */
-   unsigned short int d_time;          /* file's time */
-   unsigned short int d_date;          /* file's date */
-   long        d_size;                 /* file's size */
-   unsigned short d_ino;               /* serial number (not used) */
-   char        d_first;                /* flag for 1st time */
-#endif
+};
 
-   struct _finddata_t _dt;
-   char               _mask[_MAX_PATH+1];
-   long               _handle;
-   char               _first_time;
+typedef struct {
+   struct dirent	de;
+   long			handle;
+   char			first_time;
 } DIR;
 
 DIR* opendir(const char*);
-DIR* readdir(DIR*);
+struct dirent *readdir(DIR*);
 int  closedir(DIR*);
 
 #endif /* _DIRWIN32_H_ */

@@ -14,15 +14,18 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2003/03/22 08:59:58  gul
+ * opendir() return NULL if directori does not exist
+ *
  * Revision 2.0  2001/01/10 12:12:40  gul
  * Binkd is under CVS again
  *
  *
  */
 
-
 #include <string.h>
 #include <stdio.h>
+#include <io.h>
 
 #include "dirwin32.h"
 
@@ -30,44 +33,48 @@ DIR* opendir(const char* mask)
 {
     DIR* dir;
     char *ch;
+    int  h;
+    char fmask[_MAX_PATH+1];
+    struct _finddata_t dt;
 
+    if (!mask || !*mask) return NULL;
+    strncpy(fmask, mask, sizeof(fmask)-2);
+    fmask[sizeof(fmask) - 3] = '\0';
+    ch = fmask + strlen(fmask) - 1;
+    if (*ch != '/' && *ch != '\\') *++ch = '\\';
+    *++ch = '*';
+    *++ch = '\0';
+    if ((h = _findfirst(fmask, &dt)) == -1)
+	return NULL;
     if ((dir = malloc(sizeof(DIR))) == NULL) return NULL;
-    dir->_first_time = 1;
-    dir->_handle = -1;
-    strcpy(dir->_mask,mask);
-    ch = dir->_mask + strlen(dir->_mask) - 1;
-    if (*ch=='\\' || *ch=='/') strcat(dir->_mask,"*");
-                          else strcat(dir->_mask,"\\*");
-
+    dir->handle = h;
+    strncpy(dir->de.d_name, dt.name, sizeof(dir->de.d_name));
+    dir->first_time = 1;
     return dir;
 }
 
-DIR* readdir(DIR* dir)
+struct dirent *readdir(DIR* dir)
 {
-    if (!dir) return NULL;
+    struct _finddata_t dt;
 
-    if (dir->_first_time || dir->_handle==-1) {
-      dir->_handle=_findfirst(dir->_mask,&(dir->_dt));
-      if (dir->_handle==-1) return NULL;
-      dir->_first_time=0;
-      strcpy(dir->d_name,dir->_dt.name);
-      }
-    else {
-      if (_findnext(dir->_handle,&(dir->_dt))==-1) return NULL;
-      strcpy(dir->d_name,dir->_dt.name);
-      }
+    if (!dir || dir->handle==-1) return NULL;
 
-    return dir; 
+    if (!dir->first_time) {
+	if (_findnext(dir->handle, &dt)==-1) return NULL;
+	strncpy(dir->de.d_name, dt.name, sizeof(dir->de.d_name));
+    }
+    else
+	dir->first_time = 0;
+    return &(dir->de);
 }
 
-
-int  closedir(DIR* dir)
+int closedir(DIR* dir)
 {
    int res;
 
    if (!dir) return 0;
 
-   res = _findclose(dir->_handle);
+   res = _findclose(dir->handle);
    free(dir);
 
    return res==0;
