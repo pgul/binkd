@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2003/04/06 20:28:43  gul
+ * minor bugfix
+ *
  * Revision 2.0  2001/01/10 12:12:39  gul
  * Binkd is under CVS again
  *
@@ -39,18 +42,18 @@ void *xalloc (size_t size)
 
 void *xrealloc (void *ptr, size_t size)
 {
-  if ((ptr = realloc (ptr, size)) == NULL)
+  void *p = realloc (ptr, size);
+
+  if (!p)
     Log (0, "Not enough memory (failed to realloc %p to %lu byte(s))",
 	 ptr, (unsigned long) size);
-  return ptr;
+  return p;
 }
 
 void *xstrdup (const char *str)
 {
-  void *p = strdup (str);
+  void *p = xalloc (strlen (str) + 1);
 
-  if (!p)
-    Log (0, "Not enough memory (failed to strdup %lu byte(s) at %p)",
-	 (unsigned long) strlen (str), str);
+  strcpy (p, str);
   return p;
 }
