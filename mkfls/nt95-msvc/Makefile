@@ -953,6 +953,7 @@ SOURCE=.\nt\service.c
 !IF  "$(CFG)" == "binkd - Win32 Debug"
 
 "$(INTDIR)\service.obj"	"$(INTDIR)\service.SBR" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 !ELSEIF  "$(CFG)" == "binkd - Win32 Release"
 
