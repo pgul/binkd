@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of Aug 29 2003
+        Version of Sep 01 2003
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -154,9 +154,8 @@ a connection.
 
     Hence the fidonet.net domain policy was compiled: a domain name in the
 fidonet.net zone may be granted to the nodes that are present in the
-nodelist and responding at port 24554 using the BinkP protocol twenty four
-hours a day.
-
+nodelist, have either a permanent IP address or a domain name and respond
+at port 24554 using the BinkP protocol twenty four hours a day.
 
 ----------------------------------------------------------------------------
 
