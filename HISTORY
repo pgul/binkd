@@ -1,3 +1,7 @@
+2003/10/28 01:22:57 1.0a-280 gul
+perlhooks.c,2.36,2.37 compress.h,2.1,2.2 zlibdl.c,2.12,2.13
+Fix OS/2 compilation
+
 2003/10/27 23:32:00 1.0a-279 gul
 perlhooks.c,2.35,2.36
 Autodetect perl version, fix warning
