@@ -1,3 +1,7 @@
+2004/08/24 14:31:43 1.0a-392 gul
+sys.h,2.21,2.22
+Fix typo in prev patch
+
 2004/08/21 20:13:38 1.0a-391 gul
 protoco2.h,2.18,2.19
 Fix total bytes logging
