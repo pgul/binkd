@@ -2,6 +2,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2004/10/19 16:28:19  gul
+ * Do not remove complete received but not renamed partial files
+ * for prevent data loss in ND-mode.
+ * Remove all partial files for node after successfull session.
+ *
  * Revision 2.6  2003/10/30 10:57:46  gul
  * Change inb_done arguments, optimize a bit
  *
@@ -57,5 +62,10 @@ int inb_done (TFILE *file, char *real_name, STATE *state, BINKD_CONFIG *config);
  * Remove partial file
  */
 int inb_reject (STATE *state, BINKD_CONFIG *config);
+
+/*
+ * Remove all partial files for remote
+ */
+void inb_remove_partial (STATE *state, BINKD_CONFIG *config);
 
 #endif

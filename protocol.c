@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.162  2004/10/19 16:28:19  gul
+ * Do not remove complete received but not renamed partial files
+ * for prevent data loss in ND-mode.
+ * Remove all partial files for node after successfull session.
+ *
  * Revision 2.161  2004/10/18 15:16:32  gul
  * Minor bugfix (patch from Victor Levenets <aq@takas.lt>)
  *
@@ -3725,6 +3730,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
     /* Successful session */
     log_end_of_session ("OK", &state, config);
     process_killlist (state.killlist, state.n_killlist, 's');
+    inb_remove_partial (&state, config);
     if (to)
       good_try (&to->fa, "CONNECT/BND", config);
   }

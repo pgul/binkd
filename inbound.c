@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.33  2004/10/19 16:28:18  gul
+ * Do not remove complete received but not renamed partial files
+ * for prevent data loss in ND-mode.
+ * Remove all partial files for node after successfull session.
+ *
  * Revision 2.32  2004/08/04 11:32:29  gul
  * Attemp to support large files (>4G)
  *
@@ -219,13 +224,14 @@ static int creat_tmp_name (char *s, TFILE *file, FTN_ADDR *from, char *inbound)
   return 1;
 }
 
-static int to_be_deleted (char *tmp_name, char *netname, BINKD_CONFIG *config)
+static int to_be_deleted (char *tmp_name, char *netname, off_t filesize, BINKD_CONFIG *config)
 {
   struct stat sb;
 
   strcpy (strrchr (tmp_name, '.'), ".dt");
   if (stat (tmp_name, &sb) == 0 && config->kill_old_partial_files != 0 &&
-      time (0) - sb.st_mtime > config->kill_old_partial_files)
+      time (0) - sb.st_mtime > config->kill_old_partial_files &&
+      sb.st_size != filesize)
   {
     Log (4, "found old .dt/.hr files for %s", netname);
     return 1;
@@ -284,11 +290,22 @@ static int find_tmp_name (char *s, TFILE *file, STATE *state, BINKD_CONFIG *conf
       for (i = 0; i < 4; ++i)
 	w[i] = getwordx (buf, i + 1, GWX_NOESC);
 
-      if (!strcmp (w[0], file->netname) && parse_ftnaddress (w[3], &fa, config->pDomains.first))
-      {
+      i = -1;
+      if (parse_ftnaddress (w[3], &fa, config->pDomains.first))
 	for (i = 0; i < state->nallfa; i++)
 	  if (!ftnaddress_cmp (&fa, state->fa + i))
 	    break;
+
+      if (file == NULL)
+      {
+	if (i >= 0 && i < state->nallfa && !state->skip_all_flag)
+	{
+	  Log (5, "partial file %s removed", w[0]);
+	  remove_hr (s);
+	}
+      }
+      else if (i >= 0 && !strcmp (w[0], file->netname))
+      {
 	if (file->size == (off_t) strtoul (w[1], NULL, 10) &&
 	    (file->time & ~1) == (time_t) (strtoul (w[2], NULL, 10) & ~1) &&
 	    i < state->nallfa)
@@ -309,8 +326,9 @@ static int find_tmp_name (char *s, TFILE *file, STATE *state, BINKD_CONFIG *conf
 	  remove_hr (s);
 	}
       }
-      else if (to_be_deleted (s, w[0], config))
+      else if (to_be_deleted (s, w[0], strtoul (w[1], NULL, 10), config))
       {
+	Log (5, "old partial file %s removed", w[0]);
 	remove_hr (s);
       }
 
@@ -323,6 +341,9 @@ static int find_tmp_name (char *s, TFILE *file, STATE *state, BINKD_CONFIG *conf
       *t = 0;
   }
   closedir (dp);
+
+  if (file == NULL)
+    return 0;
 
   /* New file */
   if (!found)
@@ -337,6 +358,13 @@ static int find_tmp_name (char *s, TFILE *file, STATE *state, BINKD_CONFIG *conf
   /* Replacing .hr with .dt */
   strcpy (strrchr (s, '.'), ".dt");
   return found;
+}
+
+void inb_remove_partial (STATE *state, BINKD_CONFIG *config)
+{
+  char buf[MAXPATHLEN + 1];
+
+  find_tmp_name (buf, NULL, state, config);
 }
 
 FILE *inb_fopen (STATE *state, BINKD_CONFIG *config)
