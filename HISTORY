@@ -1,3 +1,7 @@
+2004/01/02 22:58:59 1.0a-328 stas
+!README.FIX,2.39,2.40 Config.h,2.350,2.351 tools.c,2.57,2.58
+Log file may be defined in enviroment variable BINKD_LOG
+
 2004/01/02 20:02:42 1.0a-327 stas
 service.c,2.44,2.45
 Small code change to simplification
