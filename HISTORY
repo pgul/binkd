@@ -1,3 +1,7 @@
+2003/10/06 19:50:24 1.0a-210 stas
+service.h,2.7,2.8
+Drop excessive numeric values of enumeration in parameter and return values of service_main()
+
 2003/10/06 19:47:31 1.0a-209 stas
 service.c,2.22,2.23 service.h,2.6,2.7
 Use enumeration in parameter and return values of service_main()
