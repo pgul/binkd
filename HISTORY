@@ -1,3 +1,7 @@
+2004/01/19 10:51:40 1.0a-369 hbrew
+binkdres.rc,1.6,1.7 w32tools.c,2.17,2.18
+Change icon ID to 1
+
 2004/01/18 22:39:36 1.0a-368 gul
 ftnnode.c,2.29,2.30
 Undo previous patch
