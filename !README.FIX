@@ -566,3 +566,6 @@ NT/95:  ctrl-c problems fixed
 	'skipmask' is replaced with 'skip', which allows more skipping
 	features and has another format (val khokhlov <val@vk.kiev.ua>).
 
+	New config parameters zlib-dll and bzlib2-dll for win32 versions
+	compiled with ZLIBDL support.
+

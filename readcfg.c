@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.79  2004/11/07 07:26:36  gul
+ * New config options zlib-dll and bzlib2-dll
+ *
  * Revision 2.78  2004/11/05 07:45:12  gul
  * Bugfix in passwords and defnode processing logic
  *
@@ -730,6 +733,12 @@ static KEYWORD keywords[] =
   {"zminsize", read_int, &work_config.zminsize, 0, DONT_CHECK},
   {"zallow", read_zrule, &work_config.zrules, ZRULE_ALLOW, 0},
   {"zdeny", read_zrule, &work_config.zrules, ZRULE_DENY, 0},
+#endif
+#if defined (WITH_ZLIB) && defined (ZLIBDL)
+  {"zlib-dll", read_string, work_config.zlib_dll, 'f', 0},
+#endif
+#if defined (WITH_BZLIB2) && defined (ZLIBDL)
+  {"bzlib2-dll", read_string, work_config.bzlib2_dll, 'f', 0},
 #endif
 
 #ifdef BW_LIM

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.33  2004/11/07 07:26:36  gul
+ * New config options zlib-dll and bzlib2-dll
+ *
  * Revision 2.32  2004/10/25 17:04:54  gul
  * Process passwords file after all, independent of its place in config.
  * Use first password for node if several specified.
@@ -297,6 +300,12 @@ struct _BINKD_CONFIG
   char       tfilebox[MAXPATHLEN + 1];   /* FileBoxes dir */
   char       bfilebox[MAXPATHLEN + 1];   /* BrakeBoxes dir */
   int        deleteablebox;
+#endif
+#if defined (WITH_ZLIB) && defined (ZLIBDL)
+  char       zlib_dll[MAXPATHLEN + 1];
+#endif
+#if defined (WITH_BZLIB2) && defined (ZLIBDL)
+  char       bzlib2_dll[MAXPATHLEN + 1];
 #endif
 
 #ifdef WITH_PERL

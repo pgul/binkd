@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.90  2004/11/07 07:26:35  gul
+ * New config options zlib-dll and bzlib2-dll
+ *
  * Revision 2.89  2004/08/04 19:51:40  gul
  * Change SIGCHLD handling, make signal handler more clean,
  * prevent occasional hanging (mutex deadlock) under linux kernel 2.6.
@@ -856,12 +859,26 @@ int main (int argc, char *argv[], char *envp[])
     Log (0, "cannot install break handlers");
 
 #if defined(WITH_ZLIB) && defined(ZLIBDL)
-  if (!zlib_init("zlib.dll")) Log (3, "cannot load zlib.dll, GZ compression disabled");
-  else Log (9, "zlib.dll loaded successfully");
+  if (current_config->zlib_dll[0]) {
+    if (!zlib_init(current_config->zlib_dll))
+      Log (2, "cannot load %s, GZ compression disabled", current_config->zlib_dll);
+    else
+      Log (6, "%s loaded successfully", current_config->zlib_dll);
+  } else
+    Log (work_config.zrules ? 3 : 5, "zlib-dll not defined, GZ compression disabled");
 #endif
 #if defined(WITH_BZLIB2) && defined(ZLIBDL)
-  if (!bzlib2_init("bzlib2.dll")) Log (3, "cannot load bzlib2.dll, BZ2 compression disabled");
-  else Log (9, "bzlib2.dll loaded successfully");
+  if (current_config->bzlib2_dll[0]) {
+    if (!bzlib2_init(current_config->bzlib2_dll))
+      Log (2, "cannot load %s, BZ2 compression disabled", current_config->bzlib2_dll);
+    else
+      Log (6, "%s loaded successfully", current_config->bzlib2_dll);
+  } else
+    Log (work_config.zrules
+#ifdef WITH_ZLIB
+         && !zlib_loaded
+#endif
+         ? 3 : 5, "bzlib2-dll not defined, BZ2 compression disabled");
 #endif
 
 #ifdef WITH_PERL
