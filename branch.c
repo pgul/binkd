@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/03/01 20:16:27  gul
+ * OS/2 IBM C support
+ *
  * Revision 2.1  2001/09/24 10:31:39  gul
  * Build under mingw32
  *
@@ -43,7 +46,9 @@
 #endif
 
 #ifdef HAVE_THREADS
+#ifndef __IBMC__
 #include <dos.h>
+#endif
 #include <process.h>
 #endif
 

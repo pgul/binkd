@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2003/03/01 20:16:27  gul
+ * OS/2 IBM C support
+ *
  * Revision 2.8  2003/03/01 15:26:50  gul
  * *** empty log message ***
  *
@@ -317,7 +320,7 @@ static FTNQ *q_scan_box (FTNQ *q, FTN_ADDR *fa, char *boxpath, char flvr, int de
       strnzcat (buf, de->d_name, sizeof (buf));
       if (stat (buf, &sb) == 0 && (sb.st_mode & S_IFDIR) == 0 &&
 	  de->d_name[0] != '.'
-#ifdef OS2
+#if defined(OS2) && !defined(__IBMC__)
           && (de->d_attr & 0x02) == 0   /* not hidden */
 #endif
 	 )

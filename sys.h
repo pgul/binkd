@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/03/01 20:16:27  gul
+ * OS/2 IBM C support
+ *
  * Revision 2.2  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -58,7 +61,9 @@
 #endif
 
 #ifdef HAVE_THREADS
-  #include <dos.h>
+  #ifndef __IBMC__
+    #include <dos.h>
+  #endif
   #include <process.h>
   #if defined(OS2)
     int gettid (void);
@@ -88,6 +93,10 @@
 #ifdef VISUALCPP
   #define sleep(a) Sleep(a*1000)
   #define _beginthread(a,b,c,d) _beginthread(a,c,d)
+#endif
+
+#if defined(EBADTYPE) && !defined(ENOTDIR)
+  #define ENOTDIR EBADTYPE /* __IBMC__ */
 #endif
 
 typedef unsigned char u8;

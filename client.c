@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2003/03/01 20:16:27  gul
+ * OS/2 IBM C support
+ *
  * Revision 2.11  2003/03/01 15:55:02  gul
  * Current outgoing address is now attibute of session, but not node
  *
@@ -92,7 +95,9 @@
 #include <signal.h>
 #include <setjmp.h>
 #elif defined(HAVE_THREADS)
+#ifndef __IBMC__
 #include <dos.h>
+#endif
 #include <process.h>
 #else
 #error Must define either HAVE_FORK or HAVE_THREADS!
@@ -159,7 +164,12 @@ void rel_grow_handles(int nh)
       return;
     }
   }
+#ifdef __WATCOMC__
   if ((addfh=_grow_handles((int)(curmaxfh += nh))) < curmaxfh)
+#else
+  addfh=nh;
+  if (DosSetRelMaxFH(&addfh, &curmaxfh))
+#endif
     Log(1, "Cannot grow handles to %ld (now %ld): %s", curmaxfh, addfh, strerror(errno));
   else
     Log(6, "Set MaxFH to %ld (res %ld)", curmaxfh, addfh);

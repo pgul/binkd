@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/03/01 20:16:27  gul
+ * OS/2 IBM C support
+ *
  * Revision 2.3  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -45,6 +48,7 @@
 #define _tools_h
 
 #include <stdarg.h>
+#include <stddef.h>
 #include <sys/types.h>
 #ifdef VISUALCPP
 #include <malloc.h>  /* for size_t */

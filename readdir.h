@@ -16,6 +16,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/03/01 20:16:27  gul
+ * OS/2 IBM C support
+ *
  * Revision 2.1  2001/09/24 10:31:39  gul
  * Build under mingw32
  *
@@ -29,7 +32,7 @@
 #ifndef _readdir_h
 #define _readdir_h
 
-#if defined(__WATCOMC__) || defined(VISUALCPP)
+#if defined(__WATCOMC__) || defined(VISUALCPP) || defined(__IBMC__)
 #include <direct.h>
 #include <sys/utime.h>
 #elif defined(__MINGW32__)
@@ -42,6 +45,10 @@
 
 #if defined(VISUALCPP)
 #include "NT/dirwin32.h"
+#endif
+
+#if defined(__IBMC__)
+#include "os2/dirent.h"
 #endif
 
 #if defined(WATCOMC_CLOSEDIR_BUG)

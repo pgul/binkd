@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2003/03/01 20:16:27  gul
+ * OS/2 IBM C support
+ *
  * Revision 2.8  2003/03/01 18:16:04  gul
  * Use HAVE_SYS_TIME_H macro
  *
@@ -83,7 +86,9 @@
 #include <signal.h>
 #include <setjmp.h>
 #elif defined(HAVE_THREADS)
+#ifndef __IBMC__
 #include <dos.h>
+#endif
 #include <process.h>
 #else
 #error Must define either HAVE_FORK or HAVE_THREADS!

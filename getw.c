@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/03/01 20:16:27  gul
+ * OS/2 IBM C support
+ *
  * Revision 2.2  2003/03/01 18:06:45  gul
  * Add include <sys/types.h>
  *
@@ -21,6 +24,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <sys/types.h>
+#include <stddef.h>
 
 #include "getw.h"
 

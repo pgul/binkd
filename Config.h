@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/03/01 20:16:27  gul
+ * OS/2 IBM C support
+ *
  * Revision 2.5  2003/02/28 19:13:55  gul
  * Added prodcode
  *
@@ -54,6 +57,11 @@
   #include <limits.h>
   #ifndef MAXPATHLEN
     #define MAXPATHLEN PATH_MAX
+  #endif
+#elif defined (__IBMC__)
+  #include <stdlib.h>
+  #ifndef MAXPATHLEN
+    #define MAXPATHLEN _MAX_PATH
   #endif
 #else
   #include <sys/param.h>
@@ -96,7 +104,7 @@
 #ifndef O_BINARY
   #define O_BINARY 0
 #endif
-#if defined(__WATCOMC__) || defined(VISUALCPP) || defined(__MINGW32__)
+#if defined(__WATCOMC__) || defined(VISUALCPP) || defined(__MINGW32__) || defined(__IBMC__)
   #define MKDIR(s) mkdir(s)
 #else
   #define MKDIR(s) mkdir(s, 0755)
