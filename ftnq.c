@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2003/03/31 20:28:24  gul
+ * safe_localtime() and safe_gmtime() functions
+ *
  * Revision 2.14  2003/03/25 13:45:16  gul
  * Case-insencitive t-mail "hold" long filebox search
  *
@@ -784,15 +787,9 @@ static int qn_list (FTN_NODE *fn, void *arg)
   {
     if (fn->hold_until > 0)
     {
-      struct tm *tm;
-#ifdef __WATCOMC__
-      struct tm stm;
-      tm = &stm;
-      _localtime (&fn->hold_until, tm);
-#else
-      tm = localtime (&fn->hold_until);
-#endif
-      strftime (tmp, sizeof (tmp), " (hold until %Y/%m/%d %H:%M:%S)", tm);
+      struct tm tm;
+      safe_localtime (&fn->hold_until, &tm);
+      strftime (tmp, sizeof (tmp), " (hold until %Y/%m/%d %H:%M:%S)", &tm);
     }
     else
       *tmp = 0;
@@ -1012,16 +1009,10 @@ void hold_node (FTN_ADDR *fa, time_t hold_until)
   char buf[MAXPATHLEN + 1];
   char addr[FTN_ADDR_SZ + 1];
   char time[80];
-  struct tm *tm;
+  struct tm tm;
 
-#ifdef __WATCOMC__
-  struct tm stm;
-  tm = &stm;
-  _localtime (&hold_until, tm);
-#else
-  tm = localtime (&hold_until);
-#endif
-  strftime (time, sizeof (time), "%Y/%m/%d %H:%M:%S", tm);
+  safe_localtime (&hold_until, &tm);
+  strftime (time, sizeof (time), "%Y/%m/%d %H:%M:%S", &tm);
   ftnaddress_to_str (addr, fa);
   ftnaddress_to_filename (buf, fa);
   Log (2, "holding %s (%s)", addr, time);

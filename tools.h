@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/03/31 20:28:24  gul
+ * safe_localtime() and safe_gmtime() functions
+ *
  * Revision 2.5  2003/03/05 13:21:51  gul
  * Fix warnings
  *
@@ -53,6 +56,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <sys/types.h>
+#include <time.h>
 #ifdef VISUALCPP
 #include <malloc.h>  /* for size_t */
 #endif
@@ -194,5 +198,11 @@ char **mkargv (int argc, char **argv);
  * Apply filename case style defined in inboundcase
  */
 char *makeinboundcase (char *s);
+
+/*
+ * Thread-safe localtime & gmtime functions with MSVC timezone bug workaround
+ */
+struct tm *safe_localtime(time_t *t, struct tm *tm);
+struct tm *safe_gmtime(time_t *t, struct tm *tm);
 
 #endif

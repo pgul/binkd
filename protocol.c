@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.47  2003/03/31 20:28:24  gul
+ * safe_localtime() and safe_gmtime() functions
+ *
  * Revision 2.46  2003/03/31 14:25:36  gul
  * Segfault under FreeBSD
  *
@@ -1796,7 +1799,7 @@ static void banner (STATE *state)
   int i, tz;
   char szLocalTime[60];
   time_t t, gt;
-  struct tm *tm;
+  struct tm tm;
   char *dayweek[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
   char *month[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
@@ -1820,25 +1823,12 @@ static void banner (STATE *state)
 
   tzset();
   time (&t);
-#ifdef __WATCOMC__
-  { struct tm stm;
-    tm = &stm;
-    _gmtime (&t, tm);
-    tm->tm_isdst = 0;
-    gt = mktime(tm);
-    _localtime (&t, tm);
-    tm->tm_isdst = 0;
-    tz = (int)(((long)mktime(tm)-(long)gt)/60);
-  }
-#else
-  tm = gmtime (&t);
-  tm->tm_isdst = 0;
-  gt = mktime(tm);
-  tm = localtime (&t);
-  tm->tm_isdst = 0;
-  tz = (int)(((long)mktime(tm)-(long)gt)/60);
-#endif
-  tm = localtime (&t);
+  safe_gmtime (&t, &tm);
+  tm.tm_isdst = 0;
+  gt = mktime(&tm);
+  safe_localtime (&t, &tm);
+  tm.tm_isdst = 0;
+  tz = (int)(((long)mktime(&tm)-(long)gt)/60);
 
 #if 0
   sprintf (szLocalTime, "%s, %2d %s %d %02d:%02d:%02d %c%02d%02d (%s)",
@@ -1848,8 +1838,8 @@ static void banner (STATE *state)
            tzname[tm->tm_isdst>0 ? 1 : 0]);
 #else
   sprintf (szLocalTime, "%s, %2d %s %d %02d:%02d:%02d %c%02d%02d",
-           dayweek[tm->tm_wday], tm->tm_mday, month[tm->tm_mon],
-           tm->tm_year+1900, tm->tm_hour, tm->tm_min, tm->tm_sec,
+           dayweek[tm.tm_wday], tm.tm_mday, month[tm.tm_mon],
+           tm.tm_year+1900, tm.tm_hour, tm.tm_min, tm.tm_sec,
            (tz>=0) ? '+' : '-', abs(tz)/60, abs(tz)%60);
 #endif
 

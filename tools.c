@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.18  2003/03/31 20:28:24  gul
+ * safe_localtime() and safe_gmtime() functions
+ *
  * Revision 2.17  2003/03/31 19:35:16  gul
  * Clean semaphores usage
  *
@@ -286,12 +289,59 @@ int create_sem_file (char *name)
 MUTEXSEM LSem = 0;
 #endif
 
+#ifdef VISUALCPP
+#include <windows.h>
+struct tm *safe_localtime(time_t *t, struct tm *tm)
+{
+  SYSTEMTIME st;
+  GetLocalTime(&st);
+  tm->tm_year = st.wYear - 1900;
+  tm->tm_mon  = st.wMonth - 1;
+  tm->tm_wday = st.wDayOfWeek;
+  tm->tm_mday = st.wDay;
+  tm->tm_hour = st.wHour;
+  tm->tm_min  = st.wMinute;
+  tm->tm_sec  = st.wSecond;
+  tm->tm_isdst = 0;
+  return tm;
+}
+
+struct tm *safe_gmtime(time_t *t, struct tm *tm)
+{
+  SYSTEMTIME st;
+  GetSystemTime(&st);
+  tm->tm_year = st.wYear - 1900;
+  tm->tm_mon  = st.wMonth - 1;
+  tm->tm_wday = st.wDayOfWeek;
+  tm->tm_mday = st.wDay;
+  tm->tm_hour = st.wHour;
+  tm->tm_min  = st.wMinute;
+  tm->tm_sec  = st.wSecond;
+  tm->tm_isdst = 0;
+  return tm;
+}
+
+#else
+
+struct tm *safe_localtime(time_t *t, struct tm *tm)
+{
+  threadsafe(memcpy(tm, localtime(t), sizeof(*tm)));
+  return tm;
+}
+
+struct tm *safe_gmtime(time_t *t, struct tm *tm)
+{
+  threadsafe(memcpy(tm, gmtime(t), sizeof(*tm)));
+  return tm;
+}
+#endif
+
 void Log (int lev, char *s,...)
 {
   static int first_time = 1;
   char timebuf[60];
   time_t t;
-  struct tm *tm;
+  struct tm tm;
   va_list ap;
   static const char *marks = "!?+-";
   char ch = (0 <= lev && lev < (int) strlen (marks)) ? marks[lev] : ' ';
@@ -303,7 +353,7 @@ void Log (int lev, char *s,...)
   }
 
   time (&t);
-  tm = localtime (&t);
+  safe_localtime (&t, &tm);
 
   if (lev <= conlog
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
@@ -311,7 +361,7 @@ void Log (int lev, char *s,...)
 #endif
      )
   {
-    strftime (timebuf, sizeof (timebuf), "%H:%M", tm);
+    strftime (timebuf, sizeof (timebuf), "%H:%M", &tm);
     LockSem (&LSem);
     fprintf (stderr, "%30.30s\r%c %s [%i] ", " ", ch, timebuf, (int) PID ());
     va_start (ap, s);
@@ -341,7 +391,7 @@ void Log (int lev, char *s,...)
 	fputc ('\n', logfile);
 	first_time = 0;
       }
-      strftime (timebuf, sizeof (timebuf), "%d %b %H:%M:%S", tm);
+      strftime (timebuf, sizeof (timebuf), "%d %b %H:%M:%S", &tm);
       fprintf (logfile, "%c %s [%i] ", ch, timebuf, (int) PID ());
       va_start (ap, s);
       vfprintf (logfile, s, ap);
@@ -586,26 +636,20 @@ int touch (char *file, time_t t)
 
   if ((r = stat(file, &st)) == 0)
   {
-    struct tm *tm;
-#ifdef __WATCOMC__
-    struct tm stm;
-    tm = &stm;
-    _localtime(&t, tm);
-#else
-    tm=localtime(&t);
-#endif
+    struct tm tm;
+    safe_localtime(&t, &tm);
     buf.fdateCreation.day=buf.fdateLastAccess.day=buf.fdateLastWrite.day=
-        tm->tm_mday;
+        tm.tm_mday;
     buf.fdateCreation.month=buf.fdateLastAccess.month=buf.fdateLastWrite.month=
-        tm->tm_mon+1;
+        tm.tm_mon+1;
     buf.fdateCreation.year=buf.fdateLastAccess.year=buf.fdateLastWrite.year=
-        tm->tm_year-80;
+        tm.tm_year-80;
     buf.ftimeCreation.twosecs=buf.ftimeLastAccess.twosecs=buf.ftimeLastWrite.twosecs=
-        tm->tm_sec/2;
+        tm.tm_sec/2;
     buf.ftimeCreation.minutes=buf.ftimeLastAccess.minutes=buf.ftimeLastWrite.minutes=
-        tm->tm_min;
+        tm.tm_min;
     buf.ftimeCreation.hours=buf.ftimeLastAccess.hours=buf.ftimeLastWrite.hours=
-        tm->tm_hour;
+        tm.tm_hour;
     buf.cbFile = buf.cbFileAlloc = st.st_size;
     buf.attrFile = FILE_ARCHIVED | FILE_NORMAL;
     r=DosSetPathInfo(file, FIL_STANDARD, &buf, sizeof(buf), 0);
