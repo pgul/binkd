@@ -63,9 +63,9 @@
     ftp://fido.thunderdome.ws/pub/mirror/binkd/
       (США, Matt Bedynek 1:106/1)
     ftp://ftp.alexblues.ru/pub/binkd/
-      (Россия, Alexander Gladchenko 2:5080/111, обновляется в 22:00 UTC)
+      (Россия, Alexander Gladchenko 2:5080/111, обновляется в 23:00 UTC)
     ftp://cube.sut.ru/pub/mirror/binkd/
-      (Россия, Dmitriy Yermakov 2:5030/1115)
+      (Россия, Dmitriy Yermakov 2:5030/1115, обновляется в 01:30 UTC)
     http://binkd.spb.ru
       (Россия, Andrey Ostanovsky 2:5030/1957)
 
