@@ -15,6 +15,16 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.85  2003/07/19 06:59:34  hbrew
+ * Complex patch:
+ * * nt/w32tools.c: Fix warnings
+ * * nt/w32tools.c: Fix typo in #ifdef
+ * * nt/win9x.c: Fix type in #include
+ * * Config.h, sys.h, branch.c, nt/service.c,
+ *     nt/win9x.c, : _beginthread()-->BEGINTHREAD()
+ * * binkd.c, common.h, mkfls/nt95-msvc/Makefile.dep,
+ *     nt/service.c, nt/w32tools.c,nt/win9x.c: cosmitic code cleanup
+ *
  * Revision 2.84  2003/07/19 04:26:09  hbrew
  * Auto increase patchlevel, set 0.9.6a-73
  * '\r\n' --> '\n'
@@ -411,6 +421,12 @@
 #define sleep(sec) _sleep((sec)*1000ul)
 #define snprintf  _snprintf
 #define vsnprintf _vsnprintf
+#endif
+
+#if defined(__WATCOMC__) /* expand list if necessary */
+#define BEGINTHREAD(a, b, c)   _beginthread(a, NULL, b, c)
+#else
+#define BEGINTHREAD _beginthread
 #endif
 
 /* Pragmas */

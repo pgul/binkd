@@ -23,6 +23,7 @@
 #include "service.h"
 
 extern char *configpath;
+extern const char *Win9xStartService;
 
 
 /* Windows version test
@@ -34,7 +35,7 @@ extern char *configpath;
 int W32_CheckOS(unsigned long PlatformId)
 { OSVERSIONINFO os_ver;
   static int first=1;
-  static int os_id;
+  static unsigned long os_id;
 
   if(first)
   {
@@ -123,8 +124,8 @@ int build_service_arguments(char **asp, char sep)
   (*asp)[size-1]='\0';
   len = sprintf(*asp, "%s%c-S%c\"%s\"", pathname, sep, sep, service_name);
   (*asp)[len++]=sep;
-#ifdef BINKD9X
-    memcpy(*asp+len,"--service",9);
+#ifdef BINKDW9X
+    memcpy(*asp+len,Win9xStartService,9);
     len+=10;
 #else
   if(tray_flag){

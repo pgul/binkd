@@ -16,6 +16,16 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.15  2003/07/19 06:59:35  hbrew
+ * Complex patch:
+ * * nt/w32tools.c: Fix warnings
+ * * nt/w32tools.c: Fix typo in #ifdef
+ * * nt/win9x.c: Fix type in #include
+ * * Config.h, sys.h, branch.c, nt/service.c,
+ *     nt/win9x.c, : _beginthread()-->BEGINTHREAD()
+ * * binkd.c, common.h, mkfls/nt95-msvc/Makefile.dep,
+ *     nt/service.c, nt/w32tools.c,nt/win9x.c: cosmitic code cleanup
+ *
  * Revision 2.14  2003/07/18 10:30:34  stas
  * New functions: IsNT(), Is9x(); small code cleanup
  *
@@ -79,7 +89,7 @@
 #include "../iphdr.h"
 #include "../common.h"
 #include "win9x.h"
-#include "w32tools.c"
+#include "w32tools.h"
 
 #if !defined(ENDSESSION_LOGOFF)
 #define ENDSESSION_LOGOFF    0x80000000
@@ -96,22 +106,19 @@ int w9x_service_reg = 0;
 
 DWORD SigType = -1;
 
-char *Win9xWindowClassName = "binkdWin9xHandler";
-char *Win9xRegServ = "Software\\Microsoft\\Windows\\CurrentVersion\\RunServices";
+static const char *Win9xWindowClassName = "binkdWin9xHandler";
+static const char *Win9xRegServ = "Software\\Microsoft\\Windows\\CurrentVersion\\RunServices";
 #define WIN9XREGPARM_PREFIX "Software"
 #define WIN9XREGPARM_SUFFIX "binkd9x"
-char *Win9xRegParm = WIN9XREGPARM_PREFIX "\\" WIN9XREGPARM_SUFFIX;
-char *Win9xRegParm_Path = "Path";
-char *Win9xServPrefix = "binkd9x-service";
-char *Win9xStartService = "--service";
+static const char *Win9xRegParm = WIN9XREGPARM_PREFIX "\\" WIN9XREGPARM_SUFFIX;
+static const char *Win9xRegParm_Path = "Path";
+static const char *Win9xServPrefix = "binkd9x-service";
+const char *Win9xStartService = "--service";
 
 #define WM_BINKD9XCOMMAND  WM_USER+50
 
 extern enum serviceflags service_flag;
 extern char *service_name;
-
-extern int checkcfg_flag;
-extern int quiet_flag;
 
 int binkd_main(int argc, char **argv, char **envp);
 int win9x_service_un_install(int argc, char **argv);
@@ -120,10 +127,7 @@ int win9x_service_control(void);
 /* win9x service support :) :( */
 typedef DWORD (WINAPI* RSPType)(DWORD, DWORD);
 RSPType RegisterServiceProcess;
-#if 0
-DWORD WINAPI RegisterServiceProcess(DWORD dwProcessId,  /* process identifier */
-                                    DWORD dwServiceType); /* type of service */
-#endif
+
 #if !defined(RSP_SIMPLE_SERVICE)
 #define RSP_SIMPLE_SERVICE 0x00000001
 /*  Registers the process as a simple service process. */
@@ -370,11 +374,7 @@ static void Win9xWindowThread(void *p)
 
 void CreateWin9xThread(PHANDLER_ROUTINE phandler)
 {
-#ifdef __MINGW32__
-        _beginthread(Win9xWindowThread, 0, phandler);
-#else
-        _beginthread(Win9xWindowThread, 0, 0, phandler);
-#endif
+        BEGINTHREAD(Win9xWindowThread, 0, phandler);
 }
 
 /*

@@ -17,6 +17,16 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2003/07/19 06:59:34  hbrew
+ * Complex patch:
+ * * nt/w32tools.c: Fix warnings
+ * * nt/w32tools.c: Fix typo in #ifdef
+ * * nt/win9x.c: Fix type in #include
+ * * Config.h, sys.h, branch.c, nt/service.c,
+ *     nt/win9x.c, : _beginthread()-->BEGINTHREAD()
+ * * binkd.c, common.h, mkfls/nt95-msvc/Makefile.dep,
+ *     nt/service.c, nt/w32tools.c,nt/win9x.c: cosmitic code cleanup
+ *
  * Revision 2.11  2003/04/06 13:50:11  gul
  * dos sleep() realization
  *
@@ -133,7 +143,6 @@
 
 #ifdef VISUALCPP
   #define sleep(a) Sleep(a*1000)
-  #define _beginthread(a,b,c,d) _beginthread(a,c,d)
 #endif
 
 #if defined(EBADTYPE) && !defined(ENOTDIR)

@@ -13,6 +13,16 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2003/07/19 06:59:34  hbrew
+ * Complex patch:
+ * * nt/w32tools.c: Fix warnings
+ * * nt/w32tools.c: Fix typo in #ifdef
+ * * nt/win9x.c: Fix type in #include
+ * * Config.h, sys.h, branch.c, nt/service.c,
+ *     nt/win9x.c, : _beginthread()-->BEGINTHREAD()
+ * * binkd.c, common.h, mkfls/nt95-msvc/Makefile.dep,
+ *     nt/service.c, nt/w32tools.c,nt/win9x.c: cosmitic code cleanup
+ *
  * Revision 2.7  2003/07/18 10:30:33  stas
  * New functions: IsNT(), Is9x(); small code cleanup
  *
@@ -110,8 +120,10 @@ extern int verbose_flag;
 extern int daemon_flag;
 #endif
 #ifdef WIN32
+#ifndef BINKDW9X
 extern int tray_flag;
 extern int isService;
+#endif
 #endif
 
 #endif

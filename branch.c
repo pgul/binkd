@@ -15,6 +15,16 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/07/19 06:59:34  hbrew
+ * Complex patch:
+ * * nt/w32tools.c: Fix warnings
+ * * nt/w32tools.c: Fix typo in #ifdef
+ * * nt/win9x.c: Fix type in #include
+ * * Config.h, sys.h, branch.c, nt/service.c,
+ *     nt/win9x.c, : _beginthread()-->BEGINTHREAD()
+ * * binkd.c, common.h, mkfls/nt95-msvc/Makefile.dep,
+ *     nt/service.c, nt/w32tools.c,nt/win9x.c: cosmitic code cleanup
+ *
  * Revision 2.4  2003/03/11 00:04:25  gul
  * Use patches for compile under MSDOS by MSC 6.0 with IBMTCPIP
  *
@@ -116,11 +126,7 @@ again:
 #endif
 
 #ifdef HAVE_THREADS
-#ifdef __MINGW32__
-  if ((rc = _beginthread (F, STACKSIZE, arg)) < 0)
-#else
-  if ((rc = _beginthread (F, 0, STACKSIZE, arg)) < 0)
-#endif
+  if ((rc = BEGINTHREAD (F, STACKSIZE, arg)) < 0)
   {
     Log (1, "_beginthread: %s", strerror (errno));
   }

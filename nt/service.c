@@ -14,6 +14,16 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2003/07/19 06:59:35  hbrew
+ * Complex patch:
+ * * nt/w32tools.c: Fix warnings
+ * * nt/w32tools.c: Fix typo in #ifdef
+ * * nt/win9x.c: Fix type in #include
+ * * Config.h, sys.h, branch.c, nt/service.c,
+ *     nt/win9x.c, : _beginthread()-->BEGINTHREAD()
+ * * binkd.c, common.h, mkfls/nt95-msvc/Makefile.dep,
+ *     nt/service.c, nt/w32tools.c,nt/win9x.c: cosmitic code cleanup
+ *
  * Revision 2.15  2003/07/18 14:56:34  stas
  * Use description of win2000/XP services
  *
@@ -630,11 +640,7 @@ int service(int argc, char **argv, char **envp)
   {
      srvtype |= SERVICE_INTERACTIVE_PROCESS;
 #ifdef HAVE_THREADS
-#ifdef __MINGW32__
-     _beginthread(wndthread, 0, NULL);
-#else
-     _beginthread(wndthread, 0, 0, NULL);
-#endif
+     BEGINTHREAD(wndthread, 0, NULL);
 #endif
 
   }
@@ -659,7 +665,6 @@ int service(int argc, char **argv, char **envp)
       if(!service_main(2))
       {
         Log(-1, "Service '%s' installed...", srvname);
-
       }
       else
       {
@@ -792,9 +797,5 @@ int tell_start_ntservice(void)
 
 void do_tray_flag(void)
 {
-#ifdef __MINGW32__
-  _beginthread(wndthread, 0, NULL);
-#else
-  _beginthread(wndthread, 0, 0, NULL);
-#endif
+  BEGINTHREAD(wndthread, 0, NULL);
 }

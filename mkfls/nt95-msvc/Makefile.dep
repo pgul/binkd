@@ -406,7 +406,7 @@ $(OUTDIR)\service.obj: \
 	"tools.h" \
 	"nt\service.h" \
 	"nt\wsock.h" \
-        "nt\w32tools.h"
+	"nt\w32tools.h"
 
 $(OUTDIR)\win9x.obj: \
 	"Config.h" \
@@ -417,7 +417,7 @@ $(OUTDIR)\win9x.obj: \
 	"tools.h" \
 	"nt\win9x.h" \
 	"nt\wsock.h" \
-        "nt\w32tools.h"
+	"nt\w32tools.h"
 
 $(OUTDIR)\des_enc.obj: \
 	"ntlm\des.h" \
@@ -446,4 +446,4 @@ $(OUTDIR)\set_key.obj: \
 	"ntlm\des_locl.h"
 
 $(OUTDIR)\w32tools.obj: \
-        "nt\w32tools.h"
+	"nt\w32tools.h"

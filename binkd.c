@@ -15,6 +15,16 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.49  2003/07/19 06:59:34  hbrew
+ * Complex patch:
+ * * nt/w32tools.c: Fix warnings
+ * * nt/w32tools.c: Fix typo in #ifdef
+ * * nt/win9x.c: Fix type in #include
+ * * Config.h, sys.h, branch.c, nt/service.c,
+ *     nt/win9x.c, : _beginthread()-->BEGINTHREAD()
+ * * binkd.c, common.h, mkfls/nt95-msvc/Makefile.dep,
+ *     nt/service.c, nt/w32tools.c,nt/win9x.c: cosmitic code cleanup
+ *
  * Revision 2.48  2003/07/17 04:32:16  hbrew
  * Fix "No prototype found for 'isdigit'" warning.
  *
@@ -386,7 +396,7 @@ struct polls{
 enum serviceflags service_flag = w32_noservice;  /* install, uninstall, start, stop, restart wnt/w9x service */
 char *service_name = NULL;
 #ifdef BINKDW9X
-extern char *Win9xStartService;        /* 'Run as win9x service' option */
+extern const char *Win9xStartService;  /* 'Run as win9x service' option */
 #endif
 #ifndef BINKDW9X
 int tray_flag = 0;                     /* minimize to tray */
