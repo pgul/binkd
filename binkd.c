@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.48  2003/07/17 04:32:16  hbrew
+ * Fix "No prototype found for 'isdigit'" warning.
+ *
  * Revision 2.47  2003/07/17 02:41:47  hbrew
  * Compability with nt/service.c & nt/win9x.c.
  * Usage "--service" options as win9x "run-as-service" flag.
@@ -209,6 +212,7 @@
 #include <signal.h>
 #include <setjmp.h>
 #include <time.h>
+#include <ctype.h>
 
 #include "Config.h"
 #include "sys.h"
