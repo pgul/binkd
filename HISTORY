@@ -1,3 +1,8 @@
+2003/10/20 21:24:12 1.0a-262
+ gul
+protocol.c,2.133,2.134
+Compression bugfix
+
 2003/10/20 21:04:49 1.0a-261
  gul
 zlibdl.c,2.11,2.12
