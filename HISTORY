@@ -1,3 +1,7 @@
+2003/10/28 15:38:46 1.0a-283 gul
+brw32sig.h,2.5,2.6
+Remove redundrant declaration
+
 2003/10/28 15:09:57 1.0a-282 gul
 exitproc.c,2.34,2.35
 Fix NT service semaphore usage in exitfunc()
