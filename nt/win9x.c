@@ -16,6 +16,12 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.10  2003/07/07 18:38:25  hbrew
+ * Fix gcc(mingw) warnings:
+ *
+ * getopt.c:   suggest explicit braces to avoid ambiguous `else'
+ * nt/win9x.c: Avoid gcc warnings about non-handled enumeration values
+ *
  * Revision 2.9  2003/07/07 10:13:54  gul
  * Use getopt() for commandline parse
  *
@@ -438,6 +444,8 @@ int win9x_service_control_exec(char *tmp)
     else
       if (!quiet_flag)  Log(-1, "%s: already stopped\n", tmp);
     break;
+  default:  /* Avoid gcc warnings about non-handled enumeration values */
+    rc = 0;
   }
   return rc;
 }

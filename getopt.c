@@ -60,7 +60,7 @@ int getopt(int argc, char **argv, char *opts)
    register int c;
    register char *cp;
 
-   if (optind < argc && argv[optind][0] == '-' && argv[optind][1] == '\0')
+   if (optind < argc && argv[optind][0] == '-' && argv[optind][1] == '\0') {
 	   if((cp=index(opts, '-')) != NULL) {
 		   optind++;
 		   return('-');
@@ -68,14 +68,16 @@ int getopt(int argc, char **argv, char *opts)
 		   optind++;
 		   return('?');
 	   }
+   }
 
-   if(sp == 1)
+   if(sp == 1) {
 	  if(optind >= argc || argv[optind][0] != '-' || argv[optind][1] == '\0')
 		 return(EOF);
 	  else if(strcmp(argv[optind], "--") == 0) {
 		 optind++;
 		 return(EOF);
 	  }
+   }
 
    optopt = c = argv[optind][sp];
 
