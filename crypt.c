@@ -18,6 +18,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2001/02/20 12:01:50  gul
+ * rename encrypt to encrypt_buf to avoid conflict with unistd.h
+ *
  * Revision 2.1  2001/02/15 16:05:59  gul
  * crypt bugfix
  *
@@ -120,13 +123,13 @@ int decrypt_byte (unsigned long keys[3])
   return (int)(((temp * (temp ^ 1)) >> 8) & 0xff);
 }
 
-void decrypt (char *buf, unsigned int bufsize, unsigned long keys[3])
+void decrypt_buf (char *buf, unsigned int bufsize, unsigned long keys[3])
 {
   while (bufsize--)
     update_keys(keys, *buf++ ^= decrypt_byte(keys));
 }
 
-void encrypt (char *buf, unsigned int bufsize, unsigned long keys[3])
+void encrypt_buf (char *buf, unsigned int bufsize, unsigned long keys[3])
 {
   int t;
   while (bufsize--)

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2001/02/20 12:01:50  gul
+ * rename encrypt to encrypt_buf to avoid conflict with unistd.h
+ *
  * Revision 2.3  2001/02/16 09:13:25  gul
  * Disable crypt with plaintext password
  *
@@ -270,7 +273,7 @@ static void msg_send2 (STATE *state, t_msg m, char *s1, char *s2)
   strcat (state->msgs[state->n_msgs].s + 3, s2);
   state->msgs[state->n_msgs].sz += 2;
   if (state->crypt_flag == YES_CRYPT)
-    encrypt(state->msgs[state->n_msgs].s, state->msgs[state->n_msgs].sz,
+    encrypt_buf(state->msgs[state->n_msgs].s, state->msgs[state->n_msgs].sz,
             state->keys_out);
 
   ++state->n_msgs;
@@ -440,7 +443,7 @@ static int send_block (STATE *state)
       state->optr = state->obuf;
       state->oleft = sz + BLK_HDR_SIZE;
       if (state->crypt_flag == YES_CRYPT)
-        encrypt(state->optr, state->oleft, state->keys_out);
+        encrypt_buf(state->optr, state->oleft, state->keys_out);
     }
   }
   return 1;
@@ -1525,7 +1528,7 @@ static int recv_block (STATE *state)
     }
   }
   if (state->crypt_flag == YES_CRYPT)
-    decrypt(state->ibuf + state->iread, no, state->keys_in);
+    decrypt_buf(state->ibuf + state->iread, no, state->keys_in);
   state->iread += no;
   /* assert (state->iread <= sz); */
   if (state->iread == sz)
