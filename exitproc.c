@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/03/05 09:00:45  gul
+ * Fix win32 compilation
+ *
  * Revision 2.1  2003/03/03 23:41:20  gul
  * Try to resolve problem with active threads while exitproc running
  *
@@ -42,6 +45,7 @@
 extern int pidcmgr;		       /* pid for clientmgr */
 extern int pidsmgr;		       /* pid for server */
 extern int server_flag;
+extern int n_servers, n_clients;
 
 int binkd_exit;
 
@@ -49,14 +53,16 @@ int binkd_exit;
 
 static fd_set sockets;
 
-void add_socket(int sockfd)
+int add_socket(int sockfd)
 {
   FD_SET (sockfd, &sockets);
+  return 0;
 }
 
-void del_socket(int sockfd)
+int del_socket(int sockfd)
 {
   FD_CLR (sockfd, &sockets);
+  return 0;
 }
 
 #endif
