@@ -1,3 +1,7 @@
+2003/12/10 13:12:15 1.0a-308 gul
+compress.c,2.2,2.3 protocol.c,2.142,2.143
+Minor fix in decompression deinit
+
 2003/12/09 23:58:23 1.0a-307 gul
 compress.c,2.1,2.2 compress.h,2.2,2.3 protocol.c,2.141,2.142
 Bugfix in resend file in compression mode,
