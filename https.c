@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2003/04/28 09:46:58  gul
+ * Bugfix: free() changes TCPERRNO
+ *
  * Revision 2.14  2003/04/28 07:30:16  gul
  * Bugfix: Log() changes TCPERRNO
  *
@@ -380,24 +383,24 @@ int h_connect(int so, char *host)
 				if (select(so+1, &fds, NULL, &fds, nettimeout>0?&tv:NULL)<1)
 				{
 					Log(4, "socks timeout...");
-					SetTCPError(PR_ERROR);
 					if (sauth) free(sauth);
 					free_hostent(hp);
+					SetTCPError(PR_ERROR);
 					return 1;
 				}
 				if (recv(so, buf+i, 1, 0)<1) {
 					Log(2, "connection closed by socks server...");
-					SetTCPError(PR_ERROR);
 					if (sauth) free(sauth);
 					free_hostent(hp);
+					SetTCPError(PR_ERROR);
 					return 1;
 				}
 				if (!sauth && i>6) /* 8th byte received */
 				{
 					if (buf[0]!=0) {
 						Log(2, "Bad reply from socks server");
-						SetTCPError(PR_ERROR);
 						free_hostent(hp);
+						SetTCPError(PR_ERROR);
 						return 1;
 					}
 					if (buf[1]!=90) {
@@ -414,9 +417,9 @@ int h_connect(int so, char *host)
 				{
 					if (buf[0]!=5) {
 						Log(2, "Bad reply from socks server");
-						SetTCPError(PR_ERROR);
 						free(sauth);
 						free_hostent(hp);
+						SetTCPError(PR_ERROR);
 						return 1;
 					}
 					if ((buf[3]==1) && (i<9)) continue;
