@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.165  2004/11/05 12:24:58  gul
+ * hide-aka & present-aka did not work on outgoing sessions
+ *
  * Revision 2.164  2004/11/03 08:22:21  stas
  * Set 'unsigned char *' to prevent warnings
  *
@@ -3176,7 +3179,12 @@ static void send_ADR (STATE *state, BINKD_CONFIG *config) {
   for (ps = config->akamask.first; ps; ps = ps->next)
   {
     int t = (ps->type & 0x7f);
-    int rc = ftnamask_cmpm(ps->mask, state->nfa, state->fa) == (ps->type & 0x80 ? -1 : 0);
+    int rc;
+
+    if (state->to)
+      rc = ftnamask_cmpm(ps->mask, 1, &(state->to->fa)) == (ps->type & 0x80 ? -1 : 0);
+    else
+      rc = ftnamask_cmpm(ps->mask, state->nfa, state->fa) == (ps->type & 0x80 ? -1 : 0);
     /* hide aka */
     if (t == ACT_HIDE && rc) {
       i = 0;
