@@ -1,3 +1,7 @@
+2003/10/09 12:41:10 1.0a-228 stas
+breaksig.c,2.17,2.18 service.c,2.31,2.32 service.h,2.9,2.10
+Change service stop sequence
+
 2003/10/08 14:10:56 1.0a-227 stas
 breaksig.c,2.16,2.17
 remove illegal call
