@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4.2.1  2003/06/17 15:48:00  stas
+ * Prevent service operations on incompatible OS (NT and 9x)
+ *
  * Revision 2.4  2003/05/15 06:51:58  gul
  * Do not get 'i' and 'u' options from FTN-domain in -P option
  * (patch from Stanislav Degteff).
@@ -49,6 +52,8 @@
 #include "../Config.h"
 #include "../tools.h"
 #include "service.h"
+
+int W32_CheckOS(unsigned long PlatformId); /* see TCPErr.c */
 
 static char libname[]="ADVAPI32";
 static char *srvname="binkd-service";
@@ -682,6 +687,11 @@ int service(int argc, char **argv, char **envp)
 int checkservice(void)
 {
   if(res_checkservice) return res_checkservice;
+  if( W32_CheckOS(VER_PLATFORM_WIN32_NT) )
+  {
+      Log(0,"Can't operate witn Windows NT services: incompatible OS type");
+      return res_checkservice=(-1);
+  }
   if(service_main(0)) return res_checkservice=(-1);
   if(service_main(1)) return res_checkservice=1;
   return res_checkservice=2;

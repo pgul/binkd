@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.4.2.2  2003/06/17 15:48:01  stas
+ * Prevent service operations on incompatible OS (NT and 9x)
+ *
  * Revision 2.4.2.1  2003/06/14 00:47:36  hbrew
  * Add NULL to new argv array.
  * Fix binkd9x -t(--all) and -u(--all) crashes
@@ -84,6 +87,8 @@ int binkd_main(int argc, char **argv, char **envp);
 int win9x_service_cmdline(int argc, char **argv, char **envp);
 void win9x_service_un_install(int type, int argc, char **argv, char **envp);
 void win9x_service_control(int type);
+
+int W32_CheckOS(unsigned long PlatformId); /* see TCPErr.c */
 
 /* win9x service support :) :( */
 typedef DWORD (WINAPI* RSPType)(DWORD, DWORD);
@@ -172,6 +177,16 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         if (r)  win9x_service_args(__argc, __argv, environ);
         free(c_argv_bool);
 
+        if (r == 0)
+                return binkd_main(__argc, __argv, environ);
+
+        if( W32_CheckOS(VER_PLATFORM_WIN32_WINDOWS) )
+        {
+                if (!s_quiet)  AllocTempConsole();
+                Log((s_quiet?0:-1), "Can't operate witn Windows 9x services: incompatible OS type%s", s_quiet?"":"\n");
+                return 1;
+        }
+
         if ((r == 'i')||(r == 'u'))
         {
                 win9x_service_un_install(r, c_argc, c_argv, environ);
@@ -183,9 +198,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
                 win9x_service_control(r);
                 return 0;
         }
-
-        if (r == 0)
-                return binkd_main(__argc, __argv, environ);
 
 /* Running as Win9x service (r == 1) */
         for (sp = __argv[0]+strlen(__argv[0])-1;sp>__argv[0];sp--)
