@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.31  2003/07/07 08:33:25  val
+ * `perl-hooks' config keyword to specify perl script
+ *
  * Revision 2.30  2003/06/30 22:48:36  hbrew
  * Allow to override -ip, -sip, -md, -nomd in add_node()
  *
@@ -241,6 +244,9 @@ char *pkthdr_bad = NULL;
 #ifdef AMIGADOS_4D_OUTBOUND
 int aso = 0;
 #endif
+#ifdef WITH_PERL
+char perl_script[MAXPATHLEN + 1] = "";
+#endif
 
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
 
@@ -370,6 +376,10 @@ KEYWORD keywords[] =
 
 #ifdef AMIGADOS_4D_OUTBOUND
   {"aso", read_bool, &aso, 0, 0},
+#endif
+
+#ifdef WITH_PERL
+  {"perl-hooks", read_string, perl_script, 'f', 0},
 #endif
   {NULL, NULL, NULL, 0, 0}
 };

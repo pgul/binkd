@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2003/07/07 08:33:25  val
+ * `perl-hooks' config keyword to specify perl script
+ *
  * Revision 2.12  2003/06/12 08:30:57  val
  * check pkt header feature, see keyword 'check-pkthdr'
  *
@@ -151,6 +154,9 @@ extern char socks[MAXHOSTNAMELEN + 40];
 #endif
 #ifdef AMIGADOS_4D_OUTBOUND
 extern int aso;
+#endif
+#ifdef WITH_PERL
+extern char perl_script[MAXPATHLEN + 1];
 #endif
 extern struct conflist_type 
   { char *path;
