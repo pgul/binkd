@@ -1,3 +1,7 @@
+2004/11/19 16:59:45 1.0a-433 gul
+perlhooks.c,2.48,2.49
+Typo in new perl errors handler
+
 2004/11/15 12:32:20 1.0a-432 gul
 perlhooks.c,2.47,2.48
 Fixed compilation multithread version with perl
