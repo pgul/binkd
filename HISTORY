@@ -1,3 +1,7 @@
+2005/02/09 19:34:36 1.0a-439 val
+binkd.cfg,2.47,2.48 protocol.c,2.166,2.167
+config docs and makefile changes for the bandwidth limiting code
+
 2004/11/22 17:56:47 1.0a-438 stream
 readcfg.c,2.81,2.82 tools.c,2.64,2.65
 Errors in config were not logged to file (log file name was set only
