@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.80  2003/06/26 12:53:31  gul
+ * Send status in no-NR mode to avoid file loosing
+ *
  * Revision 2.79  2003/06/25 07:25:00  stas
  * Simple code, continue bugfix to responce negative timestamp
  *
@@ -1743,8 +1746,6 @@ static int ND_set_status(char *status, FTN_ADDR *fa, STATE *state)
   FILE *f;
   int  rc;
 
-  if ((state->NR_flag & WE_NR) == 0)
-    return 1; /* ignoring status if no NR mode */
   if (fa->z==-1)
   { Log(8, "ND_set_status: unknown address for '%s'", status);
     return 0;
@@ -2455,6 +2456,11 @@ static int start_file_transfer (STATE *state, FTNQ *file)
 	       (unsigned long) state->out.time);
     state->off_req_sent = 1;
   }
+  else if (state->out.f == NULL)
+    /* status with no NR-mode */
+    msg_sendf (state, M_FILE, "%s %li %lu %li",
+	       state->out.netname, (long) state->out.size,
+	       (unsigned long) state->out.time, (long) state->out.size);
   else
     msg_sendf (state, M_FILE, "%s %li %lu 0",
 	       state->out.netname, (long) state->out.size,
@@ -2570,9 +2576,9 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
 	      (q = select_next_file (state.q, state.fa, state.nfa)) != 0)
 	  {
 	    if (q && (q->type=='s') && (state.NR_flag & WE_NR) == 0)
-	    { /* TODO: wait for send queue and switch to NR mode */
+	    { /* FIXME! Clean status only on M_GOT for this file,
+	       * not on every M_GOT in no-NR mode. */
 	      Log(1, "WARNING: status present and no NR mode!");
-	      continue;
 	    }
 	    if (start_file_transfer (&state, q))
 	      break;
