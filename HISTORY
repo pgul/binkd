@@ -1,3 +1,7 @@
+2003/10/05 12:37:45 1.0a-202 stas
+service.c,2.20,2.21 service.h,2.5,2.6
+Optimize binkd/nt start: use hack to determine if we're running as a service without waiting for the service control manager to fail
+
 2003/10/05 10:37:49 1.0a-201 stas
 brw32sig.h,NONE,2.1 breaksig.c,2.10,2.11 service.c,2.19,2.20
 Fix NT service exit (don't hang service on receive CTRL_SERVICESTOP_EVENT)
