@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.90  2003/08/04 12:12:28  gul
+ * Auto increase patchlevel, set 0.9.6a-78
+ * Add opterr and optopt vars
+ *
  * Revision 2.89  2003/07/30 11:01:39  val
  * Auto increase patchlevel, set 0.9.6a-77
  * perl-dll keyword can be used even when PERLDL is not defined (does nothing)
@@ -391,7 +395,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-77"
+#define MYVER "0.9.6a-78"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
