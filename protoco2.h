@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.20  2004/08/30 08:05:13  val
+ * bandwidth limiting code [experimental]
+ *
  * Revision 2.19  2004/08/21 17:13:33  gul
  * Fix total bytes logging
  *
@@ -216,6 +219,14 @@ struct _STATE
 #endif
   int delay_ADR, delay_EOB;     /* delay sending of the command */
   int extcmd;			/* remote can accept extra params for cmds */
+/* define BW_LIM <bytes-per-second> to limit xmit bandwidth to this value */
+/*#define BW_LIM 16384*/
+#ifdef BW_LIM
+  time_t bw_utime;              /* bandwidth limit bps counter update time */
+  unsigned long bw_bytes;       /* bytes actually sent after update time */
+  unsigned long bw_bps;         /* avg.bps for last 10 sec */
+  unsigned short bw_bpsN;       /* bps measurements pool size */
+#endif
 };
 #define STATE_DEFINED 1
 

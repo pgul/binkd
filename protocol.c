@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.155  2004/08/30 08:05:14  val
+ * bandwidth limiting code [experimental]
+ *
  * Revision 2.154  2004/08/04 11:32:29  gul
  * Attemp to support large files (>4G)
  *
@@ -840,6 +843,14 @@ static void current_file_was_sent (STATE *state)
   }
 }
 
+#ifdef BW_LIM
+/*
+ * send() wrapper for bandwidth limiting
+ */
+static int send_wrapper (STATE *state)
+{
+}
+#endif
 /*
  * Sends next msg from the msg queue or next data block
  */
@@ -851,8 +862,31 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
   /* Have something to send in buffers */
   if (state->optr && state->oleft)
   {
+#ifdef BW_LIM
+    time_t ctime = time(NULL);
+    if (!state->bw_utime) {
+      state->bw_utime = ctime;
+      state->bw_bps = 0; state->bw_bpsN = 0;
+    }
+    if (ctime > state->bw_utime) {
+      int bps = state->bw_bytes / (ctime - state->bw_utime);
+      state->bw_bytes = 0;
+      state->bw_utime = ctime;
+      if (state->bw_bpsN < 10) {
+        state->bw_bps = (state->bw_bpsN*state->bw_bps + bps) / (state->bw_bpsN + 1);
+        state->bw_bpsN++;
+      }
+      else state->bw_bps = (9*state->bw_bps + bps) / 10;
+      Log (7, "send: current bps is %u, avg. bps is %u", bps, state->bw_bps);
+    }
+    else if (state->bw_bytes > BW_LIM) return 1; /* */
+    if (state->bw_bps > BW_LIM) return 1; /* !!! val: temp measures !!! */
+#endif
     Log (7, "sending %i byte(s)", state->oleft);
     n = send (state->s, state->optr, state->oleft, 0);
+#ifdef BW_LIM
+    state->bw_bytes += n;
+#endif
     save_errno = TCPERRNO;
     save_err = TCPERR ();
     Log (7, "send() done, rc=%i", n);
