@@ -14,6 +14,10 @@
 /* $Id$
  *
  * $Log$
+ * Revision 2.7  2003/09/05 10:17:21  gul
+ * Send argus-compatible freqs.
+ * Warning: works only with prescan!
+ *
  * Revision 2.6  2003/08/26 16:06:26  stream
  * Reload configuration on-the fly.
  *
@@ -149,6 +153,11 @@ void hold_node (FTN_ADDR *fa, time_t hold_until, BINKD_CONFIG *config);
  * get size of files in the queue
  */
 void q_get_sizes (FTNQ *q, unsigned long *netsize, unsigned long *filessize);
+
+/* 
+ * Calculate quantity of freqs in the queue
+ */
+int q_freq_num (FTNQ *q);
 
 #define FQ_ZERO(x) (memset(x, 0, sizeof(*(x))), FA_ZERO(&((x)->fa)))
 #define FQ_ISNULL(x) (FA_ISNULL(&((x)->fa)))

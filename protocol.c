@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.115  2003/09/05 10:17:21  gul
+ * Send argus-compatible freqs.
+ * Warning: works only with prescan!
+ *
  * Revision 2.114  2003/09/05 09:57:16  gul
  * Process multiply M_NUL FREQ messages
  *
@@ -1027,6 +1031,7 @@ static void do_prescan(STATE *state, BINKD_CONFIG *config)
 {
   char s[64];
   unsigned long netsize, filessize;
+  int i;
 
   if (OK_SEND_FILES (state, config) && config->prescan)
   {
@@ -1034,6 +1039,9 @@ static void do_prescan(STATE *state, BINKD_CONFIG *config)
     q_get_sizes (state->q, &netsize, &filessize);
     sprintf(s, "%lu %lu", netsize, filessize);
     msg_send2 (state, M_NUL, "TRF ", s);
+    if (state->major * 100 + state->minor <= 100)
+      for (i = q_freq_num (state->q); i>0; i--)
+        msg_send2 (state, M_NUL, "FREQ", "");
   }
 }
 

@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.26  2003/09/05 10:17:20  gul
+ * Send argus-compatible freqs.
+ * Warning: works only with prescan!
+ *
  * Revision 2.25  2003/08/26 22:18:48  gul
  * Fix compilation under w32-mingw and os2-emx
  *
@@ -1016,6 +1020,20 @@ void q_get_sizes (FTNQ *q, unsigned long *netsize, unsigned long *filessize)
       curr->time = st.st_mtime;
     }
   }
+}
+
+/* 
+ * Calculate quantity of freqs in the queue
+ */
+int q_freq_num (FTNQ *q)
+{
+  FTNQ *curr;
+  int freqs = 0;
+
+  for (curr = q; curr; curr = curr->next)
+    if (curr->type == 'r')
+      freqs++;
+  return freqs;
 }
 
 /*
