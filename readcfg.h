@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2003/07/30 11:01:37  val
+ * perl-dll keyword can be used even when PERLDL is not defined (does nothing)
+ *
  * Revision 2.14  2003/07/28 10:23:33  val
  * Perl DLL dynamic load for Win32, config keyword perl-dll, nmake PERLDL=1
  *
@@ -160,9 +163,7 @@ extern int aso;
 #endif
 #ifdef WITH_PERL
 extern char perl_script[MAXPATHLEN + 1];
-# ifdef PERLDL
 extern char perl_dll[MAXPATHLEN + 1];
-# endif
 #endif
 extern struct conflist_type 
   { char *path;
