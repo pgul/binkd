@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22  2004/11/21 12:18:05  val
+ * bandwidth limiting code is now implemented for receiving too
+ *
  * Revision 2.21  2004/09/02 08:56:19  val
  * bandwidth limiting config parameter 'limit-rate'
  *
@@ -227,10 +230,15 @@ struct _STATE
 #ifdef BW_LIM
   unsigned long bw_send, bw_recv;         /* send and receive bandwidth limit, cps */
   unsigned long bw_send_abs, bw_send_rel; /* min send limits in abs-values and percents */
-  time_t bw_utime;              /* bandwidth limit cps counter update time */
-  unsigned long bw_bytes;       /* bytes actually sent after update time */
-  unsigned long bw_bps;         /* avg.cps for last 10 sec */
-  unsigned short bw_bpsN;       /* cps measurements pool size */
+  unsigned long bw_recv_abs, bw_recv_rel; /* min recv limits in abs-values and percents */
+  time_t bw_send_utime;         /* bandwidth limit cps counter update time */
+  time_t bw_recv_utime;
+  unsigned long bw_send_bytes;  /* bytes actually sent after update time */
+  unsigned long bw_recv_bytes;
+  unsigned long bw_send_cps;    /* avg.cps for last 10 sec */
+  unsigned long bw_recv_cps;
+  unsigned short bw_send_cpsN;  /* cps measurements pool size */
+  unsigned short bw_recv_cpsN;
 #endif
 };
 #define STATE_DEFINED 1
