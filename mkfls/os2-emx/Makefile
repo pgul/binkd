@@ -6,21 +6,34 @@ CFLAGS=$(DEFINES) -Wall -Zcrtdll -funsigned-char -Wno-char-subscripts
 NTLM_SRC=ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c
 SRCS=binkd.c readcfg.c tools.c ftnaddr.c ftnq.c client.c server.c protocol.c bsy.c inbound.c breaksig.c branch.c os2/gettid.c os2/sem.c  ftndom.c ftnnode.c os2/getfree.c srif.c pmatch.c readflo.c prothlp.c iptools.c run.c binlog.c exitproc.c getw.c xalloc.c setpttl.c https.c md5b.c crypt.c ${NTLM_SRC}
 OBJS=${SRCS:.c=.o}
+LFLAGS=-Zcrtdll
+TARGET=binkd2e.exe
 
-all: binkd.exe
+ifdef DEBUG
+CFLAGS+=-DDEBUG -g
+LFLAGS+=-g
+else
+CFLAGS+=-O2
+LFLAGS+=-s
+endif
+
+all: $(TARGET)
 
 .c.o:
-	$(CC) -c $(CFLAGS) -o $*.o $*.c
+	@echo Compiling $*.c
+	@$(CC) -c $(CFLAGS) -o $*.o $*.c
 
-binkd.exe: $(OBJS)
-	$(CC) -o binkd.exe -Zcrtdll $(OBJS) -lsocket
+$(TARGET): $(OBJS)
+	@echo Linking $@
+	@$(CC) $(LFLAGS) -o $@ $(OBJS) -lsocket
 
 install: all clean
 
 clean:
-	-del /n *.RES *.obj *.o os2\*.o *.map *~ *.bak *.b *.ini *.err core >nul 2> nul
+	-del /n *.RES *.obj *.o os2\*.o ntlm\*.o *.map *~ *.bak *.b *.ini *.err core >nul 2> nul
 
 depend	Makefile.dep:
-	gcc -MM $(CFLAGS) $(SRCS) | tee Makefile.dep
+	@echo Making deps...
+	@gcc -MM $(CFLAGS) $(SRCS) >Makefile.dep
 
 include Makefile.dep
