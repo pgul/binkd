@@ -3,7 +3,7 @@
  *
  *  protocol.c is a part of binkd project
  *
- *  Copyright (C) 1996-2002  Dima Maloff, 5047/13 and others
+ *  Copyright (C) 1996-2003  Dima Maloff, 5047/13 and others
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.25  2003/02/22 20:19:54  gul
+ * Update copyrightes, 2002->2003
+ *
  * Revision 2.24  2003/02/22 15:53:46  gul
  * Bugfix with locking array of nodes in multithread version
  *
