@@ -1,3 +1,8 @@
+2003/10/20 21:44:55 1.0a-263
+ gul
+protocol.c,2.134,2.135
+Inhibit incorrect error message
+
 2003/10/20 21:24:12 1.0a-262
  gul
 protocol.c,2.133,2.134
