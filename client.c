@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.39.2.1  2003/09/14 12:20:04  gul
+ * Clean use pointers to pNod array
+ *
  * Revision 2.39  2003/06/02 14:10:17  gul
  * write domain and IP to logfile on outgoing connections
  *
@@ -275,7 +278,7 @@ void clientmgr (void *arg)
 
   while (!binkd_exit)
   {
-    FTN_NODE *r;
+    FTN_NODE r;
 
     if (checkcfg_flag && client_flag && !server_flag && !poll_flag)
       checkcfg();
@@ -286,7 +289,7 @@ void clientmgr (void *arg)
 	Log (-1, "scan\r");
       n_cl = n_clients;
       q_scan (SCAN_LISTED);
-      q_empty = !q_not_empty ();
+      q_empty = !q_not_empty (NULL);
       if (printq)
       {
 	q_list (stderr, SCAN_LISTED);
@@ -295,13 +298,13 @@ void clientmgr (void *arg)
     }
     if (n_clients < max_clients)
     {
-      if ((r = q_next_node ()) != 0 &&
-	  bsy_test (&r->fa, F_BSY) &&
-	  bsy_test (&r->fa, F_CSY))
+      if (q_next_node (&r) != 0 &&
+	  bsy_test (&r.fa, F_BSY) &&
+	  bsy_test (&r.fa, F_CSY))
       {
         rel_grow_handles (6);
 	threadsafe(++n_clients);
-	if ((pid = branch (call, (void *) r, sizeof (*r))) < 0)
+	if ((pid = branch (call, (void *) &r, sizeof (r))) < 0)
 	{
           rel_grow_handles (-6);
 	  threadsafe(--n_clients);
@@ -316,7 +319,7 @@ void clientmgr (void *arg)
       }
       else
       {
-	if (poll_flag && n_cl <= 0 && n_clients <= 0 && q_not_empty () == 0)
+	if (poll_flag && n_cl <= 0 && n_clients <= 0 && q_not_empty (NULL) == 0)
 	{
 	  Log (4, "the queue is empty, quitting...");
 	  break;

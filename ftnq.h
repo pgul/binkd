@@ -14,6 +14,9 @@
 /* $Id$
  *
  * $Log$
+ * Revision 2.4.2.1  2003/09/14 12:20:05  gul
+ * Clean use pointers to pNod array
+ *
  * Revision 2.4  2003/05/28 14:32:57  gul
  * new function q_add_last_file() - add file to the end of queue
  *
@@ -113,13 +116,13 @@ FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n);
 /*
  * 0 = the queue is empty.
  */
-FTN_NODE *q_not_empty (void);
+int q_not_empty (FTN_NODE *r);
 
 /*
  * Selects a node to make the next call. (It's alost like
  * q_not_empty(), but it will never select a node twice)
  */
-FTN_NODE *q_next_node (void);
+int q_next_node (FTN_NODE *r);
 
 /*
  * Selects from q the next file for fa (Returns a pointer to a q element)

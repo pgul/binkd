@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10.2.7  2003/09/14 12:20:04  gul
+ * Clean use pointers to pNod array
+ *
  * Revision 2.10.2.6  2003/09/04 18:18:04  gul
  * *** empty log message ***
  *
@@ -103,7 +106,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.5"
+#define MYVER "0.9.5p1-stable"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 

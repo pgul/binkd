@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19.2.1  2003/09/14 12:20:05  gul
+ * Clean use pointers to pNod array
+ *
  * Revision 2.19  2003/05/28 14:32:57  gul
  * new function q_add_last_file() - add file to the end of queue
  *
@@ -979,37 +982,36 @@ static int qn_not_empty (FTN_NODE *fn, void *arg)
     if (a->maxflvr != MAXFLVR (fn->mail_flvr, MAXFLVR (fn->files_flvr, a->maxflvr)))
     {
       a->maxflvr = MAXFLVR (fn->mail_flvr, fn->files_flvr);
-      a->fn = fn;
+      if (a->fn)
+        memcpy (a->fn, fn, sizeof (*fn));
     }
   }
   return 0;
 }
 
-FTN_NODE *q_not_empty (void)
+int q_not_empty (FTN_NODE *fn)
 {
   qn_not_empty_arg arg;
 
   arg.maxflvr = 0;
-  arg.fn = 0;
+  arg.fn = fn;
 
   foreach_node (qn_not_empty, &arg);
 
   if (arg.maxflvr && tolower (arg.maxflvr) != 'h')
-    return arg.fn;
+    return -1;
   else
     return 0;
 }
 
-FTN_NODE *q_next_node (void)
+int q_next_node (FTN_NODE *fn)
 {
-  FTN_NODE *fn = q_not_empty ();
-
-  if (fn == 0)
+  if (q_not_empty(fn) == 0)
     return 0;
   else
   {
     fn->mail_flvr = fn->files_flvr = 0;
-    return fn;
+    return -1;
   }
 }
 
