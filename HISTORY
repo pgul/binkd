@@ -1,3 +1,7 @@
+2004/08/03 23:06:17 1.0a-381 gul
+client.c,2.52,2.53
+Remove unneeded longjump from signal handler
+
 2004/07/23 14:40:23 1.0a-380 gul
 perlhooks.c,2.44,2.45
 Fix compilation warning
