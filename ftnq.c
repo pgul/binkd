@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2003/03/25 09:18:54  gul
+ * Case-insencitive t-mail "hold" long filebox search
+ *
  * Revision 2.12  2003/03/10 12:16:53  gul
  * Use HAVE_DOS_H macro
  *
@@ -437,7 +440,13 @@ FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n)
                 to32(node.fa.node/1024),to32((node.fa.node/32)%32),to32(node.fa.node%32),
                 to32(node.fa.p/32),     to32(node.fa.p%32));
         q = q_scan_box (q, fa+i, buf, 'f', deleteablebox);
-        strnzcat (buf, "h", sizeof (buf));
+        strnzcat (buf, "H", sizeof (buf));
+#ifdef UNIX
+	{ struct stat st;
+	  if (stat(buf, &st) != 0 || (st.st_mode & S_IFDIR) == 0)
+	    buf[strlen(buf) - 1] = 'h';
+	}
+#endif
         q = q_scan_box (q, fa+i, buf, 'h', deleteablebox);
       }
     }
