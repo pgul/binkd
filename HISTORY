@@ -1,3 +1,7 @@
+2003/10/05 12:38:15 1.0a-203 stas
+binkd.c,2.65,2.66 common.h,2.10,2.11 tools.c,2.52,2.53
+Optimize binkd/nt start: use hack to determine if we're running as a service without waiting for the service control manager to fail
+
 2003/10/05 12:37:45 1.0a-202 stas
 service.c,2.20,2.21 service.h,2.5,2.6
 Optimize binkd/nt start: use hack to determine if we're running as a service without waiting for the service control manager to fail
