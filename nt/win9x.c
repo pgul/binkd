@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.12  2003/07/17 03:08:21  hbrew
+ * Fix uninstall of binkd9x service
+ *
  * Revision 2.11  2003/07/17 02:41:48  hbrew
  * Compability with nt/service.c & nt/win9x.c.
  * Usage "--service" options as win9x "run-as-service" flag.
@@ -394,7 +397,7 @@ HWND win9x_service_find(char *name)
 }
 
 /* return 1 if success, 0 if fail */
-int win9x_service_control_exec(char *tmp)
+int win9x_service_control_exec(char *tmp, enum serviceflags cmd)
 {
   int rc;
   HWND hwnd;
@@ -403,7 +406,7 @@ int win9x_service_control_exec(char *tmp)
 
   rc = 1;
 
-  switch (service_flag)
+  switch (cmd)
   {
   case w32_queryservice:
     if (!quiet_flag)  Log(-1, "%s: %s\n", tmp, hwnd?"started":"stopped");
@@ -548,13 +551,13 @@ int win9x_service_control(void)
     srvlst = win9x_get_services_list(1);
 
     for(i=0; i<srvlst->count; i++)
-      if (!win9x_service_control_exec(srvlst->names[i]))
+      if (!win9x_service_control_exec(srvlst->names[i], service_flag))
         rc = 0;
 
     win9x_free_services_list(srvlst);
   }
   else
-    rc = win9x_service_control_exec(service_name);
+    rc = win9x_service_control_exec(service_name, service_flag);
 
   return rc;
 }
@@ -572,7 +575,7 @@ int win9x_service_do_uninstall(char *srvname)
   } else rc = 0;
 
   if (!quiet_flag)  Log(-1, "%s uninstalled...\n", srvname);
-  if (!win9x_service_control_exec(srvname))  rc = 0;
+  if (!win9x_service_control_exec(srvname, w32_stopservice))  rc = 0;
   return rc;
 }
 
