@@ -135,11 +135,11 @@ PERL=1
 BINKDNAME=$(BINKDNAME)-perl
 OUTDIR=$(OUTDIR)-perl
 BINKDTYPE=$(BINKDTYPE), perl
-CDEFS=$(CDEFS) -DPERLDL
 !else
 BINKDNAME=$(BINKDNAME)-perldl
 OUTDIR=$(OUTDIR)-perldl
 BINKDTYPE=$(BINKDTYPE), perldl
+CDEFS=$(CDEFS) -DPERLDL
 !endif
 
 !ifdef PERL_BASE
@@ -221,8 +221,6 @@ OBJS=$(OBJS) "$(OBJDIR)\zlibdl.obj"
 
 # PERL_BASE & PERL_LIB ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !ifdef PERL
-
-LIBS = $(LIBS) $(PERL_BASE)\lib\CORE\$(PERL_LIB)
 
 !if !defined(PERL_INCL) || (!defined(PERL_DL) && !defined(PERL_LIB))
 
