@@ -33,6 +33,11 @@ $(BINKDEXE): $(OBJS)
 
 install: all clean
 
+html: binkd.html
+
+binkd.html: binkd.8
+	groff -Thtml -mman binkd.8 >binkd.html
+
 clean:
 	-del *.RES >nul
 	-del *.obj >nul
