@@ -41,6 +41,7 @@ from Russian by Michael Dukelsky 2:5020/1042.
     30. BinkD Receives an Incoming Call Only After an Outgoing One.
     31. "start_file_transfer: ECHO is off.: No such file or directory" Error.
     32. How to Create a Poll Correctly.
+    33. What Does the Number in Brackets in the Log Mean?
     A1. I Have Found a Bug in BinkD!
     A2. I Want To Talk To Developers.
     A3. I Want To Get Information About Changes In BinkD Immediately!
@@ -1025,6 +1026,19 @@ clones, CP/M and many others) is
     echo -n "" >>NNNNMMMM.flo
     >>NNNNMMMM.flo
     cat /dev/null >>NNNNMMMM.flo
+    
+    
+----------------------------------------------------------------------------
+
+
+        33. What Does the Number in Brackets in the Log Mean?
+
+    It is either PID (Process ID) in the multiprocess BinkD versions (for 
+example, in the versions for UNIX-like OS), or TID (Thread ID) in the
+multithreaded BinkD versions (for example, in Windows versions).
+    The process (or the thread) number simplifies the log analysis: it 
+allows picking out messages from one BinkD process (or thread). In 
+particular, it allows separating the messages from the different sessions.
     
     
 ----------------------------------------------------------------------------
