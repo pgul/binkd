@@ -1,3 +1,7 @@
+2004/11/12 16:40:17 1.0a-431 gul
+binkd.c,2.91,2.92
+Also one syntax error
+
 2004/11/09 09:04:33 1.0a-430 gul
 binkd.c,2.90,2.91
 Syntax error in previous patch
