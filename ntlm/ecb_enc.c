@@ -69,34 +69,36 @@ const char *des_options(void)
 
 	if (init)
 		{
-		const char *ptr,*unroll,*risc,*size;
-
+		const char *size;
 #ifdef DES_PTR
-		ptr="ptr";
+  #define PTR "ptr"
 #else
-		ptr="idx";
+  #define PTR "idx"
 #endif
 #if defined(DES_RISC1) || defined(DES_RISC2)
 #ifdef DES_RISC1
-		risc="risc1";
+  #define RISC "risc1"
 #endif
 #ifdef DES_RISC2
-		risc="risc2";
+  #define RISC "risc2"
 #endif
 #else
-		risc="cisc";
+  #define RISC "cisc"
 #endif
 #ifdef DES_UNROLL
-		unroll="16";
+  #define UNROLL "16"
 #else
-		unroll="4";
+  #define UNROLL "4"
 #endif
 		if (sizeof(DES_LONG) != sizeof(long))
-			size="int";
+			size = "int";
 		else
-			size="long";
-		sprintf(buf,"des(%s,%s,%s,%s)",ptr,risc,unroll,size);
+			size = "long";
+		sprintf(buf, "des(" PTR "," RISC "," UNROLL ",%s)", size);
 		init=0;
+#undef PTR
+#undef RISC
+#undef UNROLL
 		}
 	return(buf);
 	}
