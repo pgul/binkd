@@ -1,3 +1,7 @@
+2003/12/06 01:39:39 1.0a-305 gul
+inbound.c,2.25,2.26
+Bugfix on inb_done() with ND-mode
+
 2003/12/06 00:17:07 1.0a-304 stas
 Config.h,2.324,2.325
 Use own snprinf() and vsnprintf() instead MS VC RTL (buggy) implemetation
