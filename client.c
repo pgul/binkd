@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.50  2003/10/07 20:54:47  gul
+ * End clientmgr by _endthread() on break
+ * (patch by Alexander Reznikov).
+ *
  * Revision 2.49  2003/10/07 20:50:07  gul
  * Wait for servmanager exit from exitproc()
  * (Patch from Alexander Reznikov)
@@ -403,10 +407,8 @@ void clientmgr (void *arg)
 #ifdef HAVE_THREADS
   pidcmgr = 0;
   PostSem(&eothread);
-/*
   if (binkd_exit)
     _endthread();
-*/
 #endif
   exit (0);
 }
