@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22.2.2  2003/12/02 14:24:13  gul
+ * Use vsnprintf() if exists
+ *
  * Revision 2.22.2.1  2003/06/30 22:46:03  hbrew
  * Print only binkd name (without path) in error messages
  *
@@ -472,7 +475,11 @@ void Log (int lev, char *s,...)
   {
     char tmp[256];
     va_start (ap, s);
+#ifdef HAVE_SNPRINTF
+    vsnprintf (tmp, sizeof(tmp), s, ap);
+#else
     vsprintf (tmp, s, ap);
+#endif
     va_end (ap);
     MessageBox(NULL, tmp, MYNAME, MB_OK|MB_ICONSTOP|0x00200000L|MB_SYSTEMMODAL|MB_SETFOREGROUND);
   }

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10.2.16  2003/12/02 14:24:13  gul
+ * Use vsnprintf() if exists
+ *
  * Revision 2.10.2.15  2003/10/28 06:02:25  gul
  * Set version tag 0.9.6
  *
@@ -139,7 +142,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6"
+#define MYVER "0.9.7-stable"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
