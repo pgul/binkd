@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2003/02/22 11:45:41  gul
+ * Do not resolve hosts if proxy or socks5 using
+ *
  * Revision 2.0  2001/01/10 12:12:38  gul
  * Binkd is under CVS again
  *
@@ -45,3 +48,9 @@ void setsockopts (SOCKET s);
  * Returns 0 on error.
  */
 int find_port (char *s);
+
+/*
+ *  * Find the host IP address list by a domain name or IP address string.
+ *   * Returns NULL on error.
+ *    */
+struct hostent *find_host(char *host, struct hostent *he, char **alist);

@@ -11,6 +11,5 @@
 - MB-mode, MPWD-mode (FSP-1011)
 - charsets support, unicode
 - present aka
-- do not resolve domains when use proxy
 - 3 passwords in passwd-file - "incoming,pkt,outgoing"
 - do not save zero-length *.dt files and corresponding *.hr

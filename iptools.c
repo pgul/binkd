@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2003/02/22 11:45:41  gul
+ * Do not resolve hosts if proxy or socks5 using
+ *
  * Revision 2.0  2001/01/10 12:12:38  gul
  * Binkd is under CVS again
  *
@@ -136,3 +139,47 @@ int find_port (char *s)
   Log (1, "%s: incorrect port", s);
   return 0;
 }
+
+/*
+ * Find the host IP address list by a domain name or IP address string.
+ * Returns NULL on error.
+ */
+struct hostent *find_host(char *host, struct hostent *he, char **alist)
+{
+  struct in_addr defaddr;
+  struct hostent *hp;
+
+  if (!isdigit(host[0]) ||
+      (defaddr.s_addr = inet_addr (host)) == INADDR_NONE)
+  {
+    /* If not a raw ip address, try nameserver */
+    Log (5, "resolving `%s'...", host);
+#ifdef HAVE_THREADS
+    LockSem(&hostsem);
+#endif
+    if ((hp = gethostbyname(host)) == NULL)
+    {
+      Log(1, "%s: unknown host", host);
+#ifdef HAVE_THREADS
+      ReleaseSem(&hostsem);
+#endif
+      return NULL;
+    }
+#ifdef HAVE_THREADS
+    copy_hostent(he, hp);
+    ReleaseSem(&hostsem);
+    return he;
+#endif
+  }
+  /* Raw ip address, fake */
+  hp = he;
+  hp->h_name = host;
+  hp->h_aliases = 0;
+  hp->h_addrtype = AF_INET;
+  hp->h_length = sizeof (struct in_addr);
+  hp->h_addr_list = alist;
+  hp->h_addr_list[0] = (char *) &defaddr;
+  hp->h_addr_list[1] = (char *) 0;
+  return hp;
+}
+

@@ -15,13 +15,16 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2003/02/22 11:45:41  gul
+ * Do not resolve hosts if proxy or socks5 using
+ *
  * Revision 2.0  2001/01/10 12:12:38  gul
  * Binkd is under CVS again
  *
  *
  */
 
-int h_connect(int *socket, struct sockaddr_in *sin);
+int h_connect(int socket, char *host);
 
 #if !defined(WIN32)
 #include <sys/time.h>

@@ -1,5 +1,5 @@
 /*
- *  client.c -- Outbound calls
+ *  client.c -- Outbound 
  *
  *  client.c is a part of binkd project
  *
@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/02/22 11:45:41  gul
+ * Do not resolve hosts if proxy or socks5 using
+ *
  * Revision 2.2  2002/04/02 13:10:32  gul
  * Put real remote addr to log "session with ..." if connect via socks or proxy
  *
@@ -233,7 +236,6 @@ static int call0 (FTN_NODE *node)
   struct hostent he;
   struct hostent *hp;
   struct sockaddr_in sin;
-  struct in_addr defaddr;
   char **cp;
   char szDestAddr[FTN_ADDR_SZ + 1];
   char *alist[2];
@@ -246,6 +248,50 @@ static int call0 (FTN_NODE *node)
   Log (2, "call to %s", szDestAddr);
   setproctitle ("call to %s", szDestAddr);
 
+#ifdef HTTPS
+  if (proxy[0] || socks[0])
+  {
+    char *sp, *sport;
+    strncpy(host, proxy[0] ? proxy: socks, sizeof(host));
+    if ((sp=strchr(host, ':')) != NULL)
+    {
+      *sp++ = '\0';
+      sport = sp;
+      if ((sp=strchr(sp, '/')) != NULL)
+	*sp++ = '\0';
+    }
+    else
+    {
+      if((sp=strchr(host, '/')) != NULL)
+	*sp++ = '\0';
+      sport = proxy[0] ? "squid" : "socks"; /* default port */
+    }
+    if (!isdigit(*sport))
+    { struct servent *se;
+#ifdef HAVE_THREADS
+      LockSem(&hostsem);
+#endif
+      if ((se = getservbyname(sport, "tcp")) == NULL)
+      {
+	Log(2, "Port %s not found, try default %d", sp, proxy[0] ? 3128 : 1080);
+	sin.sin_port = htons(proxy[0] ? 3128 : 1080);
+      } else
+	sin.sin_port = se->s_port;
+#ifdef HAVE_THREADS
+      ReleaseSem(&hostsem);
+#endif
+    }
+    else
+      sin.sin_port = htons(atoi(sp));
+    /* resolve proxy host */
+    if ((hp = find_host(host, &he, alist)) == NULL)
+    {
+      Log(1, "%s host %s not found", proxy[0] ? "Proxy" : "Socks", host);
+      return 0;
+    }
+  }
+#endif
+
   for (i = 1; sockfd == INVALID_SOCKET
        && (rc = get_host_and_port
 	   (i, host, &port, node->hosts, &node->fa)) != -1; ++i)
@@ -255,44 +301,18 @@ static int call0 (FTN_NODE *node)
       Log (1, "%s: %i: error parsing host list", node->hosts, i);
       continue;
     }
-
-    if (!isdigit (host[0]) ||
-	(defaddr.s_addr = inet_addr (host)) == INADDR_NONE)
-    {
-      /* If not a raw ip address, try nameserver */
-      Log (5, "resolving `%s'...", host);
-#ifdef HAVE_THREADS
-      LockSem(&hostsem);
+#ifdef HTTPS
+    if (!proxy[0] && !socks[0]) /* don't resolve if proxy or socks specified */
 #endif
-      if ((hp = gethostbyname (host)) == NULL)
+    {
+      if ((hp = find_host(host, &he, alist)) == NULL)
       {
-	Log (1, "%s: unknown host", host);
-	bad_try (&node->fa, "Cannot gethostbyname");
-#ifdef HAVE_THREADS
-        ReleaseSem(&hostsem);
-#endif
-	continue;
+        bad_try(&node->fa, "Cannot gethostbyname");
+        continue;
       }
-#ifdef HAVE_THREADS
-      copy_hostent(&he, hp);
-      hp = &he;
-      ReleaseSem(&hostsem);
-#endif
-    }
-    else
-    {
-      /* Raw ip address, fake */
-      hp = &he;
-      hp->h_name = host;
-      hp->h_aliases = 0;
-      hp->h_addrtype = AF_INET;
-      hp->h_length = sizeof (struct in_addr);
-      hp->h_addr_list = alist;
-      hp->h_addr_list[0] = (char *) &defaddr;
-      hp->h_addr_list[1] = (char *) 0;
+      sin.sin_port = htons(port);
     }
     sin.sin_family = hp->h_addrtype;
-    sin.sin_port = htons (port);
 
     /* Trying... */
 
@@ -307,8 +327,26 @@ static int call0 (FTN_NODE *node)
 #ifdef HAVE_THREADS
       LockSem(&hostsem);
 #endif
-      Log (4, port == DEF_PORT ? "trying %s..." : "trying %s, port %u...",
-	   inet_ntoa (sin.sin_addr), (unsigned) port);
+#ifdef HTTPS
+      if (proxy[0] || socks[0])
+      {
+	char *sp = strchr(host, ':');
+	if (sp) *sp = '\0';
+	if (port == oport)
+	  Log (4, "trying %s via %s %s:%u...", host,
+	       proxy[0] ? "proxy" : "socks", inet_ntoa (sin.sin_addr), 
+	       ntohs(sin.sin_port));
+	else
+	  Log (4, "trying %s:%u via %s %s:%u...", host, port,
+	       proxy[0] ? "proxy" : "socks", inet_ntoa (sin.sin_addr), 
+	       ntohs(sin.sin_port));
+	sprintf(host+strlen(host), ":%u", port);
+      }
+      else
+#else
+	Log (4, port == oport ? "trying %s..." : "trying %s:%u...",
+	     inet_ntoa (sin.sin_addr), (unsigned) port);
+#endif
 #ifdef HAVE_THREADS
       ReleaseSem(&hostsem);
 #endif
@@ -333,19 +371,16 @@ static int call0 (FTN_NODE *node)
 	alarm(connect_timeout);
       }
 #endif
-#ifdef HTTPS
-      node->current_addr = sin.sin_addr.s_addr;
-      if (h_connect (&sockfd, &sin) == 0)
-#else
       if (connect (sockfd, (struct sockaddr *) & sin, sizeof (sin)) == 0)
-#endif
       {
+	{
 #ifdef HAVE_FORK
-	alarm(0);
-	signal(SIGALRM, SIG_DFL);
+	  alarm(0);
+	  signal(SIGALRM, SIG_DFL);
 #endif
-	Log (4, "connected");
-	break;
+	  Log (4, "connected");
+	  break;
+	}
       }
 
 #ifdef HAVE_FORK
@@ -367,8 +402,17 @@ badtry:
         free(hp->h_addr_list);
     }
 #endif
+#ifdef HTTPS
+    node->current_addr = host;
+    if (sockfd != INVALID_SOCKET && (proxy[0] || socks[0]) &&
+        h_connect(sockfd, host) != 0)
+    {
+      bad_try (&node->fa, TCPERR ());
+      soclose (sockfd);
+      sockfd = INVALID_SOCKET;
+    }
+#endif
   }
-
   if (sockfd == INVALID_SOCKET)
     return 0;
 

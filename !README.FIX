@@ -504,3 +504,5 @@ NT/95:  ctrl-c problems fixed
 
 	Assume default domain for remote 4D address.
 
+	Do not resolve hosts if proxy or socks5 using.
+

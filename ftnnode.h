@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/02/22 11:45:41  gul
+ * Do not resolve hosts if proxy or socks5 using
+ *
  * Revision 2.1  2001/02/15 11:03:18  gul
  * Added crypt traffic possibility
  *
@@ -71,7 +74,7 @@ struct _FTN_NODE
   int mail_flvr;		       /* -1=no mail, other=it's flavour */
   int files_flvr;		       /* -1=no files, other=it's flavour */
 #ifdef HTTPS
-  unsigned long current_addr;
+  char *current_addr;
 #endif
 };
 

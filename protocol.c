@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.21  2003/02/22 11:45:41  gul
+ * Do not resolve hosts if proxy or socks5 using
+ *
  * Revision 2.20  2003/02/13 19:31:56  gul
  * Ignore non-MD5 challanges
  *
@@ -1952,18 +1955,21 @@ void protocol (SOCKET socket, FTN_NODE *to)
   if (!init_protocol (&state, socket, to))
     return;
 
-#ifdef HTTPS
-  if((to)&&(to->current_addr)) peer_name.sin_addr.s_addr=to->current_addr;
-  else
-#endif
   if (getpeername (socket, (struct sockaddr *) & peer_name, &peer_name_len) == -1)
     Log (1, "getpeername: %s", TCPERR ());
 
 #ifdef HAVE_THREADS
   LockSem(&hostsem);
 #endif
-  get_hostname(&peer_name, host, sizeof(host));
-  state.peer_name = host;
+#ifdef HTTPS
+  if (to && to->current_addr)
+    state.peer_name = to->current_addr;
+  else
+#endif
+  {
+    get_hostname(&peer_name, host, sizeof(host));
+    state.peer_name = host;
+  }
   setproctitle ("%c [%s]", to ? 'o' : 'i', state.peer_name);
   Log (2, "session with %s (%s)",
        state.peer_name,
