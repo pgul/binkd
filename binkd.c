@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30.2.2  2003/07/17 04:35:23  hbrew
+ * Fix "No prototype found for 'isdigit'" warning.
+ *
  * Revision 2.30.2.1  2003/06/30 22:46:03  hbrew
  * Print only binkd name (without path) in error messages
  *
@@ -163,6 +166,7 @@
 #include <signal.h>
 #include <setjmp.h>
 #include <time.h>
+#include <ctype.h>
 
 #include "Config.h"
 #include "sys.h"
