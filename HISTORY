@@ -1,3 +1,7 @@
+2004/01/03 21:33:44 1.0a-345 stas
+binkd.c,2.81,2.82 !README.FIX,2.41,2.42
+Implement install and uninstall win* services using -t option
+
 2004/01/03 21:26:13 1.0a-344 stas
 service.c,2.48,2.49
 Decrease delay for service operations
