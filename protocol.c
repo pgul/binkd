@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.73  2003/06/21 15:31:48  hbrew
+ * Fix warning
+ *
  * Revision 2.72  2003/06/21 08:41:29  gul
  * "try" and "hold" did not work if connection closed by remote
  *
@@ -1310,7 +1313,7 @@ static int ADR (STATE *state, char *s, int sz)
     if(state->MD_challenge)
     {
       char *tp=MD_buildDigest(state->to->pwd, state->MD_challenge);
-      if(!tp) 
+      if(!tp)
       {
         Log(2, "Unable to build MD5 digest");
         bad_try (&state->to->fa, "Unable to build MD5 digest", BAD_AUTH);
@@ -1414,7 +1417,7 @@ static int PWD (STATE *state, char *pwd, int sz)
     if (strcmp (pwd, "-"))
       Log (1, "unexpected password from the remote: `%s'", pwd);
   }
-  else 
+  else
   {
     if((state->MD_flag == 1) || ((!bad_pwd) && (state->MD_challenge)))
     {
@@ -1446,7 +1449,7 @@ static int PWD (STATE *state, char *pwd, int sz)
     }
     else
     {
-      if(no_password) 
+      if(no_password)
       {
         state->state = P_NONSECURE;
         do_prescan (state);
@@ -1607,9 +1610,9 @@ static int start_file_recv (STATE *state, char *args, int sz)
     {
       char realname[MAXPATHLEN + 1];
       struct skipchain *mask;
+#ifdef WITH_PERL
       int rc;
 
-#ifdef WITH_PERL
       if ((rc = perl_before_recv(state, offset)) > 0) {
 	Log (1, "skipping %s (%sdestructive, %li byte(s), by Perl before_recv)",
 	     state->in.netname, rc == SKIP_D ? "" : "non-", state->in.size);
@@ -1714,7 +1717,7 @@ static int ND_set_status(char *status, FTN_ADDR *fa, STATE *state)
   int  rc;
 
   if ((state->NR_flag & WE_NR) == 0)
-    return 1; /* ignoring status if no NR mode */ 
+    return 1; /* ignoring status if no NR mode */
   if (fa->z==-1)
   { Log(8, "ND_set_status: unknown address for '%s'", status);
     return 0;
@@ -2479,14 +2482,14 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
     Log (1, "getsockname: %s", TCPERR ());
     memset(&peer_name, 0, sizeof (peer_name));
   }
-  else 
+  else
     state.our_ip=peer_name.sin_addr.s_addr;
 
 #ifdef WITH_PERL
   if (state.to) {
     char *s = perl_on_handshake(&state);
     perl_on_handshake_done = 1;
-    if (s && *s) { 
+    if (s && *s) {
       Log (1, "aborted by Perl on_handshake(): %s", s);
       msg_send2 (&state, M_ERR, s, 0);
       ok = 0;
@@ -2611,7 +2614,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
       if (state.nfa && !perl_on_handshake_done) {
         char *s = perl_on_handshake(&state);
         perl_on_handshake_done = 1;
-        if (s && *s) { 
+        if (s && *s) {
           Log (1, "aborted by Perl on_handshake(): %s", s);
           msg_send2 (&state, M_ERR, s, 0);
           break;
