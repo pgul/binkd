@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.23  2003/09/11 12:23:25  hbrew
+ * Fix 'suggest parentheses around assignment used as truth value'.
+ *
  * Revision 2.22  2003/09/07 04:49:42  hbrew
  * Remove binkd9x restart-on-config-change code; move binkd9x deinit to exitfunc()
  *
@@ -174,7 +177,7 @@ int win9xExec(char *cmdline)
   memset(&si, 0, sizeof(si));
   si.cb=sizeof(si);
 
-  if (rc = CreateProcess(NULL, cmdline, NULL, NULL, 0, CREATE_DEFAULT_ERROR_MODE, NULL, NULL, &si, &pi))
+  if ((rc = CreateProcess(NULL, cmdline, NULL, NULL, 0, CREATE_DEFAULT_ERROR_MODE, NULL, NULL, &si, &pi)))
   {
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
