@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/10/27 23:22:54  gul
+ * Fix OS/2 compilation
+ *
  * Revision 2.1  2003/10/19 12:21:46  gul
  * Stream compression
  *
@@ -40,14 +43,14 @@ int decompress_deinit(int type, void *data);
 extern int zlib_loaded;
 
 /* loading function */
-int zlib_init(const char *dll_name);
+int zlib_init(char *dll_name);
 #endif
 
 #ifdef WITH_BZLIB2
 extern int bzlib2_loaded;
 
 /* loading function */
-int bzlib2_init(const char *dll_name);
+int bzlib2_init(char *dll_name);
 #endif
 
 #endif /* ZLIBDL */

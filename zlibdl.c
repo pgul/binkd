@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2003/10/27 23:22:54  gul
+ * Fix OS/2 compilation
+ *
  * Revision 2.12  2003/10/20 18:04:46  gul
  * Previous patch break OS/2 compilation. Fixed.
  *
@@ -81,7 +84,7 @@ int (*dl_inflate)();
 int (*dl_inflateEnd)();
 
 /* loading function */
-int zlib_init(const char *dll_name) {
+int zlib_init(char *dll_name) {
 #if defined(WIN32)
   HINSTANCE hl = LoadLibrary(dll_name);
   if (hl)
@@ -114,7 +117,7 @@ int (*dl_BZ2_bzDecompress)();
 int (*dl_BZ2_bzDecompressEnd)();
 
 /* loading function */
-int bzlib2_init(const char *dll_name) {
+int bzlib2_init(char *dll_name) {
 #if defined(WIN32)
   HINSTANCE hl = LoadLibrary(dll_name);
   if (hl)

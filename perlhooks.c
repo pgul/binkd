@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.37  2003/10/27 23:22:54  gul
+ * Fix OS/2 compilation
+ *
  * Revision 2.36  2003/10/27 21:31:26  gul
  * Autodetect perl version, fix warning
  *
@@ -281,6 +284,10 @@
 #  define sv_undef PL_sv_undef
 #endif
 
+#ifndef aTHX_
+#  define aTHX_
+#endif
+
 #ifdef q
 #  undef q
 #endif
@@ -432,9 +439,14 @@ VK_MAKE_DFL(SV*, dl_Perl_newRV_noinc, (pTHX_ SV *sv));
 VK_MAKE_DFL(HV*, dl_Perl_newHV, (pTHX));
 VK_MAKE_DFL(SV*, dl_Perl_newSVpv, (pTHX_ _Const char* s, STRLEN len));
 
-VK_MAKE_DFL(SV**, dl_Perl_hv_store, (pTHX_ HV* tb, _Const char* key, I32 klen, SV* val, U32 hash));
 VK_MAKE_DFL(void, dl_Perl_hv_clear, (pTHX_ HV* tb));
+#if PERL_REVISION<5 || (PERL_REVISION==5 && PERL_VERSION<8)
+VK_MAKE_DFL(SV**, dl_Perl_hv_store, (pTHX_ HV* tb, _Const char* key, U32 klen, SV* val, U32 hash));
+VK_MAKE_DFL(SV**, dl_Perl_hv_fetch, (pTHX_ HV* tb, _Const char* key, U32 klen, I32 lval));
+#else
+VK_MAKE_DFL(SV**, dl_Perl_hv_store, (pTHX_ HV* tb, _Const char* key, I32 klen, SV* val, U32 hash));
 VK_MAKE_DFL(SV**, dl_Perl_hv_fetch, (pTHX_ HV* tb, _Const char* key, I32 klen, I32 lval));
+#endif
 
 VK_MAKE_DFL(void, dl_Perl_push_scope, (pTHX));
 VK_MAKE_DFL(void, dl_Perl_pop_scope, (pTHX));
