@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/10/29 21:08:40  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.4  2003/10/19 22:44:17  gul
  * Add xstrcat(), use dynamic strings for OPT
  *
@@ -40,7 +43,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "readcfg.h"
 #include "tools.h"
 
 void *xalloc (size_t size)

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.51  2003/10/29 21:08:38  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.50  2003/10/07 20:54:47  gul
  * End clientmgr by _endthread() on break
  * (patch by Alexander Reznikov).
@@ -219,7 +222,7 @@
 
 #include "readcfg.h"
 #include "client.h"
-
+#include "ftnaddr.h"
 #include "common.h"
 #include "iptools.h"
 #include "ftnq.h"

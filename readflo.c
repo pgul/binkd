@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/10/29 21:08:39  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.4  2003/08/26 21:01:10  gul
  * Fix compilation under unix
  *
@@ -42,7 +45,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "readcfg.h"
+#include "Config.h"
 #include "tools.h"
 #include "readflo.h"
 
@@ -92,17 +95,17 @@ int read_flo_line (char *dst, int *action, FILE *flo)
  * Returns 0 if no rf_rules defined, otherwise returned value
  * should be free()'d
  */
-char *trans_flo_line (char *s, BINKD_CONFIG *config)
+char *trans_flo_line (char *s, RF_RULE *rf_rules)
 {
   RF_RULE *curr;
   char buf[MAXPATHLEN + 1];
 
-  if (config->rf_rules.first)
+  if (rf_rules)
   {
     char *w;
 
     strnzcpy (buf, s, MAXPATHLEN);
-    for (curr = config->rf_rules.first; curr; curr = curr->next)
+    for (curr = rf_rules; curr; curr = curr->next)
     {
       w = ed (buf, curr->from, curr->to, NULL);
       strnzcpy (buf, w, MAXPATHLEN);

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2003/10/29 21:08:38  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.10  2003/10/04 20:46:56  gul
  * New configure --with-debug=nofork option, DEBUGCHILD macro
  *
@@ -70,10 +73,11 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
-#include "readcfg.h"
 #include "common.h"
 #include "tools.h"
+#include "sys.h"
 
 #ifdef AMIGA
 int ix_vfork (void);

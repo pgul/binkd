@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/10/29 21:08:39  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.5  2003/08/26 21:01:10  gul
  * Fix compilation under unix
  *
@@ -49,10 +52,9 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
-#include "readcfg.h"
 #include "prothlp.h"
-
 #include "tools.h"
 
 int tfile_cmp (TFILE *a, char *netname, off_t size, time_t time)
@@ -131,7 +133,11 @@ void free_rcvdlist (RCVDLIST **rcvdlist, int *n_rcvdlist)
   *n_rcvdlist = 0;
 }
 
-void netname (char *s, TFILE *q, BINKD_CONFIG *config)
+void netname_ (char *s, TFILE *q
+#ifdef AMIGADOS_4D_OUTBOUND
+		, int aso
+#endif
+		)
 {
   static char *weekext[] = {"su", "mo", "tu", "we", "th", "fr", "sa"};
 
@@ -156,7 +162,7 @@ void netname (char *s, TFILE *q, BINKD_CONFIG *config)
 	if ((*z >= '0') && (*z < '7') && (z[1] == '#'))
 	  memcpy (z, weekext[*z - '0'], 2);
 #ifdef AMIGADOS_4D_OUTBOUND
-	if (config->aso && isarcmail(s))
+	if (aso && isarcmail(s))
 	{ /* "2:2/0 aso name shorter then bso */
 	  char ext[4];
 	  unsigned zone, net, node, p;

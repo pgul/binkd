@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2003/10/29 21:08:38  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.8  2003/08/26 22:18:47  gul
  * Fix compilation under w32-mingw and os2-emx
  *
@@ -47,9 +50,10 @@
 
 #include "readcfg.h"
 #include "bsy.h"
-
+#include "ftnaddr.h"
 #include "sem.h"
 #include "tools.h"
+#include "iphdr.h"
 #include "assert.h"
 #include "readdir.h" /* for rmdir() */
 

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/10/29 21:08:39  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.3  2003/08/26 16:06:27  stream
  * Reload configuration on-the fly.
  *
@@ -57,6 +60,6 @@ int read_flo_line (char *dst, int *action, FILE *flo);
  * Returns 0 if no rf_rules defined, otherwise returned value
  * should be free()'d
  */
-char *trans_flo_line (char *s, BINKD_CONFIG *config);
+char *trans_flo_line (char *s, RF_RULE *rf_rules);
 
 #endif

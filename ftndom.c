@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/10/29 21:08:38  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.3  2003/08/26 16:06:26  stream
  * Reload configuration on-the fly.
  *
@@ -40,32 +43,31 @@
  *
  */
 
-#include "readcfg.h"
+#include <stdio.h>
 #include "ftndom.h"
-
 #include "tools.h"
 
 /*
  * 0 == domain not found
  */
-FTN_DOMAIN *get_domain_info (char *domain_name, BINKD_CONFIG *config)
+FTN_DOMAIN *get_domain_info (char *domain_name, FTN_DOMAIN *pDomains)
 {
   FTN_DOMAIN *curr;
 
-  for (curr = config->pDomains.first; curr; curr = curr->next)
+  for (curr = pDomains; curr; curr = curr->next)
     if (!STRICMP (curr->name, domain_name))
       return curr;
   return 0;
 }
 
-char *get_matched_domain (int zone, FTN_ADDR *pAddr, int nAddr, BINKD_CONFIG *config)
+char *get_matched_domain (int zone, FTN_ADDR *pAddr, int nAddr, FTN_DOMAIN *pDomains)
 {
   FTN_DOMAIN *curr;
   char *p = NULL;
   int n;
 
   /* Is it default zone for a domain? */
-  for (curr = config->pDomains.first; curr; curr = curr->next)
+  for (curr = pDomains; curr; curr = curr->next)
     if (!curr->alias4 && curr->z[0] == zone)
     {
       p = curr->name;

@@ -27,6 +27,9 @@ documentation and/or software.
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2003/10/29 21:08:39  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.7  2003/08/26 16:06:26  stream
  * Reload configuration on-the fly.
  *
@@ -47,17 +50,18 @@ documentation and/or software.
  *
  */
 
-#include "readcfg.h"
-
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <stdio.h>
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #else
 #include <time.h>
 #endif
 #include "sys.h"
+#include "iphdr.h"
+#include "protoco2.h"
 #include "md5b.h"
 #include "tools.h"
 #include "server.h"

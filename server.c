@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.37  2003/10/29 21:08:39  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.36  2003/10/19 10:28:10  gul
  * Minor DEBUGCHILD fix
  *
@@ -171,8 +174,6 @@
 #include "readcfg.h"
 #include "common.h"
 #include "server.h"
-
-#include "iphdr.h"
 #include "iptools.h"
 #include "tools.h"
 #include "protocol.h"
@@ -334,7 +335,7 @@ static int do_server(BINKD_CONFIG *config)
       }
       rel_grow_handles (6);
       ext_rand=rand();
-      get_hostname(&client_addr, host, sizeof(host), config);
+      get_hostname(&client_addr, host, sizeof(host), config->backresolv);
       lockhostsem();
       Log (3, "incoming from %s (%s)", host,
            inet_ntoa (client_addr.sin_addr));

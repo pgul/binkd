@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.38  2003/10/29 21:08:39  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.37  2003/10/27 23:22:54  gul
  * Fix OS/2 compilation
  *
@@ -174,13 +177,12 @@
 #include "readcfg.h"
 #include "tools.h"
 #include "ftnaddr.h"
-#include "ftndom.h"
-#include "ftnnode.h"
+#include "ftnq.h"
 #include "readflo.h"
-#include "prothlp.h"
-#include "protocol.h"
+#include "iphdr.h"
 #include "protoco2.h"
 #include "sem.h"
+#include "protocol.h"
 #include "perlhooks.h"
 /* ---------------- perl stuff --------------- */
 /* dynamic load */
@@ -924,12 +926,12 @@ char *s, *p;
   a = (char *)SvPV(ST(0), len); 
   if (len == 0) XSRETURN_UNDEF;
     else if (strchr(a, '*')) mask_mode = 1;
-    else if (!parse_ftnaddress(a, &A, cfg)) XSRETURN_UNDEF;
-    else exp_ftnaddress(&A, cfg);
+    else if (!parse_ftnaddress(a, &A, cfg->pDomains.first)) XSRETURN_UNDEF;
+    else exp_ftnaddress(&A, cfg->pAddr, cfg->nAddr, cfg->pDomains.first);
   for (i = 1; i < items; i++) {
     b = (char *)SvPV(ST(i), len);
-    if (len == 0 || !parse_ftnaddress(b, &B, cfg)) continue;
-    exp_ftnaddress(&B, cfg);
+    if (len == 0 || !parse_ftnaddress(b, &B, cfg->pDomains.first)) continue;
+    exp_ftnaddress(&B, cfg->pAddr, cfg->nAddr, cfg->pDomains.first);
     if (mask_mode) {
       char bb[FTN_ADDR_SZ];
       xftnaddress_to_str(bb, &B, 1);
@@ -974,8 +976,8 @@ char *s, *p;
     b = (char *)SvPV(ST(i), len);
     if (len == 0) continue;
     if (strchr(b, '*')) { C[K++] = b; continue; }
-    if (!parse_ftnaddress(b, B+k, cfg)) continue;
-    exp_ftnaddress(B+k, cfg);
+    if (!parse_ftnaddress(b, B+k, cfg->pDomains.first)) continue;
+    exp_ftnaddress(B+k, cfg->pAddr, cfg->nAddr, cfg->pDomains.first);
     k++;
   }
   /* j - array elements, i - valid addresses */
@@ -986,8 +988,8 @@ char *s, *p;
     if (j != m) av_store(arr, m, (*svp));
     if (!svp) { m++; continue; }
     a = (char *)SvPV((*svp), len);
-    if (len == 0 || !parse_ftnaddress(a, &A, cfg)) { m++; continue; }
-    exp_ftnaddress(&A, cfg);
+    if (len == 0 || !parse_ftnaddress(a, &A, cfg->pDomains.first)) { m++; continue; }
+    exp_ftnaddress(&A, cfg->pAddr, cfg->nAddr, cfg->pDomains.first);
     /* compare */
     for (i = 0; i < k; i++) {
       if (ftnaddress_cmp(&A, B+i) == 0) { found = 1; break; }
@@ -1599,8 +1601,8 @@ static FTNQ *refresh_queue(STATE *state, FTNQ *queue) {
     svp = hv_fetch(hv, "addr", 4, 0);
     if (svp && SvOK(*svp)) {
       s = SvPV(*svp, len);
-      if (!parse_ftnaddress(s, &(q->fa), cfg)) q->fa = state->fa[0];
-      else exp_ftnaddress(&(q->fa), cfg);
+      if (!parse_ftnaddress(s, &(q->fa), cfg->pDomains.first)) q->fa = state->fa[0];
+      else exp_ftnaddress(&(q->fa), cfg->pAddr, cfg->nAddr, cfg->pDomains.first);
     } else q->fa = state->fa[0];
   }
   if (queue != SCAN_LISTED) q_free(queue, cfg);
@@ -1785,8 +1787,8 @@ char *perl_on_handshake(STATE *state, BINKD_CONFIG *cfg) {
         for (i = 0; i < N; i++) {
           svp = av_fetch(me, i, FALSE);
           if (svp == NULL) continue;
-          if (!parse_ftnaddress(SvPV(*svp, len), &addr, cfg)) continue;
-          exp_ftnaddress(&addr, cfg);
+          if (!parse_ftnaddress(SvPV(*svp, len), &addr, cfg->pDomains.first)) continue;
+          exp_ftnaddress(&addr, cfg->pAddr, cfg->nAddr, cfg->pDomains.first);
           state->pAddr[n++] = addr;
         }
         state->nAddr = n;

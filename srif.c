@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2003/10/29 21:08:40  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.14  2003/09/08 17:05:42  stream
  * Big memory leak in evt_queue()
  *
@@ -83,10 +86,12 @@
 #include <ctype.h>
 
 #include "readcfg.h"
+#include "protoco2.h"
 #include "srif.h"
-
+#include "ftnaddr.h"
 #include "tools.h"
 #include "run.h"
+#include "ftnq.h"
 
 static EVTQ *evt_queue(EVTQ *eq, char evt_type, char *path)
 {
@@ -106,12 +111,12 @@ static EVTQ *evt_queue(EVTQ *eq, char evt_type, char *path)
 /*
  * Tests if filename matches any of EVT_FLAG's patterns.
  */
-int evt_test (EVTQ **eq, char *filename, BINKD_CONFIG *config)
+int evt_test (EVTQ **eq, char *filename, EVT_FLAG *evt_flags)
 {
   EVT_FLAG *curr;
   int rc=0;
 
-  for (curr = config->evt_flags.first; curr; curr = curr->next)
+  for (curr = evt_flags; curr; curr = curr->next)
   {
     if (pmatch_ncase(curr->pattern, filename))
     {

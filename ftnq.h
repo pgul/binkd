@@ -14,6 +14,9 @@
 /* $Id$
  *
  * $Log$
+ * Revision 2.8  2003/10/29 21:08:38  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.7  2003/09/05 10:17:21  gul
  * Send argus-compatible freqs.
  * Warning: works only with prescan!
@@ -62,33 +65,7 @@
 #ifndef _ftnq_h
 #define _ftnq_h
 
-typedef struct _FTNQ FTNQ;
-struct _FTNQ
-{
-  FTNQ *next;
-  FTNQ *prev;
-
-  FTN_ADDR fa;
-  char flvr;			       /* 'I', 'i', 'C', 'c', 'D', 'd', 'O',
-				        * 'o', 'F', 'f', 'H', 'h' */
-  char action;			       /* 'd'elete, 't'runcate, '\0' -- none,
-				        * remove on 's'uccessful session,
-				        * after 'a'ny session */
-  char type;			       /* 'm'ail (.out), .f'l'o, '*' -- a
-				        * file from .flo (just for stats, it
-				        * will never be selected for sending
-				        * right from the queue, it will be
-				        * send when parsing its .flo instead,
-				        * now it's obsolete), other -- a file
-				        * to send. */
-  char path[MAXPATHLEN + 1];
-  unsigned long size;
-  time_t time;			       /* this field seems to be used only in
-				        * cmp_filebox_files(), when sorting
-				        * files from a filebox before sending */
-
-  int sent;			       /* == 1, if the file have been sent */
-};
+#include "btypes.h"
 
 #define SCAN_LISTED ((FTNQ*)-1)
 

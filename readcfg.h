@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.27  2003/10/29 21:08:39  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.26  2003/10/19 12:21:47  gul
  * Stream compression
  *
@@ -127,32 +130,13 @@
 #include <stdio.h>
 
 #include "Config.h"
-
-struct list_itemlink  { void *next; };  /* in the beginning of each item! */
-struct list_linkpoint { struct list_itemlink *last; }; /* in the beginning of each list! */
-
-#define TYPE_LIST(itemtype)  struct simplelist_##itemtype
-#define DEFINE_LIST(itemtype)       \
-  TYPE_LIST(itemtype)               \
-  {                                 \
-  struct list_linkpoint linkpoint;  \
-  struct itemtype *first;           \
-  }
+#include "btypes.h"
+#include "iphdr.h"
 
 typedef struct _BINKD_CONFIG BINKD_CONFIG;
 
-#include "iphdr.h"
-#include "ftnaddr.h"
-#include "ftndom.h"
-#include "ftnnode.h"
-
 #define MAXINCLUDELEVEL 8
 #define MAXCFGLINE 1024
-
-#define MAXSYSTEMNAME 120
-#define MAXSYSOPNAME 120
-#define MAXLOCATIONNAME 120
-#define MAXNODEINFO 120
 
 /* val: enum for checks */
 typedef enum { A_ALL=-1, A_LST=1, A_UNLST=2, A_PROT=4, A_UNPROT=8 } addrtype;
@@ -232,7 +216,7 @@ struct _BINKD_CONFIG
   int        percents;
   int        tzoff;
   int        prescan;
-  enum inbcasetype { INB_SAVE,INB_UPPER,INB_LOWER,INB_MIXED } inboundcase;
+  enum inbcasetype inboundcase;
   int        deletedirs;
   int        havedefnode;
 #ifdef AMIGADOS_4D_OUTBOUND

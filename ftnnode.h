@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2003/10/29 21:08:38  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.14  2003/09/08 16:39:39  stream
  * Fixed race conditions when accessing array of nodes in threaded environment
  * ("jumpimg node structures")
@@ -88,30 +91,7 @@
 #ifndef _ftnnode_h
 #define _ftnnode_h
 
-#define MAXPWDLEN 40
-
-typedef struct _FTN_NODE FTN_NODE;
-struct _FTN_NODE
-{
-  char *hosts;			       /* "host1:port1,host2:port2,*" */
-
-  FTN_ADDR fa;
-  char pwd[MAXPWDLEN + 1];
-  char obox_flvr;
-  char *obox;
-  char *ibox;
-  int NR_flag;
-  int ND_flag;
-  int MD_flag;
-  int HC_flag;
-  int restrictIP;
-  /* int NP_flag; */                      /* no proxy */
-
-  time_t hold_until;
-  int busy;			       /* 0=free, 'c'=.csy, other=.bsy */
-  int mail_flvr;		       /* -1=no mail, other=it's flavour */
-  int files_flvr;		       /* -1=no files, other=it's flavour */
-};
+#include "btypes.h"
 
 /*
  * Call this before all others functions from this file.

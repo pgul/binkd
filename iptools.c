@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2003/10/29 21:08:39  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.13  2003/10/07 17:57:09  gul
  * Some small changes in close threads function.
  * Inhibit errors "socket operation on non-socket" on break.
@@ -75,26 +78,27 @@
 #include <string.h>
 #include <ctype.h>
 #include <fcntl.h>
+#include <stdio.h>
 #if defined(HAVE_SYS_IOCTL_H)
 #include <sys/ioctl.h>
 #endif
 
-#include "readcfg.h"
+#include "Config.h"
+#include "common.h"
 #include "iptools.h"
 #include "tools.h"
-#include "common.h"
 #include "sem.h"
 
 /*
  * Finds ASCIIZ address
  */
-const char *get_hostname (struct sockaddr_in *addr, char *host, int len, BINKD_CONFIG *config)
+const char *get_hostname (struct sockaddr_in *addr, char *host, int len, int backresolv)
 {
   struct hostent *hp;
   struct sockaddr_in s;
 
   memcpy(&s, addr, sizeof(s));
-  if (config->backresolv)
+  if (backresolv)
   {
     lockresolvsem();
     hp = gethostbyaddr ((char *) &s.sin_addr, sizeof s.sin_addr, AF_INET);

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/10/29 21:08:39  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.5  2003/08/26 21:01:10  gul
  * Fix compilation under unix
  *
@@ -45,7 +48,6 @@
 #include <windows.h>
 #endif
 
-#include "readcfg.h"
 #include "run.h"
 #include "tools.h"
 

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.137  2003/10/29 21:08:39  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.136  2003/10/24 06:38:41  val
  * fix warning
  *
@@ -506,9 +509,12 @@
 #endif
 
 #include "readcfg.h"
-#include "protocol.h"
-
 #include "common.h"
+#include "protocol.h"
+#include "ftnaddr.h"
+#include "ftnnode.h"
+#include "ftndom.h"
+#include "ftnq.h"
 #include "iptools.h"
 #include "tools.h"
 #include "bsy.h"
@@ -516,6 +522,7 @@
 #include "srif.h"
 #include "readflo.h"
 #include "protoco2.h"
+#include "prothlp.h"
 #include "assert.h"
 #include "binlog.h"
 #include "setpttl.h"
@@ -1144,7 +1151,7 @@ static int remove_from_spool (STATE *state, char *flopath,
 	fgets (buf, MAXPATHLEN, flo);
 	/* We've found the file in flo, so try to translate it's name before
 	 * the action */
-	if (w == 0 && (w = trans_flo_line (file, config)) != 0)
+	if (w == 0 && (w = trans_flo_line (file, config->rf_rules.first)) != 0)
 	{
 	  Log (5, "%s mapped to %s", file, w);
 	}
@@ -1359,7 +1366,7 @@ static char * add_shared_akas(char * s, BINKD_CONFIG *config)
 
   for (i = 1; (w = getwordx (s, i, 0)) != 0; ++i)
   {
-    if (parse_ftnaddress (w, &fa, config) && is5D (&fa))
+    if (parse_ftnaddress (w, &fa, config->pDomains.first) && is5D (&fa))
     {
       for(chn = config->shares.first;chn;chn = chn->next)
       {
@@ -1468,7 +1475,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 
   for (i = 1; (w = getwordx (s, i, 0)) != 0; ++i)
   {
-    if (!parse_ftnaddress (w, &fa, config) || !is4D (&fa))
+    if (!parse_ftnaddress (w, &fa, config->pDomains.first) || !is4D (&fa))
     {
       char *q = strquote (s, SQ_CNTRL);
 
@@ -1486,7 +1493,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 #endif
 
     if (!fa.domain[0])
-      strcpy (fa.domain, get_matched_domain(fa.z, config->pAddr, config->nAddr, config));
+      strcpy (fa.domain, get_matched_domain(fa.z, config->pAddr, config->nAddr, config->pDomains.first));
 
     ftnaddress_to_str (szFTNAddr, &fa);
     pn = get_node_info(&fa, config);
@@ -2072,7 +2079,7 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
       if (*realname)
       {
         /* Set flags */
-        if(evt_test(&(state->evt_queue), realname, config))
+        if(evt_test(&(state->evt_queue), realname, config->evt_flags.first))
           state->q = evt_run(&(state->evt_queue), state->q, realname, state->fa,
 	         state->nfa, state->state == P_SECURE, state->listed_flag,
                  state->peer_name, state, config);
@@ -2624,7 +2631,7 @@ static int EOB (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
     if (*realname)
     {
       /* Set flags */
-      if (evt_test(&(state->evt_queue), realname, config))
+      if (evt_test(&(state->evt_queue), realname, config->evt_flags.first))
         state->q = evt_run(&(state->evt_queue), state->q, realname, state->fa,
 	       state->nfa, state->state == P_SECURE, state->listed_flag,
                state->peer_name, state, config);
@@ -2836,7 +2843,7 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
 	    if (*realname)
 	    {
 	      /* Set flags */
-              if (evt_test(&(state->evt_queue), realname, config))
+              if (evt_test(&(state->evt_queue), realname, config->evt_flags.first))
                 state->q = evt_run(&(state->evt_queue), state->q, realname,
 		       state->fa, state->nfa, state->state == P_SECURE,
 		       state->listed_flag, state->peer_name, state, config);
@@ -2980,7 +2987,7 @@ static void banner (STATE *state, BINKD_CONFIG *config)
   msg_send2 (state, M_NUL, "NDL ", config->nodeinfo);
 
   t = safe_time();
-  tz = tz_off(t, config);
+  tz = tz_off(t, config->tzoff);
   safe_localtime (&t, &tm);
 
 #if 0
@@ -3081,7 +3088,7 @@ static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
 	return 0;
       }
 
-      if ((w = trans_flo_line (state->out.path, config)) != 0)
+      if ((w = trans_flo_line (state->out.path, config->rf_rules.first)) != 0)
 	Log (5, "%s mapped to %s", state->out.path, w);
 
       if ((f = fopen (w ? w : state->out.path, "rb")) == 0 ||
@@ -3223,7 +3230,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
     state.peer_name = current_addr;
   else
   {
-    get_hostname(&peer_name, host, sizeof(host), config);
+    get_hostname(&peer_name, host, sizeof(host), config->backresolv);
     state.peer_name = host;
   }
   setproctitle ("%c [%s]", to ? 'o' : 'i', state.peer_name);

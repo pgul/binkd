@@ -6,13 +6,14 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2003/10/29 21:08:38  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.0  2001/01/10 12:12:38  gul
  * Binkd is under CVS again
  *
  *
  */
-
-#define MAX_ENV_VAR_NAME 256
 
 /*
  * Supported flags:

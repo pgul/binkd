@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.72  2003/10/29 21:08:38  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.71  2003/10/20 20:27:06  gul
  * format output
  *
@@ -288,6 +291,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>
 #ifdef HAVE_FORK
 #include <signal.h>
 #include <sys/wait.h>
@@ -295,7 +299,6 @@
 
 #include "readcfg.h"
 #include "common.h"
-
 #include "server.h"
 #include "client.h"
 #include "tools.h"
@@ -303,6 +306,7 @@
 #include "protocol.h"
 #include "setpttl.h"
 #include "sem.h"
+#include "ftnnode.h"
 
 #ifdef HAVE_GETOPT
 #include <unistd.h>

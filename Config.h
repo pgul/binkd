@@ -28,7 +28,7 @@
     #define MAXPATHLEN _MAX_PATH
   #endif
 #elif defined (VISUALCPP)
-  #include <direct.h>
+  #include <stdlib.h>
   #ifndef MAXPATHLEN
     #define MAXPATHLEN _MAX_PATH
   #endif
@@ -77,6 +77,14 @@
 #define MAX_BLKSIZE 0x7fffu                 /* Don't change! */
 #define DEF_BLKSIZE (4*1024u)
 #define MAX_NETNAME 255
+
+#define MAXPWDLEN  40
+#define MAX_DOMAIN 32
+
+#define MAXSYSTEMNAME   120
+#define MAXSYSOPNAME    120
+#define MAXLOCATIONNAME 120
+#define MAXNODEINFO     120
 
 #ifndef CHECKCFG_INTERVAL		    /* Can be defined in Makefile */
 #define CHECKCFG_INTERVAL config->rescan_delay

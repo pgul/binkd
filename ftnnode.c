@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.25  2003/10/29 21:08:38  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.24  2003/09/19 13:37:14  val
  * old get_defnode_info() logic returned for a while
  *
@@ -111,10 +114,11 @@
 
 #include "readcfg.h"
 #include "ftnnode.h"
-
+#include "ftnaddr.h"
 #include "sem.h"
 #include "tools.h"
 #include "ftnq.h"
+#include "iphdr.h"
 
 #if defined(HAVE_THREADS) || defined(AMIGA)
 static MUTEXSEM NSem;
@@ -375,7 +379,7 @@ int poll_node (char *s, BINKD_CONFIG *config)
 {
   FTN_ADDR target;
 
-  if (!parse_ftnaddress (s, &target, config))
+  if (!parse_ftnaddress (s, &target, config->pDomains.first))
   {
     Log (1, "`%s' cannot be parsed as a Fido-style address\n", s);
     return 0;
@@ -384,7 +388,7 @@ int poll_node (char *s, BINKD_CONFIG *config)
   {
     char buf[FTN_ADDR_SZ + 1];
 
-    exp_ftnaddress (&target, config);
+    exp_ftnaddress (&target, config->pAddr, config->nAddr, config->pDomains.first);
     ftnaddress_to_str (buf, &target);
     Log (4, "creating a poll for %s (`%c' flavour)", buf, POLL_NODE_FLAVOUR);
     locknodesem();

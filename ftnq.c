@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.28  2003/10/29 21:08:38  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.27  2003/09/08 16:39:39  stream
  * Fixed race conditions when accessing array of nodes in threaded environment
  * ("jumpimg node structures")
@@ -143,9 +146,11 @@
 
 #include "readcfg.h"
 #include "ftnq.h"
-
+#include "ftnnode.h"
+#include "ftnaddr.h"
 #include "tools.h"
 #include "readdir.h"
+#include "iphdr.h"
 #ifdef WITH_PERL
 #include "perlhooks.h"
 #endif

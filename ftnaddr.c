@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2003/10/29 21:08:38  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.7  2003/08/26 21:01:09  gul
  * Fix compilation under unix
  *
@@ -54,10 +57,10 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "readcfg.h"
 #include "tools.h"
-
+#include "ftndom.h"
 #include "ftnaddr.h"
+#include "iphdr.h"
 
 typedef struct
 {
@@ -108,7 +111,7 @@ static int gettoken (TOKEN *token, char **s)
 
 #define TOKENS 10
 
-int parse_ftnaddress (char *s, FTN_ADDR *fa, BINKD_CONFIG *config)
+int parse_ftnaddress (char *s, FTN_ADDR *fa, FTN_DOMAIN *pDomains)
 {
   TOKEN token[TOKENS];
   int i;
@@ -159,7 +162,7 @@ int parse_ftnaddress (char *s, FTN_ADDR *fa, BINKD_CONFIG *config)
     if (/*token[1].c != ':' ||*/ token_type (token[i + 1]) != T_WORD)
       return 0;
 
-    strcpy (fa->domain, (d = get_domain_info (token[i + 1].s, config)) ?
+    strcpy (fa->domain, (d = get_domain_info (token[i + 1].s, pDomains)) ?
 	    (d->alias4 ? d->alias4->name : d->name) : token[i + 1].s);
     i += 2;
   }
@@ -196,15 +199,13 @@ void xftnaddress_to_str(char *s, FTN_ADDR *fa, int force_point)
     n += sprintf (s + n, "@%s", fa->domain);
 }
 
-void exp_ftnaddress (FTN_ADDR *fa, BINKD_CONFIG *config)
+void exp_ftnaddress (FTN_ADDR *fa, FTN_ADDR *pAddr, int nAddr, FTN_DOMAIN *pDomains)
 {
-  FTN_ADDR *pAddr = config->pAddr;
-
   if (!pAddr)
     Log (0, "you should define your address right after domains");
   if (fa->z == -1) {
     /* val: set default zone for a domain */
-    FTN_DOMAIN *d = get_domain_info(fa->domain, config);
+    FTN_DOMAIN *d = get_domain_info(fa->domain, pDomains);
     fa->z = (d ? (d->alias4 ? *(d->alias4->z) : *(d->z)) : pAddr[0].z);
   }
   if (fa->net == -1)
@@ -212,7 +213,7 @@ void exp_ftnaddress (FTN_ADDR *fa, BINKD_CONFIG *config)
   if (fa->node == -1)
     fa->node = pAddr[0].node;
   if (fa->domain[0] == 0)
-    strcpy (fa->domain, get_matched_domain(fa->z, pAddr, config->nAddr, config));
+    strcpy (fa->domain, get_matched_domain(fa->z, pAddr, nAddr, pDomains));
 }
 
 int ftnaddress_cmp (FTN_ADDR *a, FTN_ADDR *b)
@@ -255,24 +256,28 @@ int ftnamask_cmpm (char *mask, int cnt, FTN_ADDR *fa) {
  *  2:5047/13.1 -> p1.f13.n5047.z2.fidonet.net.
  *  S should have space for MAXHOSTNAMELEN chars.
  */
-void ftnaddress_to_domain (char *s, FTN_ADDR *fa, BINKD_CONFIG *config)
+void ftnaddress_to_domain (char *s, FTN_ADDR *fa, char *root_domain)
 {
   if (fa->p == 0)
     sprintf (s, "f%i.n%i.z%i.", fa->node, fa->net, fa->z);
   else
     sprintf (s, "p%i.f%i.n%i.z%i.", fa->p, fa->node, fa->net, fa->z);
-  strnzcat (s, config->root_domain, MAXHOSTNAMELEN);
+  strnzcat (s, root_domain, MAXHOSTNAMELEN);
 }
 
 
 /*
  *  S should have space for MAXPATHLEN chars, sets s to "" if no domain.
  */
-void ftnaddress_to_filename (char *s, FTN_ADDR *fa, BINKD_CONFIG *config)
+void ftnaddress_to_filename_ (char *s, FTN_ADDR *fa, FTN_DOMAIN *pDomains
+#ifdef AMIGADOS_4D_OUTBOUND
+		, int aso
+#endif
+		)
 {
   FTN_DOMAIN *d;
 
-  if ((d = get_domain_info (fa->domain, config)) == 0)
+  if ((d = get_domain_info (fa->domain, pDomains)) == 0)
   {
     *s = 0;
   }
@@ -282,7 +287,7 @@ void ftnaddress_to_filename (char *s, FTN_ADDR *fa, BINKD_CONFIG *config)
     char pnt[] = "\0pnt/0000xxxx";     /* ".pnt..." */
 
 #ifdef AMIGADOS_4D_OUTBOUND
-    if (config->aso)
+    if (aso)
       snprintf(s, MAXPATHLEN, "%s%s%s%s%u.%u.%u.%u",
          d->path, PATH_SEPARATOR, d->dir,
          PATH_SEPARATOR, fa->z, fa->net, fa->node, fa->p);

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/10/29 21:08:38  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.4  2003/08/26 21:01:09  gul
  * Fix compilation under unix
  *
@@ -48,7 +51,7 @@
 
 #include <stdlib.h>
 #include <signal.h>
-#include "readcfg.h"
+#include <stdio.h>
 #include "sys.h"
 #include "common.h"
 #include "tools.h"

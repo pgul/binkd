@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.36  2003/10/29 21:08:38  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.35  2003/10/28 13:09:53  gul
  * Fix NT service semaphore usage in exitfunc()
  *
@@ -140,7 +143,7 @@
 
 #include "readcfg.h"
 #include "common.h"
-
+#include "ftnnode.h"
 #include "bsy.h"
 #include "tools.h"
 #include "sem.h"

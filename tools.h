@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.24  2003/10/29 21:08:40  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.23  2003/10/19 22:44:17  gul
  * Add xstrcat(), use dynamic strings for OPT
  *
@@ -118,7 +121,7 @@
 #endif
 
 #include "getw.h"
-#include "readcfg.h"
+#include "btypes.h"
 
 #ifndef min
 #define min(x,y) ((x) < (y) ? (x) : (y))
@@ -129,7 +132,7 @@
 #endif
 
 void Log (int lev, char *s,...);
-void InitLog(struct _BINKD_CONFIG *config);
+void InitLog(int loglevel, int conlog, char *logpath, void *first);
 
 #define LOGINT(v) Log(6, "%s=%i\n", #v, (int)(v))
 
@@ -268,7 +271,7 @@ char **mkargv (int argc, char **argv);
 /*
  * Apply filename case style defined in inboundcase
  */
-char *makeinboundcase (char *s, struct _BINKD_CONFIG *config);
+char *makeinboundcase (char *s, enum inbcasetype inbcase);
 
 /*
  * Thread-safe localtime & gmtime functions
@@ -276,7 +279,7 @@ char *makeinboundcase (char *s, struct _BINKD_CONFIG *config);
 struct tm *safe_localtime(time_t *t, struct tm *tm);
 struct tm *safe_gmtime(time_t *t, struct tm *tm);
 time_t safe_time(void);
-int tz_off(time_t t, struct _BINKD_CONFIG *config);
+int tz_off(time_t t, int tzoff);
 
 
 /* Safe string to long conversion: negative converts using atol,

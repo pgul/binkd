@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/10/29 21:08:39  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.4  2003/08/26 16:06:26  stream
  * Reload configuration on-the fly.
  *
@@ -40,44 +43,11 @@
 #ifndef _prothlp_h
 #define _prothlp_h
 
-#include "ftnq.h"
-
-/* A file in transfer */
-typedef struct _TFILE TFILE;
-struct _TFILE
-{
-  char path[MAXPATHLEN + 1];		    /* It's name */
-  char flo[MAXPATHLEN + 1];		    /* It's .?lo */
-  char netname[MAX_NETNAME + 1];	    /* It's "netname" */
-  char action;				    /* 'd'elete, 't'runcate, '\0' -- * *
-					     * none */
-  char type;
-  off_t size;
-  time_t start;				    /* The transfer started at... */
-  time_t time;				    /* Filetime */
-  FILE *f;
-  FTN_ADDR fa;
-};
+#include "btypes.h"
 
 #define TF_ZERO(a) (memset(a, 0, sizeof(*a)))
 
 int tfile_cmp (TFILE *a, char *netname, off_t size, time_t time);
-
-/* Files to kill _after_ session */
-typedef struct _KILLLIST KILLLIST;
-struct _KILLLIST
-{
-  char name[MAXPATHLEN + 1];		    /* file's name */
-  char cond;				    /* after 's'uccessful session,
-					     * '\0' -- in any case */
-};
-
-typedef struct _EVTQ
-{
-  char *path;
-  struct _EVTQ *next;
-  char evt_type;
-} EVTQ;
 
 /* Adds a file to killlist */
 void add_to_killlist (KILLLIST **killlist, int *n_killlist, char *name, int cond);
@@ -85,18 +55,17 @@ void q_to_killlist (KILLLIST **killlist, int *n_killlist, FTNQ *q);
 void free_killlist (KILLLIST **killlist, int *n_killlist);
 void process_killlist (KILLLIST *killlist, int n_killlist, int flag);
 
-/* List of files received in the current batch */
-typedef struct _RCVDLIST RCVDLIST;
-struct _RCVDLIST
-{
-  char name[MAXPATHLEN + 1];		    /* file's name */
-};
-
 /* Adds a file to rcvdlist */
 void add_to_rcvdlist (RCVDLIST **rcvdlist, int *n_rcvdlist, char *name);
 void free_rcvdlist (RCVDLIST **rcvdlist, int *n_rcvdlist);
 
 /* Creates a netname from a local name */
-void netname (char *s, TFILE *q, BINKD_CONFIG *config);
+#ifdef AMIGADOS_4D_OUTBOUND
+void netname_ (char *s, TFILE *q, int aso);
+#define netname(s, q, config) netname_(s, q, (config)->aso)
+#else
+void netname_ (char *s, TFILE *q);
+#define netname(s, q, config) netname_(s, q)
+#endif
 
 #endif

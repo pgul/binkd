@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.23  2003/10/29 21:08:38  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.22  2003/08/28 07:35:54  gul
  * Cosmetics in log
  *
@@ -119,6 +122,8 @@
 #include "tools.h"
 #include "protocol.h"
 #include "readdir.h"
+#include "ftnaddr.h"
+#include "ftnnode.h"
 #ifdef WITH_PERL
 #include "perlhooks.h"
 #endif
@@ -247,7 +252,7 @@ int find_tmp_name (char *s, char *file, off_t size,
       for (i = 0; i < 4; ++i)
 	w[i] = getwordx (buf, i + 1, GWX_NOESC);
 
-      if (!strcmp (w[0], file) && parse_ftnaddress (w[3], &fa, config))
+      if (!strcmp (w[0], file) && parse_ftnaddress (w[3], &fa, config->pDomains.first))
       {
 	for (i = 0; i < nfa; i++)
 	  if (!ftnaddress_cmp (&fa, from + i))
@@ -474,7 +479,7 @@ int inb_done (char *netname, off_t size, time_t time,
   strnzcpy (real_name, inbound, MAXPATHLEN);
   strnzcat (real_name, PATH_SEPARATOR, MAXPATHLEN);
   s = real_name + strlen (real_name);
-  strnzcat (real_name, u = makeinboundcase (strdequote (netname), config), MAXPATHLEN);
+  strnzcat (real_name, u = makeinboundcase (strdequote (netname), (int)config->inboundcase), MAXPATHLEN);
   free (u);
   strwipe (s);
 

@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/10/29 21:08:38  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.3  2003/08/26 16:06:26  stream
  * Reload configuration on-the fly.
  *
@@ -27,20 +30,14 @@
 #ifndef _ftnaddr_h
 #define _ftnaddr_h
 
-#define MAX_DOMAIN 32
-#define FTN_ADDR_SZ (80+MAX_DOMAIN) /* Max length of a stringized fido address */
+#include "btypes.h"
 
-typedef struct _FTN_ADDR FTN_ADDR;
-struct _FTN_ADDR
-{
-  char domain[MAX_DOMAIN + 1];
-  int z, net, node, p; /* -1==unknown or wildcard */
-};
+#define FTN_ADDR_SZ (80+MAX_DOMAIN) /* Max length of a stringized fido address */
 
 /*
  * 1 -- parsed ok, 0 -- syntax error
  */
-int parse_ftnaddress (char *s, FTN_ADDR *fa, BINKD_CONFIG *config);
+int parse_ftnaddress (char *s, FTN_ADDR *fa, FTN_DOMAIN *pDomains);
 
 /*
  * Not safe! Give it at least FTN_ADDR_SZ buffer.
@@ -51,7 +48,7 @@ void xftnaddress_to_str (char *s, FTN_ADDR *fa, int force_point);
 /*
  * Expands an address using pAddr[0] (pAddr[0] is my main a.k.a.)
  */
-void exp_ftnaddress (FTN_ADDR *fa, BINKD_CONFIG *config);
+void exp_ftnaddress (FTN_ADDR *fa, FTN_ADDR *pAddr, int nAddr, FTN_DOMAIN *pDomains);
 
 /*
  *  Returns 0 if match.
@@ -71,13 +68,19 @@ int ftnamask_cmpm(char *, int, FTN_ADDR *);
 /*
  *  S should have space for MAXPATHLEN chars, sets s to "" if no domain.
  */
-void ftnaddress_to_filename (char *s, FTN_ADDR *fa, BINKD_CONFIG *config);
+#ifdef AMIGADOS_4D_OUTBOUND
+void ftnaddress_to_filename_ (char *s, FTN_ADDR *fa, FTN_DOMAIN *pDomains, int aso);
+#define ftnaddress_to_filename(s, fa, config) ftnaddress_to_filename_(s, fa, (config)->pDomains.first, (config)->aso)
+#else
+void ftnaddress_to_filename_ (char *s, FTN_ADDR *fa, FTN_DOMAIN *pDomains);
+#define ftnaddress_to_filename(s, fa, config) ftnaddress_to_filename_(s, fa, (config)->pDomains.first)
+#endif
 
 /*
  *  2:5047/13.1 -> p1.f13.n5047.z2.fidonet.net.
  *  S should have space for MAXHOSTNAMELEN chars.
  */
-void ftnaddress_to_domain (char *s, FTN_ADDR *fa, BINKD_CONFIG *config);
+void ftnaddress_to_domain (char *s, FTN_ADDR *fa, char *root_domain);
 
 #define is4D(fa) ((fa)->z != -1 && (fa)->node != -1 && \
   (fa)->net != -1 && (fa)->p != -1)

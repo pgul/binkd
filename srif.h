@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/10/29 21:08:40  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.3  2003/08/26 16:06:27  stream
  * Reload configuration on-the fly.
  *
@@ -39,9 +42,6 @@
 #ifndef _srif_h
 #define _srif_h
 
-#include "ftnq.h"
-#include "protoco2.h"
-
 typedef struct _EVT_FLAG EVT_FLAG;
 struct _EVT_FLAG
 {
@@ -55,7 +55,7 @@ struct _EVT_FLAG
 /*
  * Tests if filename matches any of EVT_FLAG's patterns.
  */
-int evt_test (EVTQ **eq, char *filename, BINKD_CONFIG *config);
+int evt_test (EVTQ **eq, char *filename, EVT_FLAG *evt_flags);
 
 /*
  * Runs external programs using S.R.I.F. interface

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.59  2003/10/29 21:08:39  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.58  2003/10/23 21:38:51  gul
  * Remove C++ style comments
  *
@@ -256,12 +259,16 @@
 
 #include "readcfg.h"
 #include "common.h"
-
 #include "sem.h"
 #include "tools.h"
+#include "protoco2.h"
 #include "srif.h"
 #include "iptools.h"
 #include "readflo.h"
+#include "ftnaddr.h"
+#include "ftnnode.h"
+#include "ftndom.h"
+#include "ftnq.h"
 
 /*
  * Pointer to actual config used by all processes
@@ -933,7 +940,8 @@ int readcfg (char *path)
       new_config = xalloc(sizeof(work_config));
       memcpy(new_config, &work_config, sizeof(work_config));
 
-      InitLog(new_config);
+      InitLog(new_config->loglevel, new_config->conlog,
+              new_config->logpath, new_config->nolog.first);
 
       LockSem(&config_sem);
       old_config = current_config;
@@ -1023,7 +1031,7 @@ static void check_dir_path (char *s)
 
 static int Config_ParseAddress(char *s, FTN_ADDR *a)
 {
-  if (!parse_ftnaddress (s, a, &work_config))
+  if (!parse_ftnaddress (s, a, work_config.pDomains.first))
     return ConfigError("%s: the address cannot be parsed", s);
   return 1;
 }
@@ -1086,9 +1094,9 @@ static int passwords (KEYWORD *key, int wordcount, char **words)
     if (node)
     {
       password = strtok(NULL, spaces);
-      if (password && parse_ftnaddress (node, &fa, &work_config)) /* Do not process if any garbage found */
+      if (password && parse_ftnaddress (node, &fa, work_config.pDomains.first)) /* Do not process if any garbage found */
       {
-        exp_ftnaddress (&fa, &work_config);
+        exp_ftnaddress (&fa, work_config.pAddr, work_config.nAddr, work_config.pDomains.first);
         add_node (&fa, NULL, password, '-', NULL, NULL,
                   NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, HC_USE_OLD /*, NP_USE_OLD */, &work_config);
       }
@@ -1120,7 +1128,7 @@ static int read_aka_list (KEYWORD *key, int wordcount, char **words)
     {
       if (work_config.pDomains.first == NULL)
         return ConfigError("at least one domain must be defined first");
-      strcpy (a->domain, get_matched_domain(a->z, work_config.pAddr, work_config.nAddr, &work_config));
+      strcpy (a->domain, get_matched_domain(a->z, work_config.pAddr, work_config.nAddr, work_config.pDomains.first));
     }
     ++work_config.nAddr;
   }
@@ -1137,7 +1145,7 @@ static int read_domain_info (KEYWORD *key, int wordcount, char **words)
   if (!isArgCount(3, wordcount))
     return 0;
 
-  if (get_domain_info (words[0], &work_config))
+  if (get_domain_info (words[0], work_config.pDomains.first))
     return ConfigError("%s: duplicate domain", words[0]);
 
   memset(&new_domain, 0, sizeof(new_domain));
@@ -1145,7 +1153,7 @@ static int read_domain_info (KEYWORD *key, int wordcount, char **words)
 
   if (!STRICMP (words[1], "alias-for"))
   {
-    if ((tmp_domain = get_domain_info (words[2], &work_config)) == 0)
+    if ((tmp_domain = get_domain_info (words[2], work_config.pDomains.first)) == 0)
       return ConfigError("%s: undefined domain", words[2]);
     new_domain.alias4 = tmp_domain;
   }
@@ -1253,7 +1261,7 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
     return ConfigError("missing node address");
   if (!Config_ParseAddress (w[0], &fa))
     return 0;
-  exp_ftnaddress (&fa, &work_config);
+  exp_ftnaddress (&fa, work_config.pAddr, work_config.nAddr, work_config.pDomains.first);
 
   if (w[2] && w[2][0] == 0)
     return ConfigError("empty password");
@@ -1295,7 +1303,7 @@ int get_host_and_port (int n, char *host, unsigned short *port, char *src, FTN_A
       *t = 0;
 
     if (!strcmp (s, "*"))
-      ftnaddress_to_domain (host, fa, config);
+      ftnaddress_to_domain (host, fa, config->root_domain);
     else
       strnzcpy (host, s, MAXHOSTNAMELEN);
 
@@ -1477,7 +1485,7 @@ static int read_akachain (KEYWORD *key, int wordcount, char **words)
 
   if (!Config_ParseAddress(words[0], &new_entry.fa))  /* aka */
     return 0;
-  exp_ftnaddress(&new_entry.fa, &work_config);
+  exp_ftnaddress(&new_entry.fa, work_config.pAddr, work_config.nAddr, work_config.pDomains.first);
 
   mask = words[1];
   type = key->option1;
@@ -1934,7 +1942,7 @@ static int read_shares (KEYWORD *key, int wordcount, char **words)
 
   if (!Config_ParseAddress(words[0], &chn.sha))
     return 0;
-  exp_ftnaddress(&chn.sha, &work_config);
+  exp_ftnaddress(&chn.sha, work_config.pAddr, work_config.nAddr, work_config.pDomains.first);
 
   /* To scan outgoing mails to shared node
    * `node share_addr' string is simulated
@@ -1956,7 +1964,7 @@ static int read_shares (KEYWORD *key, int wordcount, char **words)
       destroy_shares(&chn);
       return 0;
     }
-    exp_ftnaddress(&fchn.fa, &work_config);
+    exp_ftnaddress(&fchn.fa, work_config.pAddr, work_config.nAddr, work_config.pDomains.first);
     simplelist_add(&chn.sfa.linkpoint, &fchn, sizeof(fchn));
   }
 

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.56  2003/10/29 21:08:40  gul
+ * Change include-files structure, relax dependences
+ *
  * Revision 2.55  2003/10/18 18:50:47  stas
  * Move to new 'tray.c' file several functions when is related with 'minimize to tray' feature
  *
@@ -254,6 +257,7 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <stdio.h>
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
 #include <syslog.h>
 #endif
@@ -261,7 +265,6 @@
 #include "readcfg.h"
 #include "common.h"
 #include "tools.h"
-
 #include "sys.h"
 #include "readdir.h"		       /* for [sys/]utime.h */
 #include "sem.h"
@@ -507,13 +510,13 @@ time_t safe_time(void)
 }
 #endif
 
-void InitLog(BINKD_CONFIG *config)
+void InitLog(int loglevel, int conlog, char *logpath, void *first)
 {
   LockSem(&lsem);
-  current_loglevel = config->loglevel;
-  current_conlog   = config->conlog;
-  current_logpath  = config->logpath;
-  current_nolog    = config->nolog.first;
+  current_loglevel = loglevel;
+  current_conlog   = conlog;
+  current_logpath  = logpath;
+  current_nolog    = (struct maskchain *)first;
   ReleaseSem(&lsem);
 }
 
@@ -1061,11 +1064,11 @@ char **mkargv (int argc, char **argv)
 /*
  * Apply filename case style defined in inboundcase
  */
-char *makeinboundcase (char *s, BINKD_CONFIG *config)
+char *makeinboundcase (char *s, enum inbcasetype inbcase)
 {
   int i;
 
-  switch (config->inboundcase)
+  switch (inbcase)
   {
       case INB_UPPER:
 	s = strupper(s);
@@ -1180,12 +1183,12 @@ int read_pkthdr(FILE *F, PKTHDR *hdr) {
   return c == (2*19 + 8 + 1*8);
 }
 
-int tz_off(time_t t, BINKD_CONFIG *config)
+int tz_off(time_t t, int tzoff)
 {
   struct tm tm;
   time_t gt;
 
-  if (config->tzoff != -1) return config->tzoff/60;
+  if (tzoff != -1) return tzoff/60;
   safe_gmtime (&t, &tm);
   tm.tm_isdst = 0;
   gt = mktime(&tm);
