@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67.2.6  2003/08/13 15:47:12  hbrew
+ * previous fix: synchronize with 'current'.
+ *
  * Revision 2.67.2.5  2003/08/13 11:38:43  hbrew
  * Fix warning.
  *
@@ -2333,7 +2336,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
       tv.tv_usec = 0;
       Log (8, "tv.tv_sec=%li, tv.tv_usec=%li", (long) tv.tv_sec, (long) tv.tv_usec);
       no = select (socket + 1, &r, &w, 0, &tv);
-      if (no <= 0)
+      if (no < 0)
         save_err = TCPERR ();
       Log (8, "selected %i (r=%i, w=%i)", no, FD_ISSET (socket, &r), FD_ISSET (socket, &w));
 #if defined(WIN32) /* workaround winsock bug */
