@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.53  2003/10/05 09:37:42  stas
+ * Optimize binkd/nt start: use hack to determine if we're running as a service without waiting for the service control manager to fail
+ *
  * Revision 2.52  2003/09/22 09:54:41  gul
  * Screen output semaphoring, prevent mixing output from threads
  *
@@ -260,6 +263,10 @@
 
 #ifdef WITH_PERL
 #include "perlhooks.h"
+#endif
+
+#if defined(WIN32) && !defined(BINKD9X)
+#include "nt/service.h"
 #endif
 
 /*
@@ -576,7 +583,7 @@ void Log (int lev, char *s,...)
 #ifdef BINKDW9X
   if(!lev)
 #else
-  if((lev<1)&&(isService))
+  if((lev<1)&&(isService()>0))
 #endif
   {
     MessageBox(NULL, buf, MYNAME, MB_OK|MB_ICONSTOP|0x00200000L|MB_SYSTEMMODAL|MB_SETFOREGROUND);

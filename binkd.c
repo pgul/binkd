@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.66  2003/10/05 09:37:42  stas
+ * Optimize binkd/nt start: use hack to determine if we're running as a service without waiting for the service control manager to fail
+ *
  * Revision 2.65  2003/09/24 07:32:16  val
  * bzlib2 compression support, new compression keyword: zlevel
  *
@@ -739,7 +742,7 @@ int main (int argc, char *argv[], char *envp[])
   print_args (tmp, sizeof (tmp), argv + 1);
 #ifdef WIN32
 #ifndef BINKDW9X
-  if (isService) {
+  if (isService()) {
     service_flag = w32_run_as_service;
     if (!service_name)
       service_name = strdup((const char *)srvname);

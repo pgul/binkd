@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.21  2003/10/05 09:37:43  stas
+ * Optimize binkd/nt start: use hack to determine if we're running as a service without waiting for the service control manager to fail
+ *
  * Revision 2.20  2003/10/05 07:37:47  stas
  * Fix NT service exit (don't hang service on receive CTRL_SERVICESTOP_EVENT)
  *
@@ -131,7 +134,7 @@ static char **serv_argv=NULL;
 static char **serv_envp=NULL;
 static int service_main(int type);
 extern int checkcfg_flag;
-int isService=0;
+int _isService=-1;
 
 static BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
                          DWORD dwWin32ExitCode,
@@ -209,7 +212,6 @@ static void ServiceStart()
   strcpy(sp, reg_path_prefix);
   strcat(sp, srvname);
   strcat(sp, reg_path_suffix);
-  isService=1;
 
   atexit(atServiceExit);
   for(;;)
@@ -310,7 +312,7 @@ static int service_main(int type)
       Log(1, "OpenSCManager failed: %s",tcperr(err));
     else if(err==ERROR_ACCESS_DENIED)
     {
-      Log(isService?1:-1, "Access to NT service controls is denied.");
+      Log(isService()?1:-1, "Access to NT service controls is denied.");
     }
     return 3;
   }
@@ -509,7 +511,7 @@ static void wndthread(void *par)
     for (i = 0; i < 40; i++)
     {
         SetConsoleTitle(bn);
-        if (((mainWindow = FindWindow(NULL, bn)) != NULL) || (isService)) break;
+        if (((mainWindow = FindWindow(NULL, bn)) != NULL) || (isService()>0)) break;
         Sleep(100);
     }
     SetConsoleTitle(buf);
@@ -542,7 +544,7 @@ static void wndthread(void *par)
                 Sleep(100);
             }
             if (!mainWindow) return;
-            isService = 0;
+            /*_isService=0; Why this need? (commented out by stas)*/
         }
     }
 
@@ -782,6 +784,24 @@ int checkservice(void)
   return res_checkservice=CHKSRV_INSTALLED;
 }
 
+/* A hack to determine if we're running as a service without waiting for
+ * the SCM to fail.
+ * Idea taken from Apache sources
+ */
+int isService()
+{
+  if (_isService != -1)
+    return _isService;
+
+  if (!IsNT() || !AllocConsole()) {
+    _isService = 0;
+  }else{
+    FreeConsole();
+    _isService = 1;
+  }
+  return _isService;
+}
+
 /* Try connect to NT service controller
  * Return 1 if program running standalone or system error
  */
@@ -790,7 +810,7 @@ int tell_start_ntservice(void)
   SERVICE_TABLE_ENTRY dt[]= { {"", ServiceMain}, {NULL, NULL}};
   int res=0;
 
-  if( !IsNT() )
+  if( !isService() )
     return 1;
 
   if(!StartServiceCtrlDispatcher(dt)){

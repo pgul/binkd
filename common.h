@@ -13,6 +13,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2003/10/05 09:37:42  stas
+ * Optimize binkd/nt start: use hack to determine if we're running as a service without waiting for the service control manager to fail
+ *
  * Revision 2.10  2003/09/21 17:34:26  gul
  * Change perl stderr handling for thread vertions,
  * some small changes.
@@ -130,7 +133,6 @@ extern int daemon_flag;
 #ifdef WIN32
 #ifndef BINKDW9X
 extern int tray_flag;
-extern int isService;
 #endif
 #endif
 
