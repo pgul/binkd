@@ -20,6 +20,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.18  2004/01/19 08:51:35  hbrew
+ * Change icon ID to 1
+ *
  * Revision 2.17  2004/01/07 21:42:24  stas
  * Don't export w32exitfunc()
  *
@@ -351,7 +354,7 @@ HICON LoadBinkdIcon(void)
   if (!hi)
   { HMODULE hModule;
     if( (hModule = GetModuleHandle(NULL)) )
-      hi = LoadImage( hModule, MAKEINTRESOURCE(0), IMAGE_ICON,
+      hi = LoadImage( hModule, MAKEINTRESOURCE(1), IMAGE_ICON,
                       0, 0, LR_SHARED | LR_LOADTRANSPARENT);
   }
 
