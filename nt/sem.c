@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.2  2003/03/11 11:42:23  gul
+ * Use event semaphores for exit threads
+ *
  * Revision 2.1  2003/02/13 19:44:45  gul
  * Change \r\n -> \n
  *
@@ -64,17 +67,7 @@
 
 #define BsySem (*(HANDLE*)vpSem)
 
-/*--------------------------------------------------------------------*/
-/*                          Global variables                          */
-/*--------------------------------------------------------------------*/
-
-/*--------------------------------------------------------------------*/
-/*                           Local variables                          */
-/*--------------------------------------------------------------------*/
-
-/*--------------------------------------------------------------------*/
-/*                    Local functions prototypes                      */
-/*--------------------------------------------------------------------*/
+#define EvtSem (*(HANDLE*)vpSem)
 
 /*--------------------------------------------------------------------*/
 /*    int InitSem(void)                                               */
@@ -127,6 +120,45 @@ int _LockSem(void *vpSem) {
 int _ReleaseSem(void *vpSem) {
    
    ReleaseMutex(BsySem);
+   return(0);
+}
+
+/*--------------------------------------------------------------------*/
+/*    int InitEventSem(void)                                          */
+/*                                                                    */
+/*    Initialise Event Semaphores.                                    */
+/*--------------------------------------------------------------------*/
+
+int _InitEventSem(void *vpSem) {
+
+   EvtSem = CreateEvent(NULL,FALSE,FALSE,NULL);
+   if (EvtSem == NULL) {
+      Log(0,"Unable to create Event object");
+      return (-1);
+   }
+   return(0);
+}
+
+/*--------------------------------------------------------------------*/
+/*    int PostSem(void)                                               */
+/*                                                                    */
+/*    Post Event Semaphores.                                          */
+/*--------------------------------------------------------------------*/
+
+int _PostSem(void *vpSem) {
+   SetEvent(EvtSem);
+   return(0);
+}
+
+/*--------------------------------------------------------------------*/
+/*    int WaitSem(void)                                               */
+/*                                                                    */
+/*    Wait Event Semaphores.                                          */
+/*--------------------------------------------------------------------*/
+
+int _WaitSem(void *vpSem, int timeout) {
+   if (WaitForSingleObject(EvtSem, timeout * 1000l) == WAIT_TIMEOUT)
+      return -1;
    return(0);
 }
 

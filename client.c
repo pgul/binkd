@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.23  2003/03/11 11:42:23  gul
+ * Use event semaphores for exit threads
+ *
  * Revision 2.22  2003/03/11 00:04:25  gul
  * Use patches for compile under MSDOS by MSC 6.0 with IBMTCPIP
  *
@@ -173,8 +176,7 @@ static void chld (int signo)
 #if defined(HAVE_THREADS)
 void SLEEP (time_t s)
 {
-  while (s-- > 0 && !binkd_exit)
-    sleep(1);
+  WaitSem(&exitcmgr, s);
 }
 #elif defined(__MSC__)
 void SLEEP (time_t s)
@@ -264,6 +266,7 @@ void clientmgr (void *arg)
 	{
           rel_grow_handles (-6);
 	  threadsafe(--n_clients);
+	  PostSem(&eothread);
 	  Log (1, "cannot branch out");
           SLEEP(1);
 	}
@@ -290,6 +293,7 @@ void clientmgr (void *arg)
   }
 #ifdef HAVE_THREADS
   pidcmgr = 0;
+  PostSem(&eothread);
   _endthread();
 #else
   exit (0);
@@ -510,6 +514,7 @@ static void call (void *arg)
   rel_grow_handles(-6);
 #ifdef HAVE_THREADS
   threadsafe(--n_clients);
+  PostSem(&eothread);
   _endthread();
 #elif defined(DOS)
   --n_clients;

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.18  2003/03/11 11:42:23  gul
+ * Use event semaphores for exit threads
+ *
  * Revision 2.17  2003/03/11 00:04:26  gul
  * Use patches for compile under MSDOS by MSC 6.0 with IBMTCPIP
  *
@@ -162,6 +165,7 @@ void serv (void *arg)
   rel_grow_handles (-6);
 #ifdef HAVE_THREADS
   threadsafe(--n_servers);
+  PostSem(&eothread);
   _endthread();
 #elif defined(DOS)
   --n_servers;
@@ -314,6 +318,7 @@ accepterr:
       {
         rel_grow_handles (-6);
 	threadsafe(--n_servers);
+	PostSem(&eothread);
 	Log (1, "cannot branch out");
         sleep(1);
       }

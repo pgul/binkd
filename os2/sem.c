@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.1  2003/03/11 11:42:23  gul
+ * Use event semaphores for exit threads
+ *
  * Revision 2.0  2001/01/10 12:12:40  gul
  * Binkd is under CVS again
  *
@@ -35,41 +38,15 @@
  *
  */
 
-/*--------------------------------------------------------------------*/
-/*                        System include files                        */
-/*--------------------------------------------------------------------*/
-
-#ifdef __WATCOMC__
-  #define __IBMC__ 0
-  #define __IBMCPP__ 0
-#endif
+#include "../sys.h"
+#include "../tools.h"
 
 #define INCL_DOS
 #include <os2.h>
 
-/*--------------------------------------------------------------------*/
-/*                        Local include files                         */
-/*--------------------------------------------------------------------*/
-
-/*--------------------------------------------------------------------*/
-/*                         Global definitions                         */
-/*--------------------------------------------------------------------*/
-
 #define hmtx (*(HMTX*)vpSem)
 
-/*--------------------------------------------------------------------*/
-/*                          Global variables                          */
-/*--------------------------------------------------------------------*/
-
-/*--------------------------------------------------------------------*/
-/*                           Local variables                          */
-/*--------------------------------------------------------------------*/
-
-/*--------------------------------------------------------------------*/
-/*                   Global functions prototypes                      */
-/*--------------------------------------------------------------------*/
-
-extern void Log (int lev, char *s,...);
+#define hevt (*(HEV*)vpSem)
 
 /*--------------------------------------------------------------------*/
 /*    int InitSem(void)                                               */
@@ -81,6 +58,15 @@ int _InitSem(void *vpSem) {
 
   if (DosCreateMutexSem (0, &hmtx, 0, FALSE)) {
      Log (0, "DosCreateMutexSem: error");
+     return(-1);
+   }
+   return(0);
+}
+
+int _InitEventSem(void *vpSem) {
+
+  if (DosCreateEventSem (NULL, &hevt, 0, FALSE)) {
+     Log (0, "DosCreateEventSem: error");
      return(-1);
    }
    return(0);
@@ -117,5 +103,30 @@ int _LockSem(void *vpSem) {
 int _ReleaseSem(void *vpSem) {
   DosReleaseMutexSem (hmtx);
   return (0);
+}
+
+/*--------------------------------------------------------------------*/
+/*    int PostSem(void)                                               */
+/*                                                                    */
+/*    Release Semaphore.                                              */
+/*--------------------------------------------------------------------*/
+
+int _PostSem(void *vpSem) {
+  DosPostEventSem (hevt);
+  return (0);
+}
+
+/*--------------------------------------------------------------------*/
+/*    int PostSem(void)                                               */
+/*                                                                    */
+/*    Release Semaphore.                                              */
+/*--------------------------------------------------------------------*/
+
+int _WaitSem(void *vpSem, int timeout) {
+  ULONG semcount;
+  if (DosWaitEventSem (hevt, timeout * 1000ul))
+    return -1;
+  DosResetEventSem (hevt, &semcount);
+  return 0;
 }
 

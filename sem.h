@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/03/11 11:42:23  gul
+ * Use event semaphores for exit threads
+ *
  * Revision 2.4  2003/03/10 12:16:54  gul
  * Use HAVE_DOS_H macro
  *
@@ -45,6 +48,8 @@
 #include <windows.h>
 typedef HANDLE MUTEXSEM;
 
+typedef HANDLE EVENTSEM;
+
 #elif defined(OS2)
 
 #if defined(__WATCOMC__) && !defined(__IBMC__)
@@ -55,6 +60,8 @@ typedef HANDLE MUTEXSEM;
 #define INCL_DOS
 #include <os2.h>
 typedef HMTX MUTEXSEM;
+
+typedef HEV  EVENTSEM;
 
 #elif defined(AMIGA)
 
@@ -70,23 +77,11 @@ typedef struct SignalSemaphore MUTEXSEM;
 
 int _InitSem (void *);
 
-#if defined(HAVE_THREADS) || defined(AMIGA)
-#define InitSem(vpSem) _InitSem(vpSem)
-#else
-#define InitSem(vpSem)			    /* Do Nothing */
-#endif
-
 /*
  *    Clean Semaphores.
  */
 
 int _CleanSem (void *);
-
-#if defined(HAVE_THREADS) || defined(AMIGA)
-#define CleanSem(vpSem) _CleanSem(vpSem)
-#else
-#define CleanSem(vpSem)			    /* Do Nothing */
-#endif
 
 /*
  *    Wait & lock semaphore
@@ -94,27 +89,53 @@ int _CleanSem (void *);
 
 int _LockSem (void *);
 
-#if defined(HAVE_THREADS) || defined(AMIGA)
-#define LockSem(vpSem) _LockSem(vpSem)
-#else
-#define LockSem(vpSem)			    /* Do Nothing */
-#endif
-
 /*
  *    Release Semaphore.
  */
 
 int _ReleaseSem (void *);
 
+/*
+ *    Initialise Event Semaphores.
+ */
+
+int _InitEventSem (void *);
+
+/*
+ *    Post Semaphore.
+ */
+
+int _PostSem (void *);
+
+/*
+ *    Wait Semaphore.
+ */
+
+int _WaitSem (void *, int);
+
 #if defined(HAVE_THREADS) || defined(AMIGA)
+#define InitSem(vpSem) _InitSem(vpSem)
+#define CleanSem(vpSem) _CleanSem(vpSem)
+#define LockSem(vpSem) _LockSem(vpSem)
 #define ReleaseSem(vpSem) _ReleaseSem(vpSem)
-#else
-#define ReleaseSem(vpSem)		    /* Do Nothing */
+#define InitEventSem(vpSem) _InitEventSem(vpSem)
+#define PostSem(vpSem) _PostSem(vpSem)
+#define WaitSem(vpSem, sec) _WaitSem(vpSem, sec)
+#else		/* Do nothing */
+#define InitSem(vpSem)
+#define CleanSem(vpSem)
+#define LockSem(vpSem)
+#define ReleaseSem(vpSem)
+#define InitEventSem(vpSem)
+#define PostSem(vpSem)
+#define WaitSem(vpSem, sec)
 #endif
 
 #ifdef HAVE_THREADS
 extern MUTEXSEM hostsem;
 extern MUTEXSEM varsem;
+extern EVENTSEM eothread;
+extern EVENTSEM exitcmgr;
 #define lockhostsem()		LockSem(&hostsem)
 #define releasehostsem()	ReleaseSem(&hostsem)
 #define threadsafe(exp)		LockSem(&varsem); exp; ReleaseSem(&varsem)

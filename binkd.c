@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.24  2003/03/11 11:42:23  gul
+ * Use event semaphores for exit threads
+ *
  * Revision 2.23  2003/03/11 00:04:25  gul
  * Use patches for compile under MSDOS by MSC 6.0 with IBMTCPIP
  *
@@ -168,6 +171,8 @@
 #include "sem.h"
 MUTEXSEM hostsem = 0; 
 MUTEXSEM varsem = 0; 
+EVENTSEM eothread = 0;
+EVENTSEM exitcmgr = 0;
 #ifdef OS2
 MUTEXSEM fhsem = 0;
 #endif
@@ -484,6 +489,8 @@ int main (int argc, char *argv[], char *envp[])
 #elif defined(HAVE_THREADS)
   InitSem (&hostsem);
   InitSem (&varsem);
+  InitEventSem(&eothread);
+  InitEventSem(&exitcmgr);
 #ifdef OS2
   InitSem (&fhsem);
 #endif

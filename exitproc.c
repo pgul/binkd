@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/03/11 11:42:23  gul
+ * Use event semaphores for exit threads
+ *
  * Revision 2.9  2003/03/11 09:21:30  gul
  * Fixed OS/2 Watcom compilation
  *
@@ -101,18 +104,20 @@ void exitfunc (void)
   }
 #elif HAVE_THREADS
   /* exit all threads */
-  { int i;
-    SOCKET h;
+  { SOCKET h;
     /* wait for threads exit */
     binkd_exit = 1;
-    for (i=0; i<5; i++)
+    for (;;)
       if (n_servers || n_clients || (pidcmgr && server_flag))
       {
+	if (pidcmgr)
+	  PostSem(&exitcmgr);
 	/* close active sockets */
 	for (h=0; h < max_socket; h++)
 	  if (FD_ISSET(h, &sockets))
 	    soclose (h);
-	sleep (1);
+	if (WaitSem (&eothread, 1))
+	  break; /* timeout */
       }
       else
 	break;
