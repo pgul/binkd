@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of Jan 07 2004
+        Version of Feb 21 2004
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -36,6 +36,7 @@ from Russian by Michael Dukelsky 2:5020/1042.
     25. Argus (Radius) and BinkD: Argus Error "Aborting due to carrier loss"
     26. The Outbound Name Has a Comment Char and Binkd Doesn't See It
     27. Is There a Possibility to Start an Application On an Event From BinkD?
+    28. What Is the Difference Between BinkD/w32 and BinkD/w9x?
     A1. I Have Found a Bug in BinkD!
     A2. I Want To Talk To Developers.
     A3. I Want To Get Information About Changes In BinkD Immediately!
@@ -833,6 +834,8 @@ complicate the code.
 
     A session between BinkD and Radius (or Argus, it does not matter) is
 aborted "due to carrier loss" when traffic encryption is enabled in Radius.
+Moreover the connection at the BinkD side is aborted due to the remote side
+initiative ("Connection reset by peer").
 
     Log from the Radius side:
     30-Aug-2003 22:24:31 Encrypted (2:463/375) session
@@ -895,6 +898,36 @@ included in the distribution packages of modern operating systems.
     As to an event of receiving a file it is implemented long ago (starting
 with the version 0.9). See tokens "exec" and "flag" in the configuration
 file.
+
+
+----------------------------------------------------------------------------
+
+
+        28. What Is the Difference Between BinkD/w32 and BinkD/w9x?
+
+    Binkd/w32 is a traditional version of BinkD and a console application.
+Binkd/w9x is a GUI Win32 application creating temporary console windows in
+case of necessity. If one starts BinkD/w32 in the existing console window
+(for example, in the command.com or cmd.exe window) it will work in the
+same window. Unlike it BinkD/w9x immediately transfers control to the
+calling task.
+
+    The development of BinkD/w9x was necessitated by several significant
+differencies between Windows 95/98/Me and Windows NT/2000/XP/2003.
+
+    In the first place console is implemented differently. The main
+difference: Windows 9x console does not react to shutdown and close window
+signals thus a working BinkD/w32 cannot stop correctly when the window is
+closed or the system shutdown (or reboot) is performed.
+
+    In the second place the principles of performing a service differ in
+different branches of Windows.
+
+    As a result BinkD 1.0a/w32 can work as a service only in Windows
+NT/2000/XP/2003 and BinkD 1.0a/w9x as a service only in Windows 95/98/Me.
+It is planned to support Windows NT service in BinkD/w9x. A correct support
+of working as a service under Windows 9x is impossible for BinkD/w32
+because of the described console features in the systems.
 
 
 ----------------------------------------------------------------------------
