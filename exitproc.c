@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.33  2003/10/17 18:49:36  stas
+ * Use a semaphore to prevent double run exitfunc()
+ *
  * Revision 2.32  2003/10/13 08:48:09  stas
  * Implement true NT service stop sequence
  *
@@ -189,14 +192,19 @@ void exitfunc (void)
 {
   BINKD_CONFIG *config;
 #if defined(WIN32) && !defined(BINKDW9X)
-  static int exitfunc_called_flag=0; 
+  static int exitfunc_called_flag=0;
+  static MUTEXSEM exitfuncsem;
 
-  if(exitfunc_called_flag)
-  { /* prevent double call exitfunc() at NT service stop sequence */
-    Log(10, "exitfunc() repeated call, return from exitfunc()");
-    return;
+  if (IsNT() && isService()) {
+    LockSem(&exitfuncsem);
+    if(exitfunc_called_flag)
+    { /* prevent double call exitfunc() at NT service stop sequence */
+      Log(10, "exitfunc() repeated call, return from exitfunc()");
+      return;
+    }
+    exitfunc_called_flag=1;
+    ReleaseSem(&exitfuncsem);
   }
-  exitfunc_called_flag=(IsNT() && isService());
 #endif
 
 #if defined(WITH_PERL) && defined(HAVE_FORK)
@@ -247,7 +255,7 @@ void exitfunc (void)
       }
       else
       {
-	Log(8, "exitproc: all threads finished");
+	Log(8, "exitfunc(): all threads finished");
 	break;
       }
   }
@@ -260,7 +268,7 @@ void exitfunc (void)
   nodes_deinit ();
 #ifdef WITH_PERL
 #  ifdef HAVE_FORK
-Log(7, "exitproc(): pid=%d, cmgr=%d, smgr=%d, inetd=%d", getpid(), pidCmgr, pidsmgr, inetd_flag);
+Log(7, "exitfunc(): pid=%d, cmgr=%d, smgr=%d, inetd=%d", getpid(), pidCmgr, pidsmgr, inetd_flag);
   if (inetd_flag) perl_done(1);
   else if (!pidsmgr && pidCmgr == (int) getpid()) perl_done(1);
   else if (pidsmgr == (int) getpid()) perl_done(1);
