@@ -1,3 +1,7 @@
+2004/08/11 21:31:22 1.0a-390 hbrew
+zlibdl.h,2.17,2.18
+zlibdl.h: include <windows.h> for compatibility with zlib 1.2.1
+
 2004/08/06 10:05:31 1.0a-389 gul
 sys.h,2.20,2.21
 Fixed typo in prev patch
