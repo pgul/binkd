@@ -1,3 +1,8 @@
+2003/09/08 19:39:41 0.9.6a-167 stream
+ftnnode.c,2.20,2.21 ftnnode.h,2.13,2.14 ftnq.c,2.26,2.27 protocol.c,2.115,2.116 readcfg.c,2.50,2.51 readcfg.h,2.20,2.21
+Fixed race conditions when accessing array of nodes in threaded environment
+("jumpimg node structures")
+
 2003/09/08 11:21:22 0.9.6a-166 stream
 exitproc.c,2.25,2.26 ftnnode.c,2.19,2.20 readcfg.c,2.49,2.50
 Cleanup config semaphore, free memory of base config on exit.
