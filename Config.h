@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.103  2003/08/13 11:59:23  gul
+ * Auto increase patchlevel, set 0.9.6a-91
+ * Undo my prev patch, sorry ;)
+ *
  * Revision 2.102  2003/08/13 11:49:07  gul
  * Auto increase patchlevel, set 0.9.6a-90
  * correct previous fix
@@ -443,7 +447,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-90"
+#define MYVER "0.9.6a-91"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
