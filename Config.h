@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.99  2003/08/13 08:02:53  val
+ * Auto increase patchlevel, set 0.9.6a-87
+ * define DELAY_ADR ifdef WITH_PERL (todo: provide more flexible logic)
+ *
  * Revision 2.98  2003/08/12 09:35:50  gul
  * Auto increase patchlevel, set 0.9.6a-86
  * Cosmetics
@@ -427,7 +431,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-86"
+#define MYVER "0.9.6a-87"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
