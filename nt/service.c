@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.41  2003/10/24 18:18:40  stas
+ * use macro instead number; remove unused comparision
+ *
  * Revision 2.40  2003/10/18 18:53:50  stas
  * remove unused variable
  *
@@ -577,7 +580,7 @@ int service(int argc, char **argv, char **envp)
 
   j=checkservice();
 
-  if(service_flag && j==CHKSRV_CANT_INSTALL){
+  if(j==CHKSRV_CANT_INSTALL){
       Log(0, "Can't operate witn Windows NT services...");
   }
 
@@ -650,7 +653,7 @@ int service(int argc, char **argv, char **envp)
       if(k)
       {
         Log(1, "Unable to store data in registry...");
-        res_checkservice=(-1);
+        res_checkservice=(CHKSRV_CANT_INSTALL);
       }
       free(sp);
       free(asp);
