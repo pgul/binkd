@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.84  2003/07/19 04:26:09  hbrew
+ * Auto increase patchlevel, set 0.9.6a-73
+ * '\r\n' --> '\n'
+ *
  * Revision 2.83  2003/07/18 14:56:37  stas
  * Auto increase patchlevel, set 0.9.6a-72
  * Use description of win2000/XP services
@@ -347,7 +351,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-72"
+#define MYVER "0.9.6a-73"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
