@@ -1,0 +1,380 @@
+.\BINKD.C : \
+	".\nt\service.h"\
+	".\assert.h"\
+	".\binlog.h"\
+	".\bsy.h"\
+	".\client.h"\
+	".\config.h"\
+	".\ftnaddr.h"\
+	".\ftndom.h"\
+	".\ftnnode.h"\
+	".\getw.h"\
+	".\iphdr.h"\
+	".\nt\WSock.h"\
+	".\protocol.h"\
+	".\readcfg.h"\
+	".\server.h"\
+	".\setpttl.h"\
+	".\sys.h"\
+	".\tools.h"\
+	
+
+.\binlog.c : \
+	".\assert.h"\
+	".\binlog.h"\
+	".\config.h"\
+	".\ftnaddr.h"\
+	".\ftndom.h"\
+	".\ftnnode.h"\
+	".\ftnq.h"\
+	".\getw.h"\
+	".\iphdr.h"\
+	".\nt\WSock.h"\
+	".\prothlp.h"\
+	".\protoco2.h"\
+	".\readcfg.h"\
+	".\sem.h"\
+	".\sys.h"\
+	".\tools.h"\
+	
+
+.\branch.c : \
+	".\config.h"\
+	".\getw.h"\
+	".\sys.h"\
+	".\tools.h"\
+	
+
+.\nt\breaksig.c : \
+	".\binlog.h"\
+	".\bsy.h"\
+	".\config.h"\
+	".\ftnaddr.h"\
+	".\ftndom.h"\
+	".\ftnnode.h"\
+	".\getw.h"\
+	".\iphdr.h"\
+	".\nt\WSock.h"\
+	".\readcfg.h"\
+	".\sys.h"\
+	".\tools.h"\
+	
+
+.\BSY.C : \
+	".\assert.h"\
+	".\bsy.h"\
+	".\config.h"\
+	".\ftnaddr.h"\
+	".\getw.h"\
+	".\sem.h"\
+	".\sys.h"\
+	".\tools.h"\
+	
+
+.\CLIENT.C : \
+	".\assert.h"\
+	".\bsy.h"\
+	".\client.h"\
+	".\config.h"\
+	".\ftnaddr.h"\
+	".\ftndom.h"\
+	".\ftnnode.h"\
+	".\ftnq.h"\
+	".\getw.h"\
+	".\iphdr.h"\
+	".\iptools.h"\
+	".\nt\WSock.h"\
+	".\protocol.h"\
+	".\readcfg.h"\
+	".\setpttl.h"\
+	".\sys.h"\
+	".\tools.h"\
+	
+
+.\nt\dirwin32.c : \
+	".\NT\dirwin32.h"\
+	
+
+.\exitproc.c : \
+	".\binlog.h"\
+	".\bsy.h"\
+	".\config.h"\
+	".\ftnaddr.h"\
+	".\ftndom.h"\
+	".\ftnnode.h"\
+	".\getw.h"\
+	".\iphdr.h"\
+	".\nt\WSock.h"\
+	".\readcfg.h"\
+	".\sys.h"\
+	".\tools.h"\
+	
+
+.\FTNADDR.C : \
+	".\config.h"\
+	".\ftnaddr.h"\
+	".\ftndom.h"\
+	".\ftnnode.h"\
+	".\getw.h"\
+	".\iphdr.h"\
+	".\nt\WSock.h"\
+	".\readcfg.h"\
+	".\sys.h"\
+	".\tools.h"\
+	
+
+.\ftndom.c : \
+	".\ftnaddr.h"\
+	".\ftndom.h"\
+	".\getw.h"\
+	".\tools.h"\
+	
+
+.\ftnnode.c : \
+	".\assert.h"\
+	".\config.h"\
+	".\ftnaddr.h"\
+	".\ftnnode.h"\
+	".\ftnq.h"\
+	".\getw.h"\
+	".\iphdr.h"\
+	".\nt\WSock.h"\
+	".\sem.h"\
+	".\sys.h"\
+	".\tools.h"\
+	".\readcfg.h"\
+	".\ftndom.h"\
+	
+
+.\FTNQ.C : \
+	".\assert.h"\
+	".\config.h"\
+	".\ftnaddr.h"\
+	".\ftndom.h"\
+	".\ftnnode.h"\
+	".\ftnq.h"\
+	".\getw.h"\
+	".\iphdr.h"\
+	".\NT\dirwin32.h"\
+	".\nt\WSock.h"\
+	".\readcfg.h"\
+	".\readdir.h"\
+	".\sys.h"\
+	".\tools.h"\
+	
+
+.\nt\getfree.c : \
+	".\config.h"\
+	".\getw.h"\
+	".\tools.h"\
+	
+
+.\getw.c : \
+	".\getw.h"\
+	
+
+.\INBOUND.C : \
+	".\config.h"\
+	".\ftnaddr.h"\
+	".\ftndom.h"\
+	".\ftnnode.h"\
+	".\getw.h"\
+	".\inbound.h"\
+	".\iphdr.h"\
+	".\NT\dirwin32.h"\
+	".\nt\WSock.h"\
+	".\protocol.h"\
+	".\readcfg.h"\
+	".\readdir.h"\
+	".\sys.h"\
+	".\tools.h"\
+	
+
+.\iptools.c : \
+	".\config.h"\
+	".\ftnaddr.h"\
+	".\ftndom.h"\
+	".\ftnnode.h"\
+	".\getw.h"\
+	".\iphdr.h"\
+	".\iptools.h"\
+	".\nt\WSock.h"\
+	".\readcfg.h"\
+	".\sys.h"\
+	".\tools.h"\
+	
+
+.\prothlp.c : \
+	".\assert.h"\
+	".\config.h"\
+	".\ftnaddr.h"\
+	".\ftnnode.h"\
+	".\ftndom.h"\
+	".\ftnq.h"\
+	".\getw.h"\
+	".\iphdr.h"\
+	".\nt\WSock.h"\
+	".\prothlp.h"\
+	".\protoco2.h"\
+	".\iphdr.h"\
+	".\readcfg.h"\
+	".\srif.h"\
+	".\sys.h"\
+	".\tools.h"\
+	
+
+.\PROTOCOL.C : \
+	".\assert.h"\
+	".\binlog.h"\
+	".\bsy.h"\
+	".\config.h"\
+	".\ftnaddr.h"\
+	".\ftndom.h"\
+	".\ftnnode.h"\
+	".\ftnq.h"\
+	".\getw.h"\
+	".\inbound.h"\
+	".\iphdr.h"\
+	".\iptools.h"\
+	".\nt\WSock.h"\
+	".\prothlp.h"\
+	".\protoco2.h"\
+	".\protocol.h"\
+	".\readcfg.h"\
+	".\readflo.h"\
+	".\setpttl.h"\
+	".\srif.h"\
+	".\sys.h"\
+	".\tools.h"\
+	
+
+.\READCFG.C : \
+	".\assert.h"\
+	".\config.h"\
+	".\ftnaddr.h"\
+	".\ftndom.h"\
+	".\ftnnode.h"\
+	".\ftnq.h"\
+	".\getw.h"\
+	".\iphdr.h"\
+	".\iptools.h"\
+	".\nt\WSock.h"\
+	".\readcfg.h"\
+	".\readflo.h"\
+	".\srif.h"\
+	".\protoco2.h"\
+	".\prothlp.h"\
+	".\sys.h"\
+	".\tools.h"\
+	
+
+.\readflo.c : \
+	".\assert.h"\
+	".\config.h"\
+	".\getw.h"\
+	".\readflo.h"\
+	".\tools.h"\
+	
+
+.\run.c : \
+	".\getw.h"\
+	".\run.h"\
+	".\tools.h"\
+	
+
+.\nt\sem.c : \
+	".\getw.h"\
+	".\tools.h"\
+	
+
+.\SERVER.C : \
+	".\assert.h"\
+	".\config.h"\
+	".\ftnaddr.h"\
+	".\ftndom.h"\
+	".\ftnnode.h"\
+	".\getw.h"\
+	".\iphdr.h"\
+	".\iptools.h"\
+	".\nt\WSock.h"\
+	".\protocol.h"\
+	".\readcfg.h"\
+	".\server.h"\
+	".\setpttl.h"\
+	".\sys.h"\
+	".\tools.h"\
+	
+
+.\setpttl.c : \
+	".\setpttl.h"\
+	
+
+.\srif.c : \
+	".\config.h"\
+	".\ftnaddr.h"\
+	".\ftnnode.h"\
+	".\ftndom.h"\
+	".\ftnq.h"\
+	".\getw.h"\
+	".\iphdr.h"\
+	".\nt\WSock.h"\
+	".\run.h"\
+	".\srif.h"\
+	".\prothlp.h"\
+	".\protoco2.h"\
+	".\readcfg.h"\
+	".\sys.h"\
+	".\tools.h"\
+	
+
+.\nt\TCPErr.c : \
+	
+
+.\TOOLS.C : \
+	".\assert.h"\
+	".\config.h"\
+	".\ftnaddr.h"\
+	".\ftndom.h"\
+	".\ftnnode.h"\
+	".\getw.h"\
+	".\iphdr.h"\
+	".\NT\dirwin32.h"\
+	".\nt\WSock.h"\
+	".\readcfg.h"\
+	".\readdir.h"\
+	".\sem.h"\
+	".\sys.h"\
+	".\tools.h"\
+	
+
+.\nt\WSock.c : \
+	".\getw.h"\
+	".\tools.h"\
+	
+
+.\xalloc.c : \
+	".\getw.h"\
+	".\tools.h"\
+	
+.\https.c : \
+	".\Config.h"\
+	".\readcfg.h"\
+	".\tools.h"\
+	".\https.h"\
+	".\sys.h"\
+	".\iptools.h"\
+
+.\md5b.c : \
+	".\md5b.h"\
+	".\readcfg.h"\
+	".\tools.h"\
+	".\prothlp.h"\
+	".\ftnnode.h"\
+	".\iphdr.h"\
+	".\protoco2.h"\
+	".\sys.h"\
+
+.\nt\service.c : \
+	".\nt\service.h"\
+	".\tools.h"\
+

@@ -1,0 +1,120 @@
+.TH BINKD 8 "16 Jul 1998"
+.SH NAME
+binkd \- transfer files between two Fidonet systems over TCP/IP
+.SH SYNOPSIS
+.B binkd
+.RB [ \-Ccipqsv ]
+.RB [
+.B \-P
+.I node
+]
+.I config-file
+.SH DESCRIPTION
+.B Binkd
+is a Fidonet mailer designed to operate
+via TCP/IP networks. As a FTN-compatible internet daemon,
+it makes possible efficient utilization
+of TCP/IP protocol suite as a transport layer in
+FTN-based (Fido Technology Network) networks.
+.PP
+.B Binkd
+expects your spool for Fido-like networks to be in BSO
+("Bink style outbound") format. BSO is also used by
+.B ifmail
+and
+.B BinkleyTerm
+mailers.
+
+.SH OPTIONS
+.TP
+.BI \-C
+.B Binkd
+running with this option will exit with return code 3 when
+the configuration file is changed. The configuration file
+is checked every 60 seconds.
+.TP
+.BI \-c
+Start client only. Normally
+.B Binkd
+starts both server and client.
+.TP
+.BI \-i
+Run
+.B Binkd
+from
+.B inetd.
+Don't forget either to comment out
+.I printq,
+.I conlog
+and
+.I percents
+from the configuration file or to use
+.BI \-q
+option.
+.TP
+.BI \-P
+Poll a
+.I node.
+An empty *.ilo file in the outbound will be created,
+which will force
+.B Binkd
+to connect to and to receive mail from the
+.I node
+(
+.B Binkd
+will also add "Node
+.I node
+* -" record to the table-of-nodes in
+.B Binkd
+\'s memory if there is no entry for the
+.I node
+in the configuration file).
+.TP
+.BI \-p
+Start client manager, process polls, quit if the queue seems to
+be empty after the next rescan. Implies
+.BI \-c.
+.TP
+.BI \-q
+Quiet mode. Turns off
+.I printq,
+.I conlog
+and
+.I percents
+statements of configuration.
+.TP
+.BI \-s
+Start server only. Normally
+.B Binkd
+starts both server and client.
+.TP
+.BI \-v
+Be verbose.
+.B Binkd \-v
+will dump binkd's version and quit.
+
+.SH SIGNALS
+.TP
+.BI SIGHUP
+Causes
+.B Binkd
+to reload it's config.
+
+.SH SEE ALSO
+inetd(8)
+
+Binkd homepage,
+http://www.corbina.net/~maloff/binkd/
+ftp://happy.kiev.ua/pub/fidosoft/mailer/binkd/
+
+"Binkd User Guide" by Nick Soveiko,
+http://www.doe.carleton.ca/~nsoveiko/fido/binkd/man/
+
+.SH AUTHORS
+Dima Maloff <maloff@tts.magadan.su> and others.
+
+This manual page is based on "Binkd User Guide" by
+nsoveiko@doe.carleton.ca (Nick Soveiko)
+
+.SH HISTORY
+Nov 1996 - First version under FreeBSD

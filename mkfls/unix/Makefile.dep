@@ -1,0 +1,56 @@
+md5b.o: md5b.c tools.h getw.h sys.h md5b.h prothlp.h ftnq.h Config.h \
+ ftnaddr.h ftnnode.h iphdr.h readcfg.h ftndom.h protoco2.h
+https.o: https.c Config.h readcfg.h iphdr.h sys.h ftnaddr.h ftndom.h \
+ ftnnode.h tools.h getw.h https.h iptools.h
+binkd.o: binkd.c Config.h sys.h iphdr.h readcfg.h ftnaddr.h ftndom.h \
+ ftnnode.h server.h client.h tools.h getw.h bsy.h protocol.h assert.h \
+ binlog.h setpttl.h reapchld.inc
+readcfg.o: readcfg.c Config.h readcfg.h iphdr.h sys.h ftnaddr.h \
+ ftndom.h ftnnode.h tools.h getw.h ftnq.h srif.h prothlp.h protoco2.h \
+ iptools.h assert.h readflo.h
+tools.o: tools.c assert.h tools.h getw.h Config.h sys.h readdir.h \
+ readcfg.h iphdr.h ftnaddr.h ftndom.h ftnnode.h sem.h
+ftnaddr.o: ftnaddr.c Config.h tools.h getw.h ftnaddr.h readcfg.h \
+ iphdr.h sys.h ftndom.h ftnnode.h
+ftnq.o: ftnq.c assert.h tools.h getw.h Config.h ftnq.h ftnaddr.h \
+ ftnnode.h iphdr.h sys.h readcfg.h ftndom.h readdir.h
+client.o: client.c Config.h sys.h client.h readcfg.h iphdr.h ftnaddr.h \
+ ftndom.h ftnnode.h iptools.h ftnq.h tools.h getw.h protocol.h bsy.h \
+ assert.h setpttl.h https.h reapchld.inc
+server.o: server.c Config.h iphdr.h sys.h iptools.h tools.h getw.h \
+ readcfg.h ftnaddr.h ftndom.h ftnnode.h protocol.h server.h assert.h \
+ setpttl.h reapchld.inc
+protocol.o: protocol.c Config.h sys.h iphdr.h iptools.h tools.h getw.h \
+ readcfg.h ftnaddr.h ftndom.h ftnnode.h ftnq.h bsy.h inbound.h srif.h \
+ prothlp.h protoco2.h readflo.h protocol.h assert.h binlog.h setpttl.h \
+ md5b.h
+bsy.o: bsy.c Config.h ftnaddr.h bsy.h tools.h getw.h sem.h sys.h \
+ assert.h
+inbound.o: inbound.c Config.h sys.h readcfg.h iphdr.h ftnaddr.h \
+ ftndom.h ftnnode.h inbound.h tools.h getw.h protocol.h readdir.h
+breaksig.o: breaksig.c Config.h sys.h bsy.h ftnaddr.h tools.h getw.h \
+ iphdr.h readcfg.h ftndom.h ftnnode.h binlog.h
+branch.o: branch.c Config.h sys.h tools.h getw.h
+rename.o: unix/rename.c
+getfree.o: unix/getfree.c
+ftndom.o: ftndom.c ftndom.h ftnaddr.h tools.h getw.h
+ftnnode.o: ftnnode.c assert.h tools.h getw.h ftnnode.h Config.h \
+ ftnaddr.h iphdr.h sys.h ftnq.h sem.h readcfg.h ftndom.h
+srif.o: srif.c Config.h ftnaddr.h ftnq.h ftnnode.h iphdr.h sys.h \
+ tools.h getw.h srif.h readcfg.h ftndom.h prothlp.h protoco2.h run.h
+pmatch.o: pmatch.c
+readflo.o: readflo.c Config.h readflo.h assert.h tools.h getw.h
+prothlp.o: prothlp.c Config.h sys.h ftnq.h ftnaddr.h ftnnode.h iphdr.h \
+ prothlp.h srif.h readcfg.h ftndom.h protoco2.h assert.h tools.h \
+ getw.h
+iptools.o: iptools.c iphdr.h sys.h iptools.h tools.h getw.h readcfg.h \
+ Config.h ftnaddr.h ftndom.h ftnnode.h
+run.o: run.c run.h tools.h getw.h
+binlog.o: binlog.c Config.h binlog.h sys.h readcfg.h iphdr.h ftnaddr.h \
+ ftndom.h ftnnode.h prothlp.h ftnq.h protoco2.h assert.h tools.h \
+ getw.h sem.h
+exitproc.o: exitproc.c Config.h sys.h bsy.h ftnaddr.h tools.h getw.h \
+ iphdr.h readcfg.h ftndom.h ftnnode.h binlog.h
+getw.o: getw.c getw.h
+xalloc.o: xalloc.c tools.h getw.h
+setpttl.o: unix/setpttl.c

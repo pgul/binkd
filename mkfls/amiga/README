@@ -1,0 +1,4 @@
+To compile this under AmigaOS you have to install ADE (Amiga
+Development Environment) and ixemul.library version 47.0 (!)
+or newer. It can be obtained from ftp.ninemoons.com and its
+mirrors. All comments and questions: dmitry@channel4.mplik.ru

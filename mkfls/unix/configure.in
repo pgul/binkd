@@ -1,0 +1,107 @@
+dnl $Id$
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(binkd.c)
+
+dnl Checks for programs.
+AC_PROG_AWK
+AC_PROG_CC
+AC_PROG_INSTALL
+
+dnl Checks for header files.
+AC_CHECK_HEADERS(unistd.h io.h)
+AC_CHECK_HEADERS(sys/vfs.h sys/statfs.h sys/statvfs.h sys/param.h sys/mount.h)
+AC_CHECK_HEADERS(arpa/inet.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+
+dnl Checks for library functions.
+AC_CHECK_FUNCS(snprintf vsyslog waitpid statvfs statfs uname)
+
+dnl Checks for libraries.
+AC_CHECK_FUNC(socket)
+case $ac_cv_func_socket in
+ no) AC_CHECK_LIB(socket, socket) ;;
+esac
+AC_CHECK_FUNC(gethostbyname)
+case $ac_cv_func_gethostbyname in
+ no) AC_CHECK_LIB(nsl, gethostbyname) ;;
+esac
+AC_CHECK_FUNC(setproctitle)
+case $ac_cv_func_setproctitle in
+ no) AC_CHECK_LIB(util, setproctitle) ;;
+esac
+AC_CHECK_SIZEOF(short, 0)
+AC_CHECK_SIZEOF(int, 0)
+AC_CHECK_SIZEOF(long, 0)
+
+dnl -------------------------------------------------------------------------
+dnl Signal handling
+
+AC_MSG_CHECKING(for reliable signals)
+AC_TRY_RUN([
+#include <sys/types.h>
+#include <signal.h>
+
+#ifndef SIGCHLD
+# define SIGCHLD SIGCLD
+#endif
+#ifdef USE_SIGSET
+# define signal sigset
+#endif
+
+int got;
+
+#ifdef SIGVOID
+void
+#endif
+hand()
+{
+  got++;
+}
+
+main()
+{
+  (void)signal(SIGCHLD, hand);
+  kill(getpid(), SIGCHLD);
+  kill(getpid(), SIGCHLD);
+  if (got < 2)
+    exit(1);
+  exit(0);
+}
+], AC_MSG_RESULT(yes),
+AC_DEFINE(SYS5SIGNALS) AC_MSG_RESULT(no),
+AC_DEFINE(SYS5SIGNALS) AC_MSG_RESULT(cross-compiling. No assumptions made)
+)
+
+dnl -------------------------------------------------------------------------
+dnl Check for facilitynames
+
+AC_MSG_CHECKING(for facilitynames)
+AC_TRY_COMPILE([
+#include <stdio.h>
+#define SYSLOG_NAMES
+#include <syslog.h>
+], [
+  return facilitynames[0].c_name && facilitynames[0].c_val;
+], AC_DEFINE(HAVE_FACILITYNAMES) AC_MSG_RESULT(yes),
+AC_MSG_RESULT(no),
+AC_MSG_RESULT(cross-compiling. No assumptions made)
+)
+
+dnl -------------------------------------------------------------------------
+dnl Check for built-in setproctitle()
+
+AC_MSG_CHECKING(for built-in setproctitle)
+AC_TRY_LINK([
+#include <sys/types.h>
+#include <libutil.h>
+], [
+  setproctitle("test");
+], AC_DEFINE(HAVE_SETPROCTITLE) AC_MSG_RESULT(yes),
+AC_MSG_RESULT(no),
+AC_MSG_RESULT(cross-compiling. No assumptions made)
+)
+
+dnl -------------------------------------------------------------------------
+
+AC_OUTPUT(Makefile)

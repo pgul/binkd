@@ -1,0 +1,42 @@
+COMPILING
+---------
+
+non-UNIX:
+
+1. Find in mkfls/ a subdirectory for your system/compiler, copy all files 
+   to the root of the sources.
+
+2. Run make.
+
+UNIXes:
+
+1. Copy all files from mkfls/unix/ to the root of binkd sources:
+	cd /usr/src/binkd-0.9.5
+	cp mkfls/unix/* .
+
+2. Run configure:
+	sh configure
+
+3. Run make.
+
+INSTALLATION
+------------
+
+1. Edit sample binkd.cfg.
+
+2. Run binkd.
+
+MORE INFO
+---------
+
+1. RU.BINKD echoarea.
+
+2. http://www.corbina.net/~maloff/binkd/
+   ftp://happy.kiev.ua/pub/fidosoft/mailer/binkd/
+   Documentation: http://www.doe.carleton.ca/~nsoveiko/fido/binkd/man/
+                  (c) Nick Soveiko <nsoveiko@doe.carleton.ca>
+
+3. Authors: Dmitry Maloff <maloff@corbina.net> and others.
+   Bug reporting: binkd-bugs@happy.kiev.ua, 2:463/68
+   Binkd developers mailing list binkd-dev@happy.kiev.ua (send
+   "subscribe binkd-dev" to majordomo@happy.kiev.ua for subscribe)

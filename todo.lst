@@ -1,0 +1,6 @@
+- nolog "call to*" "*:unknown host" "some annoing message"
+- crypt traffic
+- perl hooks
+- shared aka
+- different passwords for remote akas
+- don't give mail for unsecure aka of secure link when send-if-pwd
