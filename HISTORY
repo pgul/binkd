@@ -1,3 +1,7 @@
+2004/10/26 20:37:05 1.0a-415 gul
+binkd.cfg,2.44,2.45 readcfg.c,2.76,2.77
+Set time intervals in human-readable form (12h instead of 43200 etc.)
+
 2004/10/26 18:46:47 1.0a-414 gul
 readcfg.c,2.75,2.76
 Process option skipmask for backward compatibility
