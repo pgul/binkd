@@ -26,6 +26,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.12  2004/10/08 08:30:30  gul
+ * binlog rev.2.11 bugfix
+ *
  * Revision 2.11  2004/08/04 13:06:58  gul
  * Binlogs writes correctly now independent on bytes order and alignment
  *
@@ -93,14 +96,14 @@
 /* Write 16-bit integer to file in intel bytes order */
 static int fput16(u16 arg, FILE *file)
 {
-	if (fputc(arg % 0xff, file) == EOF) return EOF;
+	if (fputc(arg & 0xff, file) == EOF) return EOF;
 	return fputc(arg >> 8, file);
 }
 
 /* Write 32-bit integer to file in intel bytes order */
 static int fput32(u32 arg, FILE *file)
 {
-	if (fput16((u16)(arg%0xffff), file) == EOF) return EOF;
+	if (fput16((u16)(arg & 0xffff), file) == EOF) return EOF;
 	return fput16((u16)(arg/0x10000), file);
 }
 
