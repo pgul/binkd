@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2003/02/27 20:34:37  gul
+ * Fix proxy usage
+ *
  * Revision 2.7  2003/02/27 18:52:37  gul
  * bugfix in proxy using
  *
@@ -386,12 +389,17 @@ badtry:
       sockfd = INVALID_SOCKET;
     }
 #ifdef HAVE_THREADS
-    if (hp->h_addr_list != alist)
+#ifdef HTTPS
+    if (!proxy[0] && !host[0])
+#endif
     {
-      if (hp->h_addr_list && hp->h_addr_list[0])
-        free(hp->h_addr_list[0]);
-      if (hp->h_addr_list)
-        free(hp->h_addr_list);
+      if (hp->h_addr_list != alist)
+      {
+        if (hp->h_addr_list && hp->h_addr_list[0])
+          free(hp->h_addr_list[0]);
+        if (hp->h_addr_list)
+          free(hp->h_addr_list);
+      }
     }
 #endif
 #ifdef HTTPS
@@ -405,6 +413,16 @@ badtry:
     }
 #endif
   }
+#if defined(HAVE_THREADS) && defined(HTTPS)
+  if ((proxy[0] || host[0]) && hp->h_addr_list != alist)
+  {
+    if (hp->h_addr_list && hp->h_addr_list[0])
+      free(hp->h_addr_list[0]);
+    if (hp->h_addr_list)
+      free(hp->h_addr_list);
+  }
+#endif
+
   if (sockfd == INVALID_SOCKET)
     return 0;
 
