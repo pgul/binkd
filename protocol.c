@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.23  2003/02/22 12:56:00  gul
+ * Do not give unsecure mail to secure link when send-if-pwd
+ *
  * Revision 2.22  2003/02/22 12:12:34  gul
  * Cleanup sources
  *
@@ -658,7 +661,7 @@ static void do_prescan(STATE *state)
 
   if (OK_SEND_FILES (state) && prescan)
   {
-    state->q = q_scan_addrs (0, state->fa, state->nfa);
+    state->q = q_scan_addrs (0, state->fa, state->nfa, state->to ? 1 : 0);
     /* hack to avoid warning: this scan can be before receive "OPT ND" */
     savend = state->ND_flag;
     state->ND_flag = YES_ND;
@@ -882,7 +885,7 @@ static int ADR (STATE *state, char *s, int sz)
       if (!strcmp (state->expected_pwd, "-"))
       {
 	memcpy (state->expected_pwd, n->pwd, sizeof (state->expected_pwd));
-        state->MD_flag=n->MD_flag;
+	state->MD_flag=n->MD_flag;
       }
       else if (n->pwd && strcmp(n->pwd, "-") &&
                strcmp (state->expected_pwd, n->pwd))
@@ -951,7 +954,7 @@ static void complete_login (STATE *state)
   if (state->ND_flag!=YES_ND) state->ND_flag=NO_ND;
   state->inbound = select_inbound (state->fa, state->state);
   if (OK_SEND_FILES (state))
-    state->q = q_scan_addrs (0, state->fa, state->nfa);
+    state->q = q_scan_addrs (0, state->fa, state->nfa, state->to ? 1 : 0);
   state->msgs_in_batch = 0;	       /* Forget about login msgs */
   if (state->state == P_SECURE)
     Log (2, "pwd protected session (%s)",
