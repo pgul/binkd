@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2003/01/29 19:32:03  gul
+ * Code cleanup, prevent segfault on bad config
+ *
  * Revision 2.12  2003/01/16 14:34:11  gul
  * Fix segfault under unix
  *
@@ -611,7 +614,7 @@ static void check_dir_path (char *s)
 
 static void read_node_info (KEYWORD *key, char *s)
 {
-#define ARGNUM 6
+#define ARGNUM 9
   char *w[ARGNUM], *tmp;
   int i, j, NR_flag = NR_USE_OLD, ND_flag = ND_USE_OLD;
   int MD_flag = 0, crypt_flag = CRYPT_USE_OLD, restrictIP = 0;
@@ -666,6 +669,8 @@ static void read_node_info (KEYWORD *key, char *s)
       w[i++] = tmp;
   }
 
+  if (i == 0)
+    Log (0, "%s: %i: the address is not specified in the node string", path, line);
   if (!parse_ftnaddress (w[0], &fa))
     Log (0, "%s: %i: %s: the address cannot be parsed", path, line, w[0]);
   else

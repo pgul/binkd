@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2003/01/29 19:32:03  gul
+ * Code cleanup, prevent segfault on bad config
+ *
  * Revision 2.0  2001/01/10 12:12:38  gul
  * Binkd is under CVS again
  *
@@ -23,10 +26,12 @@ void *xstrdup (const char *str);
 
 char *getwordx2 (char *src, int n, int flags, char *fldsep, char *fldskip)
 {
-  char *dest = xstrdup (src);
+  char *dest;
   char quoted;
   int i;
 
+  if (!src) return NULL;
+  dest = xstrdup(src);
   while (1)
   {
     while (*src && strchr (fldskip, *src))
@@ -35,7 +40,7 @@ char *getwordx2 (char *src, int n, int flags, char *fldsep, char *fldskip)
     if (!*src || ((flags & GWX_HASH) && *src == '#'))
     {
       free (dest);
-      return 0;
+      return NULL;
     }
 
     if (*src == '\"')

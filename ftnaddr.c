@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2003/01/29 19:32:03  gul
+ * Code cleanup, prevent segfault on bad config
+ *
  * Revision 2.0  2001/01/10 12:12:37  gul
  * Binkd is under CVS again
  *
@@ -86,6 +89,8 @@ int parse_ftnaddress (char *s, FTN_ADDR *fa)
   int i;
 
   FA_ZERO (fa);
+
+  if (!s) return 0;
 
   for (i = 0; i < TOKENS; ++i)
     if (gettoken (token + i, &s) < 0)
