@@ -1,3 +1,7 @@
+2004/07/12 11:21:57 1.0a-379 stas
+iphdr.h,2.16,2.17
+Fix the file name case. Bugreport from Andrey Slusar 2:467/126
+
 2004/06/07 13:47:16 1.0a-378 gul
 srif.c,2.16,2.17
 Touch flag if its already exists
