@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.53  2003/05/03 08:41:16  gul
+ * bugfix in protocol, when file already exists
+ *
  * Revision 2.52  2003/05/01 09:55:01  gul
  * Remove -crypt option, add global -r option (disable crypt).
  *
@@ -1550,7 +1553,10 @@ static int GOT (STATE *state, char *args, int sz)
     {
       Log (2, "remote already has %s", state->out.netname);
       if (state->out.f)
-        fclose (state->out.f);
+      {
+	fclose (state->out.f);
+	state->out.f = NULL;
+      }
       memcpy(&state->ND_addr, &state->out_addr, sizeof(state->out_addr));
       if (state->ND_flag == YES_ND)
         Log (7, "Set ND_addr to %u:%u/%u.%u",
