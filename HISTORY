@@ -1,3 +1,8 @@
+2004/09/11 15:34:18 1.0a-399 gul
+readcfg.c,2.70,2.71
+Check for zonenumber syntax in the "domain" keyword - it should be
+decimal integer. Zone "3c3" is now error, but not 3.
+
 2004/09/06 13:50:14 1.0a-398 val
 ftnnode.c,2.31,2.32
 node data could be over-written by defnode data if hosts were set to `-', fixed
