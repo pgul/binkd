@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2002/11/12 16:55:58  gul
+ * Run as service under win9x
+ *
  * Revision 2.3  2001/09/14 07:23:06  gul
  * bindaddr bugfix, did not work on freebsd
  *
@@ -152,7 +155,11 @@ int checkcfg ()
       Log (2, "%s changed! Restart binkd...", pc->path);
       longjmp(jb, 1);
 #else
+#if defined(BINKDW9X)
+      Log (2, "%s changed! Restart binkd...", pc->path);
+#else
       Log (2, "%s changed! exit(3)...", pc->path);
+#endif
       checkcfg_flag=2;
 #endif
       exit (3);

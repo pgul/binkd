@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2002/11/12 16:55:58  gul
+ * Run as service under win9x
+ *
  * Revision 2.10  2002/05/06 19:25:40  gul
  * new keyword inboundCase in config
  *
@@ -342,7 +345,11 @@ void Log (int lev, char *s,...)
     ReleaseSem (&LSem);
   }
 #ifdef WIN32
+#ifdef BINKDW9X
+  if(!lev)
+#else
   if((!lev)&&(isService))
+#endif
   {
     char tmp[256];
     va_start (ap, s);

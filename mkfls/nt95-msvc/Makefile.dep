@@ -1,5 +1,6 @@
 .\BINKD.C : \
 	".\nt\service.h"\
+	".\nt\win9x.h"\
 	".\assert.h"\
 	".\binlog.h"\
 	".\bsy.h"\
@@ -46,6 +47,7 @@
 	
 
 .\nt\breaksig.c : \
+	".\nt\win9x.h"\
 	".\binlog.h"\
 	".\bsy.h"\
 	".\config.h"\
@@ -415,4 +417,10 @@
 .\ntlm\set_key.c : \
 	".\ntlm\des_locl.h"\
 	".\ntlm\des.h"\
+
+
+.\nt\win9x.c : \
+	".\nt\win9x.h"\
+	".\config.h"\
+	".\tools.h"\
 

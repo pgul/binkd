@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2002/11/12 16:55:58  gul
+ * Run as service under win9x
+ *
  * Revision 2.7  2002/07/22 19:48:30  gul
  * Update usage
  *
@@ -105,6 +108,9 @@
 #ifdef WIN32
 #include <windows.h>
 #include "nt/service.h"
+#ifdef BINKDW9X
+#include "nt/win9x.h"
+#endif
 #endif
 
 #ifdef USE_SOCKS
@@ -144,7 +150,7 @@ static void hup (int signo)
 
 void usage ()
 {
-#if defined(WIN32)	
+#if defined(WIN32) && !defined(BINKDW9X)
 	char *s=NULL;
 	if(checkservice() > 0)
 	{
@@ -153,15 +159,21 @@ void usage ()
 	}
 #endif
 
+#if defined(BINKDW9X)
+	AllocTempConsole();
+#endif
+
   printf ("usage: binkd [-Cc"
 #if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
           "D"
 #endif
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
 	  "i"
+#elif defined(BINKDW9X)
+	  "iut"
 #elif defined(WIN32)
 	  "T%s"
-#endif
+#endif          
 	  "pqsvmh] [-Pnode] config"
 #ifdef OS2
 	  " [socket]"
@@ -170,7 +182,7 @@ void usage ()
 #if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
 	  "  -D       run as daemon\n"
 #endif
-#if defined(HAVE_FORK)
+#if defined(HAVE_FORK) || defined(BINKDW9X)
 	  "  -C       reload on config change\n"
 #else
 	  "  -C       exit(3) on config change\n"
@@ -178,9 +190,13 @@ void usage ()
 	  "  -c       run client only\n"
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
 	  "  -i       run from inetd\n"
+#elif defined(BINKDW9X)
+	  "  -i[(service-name)][q]  install Win9x service\n"
+	  "  -u[(service-name)][q]  UNinstall Win9x service\n"
+	  "  -t[start|stop|restart][(service-name|--all)][q]  status|control service(s)\n";
 #elif defined(WIN32)
-	  "%s"
 	  "  -T       minimize to Tray\n"
+	  "%s"
 #endif
 	  "  -P node  poll a node\n"
 	  "  -p       run client only, poll, quit\n"
@@ -197,7 +213,7 @@ void usage ()
 	  "the Free Software Foundation. See COPYING.\n"
 	  "\n"
 	  "Report bugs to 2:463/68 or binkd-bugs@happy.kiev.ua.\n"
-#if defined(WIN32)	
+#if defined(WIN32) && !defined(BINKDW9X)
 	  ,s?s:"", s?s+3:""
 #endif
 	  );
@@ -220,7 +236,11 @@ int no_MD5 = 0;			       /* disable MD5 flag (-m) */
 
 extern int nNod;
 
+#ifdef BINKDW9X
+int binkd_main (int argc, char *argv[], char *envp[])
+#else
 int main (int argc, char *argv[], char *envp[])
+#endif
 {
   char tmp[128];
   int i;
@@ -232,7 +252,7 @@ int main (int argc, char *argv[], char *envp[])
   int  nochdir;
 #endif
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(BINKDW9X)
   service(argc, argv, envp);
 #endif
   /* save argv as setproctitle() under some systems will change it */
@@ -266,9 +286,8 @@ int main (int argc, char *argv[], char *envp[])
 	      inetd_flag = 1;
 	      break;
 #endif
-#if defined(WIN32)
+#if defined(WIN32) && !defined (BINKDW9X)
 	    case 'T':
-	    case 't':
 	      break;
 #endif
 	    case 'P':
@@ -356,6 +375,10 @@ int main (int argc, char *argv[], char *envp[])
     readcfg (config);
   else if (verbose_flag)
   {
+#if defined(WIN32) && defined(BINKDW9X)
+    AllocTempConsole();
+#endif
+
     printf ("Binkd " MYVER " (" __DATE__ " " __TIME__ "%s)\n", get_os_string ());
     exit (0);
   }

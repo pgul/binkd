@@ -1,5 +1,13 @@
 # Microsoft Developer Studio Generated NMAKE File, Based on binkd.dsp
 # $Id$
+!IFNDEF BINKD9X
+!MESSAGE To make binkd9x, you can specify BINKD9X macros when running NMAKE
+!MESSAGE by defining the macro BINKD9X on the command line. For example:
+!MESSAGE
+!MESSAGE NMAKE BINKD9X=
+!MESSAGE
+!ENDIF
+
 !IF "$(CFG)" == ""
 CFG=binkd - Win32 Release
 !MESSAGE No configuration specified. Defaulting to binkd - Win32 Release.
@@ -26,15 +34,33 @@ NULL=
 NULL=nul
 !ENDIF 
 
+!IFNDEF BINKD9X
+OutFile=binkd
+ModeOpt=/D "_CONSOLE"
+SubSys=console
+!ELSE
+OutFile=binkd9x
+ModeOpt=/D "_WINDOWS" /D "BINKDW9X"
+SubSys=windows
+!ENDIF
+
 !IF  "$(CFG)" == "binkd - Win32 Debug"
 
+!IFNDEF BINKD9X
 OUTDIR=.\Debug
 INTDIR=.\Debug
 # Begin Custom Macros
 OutDir=.\Debug
 # End Custom Macros
+!ELSE
+OUTDIR=.\Debug-w9x
+INTDIR=.\Debug-w9x
+# Begin Custom Macros
+OutDir=.\Debug-w9x
+# End Custom Macros
+!ENDIF
 
-ALL : "$(OUTDIR)\binkd.exe" "$(OUTDIR)\binkd.bsc"
+ALL : "$(OUTDIR)\$(OutFile).exe" "$(OUTDIR)\$(OutFile).bsc"
 
 
 CLEAN :
@@ -107,19 +133,20 @@ CLEAN :
 	-@erase "$(INTDIR)\WSock.sbr"
 	-@erase "$(INTDIR)\xalloc.obj"
 	-@erase "$(INTDIR)\xalloc.sbr"
-	-@erase "$(OUTDIR)\binkd.bsc"
-	-@erase "$(OUTDIR)\binkd.exe"
-	-@erase "$(OUTDIR)\binkd.ilk"
-	-@erase "$(OUTDIR)\binkd.map"
-	-@erase "$(OUTDIR)\binkd.pdb"
+	-@erase "$(OUTDIR)\$(OutFile).bsc"
+	-@erase "$(OUTDIR)\$(OutFile).exe"
+	-@erase "$(OUTDIR)\$(OutFile).ilk"
+	-@erase "$(OUTDIR)\$(OutFile).map"
+	-@erase "$(OUTDIR)\$(OutFile).pdb"
 	-@erase "$(INTDIR)\md5b.obj"
 	-@erase "$(INTDIR)\crypt.obj"
+	-@erase "$(INTDIR)\win9x.obj"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /D "HTTPS" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "HAVE_THREADS" /D "HAVE_IO_H" /D "VISUALCPP" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\binkd.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /c 
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /D "HTTPS" /D "_DEBUG" /D "WIN32" $(ModeOpt) /D "HAVE_THREADS" /D "HAVE_IO_H" /D "VISUALCPP" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\$(OutFile).pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /c 
 
 .c{$(INTDIR)}.obj:
    $(CPP) @<<
@@ -133,7 +160,7 @@ CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /D "HTTPS" /D "_DEBUG" /D "WIN32" /D "
 
 RSC=rc.exe
 BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\binkd.bsc" 
+BSC32_FLAGS=/nologo /o"$(OUTDIR)\$(OutFile).bsc" 
 BSC32_SBRS= \
 	"$(INTDIR)\BINKD.SBR" \
 	"$(INTDIR)\binlog.sbr" \
@@ -166,15 +193,20 @@ BSC32_SBRS= \
 	"$(INTDIR)\WSock.sbr" \
 	"$(INTDIR)\xalloc.sbr"
 
-"$(OUTDIR)\binkd.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
+"$(OUTDIR)\$(OutFile).bsc" : "$(OUTDIR)" $(BSC32_SBRS)
     $(BSC32) @<<
   $(BSC32_FLAGS) $(BSC32_SBRS)
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib wsock32.lib /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\binkd.pdb" /map:"$(INTDIR)\binkd.map" /debug /machine:I386 /out:"$(OUTDIR)\binkd.exe" 
+LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib wsock32.lib /nologo /subsystem:$(SubSys) /incremental:yes /pdb:"$(OUTDIR)\$(OutFile).pdb" /map:"$(INTDIR)\$(OutFile).map" /debug /machine:I386 /out:"$(OUTDIR)\$(OutFile).exe" 
 LINK32_OBJS= \
+!IFDEF BINKD9X
+	"$(INTDIR)\win9x.obj" \
+!ENDIF
+!IFNDEF BINKD9X
 	"$(INTDIR)\service.obj" \
+!ENDIF
 	"$(INTDIR)\https.obj" \
 	"$(INTDIR)\helpers.obj" \
 	"$(INTDIR)\ecb_enc.obj" \
@@ -214,20 +246,28 @@ LINK32_OBJS= \
 	"$(INTDIR)\crypt.obj" \
 	"$(INTDIR)\xalloc.obj"
 
-"$(OUTDIR)\binkd.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
+"$(OUTDIR)\$(OutFile).exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
 
 !ELSEIF  "$(CFG)" == "binkd - Win32 Release"
 
+!IFNDEF BINKD9X
 OUTDIR=.\Release
 INTDIR=.\Release
 # Begin Custom Macros
 OutDir=.\Release
 # End Custom Macros
+!ELSE
+OUTDIR=.\Release-w9x
+INTDIR=.\Release-w9x
+# Begin Custom Macros
+OutDir=.\Release-w9x
+# End Custom Macros
+!ENDIF
 
-ALL : "$(OUTDIR)\binkd.exe"
+ALL : "$(OUTDIR)\$(OutFile).exe"
 
 
 CLEAN :
@@ -269,17 +309,18 @@ CLEAN :
 	-@erase "$(INTDIR)\vc60.idb"
 	-@erase "$(INTDIR)\vc60.pdb"
 	-@erase "$(INTDIR)\WSock.obj"
-	-@erase "$(INTDIR)\xalloc.obj"
-	-@erase "$(OUTDIR)\binkd.exe"
-	-@erase "$(OUTDIR)\binkd.ilk"
+	-@erase "$(INTDIR)\$(OutFile).obj"
+	-@erase "$(OUTDIR)\$(OutFile).exe"
+	-@erase "$(OUTDIR)\$(OutFile).ilk"
 	-@erase "$(INTDIR)\md5b.obj"
 	-@erase "$(INTDIR)\crypt.obj"
+	-@erase "$(INTDIR)\win9x.obj"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MT /W3 /GX /Ox /D "HTTPS" /D "WIN32" /D "_CONSOLE" /D "HAVE_THREADS" /D "HAVE_IO_H" /D "VISUALCPP" /Fp"$(INTDIR)\binkd.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /c 
+CPP_PROJ=/nologo /MT /W3 /GX /Ox /D "HTTPS" /D "WIN32" $(ModeOpt) /D "HAVE_THREADS" /D "HAVE_IO_H" /D "VISUALCPP" /Fp"$(INTDIR)\$(OutFile).pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /c 
 
 .c{$(INTDIR)}.obj:
    $(CPP) @<<
@@ -293,13 +334,18 @@ CPP_PROJ=/nologo /MT /W3 /GX /Ox /D "HTTPS" /D "WIN32" /D "_CONSOLE" /D "HAVE_TH
 
 RSC=rc.exe
 BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\binkd.bsc" 
+BSC32_FLAGS=/nologo /o"$(OUTDIR)\$(OutFile).bsc" 
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib wsock32.lib /nologo /subsystem:console /pdb:"$(OUTDIR)\binkd.pdb" /machine:I386 /out:"$(OUTDIR)\binkd.exe" 
+LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib wsock32.lib /nologo /subsystem:$(SubSys) /pdb:"$(OUTDIR)\$(OutFile).pdb" /machine:I386 /out:"$(OUTDIR)\$(OutFile).exe" 
 LINK32_OBJS= \
+!IFDEF BINKD9X
+	"$(INTDIR)\win9x.obj" \
+!ENDIF
+!IFNDEF BINKD9X
 	"$(INTDIR)\service.obj" \
+!ENDIF
 	"$(INTDIR)\https.obj" \
 	"$(INTDIR)\helpers.obj" \
 	"$(INTDIR)\ecb_enc.obj" \
@@ -339,7 +385,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\crypt.obj" \
 	"$(INTDIR)\xalloc.obj"
 
-"$(OUTDIR)\binkd.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
+"$(OUTDIR)\$(OutFile).exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
@@ -901,6 +947,7 @@ SOURCE=.\crypt.c
 !ENDIF 
 
 
+!IFNDEF BINKD9X
 SOURCE=.\nt\service.c
 
 !IF  "$(CFG)" == "binkd - Win32 Debug"
@@ -913,7 +960,7 @@ SOURCE=.\nt\service.c
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 !ENDIF 
-
+!ENDIF
 
 SOURCE=.\ntlm\ecb_enc.c
 
@@ -989,6 +1036,22 @@ SOURCE=.\ntlm\set_key.c
 
 !ENDIF 
 
+
+!IFDEF BINKD9X
+SOURCE=.\nt\win9x.c
+
+!IF  "$(CFG)" == "binkd - Win32 Debug"
+
+"$(INTDIR)\win9x.obj" "$(INTDIR)\win9x.SBR" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
+
+"$(INTDIR)\win9x.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+!ENDIF
+!ENDIF 
 
 !ENDIF 
 

@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.2  2002/11/12 16:55:59  gul
+ * Run as service under win9x
+ *
  * Revision 2.1  2001/09/24 10:31:39  gul
  * Build under mingw32
  *
@@ -58,6 +61,9 @@
 #include "..\bsy.h"
 #include "..\binlog.h"
 #include "..\readcfg.h"
+#ifdef BINKDW9X
+#include "win9x.h"
+#endif
 
 /*--------------------------------------------------------------------*/
 /*                         Global definitions                         */
@@ -81,7 +87,9 @@ extern int pid_file_created;    /* we've created the pid_file */
 /*                                                                    */
 /*    Signal handler                                                  */
 /*--------------------------------------------------------------------*/
+#ifndef BINKDW9X
 extern int isService;
+#endif
 
 BOOL SigHandler(DWORD SigType) {
    switch (SigType) {
@@ -93,17 +101,30 @@ BOOL SigHandler(DWORD SigType) {
          Log(1,"Interrupted by Close");
          break;
       case CTRL_LOGOFF_EVENT:
+#ifndef BINKDW9X
          if(isService) return (TRUE);
+#endif
          Log(1,"Interrupted by LogOff");
          break;
       case CTRL_SHUTDOWN_EVENT:
          Log(1,"Interrupted by Shutdown");
          break;
+#ifdef BINKDW9X
+      case 254:
+         Log(1, "Interrupted by service stop");
+         break;
+      case 255:
+         Log(1, "Interrupted by service restart");
+         break;
+#endif
       default:
          Log(1,"Interrupted by unknown signal");
          break;
    }
    exitfunc();
+#ifdef BINKDW9X
+   ExitProcess(0); // Sometime binkd9x exit incorrectly (may be others threads still work)
+#endif
    return (FALSE);
 }
 
@@ -115,8 +136,12 @@ BOOL SigHandler(DWORD SigType) {
 
 int set_break_handlers () {
    atexit (exitfunc);
+#if BINKDW9X
+   CreateWin9xThread((PHANDLER_ROUTINE) &SigHandler);
+#else
    if (SetConsoleCtrlHandler((PHANDLER_ROUTINE) &SigHandler,TRUE) != TRUE) {
       return (0);
    }
+#endif
    return (1);
 }

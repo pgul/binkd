@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2002/11/12 16:55:58  gul
+ * Run as service under win9x
+ *
  * Revision 2.2  2001/12/25 17:13:15  gul
  * mingw _sleep() fix
  *
@@ -91,7 +94,9 @@
   #define MKDIR(s) mkdir(s, 0755)
 #endif
 #ifndef OS
-  #if defined(WIN32)
+  #if defined(BINKDW9X)
+    #define OS "Win9x"
+  #elif defined(WIN32)
     #define OS "Win32"
   #elif defined(OS2)
     #define OS "OS2"
