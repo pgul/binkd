@@ -1,4 +1,3 @@
-- nolog "call to*" "*:unknown host" "some annoing message"
 - rexx hooks
 - set root-domain for every domain
 - reread config "on fly" in multithread versions
