@@ -227,7 +227,7 @@ if test ".$do_zlib" != ".no" ; then
 	  if test ! -d "$zlib_path/lib" ; then
 	    continue
 	  fi
-	  if test "$zlib_path" = "/usr"]; then
+	  if test "$zlib_path" = "/usr" ; then
 	    LIBS="-lz $save_LIBS"
 	    CFLAGS="$save_CFLAGS"
 	  else
@@ -242,7 +242,7 @@ if test ".$do_zlib" != ".no" ; then
 #endif
 ],
 [
-  compress(0, (unsigned long*) 0, "", 0);
+  compress2(0, (unsigned long*) 0, "", 0, 6);
   uncompress(0, (unsigned long*) 0, "", 0);
 ],
 	    found_zlib="$zlib_path", found_zlib=no
@@ -255,6 +255,70 @@ if test ".$do_zlib" != ".no" ; then
 	if test ".$found_zlib" != ".no"; then
 	  AC_MSG_RESULT(yes: $found_zlib)
 	  AC_DEFINE(WITH_ZLIB)
+          if test ".$zlibdl_inc." != ".yes." ; then
+            OPT_SRC="$OPT_SRC zlibdl.c"
+            zlibdl_inc=yes
+          fi
+	else
+	  AC_MSG_RESULT(no)
+	  LIBS="$save_LIBS"
+	  CFLAGS="$save_CFLAGS"
+	fi
+fi
+
+AC_ARG_WITH(bzlib2,
+            [  --with-bzlib2           bzlib2 compression (default no)],
+            [do_bzlib2=$withval], 
+            [do_bzlib2=no])
+
+if test ".$do_bzlib2" != ".no" ; then
+	AC_MSG_CHECKING(for libbz2)
+	save_LIBS="$LIBS"
+	save_CFLAGS="$CFLAGS"
+	found_bzlib2=no
+
+	if test ".$do_bzlib2" = ".yes"; then
+	  bzlib2_paths="/usr /usr/local /usr/local/bzlib2"
+	else
+	  bzlib2_paths="$do_bzlib2"
+	fi
+
+	for bzlib2_path in $bzlib2_paths ; do
+	  if test ! -d "$bzlib2_path/lib" ; then
+	    continue
+	  fi
+	  if test "$bzlib2_path" = "/usr" ; then
+	    LIBS="-lbz2 $save_LIBS"
+	    CFLAGS="$save_CFLAGS"
+	  else
+	    LIBS="-L$bzlib2_path/lib -lbz2 $save_LIBS"
+	    CFLAGS="-I$bzlib2_path/include $save_CFLAGS"
+	  fi
+	  AC_TRY_LINK(
+[
+#include <bzlib.h>
+#ifdef __cplusplus
+  extern "C"
+#endif
+],
+[
+  BZ2_bzBuffToBuffCompress(0, (unsigned long*) 0, "", 0, 6, 0, 0);
+  BZ2_bzBuffToBuffDecompress(0, (unsigned long*) 0, "", 0, 0, 0);
+],
+	    found_bzlib2="$bzlib2_path", found_bzlib2=no
+	  )
+	  if test ".$found_bzlib2" != ".no"; then
+	    break
+	  fi
+	done
+
+	if test ".$found_bzlib2" != ".no"; then
+	  AC_MSG_RESULT(yes: $found_bzlib2)
+	  AC_DEFINE(WITH_BZLIB2)
+          if test ".$zlibdl_inc." != ".yes." ; then
+            OPT_SRC="$OPT_SRC zlibdl.c"
+            zlibdl_inc=yes
+          fi
 	else
 	  AC_MSG_RESULT(no)
 	  LIBS="$save_LIBS"

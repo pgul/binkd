@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2003/09/24 07:32:16  val
+ * bzlib2 compression support, new compression keyword: zlevel
+ *
  * Revision 2.13  2003/09/15 06:57:09  val
  * compression support via zlib: config keywords, improvements, OS/2 code
  *
@@ -77,6 +80,10 @@
 # else
 #  define uLongf unsigned long
 # endif
+#endif
+
+#if defined(WITH_BZLIB) || !defined(ZLIBDL)
+# include <bzlib.h>
 #endif
 
 #define BLK_HDR_SIZE 2
@@ -187,10 +194,10 @@ struct _STATE
 #ifdef WITH_PERL
   int perl_set_lvl;             /* Level of already set Perl vars */
 #endif
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
   int z_canrecv, z_cansend;     /* remote supports zlib compression */
   int z_recv, z_send;           /* gzip is on for current file */
-  uLongf z_ocnt, z_icnt;        /* length of actual data */
+  int z_ocnt, z_icnt;           /* length of actual data */
   char *z_obuf, *z_ibuf;        /* compression and decompression buffers */
 #endif
   int delay_ADR, delay_EOB;     /* delay sending of the command */

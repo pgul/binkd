@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.27  2003/09/24 07:32:16  val
+ * bzlib2 compression support, new compression keyword: zlevel
+ *
  * Revision 2.26  2003/09/21 17:51:08  gul
  * Fixed PID in logfile for perl stderr handled messages in fork version.
  *
@@ -1135,7 +1138,7 @@ void perl_setup(BINKD_CONFIG *cfg) {
   VK_ADD_HASH_str(hv, sv, "root_domain", cfg->root_domain);
   VK_ADD_HASH_int(hv, sv, "check_pkthdr", cfg->pkthdr_type);
   VK_ADD_HASH_str(hv, sv, "pkthdr_badext", cfg->pkthdr_bad);
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
   VK_ADD_HASH_intz(hv, sv, "zaccept", cfg->zaccept);
   VK_ADD_HASH_intz(hv, sv, "zblksize", cfg->zblksize);
   VK_ADD_HASH_intz(hv, sv, "zminsize", cfg->zminsize);
@@ -1388,14 +1391,14 @@ static void setup_session(STATE *state, int lvl) {
     VK_ADD_HASH_intz(hv, sv, "NR", state->NR_flag);
     VK_ADD_HASH_intz(hv, sv, "MD", state->MD_flag);
     VK_ADD_HASH_intz(hv, sv, "crypt", state->crypt_flag);
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
     VK_ADD_HASH_intz(hv, sv, "GZ", state->z_cansend);
 #endif
     setup_addrs("he", state->nfa, state->fa);
     if (state->nAddr && state->pAddr)
       setup_addrs("me", state->nAddr, state->pAddr);
       else setup_addrs("me", cfg->nAddr, cfg->pAddr);
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
     VK_ADD_intz(sv, "z_send", state->z_send);
     VK_ADD_intz(sv, "z_recv", state->z_recv);
 #endif

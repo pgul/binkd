@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.24  2003/09/24 07:32:17  val
+ * bzlib2 compression support, new compression keyword: zlevel
+ *
  * Revision 2.23  2003/09/15 06:57:09  val
  * compression support via zlib: config keywords, improvements, OS/2 code
  *
@@ -171,7 +174,7 @@ struct akachain
   char *mask;
   enum { ACT_UNKNOWN=0, ACT_HIDE, ACT_PRESENT } type;
 };
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
 /* val: struct for zallow, zdeny */
 struct zrule
 {
@@ -195,10 +198,11 @@ struct _BINKD_CONFIG
   int        iport;
   int        oport;
   int        oblksize;
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
   int        zblksize;
   int        zminsize;
   int        zaccept;
+  int        zlevel;
 #endif
   int        nettimeout;
   int        connect_timeout;
@@ -240,7 +244,7 @@ struct _BINKD_CONFIG
   DEFINE_LIST(_EVT_FLAG)     evt_flags;
   DEFINE_LIST(akachain)      akamask;
   DEFINE_LIST(_SHARED_CHAIN) shares; /* Linked list for shared akas header */
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
   DEFINE_LIST(zrule)         zrules;
 #endif
 
@@ -333,7 +337,7 @@ int  get_host_and_port (int n, char *host, unsigned short *port, char *src, FTN_
 
 char *mask_test(char *s, struct maskchain *chain);
 
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_ZLIB2)
 struct zrule *zrule_test(int type, char *s, struct zrule *root);
 #endif
 

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.127  2003/09/24 07:32:16  val
+ * bzlib2 compression support, new compression keyword: zlevel
+ *
  * Revision 2.126  2003/09/22 11:38:47  val
  * new ip checking modes in VAL_STYLE: ipNoUnknown, ipNoError;
  * val's and gul's -ip modes can be used per node as ipRelaxed and ipResolved
@@ -496,12 +499,8 @@
 #include "perlhooks.h"
 #endif
 
-#ifdef WITH_ZLIB
-# ifdef ZLIBDL
-#  include "zlibdl.h"
-# else
-#  include "zlib.h"
-# endif
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
+#include "zlibdl.h"
 #endif
 
 /* define to enable val's code for -ip checks (default is gul's code) */
@@ -557,14 +556,23 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to, BINKD_CONFI
 #endif
   state->delay_EOB = 0;
   state->state_ext = P_NA;
-#ifdef WITH_ZLIB
-  state->z_cansend = state->z_ocnt = state->z_icnt = 0;
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
+  state->z_canrecv = state->z_cansend = state->z_ocnt = state->z_icnt = 0;
   state->z_ibuf = xalloc (MAX_BLKSIZE + 1);
   state->z_obuf = xalloc (MAX_BLKSIZE + 1);
+#endif
+#ifdef WITH_ZLIB
 # ifndef ZLIBDL
-  state->z_canrecv = config->zaccept;
+  if (config->zaccept) state->z_canrecv |= 1;
 # else
-  state->z_canrecv = config->zaccept && (dl_uncompress != NULL);
+  if (config->zaccept && dl_uncompress) state->z_canrecv |= 1;
+# endif
+#endif
+#ifdef WITH_BZLIB2
+# ifndef ZLIBDL
+  if (config->zaccept) state->z_canrecv |= 2;
+# else
+  if (config->zaccept && dl_bzDecompress) state->z_canrecv |= 2;
 # endif
 #endif
   setsockopts (state->s = socket);
@@ -624,7 +632,7 @@ static int deinit_protocol (STATE *state, BINKD_CONFIG *config)
     free_killlist (&state->killlist, &state->n_killlist);
   if (state->rcvdlist)
     free_rcvdlist (&state->rcvdlist, &state->n_rcvdlist);
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
   xfree (state->z_ibuf);
   xfree (state->z_obuf);
 #endif
@@ -840,7 +848,7 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
 
       if (state->out.f)
       {
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
         sz = state->z_send ? config->zblksize : config->oblksize;
         sz = min ((off_t) sz, state->out.size - ftell (state->out.f));
 #else
@@ -929,11 +937,13 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
             }
           }
         }
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
         if (state->z_send) {
           state->z_ocnt = MAX_BLKSIZE;
-          compress(state->z_obuf, &(state->z_ocnt), 
-                   state->obuf + BLK_HDR_SIZE, sz);
+          do_compress(state->z_send,
+                      state->z_obuf, &(state->z_ocnt), 
+                      state->obuf + BLK_HDR_SIZE, sz,
+                      config->zlevel);
           Log(7, "compress: %d to %d byte(s)", sz, state->z_ocnt);
           mkhdr(state->obuf, state->z_ocnt);
           memcpy(state->obuf + BLK_HDR_SIZE, state->z_obuf, state->z_ocnt);
@@ -1189,9 +1199,20 @@ static int NUL (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
       {
         Log(2, "Remote supports GZ mode");
 #ifdef ZLIBDL
-        state->z_cansend = (dl_compress != NULL);
+        if (dl_compress) state->z_cansend |= 1;
 #else
-        state->z_cansend = 1;
+        state->z_cansend |= 1;
+#endif
+      }
+#endif
+#ifdef WITH_BZLIB2
+      if (!strcmp (w, "BZ2"))
+      {
+        Log(2, "Remote supports BZ2 mode");
+#ifdef ZLIBDL
+        if (dl_bzCompress) state->z_cansend |= 2;
+#else
+        state->z_cansend |= 2;
 #endif
       }
 #endif
@@ -1907,7 +1928,7 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
   const int argc = 4;
   char *argv[4];
   off_t offset;
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
   char *args0 = xstrdup(args);
 #endif
   UNUSED_ARG(sz);
@@ -2073,6 +2094,8 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
 
     Log (3, "receiving %s (%li byte(s), off %li)",
 	 state->in.netname, (long) (state->in.size), (long) offset);
+#if defined(WITH_ZLIB) || defined (WITH_BZLIB2)
+    state->z_recv = 0;
 #ifdef WITH_ZLIB
     {
       char *s2 = strstr(args0, " GZ");
@@ -2080,9 +2103,23 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
         state->z_recv = 1;
         Log (4, "gzip mode is on for %s", state->in.netname);
       }
-      else state->z_recv = 0;
-      xfree(args0);
     }
+#endif
+#ifdef WITH_BZLIB2
+    {
+      char *s2 = strstr(args0, " BZ2");
+      if (s2 && (s2[4] == 0 || s2[4] == ' ')) {
+        if (state->z_recv) {
+          Log (1, "both GZ and BZ2 extras are both specified for %s", state->in.netname);
+          msg_send2 (state, M_ERR, "can't handle GZ and BZ2 at the same time for ", state->in.netname);
+          return 0;
+        }
+        state->z_recv = 2;
+        Log (4, "bzip2 mode is on for %s", state->in.netname);
+      }
+    }
+#endif
+    xfree(args0);
 #endif
 
     if (fseek (state->in.f, offset, SEEK_SET) == -1)
@@ -2168,7 +2205,10 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
     }
     extra[0] = 0;
 #ifdef WITH_ZLIB
-    if (state->z_send) strcat(extra, " GZ");
+    if (state->z_send == 1) strcat(extra, " GZ");
+#endif
+#ifdef WITH_BZLIB2
+    if (state->z_send == 2) strcat(extra, " BZ2");
 #endif
     /* Check if the file was already sent */
     for (i = 0; i < state->n_sent_fls; ++i)
@@ -2537,11 +2577,12 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
       }
       else if (state->in.f)
       {
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
         if (state->z_recv) {
           state->z_icnt = MAX_BLKSIZE;
-          uncompress(state->z_ibuf, &(state->z_icnt), 
-                     state->ibuf, state->isize);
+          do_decompress(state->z_recv,
+                        state->z_ibuf, &(state->z_icnt), 
+                        state->ibuf, state->isize);
           Log (7, "decompress: %d to %d byte(s)", state->isize, state->z_icnt);
           memcpy(state->ibuf, state->z_ibuf, state->z_icnt);
           state->isize = state->z_icnt;
@@ -2765,7 +2806,10 @@ static void banner (STATE *state, BINKD_CONFIG *config)
     if (state->crypt_flag & WE_CRYPT) strcat(szOpt, " CRYPT");
   }
 #ifdef WITH_ZLIB
-  if (state->z_canrecv) strcat(szOpt, " GZ");
+  if (state->z_canrecv & 1) strcat(szOpt, " GZ");
+#endif
+#ifdef WITH_BZLIB2
+  if (state->z_canrecv & 2) strcat(szOpt, " BZ2");
 #endif
   if (szOpt[0] != 0) msg_send2(state, M_NUL, "OPT", szOpt);
 }
@@ -2894,13 +2938,23 @@ static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
 #endif
   Log (3, "sending %s as %s (%li)",
        state->out.path, state->out.netname, (long) state->out.size);
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
+  state->z_send = 0;
   if (state->z_cansend && state->out.size >= config->zminsize
       && zrule_test(ZRULE_ALLOW, state->out.netname, config->zrules.first)) {
-    extra = " GZ"; state->z_send = 1;
-    Log (4, "gzip mode is on for %s", state->out.netname);
+#ifdef WITH_BZLIB2
+    if (!state->z_send && (state->z_cansend & 2)) {
+      extra = " BZ2"; state->z_send = 2;
+      Log (4, "bzip2 mode is on for %s", state->out.netname);
+    }
+#endif
+#ifdef WITH_ZLIB
+    if (!state->z_send && (state->z_cansend & 1)) {
+      extra = " GZ"; state->z_send = 1;
+      Log (4, "gzip mode is on for %s", state->out.netname);
+    }
+#endif
   }
-  else state->z_send = 0;
 #endif
 
   if (state->NR_flag & WE_NR)

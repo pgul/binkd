@@ -1,7 +1,7 @@
 # Microsoft Visual C++ Makefile
 # $Id$
 #
-# Usage: nmake [DEBUG=1] [DLLRTL=1] [BINKD9X=1] [PERL=1] [PERLDL=1] [ZLIB=1]
+# Usage: nmake [DEBUG=1] [DLLRTL=1] [BINKD9X=1] [PERL=1] [PERLDL=1] [ZLIB=1] [BZLIB2=1]
 #
 
 !ifdef PERL
@@ -54,7 +54,13 @@ PERL_CDEFS= -D"WITH_PERL" -D"PERLDL" -DNDEBUG -DWIN32 -D_CONSOLE -DNO_STRICT -DH
 PERL_OBJS= $(OUTDIR)\perlhooks.obj
 !endif
 
-!ifdef ZLIB
+!if defined(ZLIB) && defined(BZLIB2)
+ZLIB_CDEFS= -DWITH_ZLIB -DWITH_BZLIB2 -DZLIBDL
+ZLIB_OBJS = $(OUTDIR)\zlibdl.obj
+!elseif defined(BZLIB2)
+ZLIB_CDEFS= -DWITH_BZLIB2 -DZLIBDL
+ZLIB_OBJS = $(OUTDIR)\zlibdl.obj
+!elseif defined(ZLIB)
 ZLIB_CDEFS= -DWITH_ZLIB -DZLIBDL
 ZLIB_OBJS = $(OUTDIR)\zlibdl.obj
 !endif

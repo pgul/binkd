@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.65  2003/09/24 07:32:16  val
+ * bzlib2 compression support, new compression keyword: zlevel
+ *
  * Revision 2.64  2003/09/21 17:51:08  gul
  * Fixed PID in logfile for perl stderr handled messages in fork version.
  *
@@ -293,7 +296,7 @@
 #include "perlhooks.h"
 #endif
 
-#if defined(WITH_ZLIB) && defined(ZLIBDL)
+#if defined(ZLIBDL)
 #include "zlibdl.h"
 #endif
 
@@ -436,9 +439,6 @@ int verbose_flag = 0;		       /* Be verbose / print version (-v) */
 int checkcfg_flag = 0;		       /* exit(3) on config change (-C) */
 int no_MD5 = 0;			       /* disable MD5 flag (-m) */
 int no_crypt = 0;		       /* disable CRYPT (-r) */
-#ifdef WITH_ZLIB
-int no_gz = 0;                         /* disable compression */
-#endif
 
 static TYPE_LIST(maskchain) psPolls;   /* Create polls (-P) */
 
@@ -767,10 +767,10 @@ int main (int argc, char *argv[], char *envp[])
     Log (0, "cannot install break handlers");
 
 #if defined(WITH_ZLIB) && defined(ZLIBDL)
-  if (!zlib_init("zlib.dll")) {
-    Log (3, "cannot load zlib.dll, compression disabled");
-    no_gz = 1;
-  }
+  if (!zlib_init("zlib.dll")) Log (3, "cannot load zlib.dll, GZ compression disabled");
+#endif
+#if defined(WITH_BZLIB2) && defined(ZLIBDL)
+  if (!bzlib2_init("bzlib2.dll")) Log (3, "cannot load bzlib2.dll, BZ2 compression disabled");
 #endif
 
 #ifdef WITH_PERL

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.54  2003/09/24 07:32:16  val
+ * bzlib2 compression support, new compression keyword: zlevel
+ *
  * Revision 2.53  2003/09/15 06:57:09  val
  * compression support via zlib: config keywords, improvements, OS/2 code
  *
@@ -373,7 +376,7 @@ static void destroy_shares(void *p)
   simplelist_free(&pp->sfa.linkpoint, NULL);
 }
 
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
 static void destroy_zrule(void *p)
 {
   struct zrule *pp = p;
@@ -409,10 +412,15 @@ void lock_config_structure(BINKD_CONFIG *c)
     c->rescan_delay      = 60;
     c->nettimeout        = DEF_TIMEOUT;
     c->oblksize          = DEF_BLKSIZE;
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
+# ifndef WITH_BZLIB2
     c->zblksize          = min(4*DEF_BLKSIZE, MAX_BLKSIZE-64);
+# else
+    c->zblksize          = min(4*DEF_BLKSIZE, MAX_BLKSIZE-1024);
+# endif
     c->zminsize          = 1024;
     c->zaccept           = 0;
+    c->zlevel            = 0;
 #endif
     c->max_servers       = 100;
     c->max_clients       = 100;
@@ -470,7 +478,7 @@ void unlock_config_structure(BINKD_CONFIG *c)
     simplelist_free(&c->evt_flags.linkpoint,   destroy_evtflags);
     simplelist_free(&c->akamask.linkpoint,     destroy_akachain);
     simplelist_free(&c->shares.linkpoint,      destroy_shares);
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
     simplelist_free(&c->zrules.linkpoint,      destroy_zrule);
 #endif
 
@@ -536,7 +544,7 @@ static int read_inboundcase (KEYWORD *key, int wordcount, char **words);
 static int read_port (KEYWORD *key, int wordcount, char **words);
 static int read_skip (KEYWORD *key, int wordcount, char **words);
 static int read_check_pkthdr (KEYWORD *key, int wordcount, char **words);
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
 static int read_zrule (KEYWORD *key, int wordcount, char **words);
 #endif
 
@@ -638,8 +646,9 @@ static KEYWORD keywords[] =
   {"hide-aka", read_akachain, &work_config.akamask, ACT_HIDE, 0},
   {"present-aka", read_akachain, &work_config.akamask, ACT_PRESENT, 0},
 
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
   {"zaccept", read_bool, &work_config.zaccept, 0, 0},
+  {"zlevel", read_int, &work_config.zlevel, 0, 9},
   {"zblksize", read_int, &work_config.zblksize, MIN_BLKSIZE, MAX_BLKSIZE-64},
   {"zminsize", read_int, &work_config.zminsize, 0, DONT_CHECK},
   {"zallow", read_zrule, &work_config.zrules, ZRULE_ALLOW, 0},
@@ -1472,7 +1481,7 @@ static int read_akachain (KEYWORD *key, int wordcount, char **words)
   return 1;
 }
 
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
 struct zrule *zrule_test(int type, char *s, struct zrule *root)
 {
   struct zrule *ps = root;
@@ -1838,7 +1847,7 @@ static void debug_readcfg (void)
         }
       }
     }
-#ifdef WITH_ZLIB
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
     else if (k->callback == read_zrule)
     {
       if (k->option1 == ZRULE_DENY)
