@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.148  2003/08/25 07:42:51  gul
+ * Auto increase patchlevel, set 0.9.6a-134
+ * Add OS/2 EMX multithread version
+ *
  * Revision 2.147  2003/08/25 07:42:19  gul
  * Add OS/2 EMX multithread version
  *
@@ -633,7 +637,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-133"
+#define MYVER "0.9.6a-134"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
