@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/02/22 17:49:16  gul
+ * Fix compilation error
+ *
  * Revision 2.5  2003/02/22 12:12:33  gul
  * Cleanup sources
  *
@@ -190,7 +193,7 @@ int h_connect(int so, char *host)
 						int j=atoi(sp1+16);
 						for(;j>0; j--)
 						{
-							if(recv(*so, buf+i, 1, 0)<1) break;
+							if(recv(so, buf+i, 1, 0)<1) break;
 						}
 					}
 					memset(buf, 0, sizeof(buf));
@@ -205,7 +208,7 @@ int h_connect(int so, char *host)
 					{
 						ntlm = 0;
 						strcat(buf, "\r\n\r\n");
-						send(*so, buf, strlen(buf), 0);
+						send(so, buf, strlen(buf), 0);
 						i=0;
 						continue;
 					}
