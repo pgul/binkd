@@ -1,19 +1,43 @@
 # $Id$
 #
 CC=gcc
-DEFINES=-DHAVE_FORK -DHAVE_SNPRINTF -DHAVE_VSNPRINTF -DHAVE_GETOPT -DHAVE_UNISTD -DOS2 -DHAVE_IO_H -DHAVE_ARPA_INET_H -DHAVE_SYS_TIME_H -DHAVE_SYS_PARAM_H -DHAVE_SYS_IOCTL_H -DHAVE_DOS_H -DHAVE_STDARG_H -DEMX -DEMXSIGNALS -DHAVE_WAITPID -DHTTPS -DNTLM -DAMIGADOS_4D_OUTBOUND
+DEFINES=-DHAVE_FORK -DHAVE_SNPRINTF -DHAVE_VSNPRINTF -DHAVE_GETOPT -DHAVE_UNISTD -DOS2=2 -DHAVE_IO_H -DHAVE_ARPA_INET_H -DHAVE_SYS_TIME_H -DHAVE_SYS_PARAM_H -DHAVE_SYS_IOCTL_H -DHAVE_DOS_H -DHAVE_STDARG_H -DEMX -DEMXSIGNALS -DHAVE_WAITPID -DHTTPS -DNTLM -DAMIGADOS_4D_OUTBOUND
 CFLAGS=$(DEFINES) -Wall -Zcrtdll -funsigned-char -Wno-char-subscripts
+LFLAGS=-Zcrtdll
+BASELIBS=-lsocket
 NTLM_SRC=ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c
-SRCS=binkd.c readcfg.c tools.c ftnaddr.c ftnq.c client.c server.c protocol.c bsy.c inbound.c breaksig.c branch.c os2/gettid.c os2/sem.c  ftndom.c ftnnode.c os2/getfree.c srif.c pmatch.c readflo.c prothlp.c iptools.c run.c binlog.c exitproc.c getw.c xalloc.c setpttl.c https.c md5b.c crypt.c ${NTLM_SRC}
+BASESRCS=binkd.c readcfg.c tools.c ftnaddr.c ftnq.c client.c server.c protocol.c bsy.c inbound.c breaksig.c branch.c os2/gettid.c os2/sem.c  ftndom.c ftnnode.c os2/getfree.c srif.c pmatch.c readflo.c prothlp.c iptools.c run.c binlog.c exitproc.c getw.c xalloc.c setpttl.c https.c md5b.c crypt.c ${NTLM_SRC}
+
+ifdef DEBUG
+CFLAGS+=-g
+LFLAGS+=-g
+else
+CFLAGS+=-O 2 -s
+LFLAGS+=-O 2 -s
+endif
+
+ifdef PERL
+PERLDIR=C:/PERL5/LIB/5.00553/os2
+CFLAGS+= -DWITH_PERL -DDOSISH -DEMBED -I$(PERLDIR)/CORE
+LFLAGS+= -L$(PERLDIR)/CORE 
+PERLLIBS=$(PERLDIR)/auto/DynaLoader/DynaLoader.a -llibperl -lm -lbsd
+PERLSRC=perlhooks.c
+endif
+
+LIBS=$(PERLLIBS) $(BASELIBS)
+SRCS=$(BASESRCS) $(PERLSRC)
+
 OBJS=${SRCS:.c=.o}
 
 all: binkd.exe
 
 .c.o:
-	$(CC) -c $(CFLAGS) -o $*.o $*.c
+	@echo Compiling $*.c...
+	@$(CC) -c $(CFLAGS) -o $*.o $*.c
 
 binkd.exe: $(OBJS)
-	$(CC) -o binkd.exe -Zcrtdll $(OBJS) -lsocket
+	@echo Linking $@...
+	@$(CC) -o $@ $(LFLAGS) $(OBJS) $(LIBS)
 
 install: all clean
 
@@ -21,6 +45,7 @@ clean:
 	-del /n *.RES *.obj *.o os2\*.o *.map *~ *.bak *.b *.ini *.err core >nul 2> nul
 
 depend	Makefile.dep:
-	gcc -MM $(CFLAGS) $(SRCS) | tee Makefile.dep
+	@echo Build Makefile.dep...
+	@gcc -MM $(CFLAGS) $(SRCS) > Makefile.dep
 
 include Makefile.dep
