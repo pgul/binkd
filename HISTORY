@@ -1,3 +1,7 @@
+2004/11/05 09:45:24 1.0a-424 gul
+readcfg.c,2.77,2.78
+Bugfix in passwords and defnode processing logic
+
 2004/11/05 07:31:01 1.0a-423 stas
 ftndom.c,2.6,2.7
 Checks for NULL pointer in get_matched_domain()
