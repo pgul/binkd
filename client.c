@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.17  2003/03/06 18:24:00  gul
+ * Fix exitfunc with threads
+ *
  * Revision 2.16  2003/03/05 13:21:50  gul
  * Fix warnings
  *
@@ -155,20 +158,19 @@ static void chld (int signo)
 
 #endif
 
-#if defined(VOID_SLEEP) || !defined(HAVE_FORK)
-#define SLEEP(x) sleep(x)
-#else
-
+#if defined(HAVE_THREADS)
 void SLEEP (time_t s)
 {
-#ifdef HAVE_THREADS
-  while ((s -= (1 - sleep(1))) > 0)
-    if (binkd_exit) break;
-#else
-  while ((s = sleep (s)) > 0);
-#endif
+  while (s-- > 0 && !binkd_exit)
+    sleep(1);
 }
-
+#elif defined(VOID_SLEEP) || !defined(HAVE_FORK)
+#define SLEEP(x) sleep(x)
+#else
+void SLEEP (time_t s)
+{
+  while ((s = sleep (s)) > 0);
+}
 #endif
 
 #if defined(HAVE_THREADS) && defined(OS2)
