@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.126  2003/09/22 11:38:47  val
+ * new ip checking modes in VAL_STYLE: ipNoUnknown, ipNoError;
+ * val's and gul's -ip modes can be used per node as ipRelaxed and ipResolved
+ * (lacks readcfg support still)
+ *
  * Revision 2.125  2003/09/22 09:54:41  gul
  * Screen output semaphoring, prevent mixing output from threads
  *
@@ -501,6 +506,9 @@
 
 /* define to enable val's code for -ip checks (default is gul's code) */
 #undef VAL_STYLE
+#ifdef VAL_STYLE
+enum { ipNoCheck=0, ipResolved=1, ipStrict=2, ipRelaxed, ipNoUnknown, ipNoError };
+#endif
 
 static char *scommand[] = {"NUL", "ADR", "PWD", "FILE", "OK", "EOB",
                            "GOT", "ERR", "BSY", "GET", "SKIP"};
@@ -1302,7 +1310,10 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
   int ip_verified = 0;
 #else
   enum { CHECK_OFF, CHECK_NA, CHECK_OK, CHECK_WRONG } ip_check;
-  enum { FOUND_NONE, FOUND_UNRES, FOUND_ALL } ip_found;
+  enum { FOUND_NONE=0, FOUND_ALL=1, FOUND_UNKNOWN=2, FOUND_ERROR=4 } ip_found;
+# define anyAddress(x) ((x) & FOUND_ALL)
+# define anyUnknown(x) ((x) & FOUND_UNKNOWN)
+# define anyError(x)   ((x) & FOUND_ERROR)
 #endif
   char *w;
   FTN_ADDR fa;
@@ -1420,18 +1431,24 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 	  /* If not a raw ip address, try nameserver */
 	  Log (5, "resolving `%s'...", host);
 	  lockresolvsem();
-	  if ((hp = gethostbyname (host)) == NULL)
+          hp = gethostbyname (host);
+	  if (hp == NULL || !hp->h_addr_list)
 	  {
 	    releaseresolvsem();
-	    Log (1, "%s: unknown host", host);
+            if (h_errno == HOST_NOT_FOUND)
+            {
+	      Log (3, "%s: unknown host", host);
 #ifdef VAL_STYLE
-            /*ip_found = FOUND_UNRES;*/
+              ip_found |= FOUND_UNKNOWN;
 #endif
+            } else {
+	      Log (3, "%s: DNS error", host);
+#ifdef VAL_STYLE
+              ip_found |= FOUND_ERROR;
+#endif
+            }
 	    continue;
 	  }
-#ifdef VAL_STYLE
-          /*if (!hp->h_addr_list) ip_found = FOUND_UNRES;*/
-#endif
 	  for (cp = hp->h_addr_list; cp && *cp; cp++)
 #ifndef VAL_STYLE
 	    if (((struct in_addr *) * cp)->s_addr == sin.sin_addr.s_addr)
@@ -1442,7 +1459,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 	      ipok = -1; /* resolved and not match */
 #else
           {
-            if (ip_found == FOUND_NONE) ip_found = FOUND_ALL;
+            ip_found |= FOUND_ALL;
             if (((struct in_addr *) * cp)->s_addr == sin.sin_addr.s_addr) {
               ip_check = CHECK_OK; break;
             }
@@ -1458,7 +1475,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 	  else if (ipok == 0)
 	    ipok = -1;  /* resolved and not match */
 #else
-          if (ip_found == FOUND_NONE) ip_found = FOUND_ALL;
+          ip_found |= FOUND_ALL;
           if (defaddr.s_addr == sin.sin_addr.s_addr) ip_check = CHECK_OK;
 #endif
 	}
@@ -1495,11 +1512,21 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 	}
       }
 #else
-      if (ip_check != CHECK_OFF && ip_check != CHECK_OK 
-          /*&& (ip_found == FOUND_ALL || pn->restrictIP == 2)*/
-          && (ip_found != FOUND_NONE || pn->restrictIP == 2)
-         ) ip_check = CHECK_WRONG;
-      if (ip_check == CHECK_WRONG && pn->pwd && strcmp(pn->pwd, "-") && state->to == 0) {
+      if (ip_check != CHECK_OFF && ip_check != CHECK_OK) {
+        if (
+          /* val's -ip */
+          (pn->restrictIP == ipRelaxed && ip_found == FOUND_ALL) ||
+          /* gul's -ip */
+          (pn->restrictIP == ipResolved && anyAddress(ip_found)) ||
+          /* -ip=nounknown */
+          (pn->restrictIP == ipNoUnknown && anyUnknown(ip_found)) ||
+          /* -ip=noerror */
+          (pn->restrictIP == ipNoError && anyError(ip_found)) ||
+          /* -ip=strict */
+          pn->restrictIP == ipStrict
+        ) ip_check = CHECK_WRONG;
+      }
+      if (ip_check == CHECK_WRONG && pn->pwd && strcmp(pn->pwd, "-") && !state->to) {
         Log (1, "addr: %s (not from allowed remote IP, aborted)", szFTNAddr);
         msg_send2 (state, M_ERR, "Bad source IP", 0);
         return 0;
