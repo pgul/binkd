@@ -2,6 +2,14 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2003/08/18 07:35:08  val
+ * multiple changes:
+ * - hide-aka/present-aka logic
+ * - address mask matching via pmatch
+ * - delay_ADR in STATE (define DELAY_ADR removed)
+ * - ftnaddress_to_str changed to xftnaddress_to_str (old version #define'd)
+ * - parse_ftnaddress now sets zone to domain default if it's omitted
+ *
  * Revision 2.8  2003/07/02 18:16:43  gul
  * Bugfix fot patch about send status without NR-mode
  *
@@ -106,10 +114,8 @@ struct _STATE
   FTN_ADDR *fa;			/* Foreign akas */
   int nfa;			/* How many... */
   int nallfa;			/* How many remote akas including busy & n/a */
-#ifdef WITH_PERL
   FTN_ADDR *pAddr;              /* Our aka's, NULL = use from config */
   int nAddr;                    /* How many our aka's, 0 = use from config */
-#endif
   int maxflvr;
   int skip_all_flag;		/* We'd skip all */
   int r_skipped_flag;		/* Remote skipped smthng */
@@ -158,6 +164,7 @@ struct _STATE
 #ifdef WITH_PERL
   int perl_set_lvl;             /* Level of already set Perl vars */
 #endif
+  int delay_ADR, delay_EOB;     /* delay sending of the command */
 };
 #define STATE_DEFINED 1
 

@@ -14,6 +14,14 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/08/18 07:35:08  val
+ * multiple changes:
+ * - hide-aka/present-aka logic
+ * - address mask matching via pmatch
+ * - delay_ADR in STATE (define DELAY_ADR removed)
+ * - ftnaddress_to_str changed to xftnaddress_to_str (old version #define'd)
+ * - parse_ftnaddress now sets zone to domain default if it's omitted
+ *
  * Revision 2.9  2003/08/18 07:29:09  val
  * multiple changes:
  * - perl error handling made via fork/thread
@@ -699,19 +707,28 @@ char *s, *p;
   int i;
   char *a, *b;
   FTN_ADDR A, B;
+  int mask_mode = 0;
 
   if (items == 1) { 
     Log(LL_ERR, "aeq() requires 2 or more parameters, %d exist", items);
     XSRETURN_UNDEF;
   }
   a = (char *)SvPV(ST(0), len); 
-  if (len == 0 || !parse_ftnaddress(a, &A)) XSRETURN_UNDEF;
-  exp_ftnaddress(&A);
+  if (len == 0) XSRETURN_UNDEF;
+    else if (strchr(a, '*')) mask_mode = 1;
+    else if (!parse_ftnaddress(a, &A)) XSRETURN_UNDEF;
+    else exp_ftnaddress(&A);
   for (i = 1; i < items; i++) {
     b = (char *)SvPV(ST(i), len);
     if (len == 0 || !parse_ftnaddress(b, &B)) continue;
     exp_ftnaddress(&B);
-    if (ftnaddress_cmp(&A, &B) == 0) XSRETURN_IV(1);
+    if (mask_mode) {
+      char bb[FTN_ADDR_SZ];
+      xftnaddress_to_str(bb, &B, 1);
+      if (ftnamask_cmps(a, bb) == 0) XSRETURN_IV(1);
+    } else {
+      if (ftnaddress_cmp(&A, &B) == 0) XSRETURN_IV(1);
+    }
   }
   XSRETURN_IV(0);
 }
@@ -724,8 +741,8 @@ char *s, *p;
 {
   dXSARGS;
   STRLEN len;
-  int i, j, k, N, m;
-  char *a, *b;
+  int i, j, k, K, N, m;
+  char *a, *b, **C;
   FTN_ADDR A, *B;
   AV *arr;
   SV **svp;
@@ -740,10 +757,14 @@ char *s, *p;
   }
   arr = (AV*)SvRV(ST(0));
   B = xalloc( (items-1)*sizeof(FTN_ADDR) );
+  C = xalloc( (items-1)*sizeof(char*) );
+  memset(C, 0, (items-1)*sizeof(char*));
   /* i - args, k - valid addresses */
-  for (i = k = 0; i < items; i++) {
+  for (i = 1, k = K = 0; i < items; i++) {
     b = (char *)SvPV(ST(i), len);
-    if (len == 0 || !parse_ftnaddress(b, B+k)) continue;
+    if (len == 0) continue;
+    if (strchr(b, '*')) { C[K++] = b; continue; }
+    if (!parse_ftnaddress(b, B+k)) continue;
     exp_ftnaddress(B+k);
     k++;
   }
@@ -758,13 +779,19 @@ char *s, *p;
     if (len == 0 || !parse_ftnaddress(a, &A)) { m++; continue; }
     exp_ftnaddress(&A);
     /* compare */
-    for (i = 0; i < k; i++)
+    for (i = 0; i < k; i++) {
       if (ftnaddress_cmp(&A, B+i) == 0) { found = 1; break; }
+    }
+    for (i = 0; i < K; i++) {
+      char aa[FTN_ADDR_SZ];
+      xftnaddress_to_str(aa, &A, 1);
+      if (ftnamask_cmps(C[i], aa) == 0) { found = 1; break; }
+    }
     if (!found) m++;
   }
   /* reduce array size */
   if (m != N) AvFILLp(arr) = m-1;
-  free(B);
+  free(B); free(C);
   XSRETURN_IV(N - m);
 }
 /* puts a message to msg-queue */

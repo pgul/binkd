@@ -15,6 +15,14 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/08/18 07:35:08  val
+ * multiple changes:
+ * - hide-aka/present-aka logic
+ * - address mask matching via pmatch
+ * - delay_ADR in STATE (define DELAY_ADR removed)
+ * - ftnaddress_to_str changed to xftnaddress_to_str (old version #define'd)
+ * - parse_ftnaddress now sets zone to domain default if it's omitted
+ *
  * Revision 2.3  2003/08/14 08:29:22  gul
  * Use snprintf() from sprintf.c if no such libc function
  *
@@ -137,12 +145,16 @@ int parse_ftnaddress (char *s, FTN_ADDR *fa)
   {
     FTN_DOMAIN *d;
 
-    if (token[1].c != ':' || token_type (token[i + 1]) != T_WORD)
+    if (/*token[1].c != ':' ||*/ token_type (token[i + 1]) != T_WORD)
       return 0;
 
     strcpy (fa->domain, (d = get_domain_info (token[i + 1].s)) ?
 	    (d->alias4 ? d->alias4->name : d->name) : token[i + 1].s);
     i += 2;
+    /* val: set default zone for a domain */
+    if (fa->z == -1) {
+      fa->z = (d ? (d->alias4 ? *(d->alias4->z) : *(d->z)) : pAddr[0].z);
+    }
   }
 
   if (token_type (token[i]) != T_NULL ||
@@ -161,7 +173,7 @@ int parse_ftnaddress (char *s, FTN_ADDR *fa)
 /*
  * Not safe! Give it at least FTN_ADDR_SZ buffer.
  */
-void ftnaddress_to_str (char *s, FTN_ADDR *fa)
+void xftnaddress_to_str(char *s, FTN_ADDR *fa, int force_point)
 {
   *s = 0;
   if (fa->z != -1)
@@ -170,7 +182,7 @@ void ftnaddress_to_str (char *s, FTN_ADDR *fa)
     sprintf (s + strlen (s), "%i", fa->net);
   if (fa->node != -1)
     sprintf (s + strlen (s), "/%i", fa->node);
-  if (fa->p != 0 || fa->node == -1)
+  if (fa->p != 0 || fa->node == -1 || force_point)
     sprintf (s + strlen (s), ".%i", fa->p);
   if (fa->domain[0])
     sprintf (s + strlen (s), "@%s", fa->domain);
@@ -211,6 +223,19 @@ int ftnaddress_cmp (FTN_ADDR *a, FTN_ADDR *b)
   if (a->p != b->p)
     return a->p - b->p;
   return 0;
+}
+/*
+ *  Compare address array with mask, return 0 if any element matches
+ */
+int ftnamask_cmpm (char *mask, int cnt, FTN_ADDR *fa) {
+  int i;
+  char buf[FTN_ADDR_SZ];
+
+  for (i = 0; i < cnt; i++) {
+    xftnaddress_to_str(buf, &(fa[i]), 1);
+    if ( pmatch_ncase(mask, buf) ) return 0;
+  }
+  return -1;
 }
 
 /*

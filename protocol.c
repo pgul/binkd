@@ -15,6 +15,14 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.100  2003/08/18 07:35:08  val
+ * multiple changes:
+ * - hide-aka/present-aka logic
+ * - address mask matching via pmatch
+ * - delay_ADR in STATE (define DELAY_ADR removed)
+ * - ftnaddress_to_str changed to xftnaddress_to_str (old version #define'd)
+ * - parse_ftnaddress now sets zone to domain default if it's omitted
+ *
  * Revision 2.99  2003/08/18 07:29:09  val
  * multiple changes:
  * - perl error handling made via fork/thread
@@ -407,8 +415,7 @@
 #include "md5b.h"
 #include "crypt.h"
 #ifdef WITH_PERL
-# include "perlhooks.h"
-# define DELAY_ADR
+#include "perlhooks.h"
 #endif
 
 static char *scommand[] = {"NUL", "ADR", "PWD", "FILE", "OK", "EOB",
@@ -448,10 +455,15 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to)
   state->listed_flag = 0;
   state->fa = NULL;
   state->nfa = state->nallfa = 0;
-#ifdef WITH_PERL
   state->nAddr = 0; state->pAddr = NULL;
+#ifdef WITH_PERL
   state->perl_set_lvl = 0;
 #endif
+  state->delay_ADR = (akamask != NULL) ? 1 : 0;
+#ifdef WITH_PERL
+  state->delay_ADR |= (perl_ok & (1<<4)) != 0;
+#endif
+  state->delay_EOB = 0;
   state->state_ext = P_NA;
   setsockopts (state->s = socket);
   TF_ZERO (&state->in);
@@ -512,9 +524,7 @@ static int deinit_protocol (STATE *state)
     bsy_remove (state->fa + i, F_BSY);
   if (state->fa)
     free (state->fa);
-#ifdef WITH_PERL
   if (state->pAddr) free (state->pAddr);
-#endif
   if (state->MD_challenge)
 	free (state->MD_challenge);
   rel_grow_handles(-state->nfa);
@@ -2330,19 +2340,59 @@ static int recv_block (STATE *state)
 static void send_ADR (STATE *state) {
   char szFTNAddr[FTN_ADDR_SZ + 1];
   char *szAkas;
-  int i, n = nAddr;
-  FTN_ADDR *p = pAddr;
+  int i, N;
+  struct akachain *ps = akamask;
 
   Log(7, "send_ADR(): got %d remote addresses", state->nfa);
 
-#ifdef WITH_PERL
-  if (state->nAddr && state->pAddr) { n = state->nAddr; p = state->pAddr; }
-#endif
-  szAkas = xalloc (n * (FTN_ADDR_SZ + 1));
+  if (!state->pAddr) {
+    state->nAddr = nAddr;
+    state->pAddr = xalloc(state->nAddr * sizeof(FTN_ADDR));
+    memcpy(state->pAddr, pAddr, state->nAddr*sizeof(FTN_ADDR));
+  }
+
+  N = state->nAddr;
+  while (ps) {
+    int t = (ps->type & 0x7f);
+    int rc = ftnamask_cmpm(ps->mask, state->nfa, state->fa) == (ps->type & 0x80 ? -1 : 0);
+    /* hide aka */
+    if (t == ACT_HIDE && rc) {
+      i = 0;
+      while (i < state->nAddr)
+        if (ftnaddress_cmp(state->pAddr+i, &(ps->fa)) == 0) {
+          char buf[FTN_ADDR_SZ];
+          ftnaddress_to_str(buf, &(ps->fa));
+          Log(3, "hiding aka %s", buf);
+          if (i < state->nAddr-1)
+            memmove(state->pAddr+i, state->pAddr+i+1, (state->nAddr-1-i)*sizeof(FTN_ADDR));
+          state->nAddr--;
+        }
+        else i++;
+    }
+    /* present aka */
+    else if (t == ACT_PRESENT && rc) {
+      for (i = 0; i < state->nAddr+1; i++)
+        if (i == state->nAddr || ftnaddress_cmp(state->pAddr+i, &(ps->fa)) == 0) break;
+      if (i == state->nAddr) {
+        char buf[FTN_ADDR_SZ];
+        ftnaddress_to_str(buf, &(ps->fa));
+        Log(3, "presenting aka %s", buf);
+        state->nAddr++;
+        if (state->nAddr > N) {
+          state->pAddr = xrealloc(state->pAddr, state->nAddr * sizeof(FTN_ADDR));
+          N++;
+        }
+        memcpy(state->pAddr+state->nAddr-1, &(ps->fa), sizeof(FTN_ADDR));
+      }
+    }
+    ps = ps->next;
+  }
+
+  szAkas = xalloc (state->nAddr * (FTN_ADDR_SZ + 1));
   *szAkas = 0;
-  for (i = 0; i < n; ++i)
+  for (i = 0; i < state->nAddr; ++i)
   {
-    ftnaddress_to_str (szFTNAddr, p + i);
+    ftnaddress_to_str (szFTNAddr, state->pAddr + i);
     strcat (szAkas, " ");
     strcat (szAkas, szFTNAddr);
   }
@@ -2399,10 +2449,7 @@ static void banner (STATE *state)
   msg_sendf (state, M_NUL,
     "VER " MYNAME "/" MYVER "%s " PRTCLNAME "/" PRTCLVER, get_os_string ());
 
-#ifdef DELAY_ADR
-  if (state->to)
-#endif
-    send_ADR (state);
+  if (state->to || !state->delay_ADR) send_ADR (state);
 
   if (state->to)
     msg_sendf (state, M_NUL, "OPT NDA%s%s%s",
@@ -2593,9 +2640,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
   char host[MAXHOSTNAMELEN + 1];
   const char *save_err = NULL;
   int ok = 1;                         /* drop to 0 to abort session */
-#ifdef DELAY_ADR
   int ADR_sent = 0;
-#endif
 #ifdef WITH_PERL
   int perl_on_handshake_done = 0;
 #endif
@@ -2776,9 +2821,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
         }
       }
 #endif
-#ifdef DELAY_ADR
-      if (!state.to && state.nfa && !ADR_sent) { send_ADR (&state); ADR_sent = 1; }
-#endif
+      if (!state.to && state.delay_ADR && state.nfa && !ADR_sent) { send_ADR (&state); ADR_sent = 1; }
       if (FD_ISSET (socket, &w))       /* Clear to send */
       {
 	no = send_block (&state);

@@ -105,6 +105,11 @@ These utility functions are available for Perl program:
   So, if main aka is 2:550/180@fidonet, you can write "550/0" for 
   2:550/0.0@fidonet and "463/68" for 2:463/68.0@fidonet
 
+  $a1 for aeq() and $a1...$aN for arm() now can be also address-masks - you
+  can you '*' to match any literal portion of the address, but in this case
+  comparison is done as in strings ('2:463/180' won't match '463/*', you must
+  write '2:463/*'; '2:463/180.1' won't match '*.1', use '*.1@*')
+
   Functions to be expected: hm... any suggestions? ;-)
 
 

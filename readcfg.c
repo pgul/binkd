@@ -15,6 +15,14 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.39  2003/08/18 07:35:08  val
+ * multiple changes:
+ * - hide-aka/present-aka logic
+ * - address mask matching via pmatch
+ * - delay_ADR in STATE (define DELAY_ADR removed)
+ * - ftnaddress_to_str changed to xftnaddress_to_str (old version #define'd)
+ * - parse_ftnaddress now sets zone to domain default if it's omitted
+ *
  * Revision 2.38  2003/08/16 09:47:25  gul
  * Autodetect tzoff if not specified
  *
@@ -271,6 +279,7 @@ char perl_dll[MAXPATHLEN + 1] = "";
 int perl_strict = 0;
 #endif
 struct maskchain *nolog = NULL;
+struct akachain *akamask = NULL;
 
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
 
@@ -308,6 +317,7 @@ static void read_bool (KEYWORD *, char *);
 static void read_flag_exec_info (KEYWORD *, char *);
 static void read_rfrule (KEYWORD *, char *);
 static void read_mask (KEYWORD *key, char *s);
+static void read_akamask (KEYWORD *key, char *s);
 static void read_inboundcase (KEYWORD *, char *);
 static void read_skip(KEYWORD *, char *);
 static void read_check_pkthdr(KEYWORD *, char *);
@@ -409,6 +419,8 @@ KEYWORD keywords[] =
 #endif
 
   {"nolog", read_mask, &nolog, 0, 0},
+  {"hide-aka", read_akamask, &akamask, ACT_HIDE, 0},
+  {"present-aka", read_akamask, &akamask, ACT_PRESENT, 0},
   {NULL, NULL, NULL, 0, 0}
 };
 
@@ -1073,6 +1085,49 @@ static void read_mask (KEYWORD *key, char *s)
     mask_add (w, (struct maskchain **) (key->var));
   if (i == 2)
     Log (0, "%s: %i: the syntax is incorrect", path, line);
+}
+
+static int akamask_add(char *aka, char *mask, struct akachain **chain, int type) {
+  struct akachain *ps, *psprev = NULL;
+  int len = strlen(mask);
+
+  if (*chain == NULL)
+  {
+    *chain = xalloc(sizeof(**chain));
+    ps = *chain;
+  }
+  else
+  {
+    for (ps = *chain; ps->next; ps = ps->next);
+    ps->next = xalloc(sizeof(*ps));
+    psprev = ps;
+    ps = ps->next;
+  }
+  ps->next = NULL;
+  if ( !parse_ftnaddress(aka, &(ps->fa)) ) {
+    free(ps);
+    if (psprev) psprev->next = NULL; else *chain = NULL;
+    return 0;
+  }
+  exp_ftnaddress(&(ps->fa));
+  if (*mask == '!') { mask++; len--; type |= 0x80; }
+  if (*mask == '"' && mask[len-1] == '"') {
+    ps->mask = xstrdup(mask+1); ps->mask[len-2] = 0;
+  }
+  else ps->mask = xstrdup(mask);
+  ps->type = type;
+  return 1;
+}
+
+static void read_akamask (KEYWORD *key, char *s) {
+  char *aka, *mask;
+
+  aka  = getword(s, 2);
+  mask = getword(s, 3);
+  if (!aka || !mask)
+    Log (0, "%s: %i: the syntax is incorrect", path, line);
+  if (!akamask_add(aka, mask, (struct akachain**)(key->var), key->option1))
+    Log (0, "%s: %i: error parsing address %s", path, line, aka);
 }
 
 static addrtype parse_addrtype(char *w) {

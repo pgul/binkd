@@ -2,6 +2,14 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/08/18 07:35:08  val
+ * multiple changes:
+ * - hide-aka/present-aka logic
+ * - address mask matching via pmatch
+ * - delay_ADR in STATE (define DELAY_ADR removed)
+ * - ftnaddress_to_str changed to xftnaddress_to_str (old version #define'd)
+ * - parse_ftnaddress now sets zone to domain default if it's omitted
+ *
  * Revision 2.1  2003/06/07 08:46:25  gul
  * New feature added: shared aka
  *
@@ -31,7 +39,8 @@ int parse_ftnaddress (char *s, FTN_ADDR *fa);
 /*
  * Not safe! Give it at least FTN_ADDR_SZ buffer.
  */
-void ftnaddress_to_str (char *s, FTN_ADDR *fa);
+void xftnaddress_to_str (char *s, FTN_ADDR *fa, int force_point);
+#define ftnaddress_to_str(s, fa) xftnaddress_to_str(s, fa, 0)
 
 /*
  * Expands an address using pAddr[0] (pAddr[0] is my main a.k.a.)
@@ -42,6 +51,16 @@ void exp_ftnaddress (FTN_ADDR *fa);
  *  Returns 0 if match.
  */
 int ftnaddress_cmp (FTN_ADDR *, FTN_ADDR *);
+
+/*
+ *  Compare address array with mask, return 0 if any element matches
+ */
+int ftnamask_cmpm(char *, int, FTN_ADDR *);
+
+/*
+ *  Compare string address with mask, return 0 if match
+ */
+#define ftnamask_cmps(mask, addr) (!pmatch_ncase(mask, addr))
 
 /*
  *  S should have space for MAXPATHLEN chars, sets s to "" if no domain.

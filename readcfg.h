@@ -15,6 +15,14 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.18  2003/08/18 07:35:09  val
+ * multiple changes:
+ * - hide-aka/present-aka logic
+ * - address mask matching via pmatch
+ * - delay_ADR in STATE (define DELAY_ADR removed)
+ * - ftnaddress_to_str changed to xftnaddress_to_str (old version #define'd)
+ * - parse_ftnaddress now sets zone to domain default if it's omitted
+ *
  * Revision 2.17  2003/08/14 07:39:36  val
  * migrate from vfprintf() to vsnprintf() in Log(), new keyword `nolog'
  *
@@ -193,6 +201,14 @@ extern struct skipchain
     off_t size;
     int destr;
   } *skipmask;
+/* val: struct for hide-aka, present-aka */
+extern struct akachain
+  {
+    struct akachain *next;
+    FTN_ADDR fa;
+    char *mask;
+    enum { ACT_UNKNOWN=0, ACT_HIDE, ACT_PRESENT } type;
+  } *akamask;
 
 /*
  * Parses and reads the path as a config
