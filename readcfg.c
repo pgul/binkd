@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.28  2003/06/12 08:21:43  val
+ * 'skipmask' is replaced with 'skip', which allows more skipping features
+ *
  * Revision 2.27  2003/06/07 08:46:25  gul
  * New feature added: shared aka
  *
@@ -240,7 +243,8 @@ int syslog_facility = -1;
 int tries = 0;
 int hold = 0;
 int hold_skipped = 60 * 60;
-struct maskchain *skipmask = NULL, *overwrite = NULL;
+struct maskchain *overwrite = NULL;
+struct skipchain *skipmask = NULL;
 
 int nAddr = 0;
 FTN_ADDR *pAddr = 0;
@@ -267,6 +271,7 @@ static void read_flag_exec_info (KEYWORD *, char *);
 static void read_rfrule (KEYWORD *, char *);
 static void read_mask (KEYWORD *key, char *s);
 static void read_inboundcase (KEYWORD *, char *);
+static void read_skip(KEYWORD *, char *);
 
 /* Helper functions for shared akas implementation */
 static void read_shares (KEYWORD *, char *);
@@ -344,7 +349,7 @@ KEYWORD keywords[] =
   {"brakebox", read_string, bfilebox, 'd', 0},
   {"deletebox", read_bool, &deleteablebox, 0, 0},
 #endif
-  {"skipmask", read_mask, &skipmask, 0, 0},
+  {"skip", read_skip, NULL, 0, 0},
   {"inboundcase", read_inboundcase, &inboundcase, 0, 0},
   {"deletedirs", read_bool, &deletedirs, 0, 0},
   {"overwrite", read_mask, &overwrite, 0, 0},
@@ -1008,6 +1013,49 @@ static void read_mask (KEYWORD *key, char *s)
   for (i=2; (w = getword (s, i)) != NULL; i++)
     mask_add (w, (struct maskchain **) (key->var));
   if (i == 2)
+    Log (0, "%s: %i: the syntax is incorrect", path, line);
+}
+
+static addrtype parse_addrtype(char *w) {
+   if (STRICMP (w, "all") == 0) return A_ALL;
+   else if (STRICMP (w, "secure") == 0) return A_PROT;
+   else if (STRICMP (w, "unsecure") == 0) return A_UNPROT;
+   else if (STRICMP (w, "listed") == 0) return A_LST;
+   else if (STRICMP (w, "unlisted") == 0) return A_UNLST;
+   else return 0;
+}
+
+void skip_add(char *mask, off_t sz, addrtype at, int destr) {
+  struct skipchain *ps = skipmask;
+
+  if (!skipmask) { ps = skipmask = xalloc(sizeof(*ps)); }
+  else { while (ps->next) ps = ps->next; ps = ps->next = xalloc(sizeof(*ps)); }
+  ps->next = NULL;
+  ps->mask = xstrdup(mask);
+  ps->size = sz > 0 ? sz << 10 : sz; /* to kilobytes if > 0 */
+  ps->atype = at;
+  ps->destr = destr;
+}
+/* skip [all|listed|unlisted|secure|unsecure] [!]<size>|- <mask>... */
+static void read_skip (KEYWORD *key, char *s)
+{
+  char *w;
+  int i, destr = 0;
+  off_t sz = 0;
+  addrtype at = A_ALL;
+
+  for (i=2; (w = getword (s, i)) != NULL; i++) {
+    if (i == 2 && isalpha(*w)) {
+      if ( !(at = parse_addrtype(w)) ) break; else continue;
+    }
+    if (i <= 3) {
+      if (*w == '-' && w[1] == 0) { sz = -1; continue; }
+      if (*w == '!') { destr = 1; w++; } 
+      if (!isdigit(*w)) break; else { sz = atoi(w); continue; }
+    }
+    skip_add(w, sz, at, destr);
+  }
+  if (i <= 3)
     Log (0, "%s: %i: the syntax is incorrect", path, line);
 }
 

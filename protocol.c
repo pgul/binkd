@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.70  2003/06/12 08:21:43  val
+ * 'skipmask' is replaced with 'skip', which allows more skipping features
+ *
  * Revision 2.69  2003/06/08 13:40:07  gul
  * Avoid warning
  *
@@ -1482,6 +1485,23 @@ static int OK (STATE *state, char *buf, int sz)
   return 1;
 }
 
+/* val: checks file against skip rules */
+struct skipchain *skip_test(STATE *state) {
+  struct skipchain *ps = skipmask;
+  addrtype amask = 0;
+
+  amask |= (state->listed_flag) ? A_LST : A_UNLST;
+  amask |= (state->state == P_SECURE) ? A_PROT : A_UNPROT;
+  while (ps) {
+    if ( (ps->atype & amask) && pmatch_ncase(ps->mask, state->in.netname) ) {
+      if (ps->size >=0 && state->in.size >= ps->size) return ps;
+      else return NULL;
+    }
+    ps = ps->next;
+  }
+  return NULL;
+}
+
 /*
  * Handles M_FILE msg from the remote
  * M_FILE args: "%s %li %li %li", filename, size, time, offset
@@ -1556,18 +1576,20 @@ static int start_file_recv (STATE *state, char *args, int sz)
 
     if (state->in.f == 0)
     {
-      char realname[MAXPATHLEN + 1], *mask;
+      char realname[MAXPATHLEN + 1];
+      struct skipchain *mask;
 
-      if ((mask = mask_test (state->in.netname, skipmask)) != NULL)
-      {
-	Log (1, "skipping %s (destructive, %li byte(s), skipmask %s)",
-	     state->in.netname, (long) state->in.size, mask);
-	msg_sendf (state, M_GOT, "%s %li %li",
+      /* val: skip check */
+      if ((mask = skip_test(state)) != NULL) {
+	Log (1, "skipping %s (%sdestructive, %li byte(s), mask %s)",
+	     state->in.netname, mask->destr ? "" : "non-", state->in.size, mask->mask);
+	msg_sendf (state, (t_msg)(mask->destr ? M_GOT : M_SKIP), "%s %li %li",
 		   state->in.netname,
 		   (long) state->in.size,
 		   (long) state->in.time);
 	return 1;
       }
+      /* val: /skip check */
       if (inb_test (state->in.netname, state->in.size,
 		    state->in.time, state->inbound, realname))
       {

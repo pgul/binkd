@@ -36,6 +36,7 @@
  *
  */
 
+#include <ctype.h>
 #define CTLESC '\\'
 
 /*
@@ -123,6 +124,102 @@ pmatch(pattern, string)
 		}
 dft:	        default:
 			if (*q++ != c)
+				return 0;
+			break;
+		}
+	}
+breakloop:
+	if (*q != '\0')
+		return 0;
+	return 1;
+}
+
+int
+xpmatch(pattern, string, ncase)
+	char *pattern;
+	char *string;
+        int ncase;
+	{
+	register char *p, *q;
+	register char c;
+
+	p = pattern;
+	q = string;
+	for (;;) {
+		switch (c = *p++) {
+		case '\0':
+			goto breakloop;
+		case CTLESC:
+			if (*q++ != *p++)
+				return 0;
+			break;
+		case '?':
+			if (*q++ == '\0')
+				return 0;
+			break;
+		case '*':
+			c = *p;
+			if (c != CTLESC && c != '?' && c != '*' && c != '[') {
+				while (*q != c) {
+					if (*q == '\0')
+						return 0;
+					q++;
+				}
+			}
+			do {
+				if (xpmatch(p, q, ncase))
+					return 1;
+			} while (*q++ != '\0');
+			return 0;
+		case '[': {
+			char *endp;
+			int invert, found;
+			char chr;
+
+			endp = p;
+			if (*endp == '!')
+				endp++;
+			for (;;) {
+				if (*endp == '\0')
+					goto dft;		/* no matching ] */
+				if (*endp == CTLESC)
+					endp++;
+				if (*++endp == ']')
+					break;
+			}
+			invert = 0;
+			if (*p == '!') {
+				invert++;
+				p++;
+			}
+			found = 0;
+			chr = *q++;
+			c = *p++;
+			do {
+				if (c == CTLESC)
+					c = *p++;
+				if (*p == '-' && p[1] != ']') {
+					p++;
+					if (*p == CTLESC)
+						p++;
+					if (chr >= c && chr <= *p)
+						found = 1;
+					p++;
+				} else {
+					if (chr == c)
+						found = 1;
+				}
+			} while ((c = *p++) != ']');
+			if (found == invert)
+				return 0;
+			break;
+		}
+dft:	        default:
+                        if (ncase) {
+                             if (toupper(*q++) != toupper(c))
+                                return 0;
+                        }
+			else if (*q++ != c)
 				return 0;
 			break;
 		}

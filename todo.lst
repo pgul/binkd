@@ -23,7 +23,6 @@
 - exit immediately after session in "-p" mode
 - tzoff - ? Now used only for binlog
 - do not send files with hidden attribute from filebox
-- non-destructive skip by mask
 - binkd/dos: waterloo tcpip
 - single-thread version
 - put session time in "done" line

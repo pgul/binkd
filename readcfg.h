@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2003/06/12 08:21:43  val
+ * 'skipmask' is replaced with 'skip', which allows more skipping features
+ *
  * Revision 2.10  2003/06/07 08:46:25  gul
  * New feature added: shared aka
  *
@@ -150,7 +153,18 @@ extern struct maskchain
   {
     struct maskchain *next;
     char *mask;
-  } *skipmask, *overwrite;
+  } *overwrite;
+/* val: enum for checks */
+typedef enum { A_ALL=-1, A_LST=1, A_UNLST=2, A_PROT=4, A_UNPROT=8 } addrtype;
+/* val: struct for skipmask */
+extern struct skipchain
+  {
+    struct skipchain *next;
+    char *mask;
+    addrtype atype;
+    off_t size;
+    int destr;
+  } *skipmask;
 
 /*
  * Parses and reads the path as a config

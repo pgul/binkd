@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2003/06/12 08:21:44  val
+ * 'skipmask' is replaced with 'skip', which allows more skipping features
+ *
  * Revision 2.11  2003/06/10 07:43:35  gul
  * sdelete() - reliable delete file (wait for lock)
  *
@@ -168,6 +171,8 @@ int parse_args (int argc, char *argv[], char *src, char *ID);
  * (pmatch.c) Returns true if the pattern matches the string.
  */
 int pmatch (char *pattern, char *string);
+int xpmatch (char *pattern, char *string, int ncase);
+#define pmatch_ncase(pattern, string) xpmatch(pattern, string, 1)
 
 /*
  * Set times for a file, 0 == success, -1 == error
