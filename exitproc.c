@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.26  2003/09/08 08:21:20  stream
+ * Cleanup config semaphore, free memory of base config on exit.
+ *
  * Revision 2.25  2003/09/08 06:36:51  val
  * (a) don't call exitfunc for perlhook fork'ed process
  * (b) many compilation warnings in perlhooks.c fixed
@@ -211,7 +214,10 @@ Log(7, "exitproc(): pid=%d, cmgr=%d, smgr=%d, inetd=%d", getpid(), pidCmgr, pids
     if (*config->pid_file && pidsmgr == (int) getpid ())
       delete (config->pid_file);
     unlock_config_structure(config);
+
+    unlock_config_structure(config); /* completely unload config */
   }
+  CleanSem (&config_sem);
   CleanSem (&hostsem);
   CleanSem (&resolvsem);
   CleanSem (&lsem);
