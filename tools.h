@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.26  2004/01/08 13:07:40  val
+ * use new pkt header parsing function in check-pkthdr, remove older function
+ *
  * Revision 2.25  2004/01/08 13:03:51  val
  * * new functions for parsing and updating addresses in pkt header (raw, char*)
  * * use these functions in shared aka logic
@@ -302,32 +305,6 @@ char * last_slash(char *s);
 /* Extract filename from path */
 char *extract_filename(char *s);
 
-/* PKT header */
-typedef struct _PKTHDR PKTHDR;
-struct _PKTHDR {
-    short onode;
-    short dnode;
-    short year, mon, day, hour, min, sec, baud;
-    short pkt_ver;
-    short onet;
-    short dnet;
-    unsigned char pcode_lo;
-    unsigned char rev_hi;
-    char pwd[8];
-    short qmail_ozone;
-    short qmail_dzone;
-    short aux_net;
-    unsigned char cwv_hi, cwv_lo;
-    unsigned char pcode_hi;
-    unsigned char rev_lo;
-    unsigned char cw_lo, cw_hi;
-    short ozone;
-    short dzone;
-    short opoint;
-    short dpoint;
-};
-/* OS-safe read pkt header */
-int read_pkthdr(FILE *F, PKTHDR *hdr);
 /* parse FTN address of the pkt header byte array */
 int pkt_getaddr(unsigned char *raw, 
                 short *oz, short *onet, short *onode, short *op,

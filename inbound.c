@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.31  2004/01/08 13:07:40  val
+ * use new pkt header parsing function in check-pkthdr, remove older function
+ *
  * Revision 2.30  2004/01/08 13:03:51  val
  * * new functions for parsing and updating addresses in pkt header (raw, char*)
  * * use these functions in shared aka logic
@@ -421,9 +424,9 @@ int check_pkthdr(STATE *state, char *netname, char *tmp_name,
                  char *real_name, BINKD_CONFIG *config) {
   FTN_NODE *node;
   FILE *PKT;
-  PKTHDR buf;
+  unsigned char buf[58];
   int i, check = 0, listed = 0, secure = (state->state == P_SECURE);
-  short cz = -1, cn = -1, cf = -1, cp = -1;
+  short cz, cn, cf, cp;
   /* ext not defined - no check */
   if (config->pkthdr_bad == NULL) return 1;
   /* lookup in node records */
@@ -447,23 +450,11 @@ int check_pkthdr(STATE *state, char *netname, char *tmp_name,
   check = 0;
   if ( (PKT = fopen(tmp_name, "rb")) == NULL )
       Log (1, "can't open file %s: %s, header check failed for %s", tmp_name, strerror (errno), netname);
-  else if ( !read_pkthdr(PKT, &buf) )
+  else if ( !fread(buf, sizeof(buf), 1, PKT) )
       Log (1, "file %s read error: %s, header check failed for %s", tmp_name, strerror (errno), netname);
-  else if (buf.pkt_ver != 2)
-      Log (1, "pkt %s version is %d, expected 2; header check failed", netname, buf.pkt_ver);
+  else if ( !pkt_getaddr(buf, &cz, &cn, &cf, &cp, NULL, NULL, NULL, NULL) )
+      Log (1, "pkt %s version is %d, expected 2; header check failed", netname, buf[18]+buf[19]*0x100);
   else {
-    cf = buf.onode;
-    cn = buf.onet;
-    /* qmail, zmail - not point-aware */
-    if (buf.pcode_lo == 0x29 || buf.pcode_lo == 0x35) cz = buf.qmail_ozone;
-    /* type 2 (fsc-39), 2+ */
-    else if (buf.cw_lo & 1) {
-      cz = buf.ozone;
-      cp = buf.opoint;
-      if (buf.cw_lo == buf.cwv_lo && buf.cw_hi == buf.cwv_hi) {
-        if (buf.opoint && cn == -1) cn = buf.aux_net;
-      }
-    }
     check = 1;
     Log (5, "pkt addr is %d:%d/%d.%d for %s", cz, cn, cf, cp, netname);
     /* do check */
