@@ -5,7 +5,6 @@
 /*
  * $Id$
  *
- * $Log$
  * Revision 2.4  2003/03/11 09:21:29  gul
  * Fixed OS/2 Watcom compilation
  *
@@ -203,6 +202,7 @@ void bsy_remove_all (void)
 
   for (bsy = bsy_list; bsy; bsy = bsy->next)
   {
+    if (FA_ISNULL (&bsy->fa)) continue; /* free cell */
     ftnaddress_to_filename (buf, &bsy->fa);
     if (*buf)
     {
