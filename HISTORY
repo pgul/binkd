@@ -1,3 +1,7 @@
+2003/10/09 20:14:05 1.0a-229 stas
+service.c,2.32,2.33
+Load tray icon from file "binkd.ico"
+
 2003/10/09 12:41:10 1.0a-228 stas
 breaksig.c,2.17,2.18 service.c,2.31,2.32 service.h,2.9,2.10
 Change service stop sequence
