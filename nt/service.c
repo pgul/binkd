@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4.2.4  2003/08/27 10:27:57  stas
+ * Prevent duplicated -S option at service call
+ *
  * Revision 2.4.2.3  2003/08/27 10:22:28  stas
  * Make binkd 0.9.5 command line compatible with binkd 0.9.6
  *
@@ -635,7 +638,7 @@ int service(int argc, char **argv, char **envp)
       args[0]='\0';
       for(i=len=0;i<argc;i++)
       {
-        if (i == 1)
+        if ( i==1 && strcmp(srvname, DEFAULT_SRVNAME)==0 )
         {
           len += sprintf(asp+len, "-S%s", srvname);
           strnzcat(args, " \"-S", sizeof(args));
