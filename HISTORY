@@ -1,3 +1,7 @@
+2003/10/17 21:49:39 1.0a-243 stas
+exitproc.c,2.32,2.33
+Use a semaphore to prevent double run exitfunc()
+
 2003/10/17 07:20:32 1.0a-242 hbrew
 breaksig.c,2.20,2.21
 Fix binkd9x atexit()
