@@ -1,3 +1,7 @@
+2003/10/08 08:48:59 1.0a-225 stas
+breaksig.c,2.15,2.16
+Fix w9x compilation
+
 2003/10/07 23:54:49 1.0a-224 gul
 client.c,2.49,2.50
 End clientmgr by _endthread() on break
