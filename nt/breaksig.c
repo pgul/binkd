@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.19  2003/10/11 17:31:27  stas
+ * cosmetics (indent nt/breaksig.c)
+ *
  * Revision 2.18  2003/10/09 09:41:07  stas
  * Change service stop sequence
  *
@@ -122,8 +125,8 @@
 /*--------------------------------------------------------------------*/
 /*                          Global variables                          */
 /*--------------------------------------------------------------------*/
-extern int pidcmgr;             /* pid for clientmgr */
-extern int pid_file_created;    /* we've created the pid_file */
+extern int pidcmgr;		/* pid for clientmgr */
+extern int pid_file_created;	/* we've created the pid_file */
 /*--------------------------------------------------------------------*/
 /*                           Local variables                          */
 /*--------------------------------------------------------------------*/
@@ -138,36 +141,40 @@ extern int pid_file_created;    /* we've created the pid_file */
 /*    Signal handler                                                  */
 /*--------------------------------------------------------------------*/
 
-static BOOL CALLBACK SigHandler(DWORD SigType) {
-   Log(10, "SigHandler(%lu)", SigType);
-   switch (SigType) {
-      case CTRL_C_EVENT:
-      case CTRL_BREAK_EVENT:
-         Log(1,"Interrupted by keyboard");
-         break;
-      case CTRL_CLOSE_EVENT:
-         Log(1,"Interrupted by Close");
-         break;
-      case CTRL_LOGOFF_EVENT:
+static BOOL CALLBACK
+SigHandler (DWORD SigType)
+{
+  Log (10, "SigHandler(%lu)", SigType);
+  switch (SigType)
+    {
+    case CTRL_C_EVENT:
+    case CTRL_BREAK_EVENT:
+      Log (1, "Interrupted by keyboard");
+      break;
+    case CTRL_CLOSE_EVENT:
+      Log (1, "Interrupted by Close");
+      break;
+    case CTRL_LOGOFF_EVENT:
 #ifndef BINKDW9X
-         if(isService()) return (TRUE);
+      if (isService ())
+	return (TRUE);
 #endif
-         Log(1,"Interrupted by LogOff");
-         break;
-      case CTRL_SHUTDOWN_EVENT:
-         Log(1,"Interrupted by Shutdown");
-         break;
-      case CTRL_SERVICESTOP_EVENT:
-         Log(1, "Interrupted by service stop");
-         break;
-      case CTRL_SERVICERESTART_EVENT:
-         Log(1, "Interrupted by service restart");
-         break;
-      default:
-         Log(1,"Interrupted by unknown signal %lu",SigType);
-         break;
-   }
-   return (FALSE);
+      Log (1, "Interrupted by LogOff");
+      break;
+    case CTRL_SHUTDOWN_EVENT:
+      Log (1, "Interrupted by Shutdown");
+      break;
+    case CTRL_SERVICESTOP_EVENT:
+      Log (1, "Interrupted by service stop");
+      break;
+    case CTRL_SERVICERESTART_EVENT:
+      Log (1, "Interrupted by service restart");
+      break;
+    default:
+      Log (1, "Interrupted by unknown signal %lu", SigType);
+      break;
+    }
+  return (FALSE);
 }
 
 /*--------------------------------------------------------------------*/
@@ -177,33 +184,38 @@ static BOOL CALLBACK SigHandler(DWORD SigType) {
 /*    For "manual" call only, not for OS signal handlers              */
 /*--------------------------------------------------------------------*/
 
-BOOL SigHandlerExit(DWORD SigType) {
-   Log(10, "SigHandlerExit(%lu)", SigType);
-   if (SigHandler(SigType)==FALSE)
-   {
+BOOL
+SigHandlerExit (DWORD SigType)
+{
+  Log (10, "SigHandlerExit(%lu)", SigType);
+  if (SigHandler (SigType) == FALSE)
+    {
 #if !defined(BINKDW9X)
-     if(!isService())
+      if (!isService ())
 #endif
-       exit(0);
-   }
+	exit (0);
+    }
 
-   return TRUE;
+  return TRUE;
 }
 
 #if !defined(BINKDW9X)
 /*--------------------------------------------------------------------*/
 /*  Signal handler for NT console                                     */
 /*--------------------------------------------------------------------*/
-static BOOL CALLBACK SigHandlerNT(DWORD SigType) {
+static BOOL CALLBACK
+SigHandlerNT (DWORD SigType)
+{
 
-   Log(10, "SigHandlerNT(%lu)", SigType);
-   if (SigHandler(SigType)==FALSE)
-   {
-     if(isService()) {
-       ReportStatusToSCMgr(SERVICE_STOP_PENDING, NO_ERROR, 0);
-     }
-     exit(0);
-  }
+  Log (10, "SigHandlerNT(%lu)", SigType);
+  if (SigHandler (SigType) == FALSE)
+    {
+      if (isService ())
+	{
+	  ReportStatusToSCMgr (SERVICE_STOP_PENDING, NO_ERROR, 0);
+	}
+      exit (0);
+    }
   return TRUE;
 }
 #endif
@@ -214,16 +226,19 @@ static BOOL CALLBACK SigHandlerNT(DWORD SigType) {
 /*    Set signal handler                                              */
 /*--------------------------------------------------------------------*/
 
-int set_break_handlers (void) {
+int
+set_break_handlers (void)
+{
 #if BINKDW9X
-   CreateWin9xThread(&SigHandler);
+  CreateWin9xThread (&SigHandler);
 #else
-   atexit (exitfunc);
-   if (IsNT() && isService())
-     atexit (&atServiceExitBegins);
-   if (SetConsoleCtrlHandler(&SigHandlerNT, TRUE) != TRUE) {
+  atexit (exitfunc);
+  if (IsNT () && isService ())
+    atexit (&atServiceExitBegins);
+  if (SetConsoleCtrlHandler (&SigHandlerNT, TRUE) != TRUE)
+    {
       return (0);
-   }
+    }
 #endif
-   return (1);
+  return (1);
 }
