@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/11/20 17:56:53  gul
+ * Delete empty zone outbound directories with "deletedirs"
+ *
  * Revision 2.9  2003/10/29 21:08:38  gul
  * Change include-files structure, relax dependences
  *
@@ -51,6 +54,7 @@
 #include "readcfg.h"
 #include "bsy.h"
 #include "ftnaddr.h"
+#include "ftndom.h"
 #include "sem.h"
 #include "tools.h"
 #include "iphdr.h"
@@ -186,10 +190,21 @@ void bsy_remove (FTN_ADDR *fa0, bsy_t bt, BINKD_CONFIG *config)
 #endif
 	delete (buf);
 	/* remove empty point directory */
-	if (config->deletedirs && fa0->p != 0 && (p = last_slash(buf)) != NULL)
+	if (config->deletedirs)
 	{
-	  *p = '\0';
-	  rmdir(buf);
+	  FTN_DOMAIN *d;
+	  if (fa0->p != 0 && (p = last_slash(buf)) != NULL)
+	  {
+	    *p = '\0';
+	    rmdir(buf);
+	  }
+	  /* remove empty zone directory */
+	  d = get_domain_info (fa0->domain, config->pDomains.first);
+	  if (d && (fa0->z != d->z[0]) && (p = last_slash(buf)) != NULL)
+	  {
+	    *p = '\0';
+	    rmdir(buf);
+	  }
 	}
 	FA_ZERO (&bsy->fa);
 	break;
