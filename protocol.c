@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.40  2003/03/04 13:46:27  gul
+ * Small bugfix in binkp protocol logic
+ *
  * Revision 2.39  2003/03/04 13:10:39  gul
  * Do not report errors when threads exits by exitfunc
  *
@@ -1351,11 +1354,18 @@ static int GET (STATE *state, char *args, int sz)
       {
 	if (state->out.f)
 	{
+	  TFILE tfile_buf;
 	  fclose (state->out.f);
-	  TF_ZERO (&state->out);
+	  state->out.f = NULL;
+	  memcpy (&tfile_buf, &state->out, sizeof (TFILE));
+	  memcpy (&state->out, state->sent_fls + i, sizeof (TFILE));
+	  memcpy (state->sent_fls + i, &tfile_buf, sizeof (TFILE));
 	}
-	memcpy (&state->out, state->sent_fls + i, sizeof (TFILE));
-	state->sent_fls[i].netname[0] = 0;
+	else
+	{
+	  memcpy (&state->out, state->sent_fls + i, sizeof (TFILE));
+	  remove_from_sent_files_queue (state, i);
+	}
 	if ((state->out.f = fopen (state->out.path, "rb")) == 0)
 	{
 	  Log (1, "GET: %s: %s", state->out.path, strerror (errno));
