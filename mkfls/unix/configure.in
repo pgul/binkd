@@ -128,7 +128,7 @@ AC_ARG_WITH(ntlm,
 case x$do_https in
   xyes)
    AC_DEFINE(HTTPS)
-   HTTPS_SRC=https.c
+   OPT_SRC=https.c
    ;;
 esac
 
@@ -136,15 +136,73 @@ case x$do_ntlm in
   xyes)
    AC_DEFINE(NTLM)
    AC_DEFINE(HTTPS)
-   HTTPS_SRC="https.c ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c"
+   OPT_SRC="https.c ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c"
    ;;
 esac
 
-extrasub=s%@HTTPS_SRC@%$HTTPS_SRC%g
-
 AC_ARG_WITH(aso,
-          [  --with-aso              Amiga Style Outbound (ASO) support (default no)],
-          AC_DEFINE(AMIGADOS_4D_OUTBOUND), )
+            [  --with-aso              Amiga Style Outbound (ASO) support (default no)],
+            AC_DEFINE(AMIGADOS_4D_OUTBOUND), )
+
+AC_ARG_WITH(perl,
+            [  --with-perl             Perl hooks (default no)],
+            do_perl=yes, do_perl=no)
+
+case x$do_perl in
+  xyes)
+   AC_PATH_PROG(PERL, perl, perl)
+   AC_MSG_CHECKING(for libperl)
+   PERLDIR=`$PERL -MConfig -e 'print $Config{archlib}' 2>/dev/null`
+   if PERLCOPT=`$PERL -MExtUtils::Embed -e ccopts 2>/dev/null`
+   then
+     PERLLOPT=`$PERL -MExtUtils::Embed -e ldopts`
+     case x$PERLDIR in
+       x)
+         AC_MSG_RESULT(yes)
+         ;;
+       *)
+         AC_MSG_RESULT($PERLDIR)
+         ;;
+     esac
+   else
+     case x$PERLDIR in
+       x)
+         AC_MSG_RESULT(no)
+         ;;
+       *)
+         PERLCOPT="-I $PERLDIR/CORE -Dbool=char -DHAS_BOOL"
+         PERLLOPT="$PERLDIR/auto/DynaLoader/DynaLoader.a -L$PERLDIR/CORE -lperl -ldl -lcrypt -lm"
+         AC_CHECK_LIB(dl, main, PERLLOPT="$PERLLOPT -ldl")
+         AC_CHECK_LIB(crypt, main, PERLLOPT="$PERLLOPT -lcrypt")
+         AC_CHECK_LIB(m, main, PERLLOPT="$PERLLOPT -lm")
+         AC_CHECK_LIB(socket, main, PERLLOPT="$PERLLOPT -lsocket")
+         AC_MSG_RESULT($PERLDIR)
+         ;;
+     esac
+   fi
+   case x$PERLCOPT in
+     x)
+       ;;
+     *)
+       AC_MSG_CHECKING(for working libperl)
+       OLD_LIBS=$LIBS
+       OLD_CFLAGS=$CFLAGS
+       LIBS="$LIBS $PERLLOPT"
+       CFLAGS="$CFLAGS $PERLCOPT"
+       AC_TRY_LINK([
+          #include <EXTERN.h>
+          #include <perl.h>
+          #include <XSUB.h>],[perl_alloc()],
+        AC_DEFINE(WITH_PERL) AC_MSG_RESULT(yes); OPT_SRC="$OPT_SRC perlhooks.c",
+        AC_MSG_RESULT(no); CFLAGS=$OLD_CFLAGS; LIBS=$OLD_LIBS,
+        AC_MSG_RESULT(cross-compiling. No assumptions made); CFLAGS=$OLD_CFLAGS; LIBS=$OLD_LIBS
+       )
+       ;;
+   esac
+   ;;
+esac
+
+extrasub=s%@OPT_SRC@%$OPT_SRC%g
 
 dnl -------------------------------------------------------------------------
 
