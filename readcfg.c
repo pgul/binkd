@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.75  2004/10/25 17:04:54  gul
+ * Process passwords file after all, independent of its place in config.
+ * Use first password for node if several specified.
+ *
  * Revision 2.74  2004/10/19 17:09:04  gul
  * Remove duplicate addresses from config
  *
@@ -626,8 +630,8 @@ static int read_syslog_facility (KEYWORD *key, int wordcount, char **words);
 
 static KEYWORD keywords[] =
 {
-  {"passwords", passwords, NULL, 0, 0},
   {"include", include, NULL, 0, 0},
+  {"passwords", passwords, work_config.passwords, 'f', 0},
   {"log", read_string, work_config.logpath, 'f', 0},
   {"loglevel", read_int, &work_config.loglevel, 0, DONT_CHECK},
   {"conlog", read_int, &work_config.conlog, 0, DONT_CHECK},
@@ -860,6 +864,62 @@ static int check_config(void)
   return 1;
 }
 
+static void split_passwords(char *password, char **pkt_pwd, char **out_pwd)
+{
+  if (!password) { *pkt_pwd = *out_pwd = NULL; return; }
+  /* parse "in_pwd,pkt_pwd,out_pwd" to password,pkt_pwd,out_pwd */
+  /* if any (pkt|out)_pwd is omitted, set pointer to NULL not to "" */
+  *pkt_pwd = strchr(password, ',');
+  *out_pwd = NULL;
+  if (*pkt_pwd) {
+    *((*pkt_pwd)++) = 0; 
+    *out_pwd = strchr(*pkt_pwd, ',');
+    if (*out_pwd) *((*out_pwd)++) = 0;
+    if (!**pkt_pwd) *pkt_pwd = NULL;
+    if (*out_pwd && !**out_pwd) *out_pwd = NULL;
+  }
+}
+
+static int read_passwords(char *filename)
+{
+  FILE *in;
+  FTN_ADDR fa;
+
+  if ((in = fopen(filename, "rt")) == NULL)
+    return ConfigError("unable to open password file (%s)", filename);
+
+  while (fgets (linebuf, sizeof (linebuf), in))
+  {
+    char *node, *password;
+
+    node = strtok(linebuf, spaces);
+    if(node && STRICMP(node,"password")==0 )
+      node = strtok(NULL, spaces); /* ifcico/qico passwords file detected */
+
+    if (node)
+    {
+      password = strtok(NULL, spaces);
+      if (password && parse_ftnaddress (node, &fa, work_config.pDomains.first)) /* Do not process if any garbage found */
+      {
+        FTN_NODE *pn;
+        char *pkt_pwd, *out_pwd;
+        split_passwords(password, &pkt_pwd, &out_pwd);
+        exp_ftnaddress (&fa, work_config.pAddr, work_config.nAddr, work_config.pDomains.first);
+        pn = add_node (&fa, NULL, password, pkt_pwd, out_pwd, '-', NULL, NULL,
+                  NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, HC_USE_OLD, NP_USE_OLD, 
+#ifdef BW_LIM
+                  BW_DEF, BW_DEF,
+#endif
+                  &work_config);
+        if (pn) pn->listed = NL_PASSWORDS;
+      }
+    }
+  }
+  fclose(in);
+
+  return 1;
+}
+
 /*
  * Parses one configuration file
  */
@@ -972,6 +1032,10 @@ int readcfg (char *path)
 
       if (!*work_config.inbound_nonsecure)
         strcpy (work_config.inbound_nonsecure, work_config.inbound);
+
+      if (work_config.passwords[0])
+        if (!read_passwords(work_config.passwords))
+          break;
 
       if (!check_config())
         break;
@@ -1113,66 +1177,11 @@ static int include (KEYWORD *key, int wordcount, char **words)
   return success;
 }
 
-static void split_passwords(char *password, char **pkt_pwd, char **out_pwd)
-{
-  if (!password) { *pkt_pwd = *out_pwd = NULL; return; }
-  /* parse "in_pwd,pkt_pwd,out_pwd" to password,pkt_pwd,out_pwd */
-  /* if any (pkt|out)_pwd is omitted, set pointer to NULL not to "" */
-  *pkt_pwd = strchr(password, ',');
-  *out_pwd = NULL;
-  if (*pkt_pwd) {
-    *((*pkt_pwd)++) = 0; 
-    *out_pwd = strchr(*pkt_pwd, ',');
-    if (*out_pwd) *((*out_pwd)++) = 0;
-    if (!**pkt_pwd) *pkt_pwd = NULL;
-    if (*out_pwd && !**out_pwd) *out_pwd = NULL;
-  }
-}
-
 static int passwords (KEYWORD *key, int wordcount, char **words)
 {
-  FILE *in;
-  FTN_ADDR fa;
-
-  UNUSED_ARG(key);
-
-  if (!isArgCount(1, wordcount))
+  if (!read_string(key, wordcount, words))
     return 0;
-
-  if ((in = fopen(words[0], "rt")) == NULL)
-    return ConfigError("unable to open password file (%s)", words[0]);
-
   add_to_config_list(words[0]);
-
-  while (fgets (linebuf, sizeof (linebuf), in))
-  {
-    char *node, *password;
-
-    node = strtok(linebuf, spaces);
-    if(node && STRICMP(node,"password")==0 )
-      node = strtok(NULL, spaces); /* ifcico/qico passwords file detected */
-
-    if (node)
-    {
-      password = strtok(NULL, spaces);
-      if (password && parse_ftnaddress (node, &fa, work_config.pDomains.first)) /* Do not process if any garbage found */
-      {
-        FTN_NODE *pn;
-        char *pkt_pwd, *out_pwd;
-        split_passwords(password, &pkt_pwd, &out_pwd);
-        exp_ftnaddress (&fa, work_config.pAddr, work_config.nAddr, work_config.pDomains.first);
-        pn = add_node (&fa, NULL, password, pkt_pwd, out_pwd, '-', NULL, NULL,
-                  NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, HC_USE_OLD, NP_USE_OLD, 
-#ifdef BW_LIM
-                  BW_DEF, BW_DEF,
-#endif
-                  &work_config);
-        if (pn) pn->listed = NL_PASSWORDS;
-      }
-    }
-  }
-  fclose(in);
-
   return 1;
 }
 

@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.32  2004/10/25 17:04:54  gul
+ * Process passwords file after all, independent of its place in config.
+ * Use first password for node if several specified.
+ *
  * Revision 2.31  2004/09/06 10:47:06  val
  * bandwidth limiting code advancements, `listed' session state fix
  *
@@ -288,6 +292,7 @@ struct _BINKD_CONFIG
   char       fdinhist[MAXPATHLEN + 1];
   char       fdouthist[MAXPATHLEN + 1];
   char       pid_file[MAXPATHLEN + 1];
+  char       passwords[MAXPATHLEN + 1];
 #ifdef MAILBOX
   char       tfilebox[MAXPATHLEN + 1];   /* FileBoxes dir */
   char       bfilebox[MAXPATHLEN + 1];   /* BrakeBoxes dir */

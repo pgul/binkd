@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.35  2004/10/25 17:04:54  gul
+ * Process passwords file after all, independent of its place in config.
+ * Use first password for node if several specified.
+ *
  * Revision 2.34  2004/09/21 08:27:49  val
  * distinguish nodes, listed in binkd config and passwords file - overwrite defnode parameters (e.g. host) for the later
  * (hope, it'll fix reported bug with not calling defnode)
@@ -259,7 +263,9 @@ static FTN_NODE *add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pk
   }
 
   /* pwd, "-" for no password (why not empty string ???) */
-  if (pwd && strcmp(pwd, "-")) strnzcpy(pn->pwd, pwd, sizeof(pn->pwd));
+  if (pwd && strcmp(pwd, "-"))
+    if (!pn->pwd || strcmp(pn->pwd, "-") == 0)
+      strnzcpy(pn->pwd, pwd, sizeof(pn->pwd));
   /* if NULL keep pointer to pn->pwd, if "-" use no password */
   if (pkt_pwd) {
     if (strcmp(pkt_pwd, "-")) pn->pkt_pwd = xstrdup(pkt_pwd);
