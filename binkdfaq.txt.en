@@ -871,16 +871,16 @@ file for BinkD to interpret it correctly.
     inbound c:\\fido\\\#in
 
     It is not necessary to escape the character in the version 1.0 starting
-with the snapshot 1.0a-317 because a beginning of a comment in a line medium is
-now the sequence of either a space and the pound character (" #") or a tab and
-the pound character.  See the examples below.
+with the snapshot 1.0a-317 because the beginning of a comment in the middle
+of a line is now the sequence of either a space and the pound character
+(" #") or a tab and the pound character.  See the examples below.
 
     There is no comment:
     temp-inbound c:\\fido\\temp#this_is_not_a_comment_but_a_directory_name
 
-    There is a comments here:
-    inbound c:\\fido\\in #this is a comment since there is a space before "#"
-    # This line is a comment completely.
+    There are comments here:
+    inbound c:\\fido\\in # this is a comment since there is a space before "#"
+    # This whole line is a comment.
 
 
 ----------------------------------------------------------------------------
