@@ -1,3 +1,7 @@
+2003/08/28 04:28:56 0.9.6a-150 hbrew
+binkd.c,2.60,2.61
+Fix typo
+
 2003/08/27 01:19:23 0.9.6a-149 gul
 WSock.c,2.2,2.3 getfree.c,2.5,2.6 sem.c,2.7,2.8 service.c,2.17,2.18 w32tools.c,2.6,2.7
 Fix compilation under w32-mingw and os2-emx
