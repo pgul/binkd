@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2002/02/25 21:33:56  gul
+ * Dequote \hh in filenames as \xhh; both \20 and \x20 are space now (FSP-1011)
+ *
  * Revision 2.5  2001/11/08 14:04:12  gul
  * bugfix
  *
@@ -440,13 +443,18 @@ char *strdequote (char *s)
 
   while (*s)
   {
+#define XD(x) (isdigit(x) ? ((x)-'0') : (tolower(x)-'a'+10))
     if (s[0] == '\\' && s[1] == 'x' && isxdigit (s[2]) && isxdigit (s[3]))
     {
-#define XD(x) (isdigit(x) ? ((x)-'0') : (tolower(x)-'a'+10))
       r[i++] = XD (s[2]) * 16 + XD (s[3]);
       s += 4;
-#undef XD
     }
+    else if (s[0] == '\\' && isxdigit (s[1]) && isxdigit (s[2]))
+    {
+      r[i++] = XD (s[1]) * 16 + XD (s[2]);
+      s += 3;
+    }
+#undef XD
     else
       r[i++] = *(s++);
   }
