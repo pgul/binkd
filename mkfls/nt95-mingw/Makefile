@@ -250,7 +250,7 @@ $(MAKEDIRS):
 
 install: all clean
 
-html: $(OUTDIR)/binkd.html
+html: binkd.html
 
 binkd.html: binkd.8
 	groff -Thtml -mman binkd.8 >$(OUTDIR)/binkd.html
