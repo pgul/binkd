@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.49  2004/01/03 19:26:12  stas
+ * Decrease delay for service operations
+ *
  * Revision 2.48  2004/01/03 18:39:28  stas
  * Improve service identification
  *
@@ -619,14 +622,15 @@ static int install_service(char **argv,char **envp)
 
 static int wait_service_operation(DWORD pending_state, DWORD finish_state)
 {
-  int j,i;
-  for(i=j=0;(i<30)&&(QueryServiceStatus(shan,&sstat));i++)
+  int i;
+  DWORD state;
+
+  for( i=0; (i<30)&&((state=service_status())>0); i++ )
   {
-    if((sstat.dwCurrentState == pending_state)||
-      ((i<3)&&(sstat.dwCurrentState != finish_state))||((j++)<9))
+    if((state==pending_state)||(state!=finish_state)||(i<3))
     {
       printf(".");
-      Sleep(300);
+      Sleep(i<3?100:300);
     }
     else break;
   }
