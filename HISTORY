@@ -1,3 +1,7 @@
+2003/12/02 21:32:29 1.0a-302 gul
+ftnq.c,2.28,2.29
+Prevent several clients calls to the same node
+
 2003/12/02 15:02:31 1.0a-301 gul
 setpttl.c,2.2,2.3
 Use own snprintf() instead of sprintf() if no HAVE_SNPRINTF
