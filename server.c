@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2001/05/23 16:48:04  gul
+ * msvc warnings fixed
+ *
  * Revision 2.0  2001/01/10 12:12:39  gul
  * Binkd is under CVS again
  *
@@ -91,7 +94,7 @@ static void chld (int signo)
 
 #endif
 
-SOCKET sockfd = -1;
+SOCKET sockfd = (SOCKET)-1;
 extern int checkcfg_flag;	       /* exit(3) on config change */
 
 void serv (void *arg)
@@ -132,7 +135,7 @@ int checkcfg ()
     {
       pc->mtime = (unsigned long)sb.st_mtime;
     }
-    else if (pc->mtime != sb.st_mtime)
+    else if ((time_t)pc->mtime != sb.st_mtime)
     {
       soclose (sockfd);
 #if defined(HAVE_FORK)

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2001/05/23 16:48:03  gul
+ * msvc warnings fixed
+ *
  * Revision 2.5  2001/04/13 20:16:10  gul
  * "OPT CRYPT" was send only in NR-mode
  *
@@ -1293,7 +1296,7 @@ static int GET (STATE *state, char *args, int sz)
 	  ND_set_status("", &state->out_addr, state);
 	TF_ZERO(&state->out);
       }
-      else if ((offset = atol (argv[3])) > (long)state->out.size ||
+      else if ((offset = atol (argv[3])) > (size_t)state->out.size ||
                fseek (state->out.f, offset, SEEK_SET) == -1)
       {
 	Log (1, "GET: error seeking %s to %li: %s",
