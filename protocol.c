@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.113  2003/09/05 06:49:06  val
+ * Perl support restored after config reloading patch
+ *
  * Revision 2.112  2003/09/05 06:44:05  val
  * Argus-style freq's (M_NUL FREQ) support, not tested yet
  *
@@ -2642,7 +2645,7 @@ static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
     Log (3, "skip empty pkt %s, %li bytes", state->out.path, state->out.size);
     if (state->out.f) fclose(state->out.f);
     remove_from_spool (state, state->out.flo,
-			 state->out.path, state->out.action, config);
+                       state->out.path, state->out.action, config);
     TF_ZERO (&state->out);
     return 0;
   }
@@ -2651,7 +2654,7 @@ static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
     Log(3, "sending %s aborted by Perl before_send()", state->out.path);
     if (state->out.f) fclose(state->out.f);
     remove_from_spool (state, state->out.flo,
-			 state->out.path, state->out.action);
+                       state->out.path, state->out.action, config);
     TF_ZERO (&state->out);
     return 0;
   }
@@ -2755,7 +2758,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
 
 #ifdef WITH_PERL
   if (state.to) {
-    char *s = perl_on_handshake(&state);
+    char *s = perl_on_handshake(&state, config);
     perl_on_handshake_done = 1;
     if (s && *s) {
       Log (1, "aborted by Perl on_handshake(): %s", s);
@@ -2892,7 +2895,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
       }
 #ifdef WITH_PERL
       if (state.nfa && !perl_on_handshake_done) {
-        char *s = perl_on_handshake(&state);
+        char *s = perl_on_handshake(&state, config);
         perl_on_handshake_done = 1;
         if (s && *s) {
           Log (1, "aborted by Perl on_handshake(): %s", s);

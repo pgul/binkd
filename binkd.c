@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.62  2003/09/05 06:49:06  val
+ * Perl support restored after config reloading patch
+ *
  * Revision 2.61  2003/08/28 01:28:52  hbrew
  * Fix typo
  *
@@ -746,9 +749,10 @@ int main (int argc, char *argv[], char *envp[])
     Log (0, "cannot install break handlers");
 
 #ifdef WITH_PERL
-  if (*perl_script) {
-    int ok = perl_init(perl_script);
-    if (perl_strict && !ok) Log (0, "error parsing Perl script %s", perl_script);
+  if (current_config->perl_script[0]) {
+    int ok = perl_init(current_config->perl_script, current_config);
+    if (current_config->perl_strict && !ok)
+      Log (0, "error parsing Perl script %s", current_config->perl_script);
   }
 #endif
 

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.32  2003/09/05 06:49:07  val
+ * Perl support restored after config reloading patch
+ *
  * Revision 2.31  2003/08/26 22:18:48  gul
  * Fix compilation under w32-mingw and os2-emx
  *
@@ -196,7 +199,7 @@ static void serv (void *arg)
 
   config = lock_current_config();
 #if defined(WITH_PERL) && defined(HAVE_THREADS)
-  cperl = perl_init_clone();
+  cperl = perl_init_clone(config);
 #endif
   protocol (h, 0, NULL, config);
   Log (5, "downing server...");

@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/09/05 06:49:06  val
+ * Perl support restored after config reloading patch
+ *
  * Revision 2.4  2003/08/18 09:41:00  gul
  * Little cleanup in handle perl errors
  *
@@ -40,39 +43,39 @@
 
 enum perl_skip_type { SKIP_ND=1, SKIP_D=2 };
 
-extern int perl_ok;           /* if sub is ok to run, its bit set to 1 */
-extern char *perl_subnames[]; /* names for perl subs */
+extern int perl_ok;            /* if sub is ok to run, its bit set to 1 */
+extern char *perl_subnames[];  /* names for perl subs */
 
 extern int perl_manages_queue; /* queue is managed from perl: sorting, etc */
 extern int perl_wants_queue;   /* export queue to perl subs */
 
 extern int perl_errpid;        /* pid or tid which handle perl errors */
 
-int perl_init(char *); /* init root perl, parse hooks file, return success */
-void perl_setup(void); /* set config vars to root perl */
-void perl_done(int);   /* deallocate root perl, call on_exit() if arg=1 */
+int perl_init(char *, BINKD_CONFIG *); /* init root perl, parse hooks file, return success */
+void perl_setup(BINKD_CONFIG *);       /* set config vars to root perl */
+void perl_done(int);                   /* deallocate root perl, call on_exit() if arg=1 */
 #ifdef HAVE_THREADS
-void *perl_init_clone();        /* clone root perl */
-void perl_done_clone(void *);   /* destruct a clone */
+void *perl_init_clone(BINKD_CONFIG *); /* clone root perl */
+void perl_done_clone(void *);          /* destruct a clone */
 #endif
 
-void perl_on_start(void);            /* start, after init */
-void perl_on_exit(void);             /* exit, just before destruction */
+void perl_on_start(void);              /* start, after init */
+void perl_on_exit(void);               /* exit, just before destruction */
 
-int perl_on_call(FTN_NODE *);        /* before outgoing call */
+int perl_on_call(FTN_NODE *);          /* before outgoing call */
 int perl_on_error(FTN_ADDR *, const char *, const int); /* on errors: bad_try() */
-char *perl_on_handshake(STATE *);    /* before xmitting ADR */
-char *perl_after_handshake(STATE *); /* after handshake complete */
+char *perl_on_handshake(STATE *, BINKD_CONFIG *);       /* before xmitting ADR */
+char *perl_after_handshake(STATE *);   /* after handshake complete */
 void perl_after_session(STATE *, char *); /* after session done */
 
 int perl_before_recv(STATE *, off_t offs); /* before receiving file */
 int perl_after_recv(STATE *, char *netname, off_t size, time_t time, 
                     FTN_ADDR *fa, int nfa, char *tmp_name, 
-                    char *real_name);    /* after file has been received */
-int perl_before_send(STATE *);       /* before sending file */
-int perl_after_sent(STATE *, int);   /* after file has been sent */
+                    char *real_name);  /* after file has been received */
+int perl_before_send(STATE *);         /* before sending file */
+int perl_after_sent(STATE *, int);     /* after file has been sent */
 
-int perl_on_log(char *, int, int *); /* when writing string to log */
+int perl_on_log(char *, int, int *);   /* when writing string to log */
 
 int perl_on_send(STATE *, t_msg *, char **, char **); /* on msg_send2 */
 int perl_on_recv(STATE *, char *, int);               /* when recv a block */

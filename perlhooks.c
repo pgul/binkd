@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.20  2003/09/05 06:49:06  val
+ * Perl support restored after config reloading patch
+ *
  * Revision 2.19  2003/08/26 17:01:26  gul
  * Correct previous patch
  *
@@ -515,6 +518,13 @@ struct perl_dlfunc { void **f; char *name; } perl_dlfuncs[] = {
 /* =========================== vars ================================== */
 
 static PerlInterpreter *perl = NULL;        /* root object for all threads */
+static const char *sv_config = "__config";  /* SV that keeps pointer to cfg */
+static const char *sv_state  = "__state";   /* SV that keeps pointer to state */
+
+#define VK_FIND_CONFIG(cfg)                                        \
+            { SV *sv = perl_get_sv(sv_config, FALSE);              \
+              cfg = sv ? (BINKD_CONFIG*)SvIV(sv) : current_config; \
+            }
 
 /* bits for subroutines, must correspond to perl_subnames */
 typedef enum { 
@@ -808,6 +818,7 @@ char *s, *p;
 #endif
 {
   dXSARGS;
+  BINKD_CONFIG *cfg;
   STRLEN len;
   int i;
   char *a, *b;
@@ -818,15 +829,16 @@ char *s, *p;
     Log(LL_ERR, "aeq() requires 2 or more parameters, %d exist", items);
     XSRETURN_UNDEF;
   }
+  VK_FIND_CONFIG(cfg);
   a = (char *)SvPV(ST(0), len); 
   if (len == 0) XSRETURN_UNDEF;
     else if (strchr(a, '*')) mask_mode = 1;
-    else if (!parse_ftnaddress(a, &A)) XSRETURN_UNDEF;
-    else exp_ftnaddress(&A);
+    else if (!parse_ftnaddress(a, &A, cfg)) XSRETURN_UNDEF;
+    else exp_ftnaddress(&A, cfg);
   for (i = 1; i < items; i++) {
     b = (char *)SvPV(ST(i), len);
-    if (len == 0 || !parse_ftnaddress(b, &B)) continue;
-    exp_ftnaddress(&B);
+    if (len == 0 || !parse_ftnaddress(b, &B, cfg)) continue;
+    exp_ftnaddress(&B, cfg);
     if (mask_mode) {
       char bb[FTN_ADDR_SZ];
       xftnaddress_to_str(bb, &B, 1);
@@ -845,6 +857,7 @@ char *s, *p;
 #endif
 {
   dXSARGS;
+  BINKD_CONFIG *cfg;
   STRLEN len;
   int i, j, k, K, N, m;
   char *a, *b, **C;
@@ -860,6 +873,7 @@ char *s, *p;
     Log(LL_ERR, "first parameter to arm() should be array reference");
     XSRETURN_UNDEF;
   }
+  VK_FIND_CONFIG(cfg);
   arr = (AV*)SvRV(ST(0));
   B = xalloc( (items-1)*sizeof(FTN_ADDR) );
   C = xalloc( (items-1)*sizeof(char*) );
@@ -869,8 +883,8 @@ char *s, *p;
     b = (char *)SvPV(ST(i), len);
     if (len == 0) continue;
     if (strchr(b, '*')) { C[K++] = b; continue; }
-    if (!parse_ftnaddress(b, B+k)) continue;
-    exp_ftnaddress(B+k);
+    if (!parse_ftnaddress(b, B+k, cfg)) continue;
+    exp_ftnaddress(B+k, cfg);
     k++;
   }
   /* j - array elements, i - valid addresses */
@@ -881,8 +895,8 @@ char *s, *p;
     if (j != m) av_store(arr, m, (*svp));
     if (!svp) { m++; continue; }
     a = (char *)SvPV((*svp), len);
-    if (len == 0 || !parse_ftnaddress(a, &A)) { m++; continue; }
-    exp_ftnaddress(&A);
+    if (len == 0 || !parse_ftnaddress(a, &A, cfg)) { m++; continue; }
+    exp_ftnaddress(&A, cfg);
     /* compare */
     for (i = 0; i < k; i++) {
       if (ftnaddress_cmp(&A, B+i) == 0) { found = 1; break; }
@@ -918,10 +932,10 @@ extern void msg_send2 (STATE *state, t_msg m, char *s1, char *s2);
     Log(LL_ERR, "wrong params number to msg_send (needs 2, exist %d)", items);
     XSRETURN_EMPTY;
   }
-  sv = perl_get_sv("__state", FALSE);
-  if (!sv) { Log(LL_ERR, "can't find $__state pointer"); XSRETURN_EMPTY; }
+  sv = perl_get_sv(sv_state, FALSE);
+  if (!sv) { Log(LL_ERR, "can't find $%s pointer", sv_state); XSRETURN_EMPTY; }
   state = (STATE*)SvIV(sv);
-  if (!state) { Log(LL_ERR, "$__state pointer is NULL"); XSRETURN_EMPTY; }
+  if (!state) { Log(LL_ERR, "$%s pointer is NULL", sv_state); XSRETURN_EMPTY; }
   m = (t_msg)SvIV(ST(0));
   str = (char *)SvPV(ST(1), n_a); if (n_a == 0) str = "";
   msg_send2(state, m, str, NULL);
@@ -975,7 +989,7 @@ static void xs_init(void)
 
 static char *perlargs[] = {"", NULL, NULL};
 /* init root perl, parse hooks file, return success */
-int perl_init(char *perlfile) {
+int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
   int rc, i;
   SV *sv;
   char *cfgfile, *cfgpath=NULL, *patharg=NULL;
@@ -993,18 +1007,18 @@ int perl_init(char *perlfile) {
   { return 0; }
 #ifdef PERLDL
   /* load DLL */
-  if (*perl_dll) {
+  if (cfg->perl_dll[0]) {
     struct perl_dlfunc *dlfunc;
 #ifdef OS2
     char buf[256];
     HMODULE hl;
-    if (DosLoadModule(buf, sizeof(buf), perl_dll, &hl))
+    if (DosLoadModule(buf, sizeof(buf), cfg->perl_dll, &hl))
 #else /* MSC */
-    HINSTANCE hl = LoadLibrary(perl_dll);
+    HINSTANCE hl = LoadLibrary(cfg->perl_dll);
     if (!hl)
 #endif
     {
-      Log(LL_ERR, "perl_init(): can't load library %s", perl_dll);
+      Log(LL_ERR, "perl_init(): can't load library %s", cfg->perl_dll);
       return 0;
     }
     Log(LL_DBG2, "perl_init(): load library: %p", hl);
@@ -1046,7 +1060,7 @@ int perl_init(char *perlfile) {
     VK_ADD_intz(sv, perl_consts[i].name, perl_consts[i].value);
   }
   /* setup vars */
-  perl_setup();
+  perl_setup(cfg);
   /* run main program body */
   Log(LL_DBG, "perl_init(): running body");
   handle_perlerr2(&perlerr, 1);
@@ -1070,7 +1084,7 @@ int perl_init(char *perlfile) {
 }
 
 /* set config vars to root perl */
-void perl_setup(void) {
+void perl_setup(BINKD_CONFIG *cfg) {
   SV 	*sv;
   HV 	*hv, *hv2;
   AV 	*av;
@@ -1082,41 +1096,41 @@ void perl_setup(void) {
 
   hv = perl_get_hv("config", TRUE);
   hv_clear(hv);
-  VK_ADD_HASH_str(hv, sv, "log", logpath);
-  VK_ADD_HASH_intz(hv, sv, "loglevel", loglevel);
-  VK_ADD_HASH_intz(hv, sv, "conlog", conlog);
-  VK_ADD_HASH_intz(hv, sv, "tzoff", tzoff);
-  VK_ADD_HASH_str(hv, sv, "sysname", sysname);
-  VK_ADD_HASH_str(hv, sv, "sysop", sysop);
-  VK_ADD_HASH_str(hv, sv, "location", location);
-  VK_ADD_HASH_str(hv, sv, "nodeinfo", nodeinfo);
-  VK_ADD_HASH_str(hv, sv, "bindaddr", bindaddr);
-  VK_ADD_HASH_intz(hv, sv, "iport", iport);
-  VK_ADD_HASH_intz(hv, sv, "oport", oport);
-  VK_ADD_HASH_intz(hv, sv, "maxservers", max_servers);
-  VK_ADD_HASH_intz(hv, sv, "maxclients", max_clients);
-  VK_ADD_HASH_intz(hv, sv, "oblksize", oblksize);
-  VK_ADD_HASH_str(hv, sv, "inbound", inbound);
-  VK_ADD_HASH_str(hv, sv, "inbound_nonsecure", inbound_nonsecure);
-  VK_ADD_HASH_intz(hv, sv, "inboundcase", inboundcase);
-  VK_ADD_HASH_str(hv, sv, "temp_inbound", temp_inbound);
-  VK_ADD_HASH_intz(hv, sv, "minfree", minfree);
-  VK_ADD_HASH_intz(hv, sv, "minfree_nonsecure", minfree_nonsecure);
-  VK_ADD_HASH_intz(hv, sv, "hold", hold);
-  VK_ADD_HASH_intz(hv, sv, "hold_skipped", hold_skipped);
-  VK_ADD_HASH_intz(hv, sv, "backresolv", backresolv);
-  VK_ADD_HASH_intz(hv, sv, "send_if_pwd", send_if_pwd);
-  VK_ADD_HASH_str(hv, sv, "filebox", tfilebox);
-  VK_ADD_HASH_str(hv, sv, "brakebox", bfilebox);
-  VK_ADD_HASH_str(hv, sv, "root_domain", root_domain);
-  VK_ADD_HASH_int(hv, sv, "check_pkthdr", pkthdr_type);
-  VK_ADD_HASH_str(hv, sv, "pkthdr_badext", pkthdr_bad);
+  VK_ADD_HASH_str(hv, sv, "log", cfg->logpath);
+  VK_ADD_HASH_intz(hv, sv, "loglevel", cfg->loglevel);
+  VK_ADD_HASH_intz(hv, sv, "conlog", cfg->conlog);
+  VK_ADD_HASH_intz(hv, sv, "tzoff", cfg->tzoff);
+  VK_ADD_HASH_str(hv, sv, "sysname", cfg->sysname);
+  VK_ADD_HASH_str(hv, sv, "sysop", cfg->sysop);
+  VK_ADD_HASH_str(hv, sv, "location", cfg->location);
+  VK_ADD_HASH_str(hv, sv, "nodeinfo", cfg->nodeinfo);
+  VK_ADD_HASH_str(hv, sv, "bindaddr", cfg->bindaddr);
+  VK_ADD_HASH_intz(hv, sv, "iport", cfg->iport);
+  VK_ADD_HASH_intz(hv, sv, "oport", cfg->oport);
+  VK_ADD_HASH_intz(hv, sv, "maxservers", cfg->max_servers);
+  VK_ADD_HASH_intz(hv, sv, "maxclients", cfg->max_clients);
+  VK_ADD_HASH_intz(hv, sv, "oblksize", cfg->oblksize);
+  VK_ADD_HASH_str(hv, sv, "inbound", cfg->inbound);
+  VK_ADD_HASH_str(hv, sv, "inbound_nonsecure", cfg->inbound_nonsecure);
+  VK_ADD_HASH_intz(hv, sv, "inboundcase", cfg->inboundcase);
+  VK_ADD_HASH_str(hv, sv, "temp_inbound", cfg->temp_inbound);
+  VK_ADD_HASH_intz(hv, sv, "minfree", cfg->minfree);
+  VK_ADD_HASH_intz(hv, sv, "minfree_nonsecure", cfg->minfree_nonsecure);
+  VK_ADD_HASH_intz(hv, sv, "hold", cfg->hold);
+  VK_ADD_HASH_intz(hv, sv, "hold_skipped", cfg->hold_skipped);
+  VK_ADD_HASH_intz(hv, sv, "backresolv", cfg->backresolv);
+  VK_ADD_HASH_intz(hv, sv, "send_if_pwd", cfg->send_if_pwd);
+  VK_ADD_HASH_str(hv, sv, "filebox", cfg->tfilebox);
+  VK_ADD_HASH_str(hv, sv, "brakebox", cfg->bfilebox);
+  VK_ADD_HASH_str(hv, sv, "root_domain", cfg->root_domain);
+  VK_ADD_HASH_int(hv, sv, "check_pkthdr", cfg->pkthdr_type);
+  VK_ADD_HASH_str(hv, sv, "pkthdr_badext", cfg->pkthdr_bad);
   Log(LL_DBG2, "perl_setup(): %%config done");
   /* domain */
   hv = perl_get_hv("domain", TRUE);
   hv_clear(hv);
   {
-    FTN_DOMAIN *cur = pDomains;
+    FTN_DOMAIN *cur = cfg->pDomains.first;
     while (cur) {
       hv2 = newHV();
       if (!cur->alias4) {
@@ -1137,8 +1151,8 @@ void perl_setup(void) {
   /* address -> me */
   av = perl_get_av("addr", TRUE);
   av_clear(av);
-  for (i = 0; i < nAddr; i++) {
-    ftnaddress_to_str(buf, &(pAddr[i]));
+  for (i = 0; i < cfg->nAddr; i++) {
+    ftnaddress_to_str(buf, &(cfg->pAddr[i]));
     sv = newSVpv(buf, 0);
     SvREADONLY_on(sv);
     av_push(av, sv);
@@ -1148,7 +1162,7 @@ void perl_setup(void) {
   av = perl_get_av("ftrans", TRUE);
   av_clear(av);
   {
-    RF_RULE *cur = rf_rules.first;
+    RF_RULE *cur = cfg->rf_rules.first;
     while (cur) {
       hv2 = newHV();
       VK_ADD_HASH_str(hv2, sv, "from", cur->from);
@@ -1163,7 +1177,7 @@ void perl_setup(void) {
   av = perl_get_av("overwrite", TRUE);
   av_clear(av);
   {
-    struct maskchain *cur = overwrite.first;
+    struct maskchain *cur = cfg->overwrite.first;
     while (cur) {
       sv = newSVpv(cur->mask, 0);
       SvREADONLY_on(sv);
@@ -1176,7 +1190,7 @@ void perl_setup(void) {
   av = perl_get_av("skip", TRUE);
   av_clear(av);
   {
-    struct skipchain *cur = skipmask.first;
+    struct skipchain *cur = cfg->skipmask.first;
     while (cur) {
       hv2 = newHV();
       VK_ADD_HASH_str(hv2, sv, "mask", cur->mask);
@@ -1193,11 +1207,11 @@ void perl_setup(void) {
   hv = perl_get_hv("share", TRUE);
   hv_clear(hv);
   {
-    SHARED_CHAIN *cur = shares;
+    SHARED_CHAIN *cur = cfg->shares.first;
     FTN_ADDR_CHAIN *fa;
     while (cur) {
       av = newAV();
-      fa = cur->sfa;
+      fa = cur->sfa.first;
       while (fa) {
         ftnaddress_to_str(buf, &(fa->fa));
         sv = newSVpv(buf, 0);
@@ -1215,21 +1229,21 @@ void perl_setup(void) {
   /* node */
   hv = perl_get_hv("node", TRUE);
   hv_clear(hv);
-  for (i = 0; i < nNod; i++) {
+  for (i = 0; i < cfg->nNod; i++) {
     hv2 = newHV();
-    VK_ADD_HASH_str(hv2, sv, "hosts", pNod[i].hosts);
-    VK_ADD_HASH_str(hv2, sv, "pwd", pNod[i].pwd);
-    VK_ADD_HASH_str(hv2, sv, "ibox", pNod[i].ibox);
-    VK_ADD_HASH_str(hv2, sv, "obox", pNod[i].obox);
-    buf[0] = pNod[i].obox_flvr; buf[1] = 0;
+    VK_ADD_HASH_str(hv2, sv, "hosts", cfg->pNod[i].hosts);
+    VK_ADD_HASH_str(hv2, sv, "pwd", cfg->pNod[i].pwd);
+    VK_ADD_HASH_str(hv2, sv, "ibox", cfg->pNod[i].ibox);
+    VK_ADD_HASH_str(hv2, sv, "obox", cfg->pNod[i].obox);
+    buf[0] = cfg->pNod[i].obox_flvr; buf[1] = 0;
     VK_ADD_HASH_str(hv2, sv, "obox_flvr", buf);
-    VK_ADD_HASH_int(hv2, sv, "NR", pNod[i].NR_flag);
-    VK_ADD_HASH_int(hv2, sv, "ND", pNod[i].ND_flag);
-    VK_ADD_HASH_int(hv2, sv, "MD", pNod[i].MD_flag);
-    VK_ADD_HASH_int(hv2, sv, "HC", pNod[i].HC_flag);
-    VK_ADD_HASH_int(hv2, sv, "IP", pNod[i].restrictIP);
+    VK_ADD_HASH_int(hv2, sv, "NR", cfg->pNod[i].NR_flag);
+    VK_ADD_HASH_int(hv2, sv, "ND", cfg->pNod[i].ND_flag);
+    VK_ADD_HASH_int(hv2, sv, "MD", cfg->pNod[i].MD_flag);
+    VK_ADD_HASH_int(hv2, sv, "HC", cfg->pNod[i].HC_flag);
+    VK_ADD_HASH_int(hv2, sv, "IP", cfg->pNod[i].restrictIP);
     sv = newRV_noinc( (SV*)hv2 );
-    ftnaddress_to_str(buf, &(pNod[i].fa));
+    ftnaddress_to_str(buf, &(cfg->pNod[i].fa));
     VK_ADD_HASH_sv(hv, sv, buf);
   }
   Log(LL_DBG2, "perl_setup(): %%node done");
@@ -1254,7 +1268,7 @@ void perl_done(int master) {
 
 #ifdef HAVE_THREADS
 /* clone root perl */
-void *perl_init_clone() {
+void *perl_init_clone(BINKD_CONFIG *cfg) {
   UV cflags = 0;
   PerlInterpreter *p;
 
@@ -1270,6 +1284,7 @@ void *perl_init_clone() {
       dTHXa(p); 
       PERL_SET_CONTEXT(aTHX);
       if (PL_scopestack_ix == 0) { ENTER; } 
+      perl_setup(cfg);
     }
   }
   else p = NULL;
@@ -1307,6 +1322,7 @@ static void setup_addrs(char *name, int n, FTN_ADDR *p) {
 
 /* set session vars */
 static void setup_session(STATE *state, int lvl) {
+  BINKD_CONFIG *cfg;
   SV 	*sv;
   HV 	*hv, *hv2;
   AV 	*av;
@@ -1318,6 +1334,7 @@ static void setup_session(STATE *state, int lvl) {
   Log(LL_DBG2, "perl_setup_session(), perl context %p", Perl_get_context());
   if (!Perl_get_context()) return;
 
+  VK_FIND_CONFIG(cfg);
   /* lvl 1 */
   if (lvl >= 1 && state->perl_set_lvl < 1) {
     VK_ADD_intz(sv, "call", state->to != NULL);
@@ -1351,7 +1368,7 @@ static void setup_session(STATE *state, int lvl) {
     setup_addrs("he", state->nfa, state->fa);
     if (state->nAddr && state->pAddr)
       setup_addrs("me", state->nAddr, state->pAddr);
-      else setup_addrs("me", nAddr, pAddr);
+      else setup_addrs("me", cfg->nAddr, cfg->pAddr);
     state->perl_set_lvl = 2;
   }
   /* lvl 3 */
@@ -1397,15 +1414,17 @@ static void setup_queue(STATE *state, FTNQ *queue) {
 
 /* refresh queue */
 static FTNQ *refresh_queue(STATE *state, FTNQ *queue) {
+  BINKD_CONFIG *cfg;
   FTNQ *q = NULL, *qp = NULL, *q0 = NULL;
   AV *av;
   HV *hv;
-  SV **svp;
+  SV **svp, *sv;
   STRLEN len;
   int i, n;
   char *s;
 
   Log(LL_DBG2, "perl_refresh_queue()");
+  VK_FIND_CONFIG(cfg);
   av = perl_get_av("queue", FALSE);
   if (!av) { Log(LL_DBG2, "perl_refresh_queue(): @queue undefined"); return queue; }
   n = av_len(av) + 1;
@@ -1443,11 +1462,11 @@ static FTNQ *refresh_queue(STATE *state, FTNQ *queue) {
     svp = hv_fetch(hv, "addr", 4, 0);
     if (svp && SvOK(*svp)) {
       s = SvPV(*svp, len);
-      if (!parse_ftnaddress(s, &(q->fa))) q->fa = state->fa[0];
-      else exp_ftnaddress(&(q->fa));
+      if (!parse_ftnaddress(s, &(q->fa), cfg)) q->fa = state->fa[0];
+      else exp_ftnaddress(&(q->fa), cfg);
     } else q->fa = state->fa[0];
   }
-  if (queue != SCAN_LISTED) q_free(queue);
+  if (queue != SCAN_LISTED) q_free(queue, cfg);
   Log(LL_DBG2, "perl_refresh_queue() end");
   return q0;
 }
@@ -1595,7 +1614,7 @@ int perl_on_error(FTN_ADDR *addr, const char *error, const int where) {
 }
 
 /* before xmitting ADR */
-char *perl_on_handshake(STATE *state) {
+char *perl_on_handshake(STATE *state, BINKD_CONFIG *cfg) {
   char buf[FTN_ADDR_SZ];
   char *prc;
   int i;
@@ -1604,7 +1623,8 @@ char *perl_on_handshake(STATE *state) {
   SV *svret, **svp;
   /* this pointer is used later */
   if (perl && perl_ok && Perl_get_context()) {
-    VK_ADD_intz(svret, "__state", (long)state); 
+    VK_ADD_intz(svret, sv_state, (long)state); 
+    VK_ADD_intz(svret, sv_config, (long)cfg);
   }
   if (perl_ok & (1 << PERL_ON_HANDSHAKE)) {
     Log(LL_DBG, "perl_on_handshake(), perl=%p", Perl_get_context());
@@ -1653,8 +1673,8 @@ char *perl_on_handshake(STATE *state) {
         for (i = 0; i < N; i++) {
           svp = av_fetch(me, i, NULL);
           if (svp == NULL) continue;
-          if (!parse_ftnaddress(SvPV(*svp, len), &addr)) continue;
-          exp_ftnaddress(&addr);
+          if (!parse_ftnaddress(SvPV(*svp, len), &addr, cfg)) continue;
+          exp_ftnaddress(&addr, cfg);
           state->pAddr[n++] = addr;
         }
         state->nAddr = n;
