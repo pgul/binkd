@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.37  2003/10/14 15:34:40  stas
+ * Fix MS Visual C build
+ *
  * Revision 2.36  2003/10/13 08:48:10  stas
  * Implement true NT service stop sequence
  *
@@ -213,7 +216,7 @@ BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
 /* wrapper to call exitfunc() in separate thread
  * serviceexitproc() must be used in parameter of _beginthread()
  */
-__cdecl void serviceexitproc(void *arg)
+void __cdecl serviceexitproc(void *arg)
 {
   Log(10,"serviceexitproc()");
   exitfunc();
@@ -642,7 +645,7 @@ static void wndthread(void *par)
     if (!hi)
     {
         loaded_icon = hi = LoadImage( NULL, BINKD_ICON_FILE, IMAGE_ICON, 0, 0,
-                        LR_LOADFROMFILE /*| LR_LOADTRANSPARENT*/ );
+                        LR_LOADFROMFILE | LR_LOADTRANSPARENT );
     }
     if (!hi)
     {
