@@ -1,3 +1,8 @@
+2003/12/24 02:36:45 1.0a-310 gul
+Config.h,2.331,2.332 sys.h,2.15,2.16
+Move system-dependent macros from Config.h to sys.h,
+add pipe() wrapper for mingw32.
+
 2003/12/15 02:03:58 1.0a-309 gul
 protocol.c,2.143,2.144 todo.lst,2.41,2.42
 NZ option for M_GET command - request uncompressed file
