@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.46  2003/08/25 06:11:06  gul
+ * Fix compilation with HAVE_FORK
+ *
  * Revision 2.45  2003/08/25 05:39:26  stas
  * Bugfix: "readcfg.c:938: `fa\' undeclared" compilation error
  *
@@ -211,6 +214,9 @@
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
 #define SYSLOG_NAMES
 #include <syslog.h>
+#endif
+#ifdef HAVE_FORK
+#include <setjmp.h>
 #endif
 
 #include "Config.h"

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.28  2003/08/25 06:11:06  gul
+ * Fix compilation with HAVE_FORK
+ *
  * Revision 2.27  2003/08/24 13:30:33  stream
  * Socket wasn't closed if branch() failed
  *
@@ -138,7 +141,6 @@
 
 #ifdef HAVE_FORK
 #include <signal.h>
-#include <setjmp.h>
 #elif defined(HAVE_THREADS)
 #ifdef HAVE_DOS_H
 #include <dos.h>
