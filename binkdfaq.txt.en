@@ -492,12 +492,12 @@ RAS is stopped.
 
     3rd Solution (The Best One For Win9x)
 
-    Use the command line options -p ¨ -Paddress and control connection with
-a non-standard dial-up software (for example dialerp).  This solution is
-the most reliable one (especially if the modem connection to your Internet
-provider is bad) due to the fact that dialerp can start some indicated
-programs at setting the connection.  Here is the batch file you should
-start in the 'Execute' parameter of the dialerp configuration file:
+    Use the command line options -p and -Paddress and control connection
+with a non-standard dial-up software (for example dialerp).  This solution
+is the most reliable one (especially if the modem connection to your
+Internet provider is bad) due to the fact that dialerp can start some
+indicated programs at setting the connection.  Here is the batch file you
+should start in the 'Execute' parameter of the dialerp configuration file:
 
     ====
     binkd -p -P1:2/3.4  binkd.cfg
