@@ -1,3 +1,7 @@
+2004/11/07 15:52:46 1.0a-429 stream
+client.c,2.57,2.58 readcfg.h,2.33,2.34
+Automatically rescan outbound after reload of configuration
+
 2004/11/07 15:20:19 1.0a-428 stream
 server.c,2.38,2.39
 Lock config of server manager so it can be safely reloaded in SIGHUP
