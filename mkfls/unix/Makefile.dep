@@ -58,5 +58,5 @@ https.o: https.c Config.h readcfg.h iphdr.h sys.h ftnaddr.h ftndom.h \
 des_enc.o: ntlm/des_enc.c ntlm/des_locl.h ntlm/des.h ntlm/ncbc_enc.c
 helpers.o: ntlm/helpers.c iphdr.h sys.h ntlm/des.h ntlm/md4.h
 ecb_enc.o: ntlm/ecb_enc.c ntlm/des_locl.h ntlm/des.h ntlm/spr.h
-md4_dgst.o: ntlm/md4_dgst.c ntlm/md4_locl.h ntlm/md4.h ntlm/md32_common.h
+md4_dgst.o: ntlm/md4_dgst.c ntlm/md4_locl.h ntlm/md4.h ntlm/md32_com.h
 set_key.o: ntlm/set_key.c ntlm/des_locl.h ntlm/des.h
