@@ -1,3 +1,7 @@
+2003/09/14 15:29:33 0.9.6a-176 gul
+ftnnode.c,2.21,2.22
+Optimize a bit
+
 2003/09/12 12:10:11 0.9.6a-175 val
 protoco2.h,2.11,2.12 protocol.c,2.117,2.118 zlibdl.c,2.1,2.2 zlibdl.h,2.1,2.2
 zlib compression support and configure for unix (my first try to write
