@@ -1,4 +1,5 @@
 - nolog "call to*" "*:unknown host" "some annoing message"
+- set root-domain for every domain
 - crc32 check
 - perl hooks
 - shared aka
