@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.125  2003/08/19 10:13:17  gul
+ * Auto increase patchlevel, set 0.9.6a-112
+ * Change Log() semaphoring
+ *
  * Revision 2.124  2003/08/18 17:19:14  stream
  * Auto increase patchlevel, set 0.9.6a-111
  * Partially implemented new configuration parser logic (required for config reload)
@@ -540,7 +544,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-111"
+#define MYVER "0.9.6a-112"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
