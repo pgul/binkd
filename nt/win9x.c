@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.6  2003/06/12 00:50:09  hbrew
+ * Fix MSVC compilation and logging.
+ *
  * Revision 2.5  2003/06/11 09:00:44  stas
  * Don't try to install/uninstall/control service on incompatible OS. Thanks to Alexander Reznikov
  *
@@ -175,7 +178,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
         if( W32_CheckOS(VER_PLATFORM_WIN32_WINDOWS) )
         {
-                Log(0,"Can't operate witn Windows 9x services: incompatible OS type");
+                if (!s_quiet)  AllocTempConsole();
+                Log((s_quiet?0:-1), "Can't operate witn Windows 9x services: incompatible OS type%s", s_quiet?"":"\n");
                 return 1;
         }
 
@@ -297,7 +301,11 @@ static void Win9xWindowThread(void *p)
 
 void CreateWin9xThread(PHANDLER_ROUTINE phandler)
 {
+#ifdef __MINGW32__
         _beginthread(Win9xWindowThread, 0, phandler);
+#else
+        _beginthread(Win9xWindowThread, 0, 0, phandler);
+#endif
 }
 
 /*
