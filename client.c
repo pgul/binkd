@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.48  2003/10/07 17:57:09  gul
+ * Some small changes in close threads function.
+ * Inhibit errors "socket operation on non-socket" on break.
+ *
  * Revision 2.47  2003/09/22 09:54:41  gul
  * Screen output semaphoring, prevent mixing output from threads
  *
@@ -499,6 +503,8 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 	return 0;
       }
       add_socket(sockfd);
+      /* Was the socket created after close_sockets loop in exitfunc()? */
+      if (binkd_exit) return 0;
       sin.sin_addr = *((struct in_addr *) * cp);
       sin.sin_family = hp->h_addrtype;
       lockhostsem();

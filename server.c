@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.34  2003/10/07 17:57:09  gul
+ * Some small changes in close threads function.
+ * Inhibit errors "socket operation on non-socket" on break.
+ *
  * Revision 2.33  2003/09/21 17:51:08  gul
  * Fixed PID in logfile for perl stderr handled messages in fork version.
  *
@@ -313,6 +317,13 @@ static int do_server(BINKD_CONFIG *config)
       char host[MAXHOSTNAMELEN + 1];
 
       add_socket(new_sockfd);
+      /* Was the socket created after close_sockets loop in exitfunc()? */
+      if (binkd_exit)
+      {
+        del_socket(new_sockfd);
+        soclose(new_sockfd);
+        continue;
+      }
       rel_grow_handles (6);
       ext_rand=rand();
       get_hostname(&client_addr, host, sizeof(host), config);

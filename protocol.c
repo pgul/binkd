@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.128  2003/10/07 17:57:09  gul
+ * Some small changes in close threads function.
+ * Inhibit errors "socket operation on non-socket" on break.
+ *
  * Revision 2.127  2003/09/24 07:32:16  val
  * bzlib2 compression support, new compression keyword: zlevel
  *
@@ -1430,7 +1434,9 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 
       si = sizeof (struct sockaddr_in);
       if (getpeername (state->s, (struct sockaddr *) &sin, &si) == -1)
-      { Log (1, "Can't getpeername(): %s", TCPERR());
+      {
+        if (binkd_exit) return 0;
+        Log (1, "Can't getpeername(): %s", TCPERR());
 #ifndef VAL_STYLE
         ipok = 2;
 #endif
@@ -3014,9 +3020,9 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
   socklen_t peer_name_len = sizeof (peer_name);
   char host[MAXHOSTNAMELEN + 1];
   const char *save_err = NULL;
-  int ok = 1;                         /* drop to 0 to abort session */
   int ADR_sent = 0;
 #ifdef WITH_PERL
+  int ok = 1;                         /* drop to 0 to abort session */
   int perl_on_handshake_done = 0;
 #endif
 
@@ -3025,7 +3031,8 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
 
   if (getpeername (socket, (struct sockaddr *) & peer_name, &peer_name_len) == -1)
   {
-    Log (1, "getpeername: %s", TCPERR ());
+    if (!binkd_exit)
+      Log (1, "getpeername: %s", TCPERR ());
     memset(&peer_name, 0, sizeof (peer_name));
   }
 
@@ -3045,7 +3052,8 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
 
   if (getsockname (socket, (struct sockaddr *) & peer_name, &peer_name_len) == -1)
   {
-    Log (1, "getsockname: %s", TCPERR ());
+    if (!binkd_exit)
+      Log (1, "getsockname: %s", TCPERR ());
     memset(&peer_name, 0, sizeof (peer_name));
   }
   else
@@ -3061,10 +3069,14 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
       ok = 0;
     }
   }
+  if (ok)
 #endif
-  if (ok) banner (&state, config);
+  banner (&state, config);
+#ifdef WITH_PERL
   if (!ok) ;
-  else if (n_servers > config->max_servers && !to)
+  else
+#endif
+  if (n_servers > config->max_servers && !to)
   {
     Log (1, "too many servers");
     msg_send2 (&state, M_BSY, "Too many servers", 0);

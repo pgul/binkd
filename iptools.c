@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2003/10/07 17:57:09  gul
+ * Some small changes in close threads function.
+ * Inhibit errors "socket operation on non-socket" on break.
+ *
  * Revision 2.12  2003/08/26 21:01:10  gul
  * Fix compilation under unix
  *
@@ -78,6 +82,7 @@
 #include "readcfg.h"
 #include "iptools.h"
 #include "tools.h"
+#include "common.h"
 #include "sem.h"
 
 /*
@@ -164,7 +169,8 @@ void setsockopts (SOCKET s)
 
   arg = 1;
   if (ioctlsocket (s, FIONBIO, &arg) < 0)
-    Log (1, "ioctlsocket (FIONBIO): %s", TCPERR ());
+    if (!binkd_exit)
+      Log (1, "ioctlsocket (FIONBIO): %s", TCPERR ());
 #endif
 #endif
 

@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.29  2003/10/07 17:57:09  gul
+ * Some small changes in close threads function.
+ * Inhibit errors "socket operation on non-socket" on break.
+ *
  * Revision 2.28  2003/09/11 13:04:13  hbrew
  * Undo 'move binkd9x deinit to exitfunc()' patch
  *
@@ -173,7 +177,7 @@ void exitfunc (void)
     kill (i, SIGTERM);
     /* sleep (1); */
   }
-#elif HAVE_THREADS
+#elif defined(HAVE_THREADS)
   /* exit all threads */
   { SOCKET h;
     /* wait for threads exit */
@@ -193,6 +197,7 @@ void exitfunc (void)
       else
 	break;
   }
+  Log(8, "exitproc: all threads finished");
 #endif
   if (sockfd != INVALID_SOCKET)
   { Log (5, "Closing socket # %i", sockfd);
