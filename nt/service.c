@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.32  2003/10/09 09:41:07  stas
+ * Change service stop sequence
+ *
  * Revision 2.31  2003/10/07 18:03:18  stas
  * Fix error with MS VC. Thanks to Serguei Trouchelle <stro@isd.dp.ua>
  *
@@ -199,9 +202,10 @@ static void WINAPI ServiceCtrl(DWORD dwCtrlCode)
   {
   case SERVICE_CONTROL_STOP:
     ReportStatusToSCMgr(SERVICE_STOP_PENDING, NO_ERROR, 0);
-    SigHandlerExit(CTRL_SERVICESTOP_EVENT);
-    ReportStatusToSCMgr(SERVICE_STOPPED, 0, 0);
-    return;
+    Log(1, "Interrupted by service stop");
+/*    SigHandler(CTRL_SERVICESTOP_EVENT); */ /* Only report to log "Interrupted by service stop" */
+/*    exit(0); */ /* Produce SCM error "109" */
+    sstat.dwCurrentState = SERVICE_STOPPED;
   case SERVICE_CONTROL_INTERROGATE:
   default:
     break;
@@ -209,12 +213,28 @@ static void WINAPI ServiceCtrl(DWORD dwCtrlCode)
   ReportStatusToSCMgr(sstat.dwCurrentState, NO_ERROR, 0);
 }
 
+/* Start service-specific cleanup procedure.
+ * Must be set in last call of atexit().
+ * (Report to SCM about service stop pending)
+ */
+void atServiceExitBegins(void)
+{
+  Log(10,"atServiceExitBegins()");
+  if(IsNT() && isService())
+    ReportStatusToSCMgr(SERVICE_STOP_PENDING, NO_ERROR, 0);
+}
+
+/* Service-specific cleanup procedure. Not an thread-safe!
+ * Must be set in first call of atexit().
+ */
 void atServiceExit(void)
 {
   char *sp;
   Log(10,"atServiceExit()");
 
-  exitfunc();
+  if(!IsNT() || !isService())
+    return;
+
   if(serv_argv)
   {
     sp=serv_argv[0];
@@ -229,6 +249,7 @@ void atServiceExit(void)
     free(sp);
     serv_envp=NULL;
   }
+  ReportStatusToSCMgr(SERVICE_STOPPED, NO_ERROR, 0);
 }
 
 int binkd_main(int argc, char **argv, char **envp);

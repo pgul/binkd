@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.18  2003/10/09 09:41:07  stas
+ * Change service stop sequence
+ *
  * Revision 2.17  2003/10/08 11:10:49  stas
  * remove illegal call
  *
@@ -161,7 +164,7 @@ static BOOL CALLBACK SigHandler(DWORD SigType) {
          Log(1, "Interrupted by service restart");
          break;
       default:
-         Log(1,"Interrupted by unknown signal");
+         Log(1,"Interrupted by unknown signal %lu",SigType);
          break;
    }
    return (FALSE);
@@ -198,7 +201,6 @@ static BOOL CALLBACK SigHandlerNT(DWORD SigType) {
    {
      if(isService()) {
        ReportStatusToSCMgr(SERVICE_STOP_PENDING, NO_ERROR, 0);
-       ReportStatusToSCMgr(SERVICE_STOPPED, NO_ERROR, 30000);
      }
      exit(0);
   }
@@ -216,8 +218,9 @@ int set_break_handlers (void) {
 #if BINKDW9X
    CreateWin9xThread(&SigHandler);
 #else
-   if (!IsNT() || !isService())
-     atexit (exitfunc);
+   atexit (exitfunc);
+   if (IsNT() && isService())
+     atexit (&atServiceExitBegins);
    if (SetConsoleCtrlHandler(&SigHandlerNT, TRUE) != TRUE) {
       return (0);
    }
