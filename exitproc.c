@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.17  2003/08/14 11:43:19  val
+ * free allocated log buffer in exitfunc()
+ *
  * Revision 2.16  2003/06/20 10:37:02  val
  * Perl hooks for binkd - initial revision
  *
@@ -178,4 +181,5 @@ Log(7, "exitproc(): pid=%d, cmgr=%d, smgr=%d, inetd=%d", getpid(), pidCmgr, pids
   CleanSem (&fhsem);
 #endif
   ReleaseErrorList();
+  Log(0xfade, NULL);
 }
