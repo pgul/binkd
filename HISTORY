@@ -1,3 +1,7 @@
+2004/09/06 13:47:14 1.0a-397 val
+btypes.h,2.4,2.5 ftnnode.c,2.30,2.31 ftnnode.h,2.18,2.19 protocol.c,2.157,2.158 readcfg.c,2.69,2.70 readcfg.h,2.30,2.31
+bandwidth limiting code advancements, `listed' session state fix
+
 2004/09/02 12:32:00 1.0a-396 val
 protocol.c,2.156,2.157
 release CPU when limiting bandwidth on Win32
