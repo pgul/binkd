@@ -1,3 +1,9 @@
+2003/09/22 14:38:50 0.9.6a-188 val
+protocol.c,2.125,2.126
+new ip checking modes in VAL_STYLE: ipNoUnknown, ipNoError;
+val's and gul's -ip modes can be used per node as ipRelaxed and ipResolved
+(lacks readcfg support still)
+
 2003/09/22 12:54:44 0.9.6a-187 gul
 client.c,2.46,2.47 protocol.c,2.124,2.125 tools.c,2.51,2.52
 Screen output semaphoring, prevent mixing output from threads
