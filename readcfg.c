@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.74  2004/10/19 17:09:04  gul
+ * Remove duplicate addresses from config
+ *
  * Revision 2.73  2004/09/21 08:27:49  val
  * distinguish nodes, listed in binkd config and passwords file - overwrite defnode parameters (e.g. host) for the later
  * (hope, it'll fix reported bug with not calling defnode)
@@ -1175,27 +1178,34 @@ static int passwords (KEYWORD *key, int wordcount, char **words)
 
 static int read_aka_list (KEYWORD *key, int wordcount, char **words)
 {
-  int       i;
-  FTN_ADDR *a;
+  int       i, n;
+  FTN_ADDR  a;
 
   if (wordcount == 0)
     return SyntaxError(key);
 
   for (i = 0; i < wordcount; i++)
   {
-    work_config.pAddr = xrealloc (work_config.pAddr, sizeof (FTN_ADDR) * (work_config.nAddr+1));
-    a = work_config.pAddr + work_config.nAddr;
-
-    if (!Config_ParseAddress(words[i], a))
+    if (!Config_ParseAddress(words[i], &a))
       return 0;
-    if (!is4D (a))
+    if (!is4D (&a))
       return ConfigError("%s: must be at least a 4D address", words[i]);
-    if (a->domain[0] == 0)
+    if (a.domain[0] == 0)
     {
       if (work_config.pDomains.first == NULL)
         return ConfigError("at least one domain must be defined first");
-      strcpy (a->domain, get_matched_domain(a->z, work_config.pAddr, work_config.nAddr, work_config.pDomains.first));
+      strcpy (a.domain, get_matched_domain(a.z, work_config.pAddr, work_config.nAddr, work_config.pDomains.first));
     }
+    for (n = 0; n < work_config.nAddr; n++)
+      if (!ftnaddress_cmp (&a, work_config.pAddr + n))
+	break;
+    if (n < work_config.nAddr)
+    {
+      Log (2, "Duplicate address %s in config ignored", words[i]);
+      continue;
+    }
+    work_config.pAddr = xrealloc (work_config.pAddr, sizeof (FTN_ADDR) * (work_config.nAddr+1));
+    memcpy (work_config.pAddr + work_config.nAddr, &a, sizeof(FTN_ADDR));
     ++work_config.nAddr;
   }
 
