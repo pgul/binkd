@@ -16,6 +16,10 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.4  2003/05/10 00:30:37  hbrew
+ * binkd9x: -u option now support '--all' service name (uninstall all services).
+ * Unneeded spaces cleanup.
+ *
  * Revision 2.3  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -31,6 +35,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <conio.h>
 #include <windows.h>
 #include <process.h>
@@ -92,6 +97,12 @@ DWORD WINAPI RegisterServiceProcess(DWORD dwProcessId,  /* process identifier */
 /*  Unregisters the process as a service process. */
 #endif
 
+typedef struct _binkd_win9x_srvlst binkd_win9x_srvlst;
+struct _binkd_win9x_srvlst
+{
+  int count;
+  char **names;
+};
 
 int win9xExec(char *cmdline)
 {
@@ -137,7 +148,7 @@ void win9x_service_args(int argc, char **argv, char **envp)
         for (i=0, j=0; i<argc; i++)
                 if (!c_argv_bool[i])
                         c_argv[j++] = __argv[i];
-}  
+}
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -325,7 +336,7 @@ int win9x_service_cmdline(int argc, char **argv, char **envp)
                         char *sp2 = strchr(argv[i], ')');
 
                         c_argv_bool[i] = 1;
-                        
+
                         len = sp2-(argv[i])-2;
 
                         srvname = (char *)malloc((len?len:prefixlen)+1);
@@ -448,7 +459,7 @@ void win9x_service_control_exec(char *tmp, int mode)
             break;
           case 1:
             if (!hwnd)
-            { 
+            {
                 if (win9x_service_start(tmp))
                 {
                         if (!s_quiet)   Log(-1, "%s: started\n", tmp);
@@ -479,26 +490,76 @@ void win9x_service_control_exec(char *tmp, int mode)
                 {
                         if (!s_quiet)  Log(-1, "%s: restarting failed!\n", tmp);
                 }
-            } 
+            }
             else
                 if (!s_quiet)  Log(-1, "%s: already stopped\n", tmp);
             break;
   }
 }
 
+static int win9x_compare_strings(const void *a, const void *b)
+{
+  return strcmp(*(char **)a, *(char **)b);
+}
+
+binkd_win9x_srvlst *win9x_get_services_list(int sort)
+{
+  binkd_win9x_srvlst *srvlst;
+  HKEY hk;
+  char *tmp;
+  int i, len, prefixlen;
+  DWORD size, reg_type;
+
+  srvlst = (binkd_win9x_srvlst *)malloc(sizeof(binkd_win9x_srvlst));
+  srvlst->count = 0;
+  srvlst->names = NULL;
+
+  if (RegOpenKey(HKEY_LOCAL_MACHINE, Win9xRegServ, &hk)==ERROR_SUCCESS)
+  {
+    tmp = (char *)malloc(256);
+    prefixlen = strlen(Win9xServPrefix);
+
+    for (i=0, size = 256; RegEnumValue(hk, i, tmp, &size, NULL, &reg_type, NULL, NULL)==ERROR_SUCCESS; i++, size = 256)
+    {
+      if (reg_type != REG_SZ) continue;
+
+      len = strlen(tmp);
+      if ((len<prefixlen)||(strncmp(tmp, Win9xServPrefix, prefixlen)!=0)||((len>prefixlen)&&(tmp[prefixlen]!='-')))
+        continue;
+
+      srvlst->names = (char **)realloc(srvlst->names, srvlst->count+1);
+      srvlst->names[srvlst->count] = strdup(tmp);
+      srvlst->count++;
+    }
+    free(tmp);
+    RegCloseKey(hk);
+
+    if (sort && srvlst->count)
+      qsort(srvlst->names, srvlst->count, sizeof(char **), win9x_compare_strings);
+  }
+
+  return srvlst;
+}
+
+void win9x_free_services_list(binkd_win9x_srvlst *srvlst)
+{
+  int i;
+
+  if (srvlst == NULL)
+    return;
+
+  for(i=0; i<srvlst->count; i++)
+    if (srvlst->names[i])
+      free(srvlst->names[i]);
+
+  free(srvlst);
+}
+
 void win9x_service_control(int type)
 {
-  HKEY hk;
-  int i, len, prefixlen, mode;
-  DWORD size, reg_type;
-  char *tmp;
+  int i, mode;
+  binkd_win9x_srvlst *srvlst;
 
-  prefixlen = strlen(Win9xServPrefix);
-
-#if 0
-  if (!s_control) /* View status of service(s) */
-  {
-#endif
   if (!s_quiet)  AllocTempConsole();
 
   if (!s_control)
@@ -528,68 +589,82 @@ void win9x_service_control(int type)
                         {
                                 Log((s_quiet?0:-1), "Unknown control token %s, only \'start\', \'stop\' and \'restart\' allowed!%s", s_control, s_quiet?"":"\n");
                                 return;
-                        }               
-     
+                        }
+
   if (win9x_check_name_all())
   {
-        tmp = (char *)malloc(256);
+        srvlst = win9x_get_services_list(1);
 
-        if (RegOpenKey(HKEY_LOCAL_MACHINE, Win9xRegServ, &hk)==ERROR_SUCCESS)
-        {
-                for (i=0, size = 256; RegEnumValue(hk, i, tmp, &size, NULL, &reg_type, NULL, NULL)==ERROR_SUCCESS; i++, size = 256)
-                {
-                        if (reg_type != REG_SZ) continue;
+        for(i=0; i<srvlst->count; i++)
+                win9x_service_control_exec(srvlst->names[i], mode);
 
-                        len = strlen(tmp);
-                        if ((len<prefixlen)||(strncmp(tmp, Win9xServPrefix, prefixlen)!=0)||((len>prefixlen)&&(tmp[prefixlen]!='-')))
-                                continue;
-
-                        win9x_service_control_exec(tmp, mode);
-                }
-
-                RegCloseKey(hk);
-        }
-        free(tmp);
+        win9x_free_services_list(srvlst);
   }
   else
         win9x_service_control_exec(srvname, mode);
 }
 
+void win9x_service_do_uninstall(char *srvname)
+{
+  HKEY hk;
+
+  if (RegOpenKey(HKEY_LOCAL_MACHINE, Win9xRegServ, &hk)==ERROR_SUCCESS)
+  {
+    RegDeleteValue(hk, srvname);
+    RegCloseKey(hk);
+  }
+
+  if (!s_quiet)  Log(-1, "%s uninstalled...\n", srvname);
+  win9x_service_control_exec(srvname, 2);
+}
+
 void win9x_service_un_install(int type, int argc, char **argv, char **envp)
 {
-  int i, j, k, len = 0;
+  int i, j, k, all, len = 0;
   char *sp, *tmp, *path;
   HKEY hk=0;
+  binkd_win9x_srvlst *srvlst;
 
   if (!s_quiet)  AllocTempConsole();
 
-  if (win9x_check_name_all())
+  all = win9x_check_name_all();
+
+  if (all&&(type != 'u'))
   {
         Log((s_quiet?0:-1), "Invalid service name!%s", s_quiet?"":"\n");
         return;
   }
 
-  j = win9x_checkservice(srvname);
-  if (type == 'u')
+  if (!all)
+  {
+        j = win9x_checkservice(srvname);
+        if (type == 'u')
           j = !j;
 
-  if (j)
-  {
-          if (!s_quiet)  Log(-1, "Service already %sinstalled...\n", type=='i'?"":"UN");
-          return;
+        if (j)
+        {
+                if (!s_quiet)  Log(-1, "Service already %sinstalled...\n", type=='i'?"":"UN");
+                return;
+        }
   }
 
   if (type == 'u')
   {
-   if (RegOpenKey(HKEY_LOCAL_MACHINE, Win9xRegServ, &hk)==ERROR_SUCCESS)
-   {
-        RegDeleteValue(hk, srvname);
-        RegCloseKey(hk);
-   }
-   if (!s_quiet)  Log(-1, "%s uninstalled...\n", srvname);
-   win9x_service_control_exec(srvname, 2);
+    if (all)
+    {
+      srvlst = win9x_get_services_list(1);
 
-   return;
+      if (!srvlst->count)
+        Log(-1, "No installed services.\n");
+      else
+        for(i=0; i<srvlst->count; i++)
+          win9x_service_do_uninstall(srvlst->names[i]);
+
+      win9x_free_services_list(srvlst);
+    }
+    else
+      win9x_service_do_uninstall(srvname);
+    return;
   }
 
 /* type == 'i' */
@@ -642,7 +717,7 @@ void win9x_service_un_install(int type, int argc, char **argv, char **envp)
 
 
         k = RegSetValueEx(hk, srvname, 0, REG_SZ, path, strlen(path)) == ERROR_SUCCESS;
-   
+
         free(path);
         RegCloseKey(hk);
   }
@@ -663,7 +738,7 @@ void win9x_service_un_install(int type, int argc, char **argv, char **envp)
                         Log(-1, "Unable to start service!\n");
                 }
         }
-  }      
+  }
 
   return;
 }
@@ -673,7 +748,7 @@ void AllocTempConsole(void)
 {
         if (s_console)
                 return;
-        
+
         if (AllocConsole())
         {
                 HANDLE ha = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -726,4 +801,4 @@ void FreeTempConsole(void)
         s_console = 0;
 }
 
-#endif        
+#endif

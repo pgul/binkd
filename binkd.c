@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30  2003/05/10 00:30:36  hbrew
+ * binkd9x: -u option now support '--all' service name (uninstall all services).
+ * Unneeded spaces cleanup.
+ *
  * Revision 2.29  2003/05/04 08:45:30  gul
  * Lock semaphores more safely for resolve and IP-addr print
  *
@@ -185,9 +189,9 @@
 
 #ifdef HAVE_THREADS
 #include "sem.h"
-MUTEXSEM hostsem = 0; 
-MUTEXSEM resolvsem = 0; 
-MUTEXSEM varsem = 0; 
+MUTEXSEM hostsem = 0;
+MUTEXSEM resolvsem = 0;
+MUTEXSEM varsem = 0;
 EVENTSEM eothread = 0;
 EVENTSEM exitcmgr = 0;
 #ifdef OS2
@@ -243,7 +247,7 @@ void usage (void)
 	  "iut"
 #elif defined(WIN32)
 	  "T%s"
-#endif          
+#endif
 	  "pqrsvmh] [-P node] config"
 #ifdef OS2
 	  " [socket]"
@@ -261,8 +265,8 @@ void usage (void)
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
 	  "  -i       run from inetd\n"
 #elif defined(BINKDW9X)
-	  "  -i[(service-name)][q]  install Win9x service\n"
-	  "  -u[(service-name)][q]  UNinstall Win9x service\n"
+	  "  -i[(service-name)][q]        install Win9x service\n"
+	  "  -u[(service-name|--all)][q]  UNinstall Win9x service\n"
 	  "  -t[start|stop|restart][(service-name|--all)][q]  status|control service(s)\n"
 #elif defined(WIN32)
 	  "  -T       minimize to Tray\n"

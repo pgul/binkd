@@ -66,11 +66,13 @@ binkd9x при указании ключа -C автоматически перезапускается при изменении
  для автоматического управления сервисами командой "-t". Если установка
  сервиса прошла успешно, binkd9x пытается запустить сервис.
 
-"-u[(service-name)][q] UNinstall Win9x service"
- Удаление сервиса. Работает аналогично команде "-i".
+"-u[(service-name|--all)][q] UNinstall Win9x service"
+ Удаление сервиса. Работает аналогично команде "-i". Можно удалить все
+ зарегистрированные сервисы, указав вместо имени сервиса --all.
  Пример:
  1. binkd9x -u        ==> удалить binkd9x-service
  2. binkd9x -u(Zol)   ==> удалить binkd9x-service-Zol
+ 3. binkd9x -u(--all) ==> удалить все binkd9x-сервисы
 
 
 "-t[start|stop|restart][(service-name|--all)][q] status|control service(s)"
