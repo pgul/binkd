@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2003/03/10 08:38:07  gul
+ * Make n_servers/n_clients changes thread-safe
+ *
  * Revision 2.12  2003/03/05 19:47:11  gul
  * Fix compilation warning
  *
@@ -147,7 +150,7 @@ void serv (void *arg)
   free (arg);
   rel_grow_handles (-6);
 #ifdef HAVE_THREADS
-  --n_servers;
+  threadsafe(--n_servers);
   _endthread();
 #endif
 }
@@ -293,11 +296,11 @@ accepterr:
       releasehostsem();
 
       /* Creating a new process for the incoming connection */
-      ++n_servers;
+      threadsafe(++n_servers);
       if ((pid = branch (serv, (void *) &new_sockfd, sizeof (new_sockfd))) < 0)
       {
         rel_grow_handles (-6);
-	--n_servers;
+	threadsafe(--n_servers);
 	Log (1, "cannot branch out");
         sleep(1);
       }

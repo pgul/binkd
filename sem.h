@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/03/10 08:38:07  gul
+ * Make n_servers/n_clients changes thread-safe
+ *
  * Revision 2.2  2003/02/22 19:20:25  gul
  * Fix type in previous patch
  *
@@ -108,14 +111,17 @@ int _ReleaseSem (void *);
 
 #ifdef HAVE_THREADS
 extern MUTEXSEM hostsem;
+extern MUTEXSEM varsem;
 #define lockhostsem()		LockSem(&hostsem)
 #define releasehostsem()	ReleaseSem(&hostsem)
+#define threadsafe(exp)		LockSem(&varsem); exp; ReleaseSem(&varsem)
 #ifdef OS2
 extern MUTEXSEM fhsem;
 #endif
 #else
 #define lockhostsem()
 #define releasehostsem()
+#define threadsafe(exp)		exp
 #endif
 
 #endif

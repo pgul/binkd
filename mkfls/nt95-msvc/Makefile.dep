@@ -114,6 +114,7 @@
 	".\readcfg.h"\
 	".\sys.h"\
 	".\tools.h"\
+	".\sem.h"\
 	
 
 .\FTNADDR.C : \

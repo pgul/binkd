@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.21  2003/03/10 08:38:07  gul
+ * Make n_servers/n_clients changes thread-safe
+ *
  * Revision 2.20  2003/03/05 13:21:50  gul
  * Fix warnings
  *
@@ -157,6 +160,7 @@
 #ifdef HAVE_THREADS
 #include "sem.h"
 MUTEXSEM hostsem = 0; 
+MUTEXSEM varsem = 0; 
 #ifdef OS2
 MUTEXSEM fhsem = 0;
 #endif
@@ -472,6 +476,7 @@ int main (int argc, char *argv[], char *envp[])
   signal (SIGCHLD, chld);
 #else
   InitSem (&hostsem);
+  InitSem (&varsem);
 #ifdef OS2
   InitSem (&fhsem);
 #endif

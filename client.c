@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.18  2003/03/10 08:38:07  gul
+ * Make n_servers/n_clients changes thread-safe
+ *
  * Revision 2.17  2003/03/06 18:24:00  gul
  * Fix exitfunc with threads
  *
@@ -245,11 +248,11 @@ void clientmgr (void *arg)
 	  bsy_test (&r->fa, F_CSY))
       {
         rel_grow_handles (6);
-	++n_clients;
+	threadsafe(++n_clients);
 	if ((pid = branch (call, (void *) r, sizeof (*r))) < 0)
 	{
           rel_grow_handles (-6);
-	  --n_clients;
+	  threadsafe(--n_clients);
 	  Log (1, "cannot branch out");
           SLEEP(1);
 	}
@@ -495,7 +498,7 @@ static void call (void *arg)
   free (arg);
   rel_grow_handles(-6);
 #ifdef HAVE_THREADS
-  --n_clients;
+  threadsafe(--n_clients);
   _endthread();
 #endif
 }

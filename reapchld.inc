@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2003/03/10 08:38:07  gul
+ * Make n_servers/n_clients changes thread-safe
+ *
  * Revision 2.0  2001/01/10 12:12:39  gul
  * Binkd is under CVS again
  *
@@ -29,7 +32,7 @@
       exit(4);
     }
 #ifdef CHILDCOUNT
-    CHILDCOUNT--;
+    threadsafe(CHILDCOUNT--);
 #endif
     Log (4, "rc(%i)=%i", pid, status);
   }

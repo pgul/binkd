@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2003/03/10 08:38:07  gul
+ * Make n_servers/n_clients changes thread-safe
+ *
  * Revision 2.6  2003/03/09 18:19:32  gul
  * Bugfix
  *
@@ -53,6 +56,7 @@
 #include "iphdr.h"
 #include "readcfg.h"
 #include "binlog.h"
+#include "sem.h"
 
 extern int pidcmgr;		       /* pid for clientmgr */
 extern int pidsmgr;		       /* pid for server */
@@ -68,15 +72,17 @@ static SOCKET max_socket;
 
 int add_socket(SOCKET sockfd)
 {
-  FD_SET (sockfd, &sockets);
-  if (sockfd >= max_socket)
-    max_socket = sockfd + 1;
+  threadsafe(
+    FD_SET (sockfd, &sockets);
+    if (sockfd >= max_socket)
+      max_socket = sockfd + 1;
+  );
   return 0;
 }
 
 int del_socket(SOCKET sockfd)
 {
-  FD_CLR (sockfd, &sockets);
+  threadsafe(FD_CLR (sockfd, &sockets));
   return 0;
 }
 
