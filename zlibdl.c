@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2003/10/06 08:25:28  val
+ * turn off optimization for zlibdl.c
+ *
  * Revision 2.7  2003/10/06 06:30:36  val
  * zlib code fix
  *
@@ -33,6 +36,9 @@
 
 #ifdef WIN32
 #include <windows.h>
+#ifdef __MSC__
+#pragma optimize("", off)
+#endif
 #endif
 
 #ifdef OS2
