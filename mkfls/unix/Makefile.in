@@ -13,7 +13,7 @@ OBJS=${SRCS:.c=.o}
 AUTODEFS=@DEFS@
 AUTOLIBS=@LIBS@
 DEFINES=$(AUTODEFS) -DHAVE_FORK -DUNIX -DOS="\"UNIX\""
-CFLAGS=$(DEFINES) -Wall -Wno-char-subscripts
+CFLAGS=$(DEFINES) -Wall -Wno-char-subscripts @CFLAGS@
 LIBS=$(AUTOLIBS)
 
 all: compile banner
