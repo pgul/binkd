@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.36  2003/03/02 18:08:56  gul
+ * Do not scan outbound twice: on prescan (for TRF report) and at complete_login
+ *
  * Revision 2.35  2003/03/02 17:51:37  gul
  * Close received file before send M_GOT
  *
@@ -700,8 +703,6 @@ static void do_prescan(STATE *state)
     savend = state->ND_flag;
     state->ND_flag = YES_ND;
     q_get_sizes (state->q, &netsize, &filessize);
-    if (state->q) q_free (state->q);
-    state->q = NULL;
     state->ND_flag = savend;
     sprintf(s, "%lu %lu", netsize, filessize);
     msg_send2 (state, M_NUL, "TRF ", s);
@@ -1022,7 +1023,7 @@ static void complete_login (STATE *state)
   NO_NR;
   if (state->ND_flag!=YES_ND) state->ND_flag=NO_ND;
   state->inbound = select_inbound (state->fa, state->state);
-  if (OK_SEND_FILES (state))
+  if (OK_SEND_FILES (state) && state->q == NULL)
     state->q = q_scan_addrs (0, state->fa, state->nfa, state->to ? 1 : 0);
   state->msgs_in_batch = 0;	       /* Forget about login msgs */
   if (state->state == P_SECURE)
