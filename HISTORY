@@ -1,3 +1,7 @@
+2003/09/19 16:37:16 0.9.6a-183 val
+ftnnode.c,2.23,2.24
+old get_defnode_info() logic returned for a while
+
 2003/09/19 15:52:59 0.9.6a-182 val
 protocol.c,2.122,2.123
 fix bug with not sending GZ parameter to M_FILE after M_GET
