@@ -1,3 +1,8 @@
+2003/10/24 00:38:56 1.0a-271
+ gul
+breaksig.c,2.21,2.22
+Remove C++ style comments
+
 2003/10/24 00:16:12 1.0a-270
  gul
 zlibdl.h,2.14,2.15
