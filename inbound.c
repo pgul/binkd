@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.34  2004/10/29 11:16:33  gul
+ * Fixed bug with check required free space if off_t is signed long
+ * and getfree() returns ULONG_MAX.
+ *
  * Revision 2.33  2004/10/19 16:28:18  gul
  * Do not remove complete received but not renamed partial files
  * for prevent data loss in ND-mode.
@@ -415,7 +419,7 @@ fopen_again:
       goto fopen_again;
     }
     if (req_free >= 0 &&
-	(off_t) freespace < (state->in.size - sb.st_size + 1023) / 1024 + req_free)
+	freespace < (state->in.size - sb.st_size + 1023) / 1024 + req_free)
     {
       Log (1, "no enough free space in %s (%luK, req-d %" PRIuMAX "K)",
 	   (freespace == freespace2) ? state->inbound : config->temp_inbound,
