@@ -64,6 +64,8 @@
       (США, Matt Bedynek 1:106/1)
     ftp://ftp.alexblues.ru/pub/binkd/
       (Россия, Alexander Gladchenko 2:5080/111, обновляется в 22:00 UTC)
+    ftp://cube.sut.ru/pub/mirror/binkd/
+      (Россия, Dmitriy Yermakov 2:5030/1115)
 
     Бэты:
     Публичный CVS
