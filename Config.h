@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.124  2003/08/18 17:19:14  stream
+ * Auto increase patchlevel, set 0.9.6a-111
+ * Partially implemented new configuration parser logic (required for config reload)
+ *
  * Revision 2.123  2003/08/18 15:44:53  stream
  * Auto increase patchlevel, set 0.9.6a-110
  * New function last_slash(): Return pointer to last directory separator
@@ -536,7 +540,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-110"
+#define MYVER "0.9.6a-111"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
