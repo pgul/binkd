@@ -492,3 +492,5 @@ NT/95:  ctrl-c problems fixed
 
 	New option deletedirs in binkd.cfg - delete empty point
 	dirs in BSO.
+
+	Do not send empty (60-bytes) pkt files.

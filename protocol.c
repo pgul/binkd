@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2002/05/11 10:27:22  gul
+ * Do not send empty (60-bytes) pkt-files
+ *
  * Revision 2.12  2002/02/22 08:57:23  gul
  * Pring warning if remote says "OK non-secure" and we have password
  * for the session
@@ -1860,6 +1863,15 @@ static int start_file_transfer (STATE *state, FTNQ *file)
   Log(9, "Dont waiting for M_GOT");
   state->out.start = time (0);
   netname (state->out.netname, &state->out);
+  if (ispkt(state->out.netname) && state->out.size <= 60)
+  {
+    Log (3, "skip empty pkt %s, %li bytes", state->out.path, state->out.size);
+    if (state->out.f) fclose(state->out.f);
+    remove_from_spool (state, state->out.flo,
+			 state->out.path, state->out.action);
+    TF_ZERO (&state->out);
+    return 0;
+  }
   Log (3, "sending %s as %s (%li)",
        state->out.path, state->out.netname, (long) state->out.size);
 
