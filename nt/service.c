@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4.2.2  2003/06/21 15:35:35  hbrew
+ * Fix running on Win9x-systems.
+ *
  * Revision 2.4.2.1  2003/06/17 15:48:00  stas
  * Prevent service operations on incompatible OS (NT and 9x)
  *
@@ -53,7 +56,7 @@
 #include "../tools.h"
 #include "service.h"
 
-int W32_CheckOS(unsigned long PlatformId); /* see TCPErr.c */
+/* int W32_CheckOS(unsigned long PlatformId); */ /* see TCPErr.c */
 
 static char libname[]="ADVAPI32";
 static char *srvname="binkd-service";
@@ -68,29 +71,29 @@ static int service_main(int type);
 extern int checkcfg_flag;
 int isService=0;
 
-static BOOL ReportStatusToSCMgr(DWORD dwCurrentState, 
-                         DWORD dwWin32ExitCode, 
-                         DWORD dwWaitHint) 
-{ 
-  static DWORD dwCheckPoint = 1; 
-  BOOL fResult = TRUE; 
- 
-  if (dwCurrentState == SERVICE_START_PENDING) 
-    sstat.dwControlsAccepted = 0; 
-  else 
-    sstat.dwControlsAccepted = SERVICE_ACCEPT_STOP; 
-  sstat.dwCurrentState = dwCurrentState; 
-  sstat.dwWin32ExitCode = dwWin32ExitCode; 
-  sstat.dwWaitHint = dwWaitHint; 
+static BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
+                         DWORD dwWin32ExitCode,
+                         DWORD dwWaitHint)
+{
+  static DWORD dwCheckPoint = 1;
+  BOOL fResult = TRUE;
 
-  if ( ( dwCurrentState == SERVICE_RUNNING ) || 
-       ( dwCurrentState == SERVICE_STOPPED ) ) 
-    sstat.dwCheckPoint = 0; 
-  else 
-    sstat.dwCheckPoint = dwCheckPoint++; 
+  if (dwCurrentState == SERVICE_START_PENDING)
+    sstat.dwControlsAccepted = 0;
+  else
+    sstat.dwControlsAccepted = SERVICE_ACCEPT_STOP;
+  sstat.dwCurrentState = dwCurrentState;
+  sstat.dwWin32ExitCode = dwWin32ExitCode;
+  sstat.dwWaitHint = dwWaitHint;
+
+  if ( ( dwCurrentState == SERVICE_RUNNING ) ||
+       ( dwCurrentState == SERVICE_STOPPED ) )
+    sstat.dwCheckPoint = 0;
+  else
+    sstat.dwCheckPoint = dwCheckPoint++;
 
   fResult = SetServiceStatus( sshan, &sstat);
-  return fResult; 
+  return fResult;
 }
 
 BOOL SigHandler(DWORD SigType);
@@ -107,7 +110,7 @@ static void WINAPI ServiceCtrl(DWORD dwCtrlCode)
   default:
     break;
   }
-  ReportStatusToSCMgr(sstat.dwCurrentState, NO_ERROR, 0); 
+  ReportStatusToSCMgr(sstat.dwCurrentState, NO_ERROR, 0);
 }
 
 void atServiceExit(void)
@@ -173,7 +176,7 @@ static void ServiceStart(LPTSTR args)
     default:
       dwErr=GetLastError();
     }
-    if(dwErr!=NO_ERROR) 
+    if(dwErr!=NO_ERROR)
       break;
     sw=0;
     rc=RegQueryValueEx(hk, "env", NULL, &dw, env, &sw);
@@ -193,7 +196,7 @@ static void ServiceStart(LPTSTR args)
 
     if(env)
     {
-      for(i=argc=0;env[i];i+=strlen(env+i)+1) argc++; 
+      for(i=argc=0;env[i];i+=strlen(env+i)+1) argc++;
       serv_envp=(char**)malloc(sizeof(char*)*(argc+1));
       for(i=argc=0;env[i];i+=strlen(env+i)+1) serv_envp[argc++]=env+i;
       serv_envp[argc++]=NULL;
@@ -208,7 +211,7 @@ static void ServiceStart(LPTSTR args)
   atServiceExit();
 }
 
-static void WINAPI ServiceMain(LPTSTR args) 
+static void WINAPI ServiceMain(LPTSTR args)
 {
   sshan=RegisterServiceCtrlHandler(srvname, ServiceCtrl);
   while(sshan)
@@ -219,7 +222,7 @@ static void WINAPI ServiceMain(LPTSTR args)
     ServiceStart(args);
     break;
   }
-  if(sshan) 
+  if(sshan)
     atServiceExit();
   exit(0);
 }
@@ -231,7 +234,7 @@ static int service_main(int type)
   HINSTANCE hl;
   int i, rc=0;
 
-  if((!type)||(type==6)) 
+  if((!type)||(type==6))
   {
     hl=LoadLibrary(libname);
     if(!hl) return 1;
@@ -242,7 +245,7 @@ static int service_main(int type)
     }
     FreeLibrary(hl);
   }
-  
+
   sman=OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
   if(!sman)
   {
@@ -269,7 +272,7 @@ static int service_main(int type)
     break;
   case 5:
   case 2: /* install, if we don have one */
-    if(!shan) 
+    if(!shan)
     {
       char path[MAXPATHLEN+1];
       if(GetModuleFileName(NULL, path, MAXPATHLEN)<1)
@@ -280,7 +283,7 @@ static int service_main(int type)
       }
       sprintf(path + strlen(path), " \1 -(%s)", srvname);
       shan=CreateService(sman, srvname, srvname, SERVICE_ALL_ACCESS,
-        srvtype, SERVICE_AUTO_START, 
+        srvtype, SERVICE_AUTO_START,
         SERVICE_ERROR_NORMAL, path, NULL, NULL, NULL, NULL, NULL);
       if(!shan)
         Log(-1, "Error in CreateService()=%d\n", GetLastError());
@@ -297,7 +300,7 @@ static int service_main(int type)
     if(StartService(shan, 0, NULL))
     {
       int j;
-      for(i=j=0;(i<30)&&(QueryServiceStatus(shan,&sstat));i++) 
+      for(i=j=0;(i<30)&&(QueryServiceStatus(shan,&sstat));i++)
       {
         if((sstat.dwCurrentState == SERVICE_START_PENDING)||
           ((i<3)&&(sstat.dwCurrentState != SERVICE_RUNNING))||((j++)<9))
@@ -307,7 +310,7 @@ static int service_main(int type)
         }
         else break;
       }
-      if(sstat.dwCurrentState != SERVICE_RUNNING) 
+      if(sstat.dwCurrentState != SERVICE_RUNNING)
       {
         Log(-1, "Service not started...\n");
         rc=1;
@@ -324,7 +327,7 @@ static int service_main(int type)
     /* try to stop the service  */
     if(ControlService(shan, SERVICE_CONTROL_STOP, &sstat))
     {
-      for(i=0;(i<30)&&(QueryServiceStatus(shan,&sstat));i++) 
+      for(i=0;(i<30)&&(QueryServiceStatus(shan,&sstat));i++)
       {
         if((sstat.dwCurrentState==SERVICE_STOP_PENDING) ||
           ((i<3)&&(sstat.dwCurrentState!=SERVICE_STOPPED)))
@@ -418,7 +421,7 @@ static void wndthread(void *par)
         Sleep(100);
     }
     SetConsoleTitle(buf);
-    if ((!IsWindow(mainWindow)) || (!mainWindow)) 
+    if ((!IsWindow(mainWindow)) || (!mainWindow))
     {
         if (!AllocConsole())
         {
@@ -470,7 +473,7 @@ static void wndthread(void *par)
         Log(1, "unable to register class...");
         return;
     }
-    wnd = CreateWindow(cn, "", 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL); 
+    wnd = CreateWindow(cn, "", 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL);
     if (!wnd)
     {
         Log(1, "unable to create message window...");
@@ -504,13 +507,13 @@ static void wndthread(void *par)
                 ReadConsoleInput(in, &cb, 1, &dw);
                 if ((cb.EventType == KEY_EVENT) && (cb.Event.KeyEvent.bKeyDown))
                 {
-                    processKeyCode(cb.Event.KeyEvent.wVirtualKeyCode, 
+                    processKeyCode(cb.Event.KeyEvent.wVirtualKeyCode,
                         cb.Event.KeyEvent.dwControlKeyState, out);
                 }
             }
 	    }
 
-        while(PeekMessage( &msg, wnd, 0, 0, PM_REMOVE)) 
+        while(PeekMessage( &msg, wnd, 0, 0, PM_REMOVE))
         {
             TranslateMessage( &msg );
             DispatchMessage( &msg );
@@ -525,7 +528,7 @@ static void wndthread(void *par)
         {
             memset(&wp, 0, sizeof(wp));
             wp.length = sizeof(wp);
-            if ((GetWindowPlacement(mainWindow, &wp)) && 
+            if ((GetWindowPlacement(mainWindow, &wp)) &&
                 (wp.showCmd == SW_SHOWMINIMIZED))
             {
     	        wstate = 1;
@@ -543,7 +546,7 @@ int service(int argc, char **argv, char **envp)
   char *esp=NULL, *asp=NULL;
   HKEY hk=0;
 
-  for(i=0;i<argc;i++) 
+  for(i=0;i<argc;i++)
   {
     if(argv[i][0]=='-')
     {
@@ -591,7 +594,7 @@ int service(int argc, char **argv, char **envp)
          srvtype |= SERVICE_INTERACTIVE_PROCESS;
          _beginthread(wndthread, 0, NULL);
       }
-    }    
+    }
     len+=strlen(argv[i])+1;
   }
 
@@ -618,7 +621,7 @@ int service(int argc, char **argv, char **envp)
           if((j=strlen(sp+1))>0) memcpy(asp+len, sp+1, j);
           len+=j;
         }
-        else if((j=strlen(argv[i]))>0) 
+        else if((j=strlen(argv[i]))>0)
         {
           memcpy(asp+len, argv[i], j);
           len+=j;
@@ -630,7 +633,7 @@ int service(int argc, char **argv, char **envp)
       {
         for(i=j=0; envp[i];i++) j+=strlen(envp[i])+1;
         esp=(char*)malloc(++j);
-        for(i=j=0; envp[i];i++) 
+        for(i=j=0; envp[i];i++)
         {
           strcpy(esp+j, envp[i]);
           j+=strlen(envp[i])+1;
@@ -676,7 +679,7 @@ int service(int argc, char **argv, char **envp)
       strcat(sp, srvname);
       RegDeleteKey(HKEY_LOCAL_MACHINE, sp);
       free(sp);
-      exit(0);      
+      exit(0);
     default:
       break;
     }
@@ -687,11 +690,13 @@ int service(int argc, char **argv, char **envp)
 int checkservice(void)
 {
   if(res_checkservice) return res_checkservice;
+/*
   if( W32_CheckOS(VER_PLATFORM_WIN32_NT) )
   {
       Log(0,"Can't operate witn Windows NT services: incompatible OS type");
       return res_checkservice=(-1);
   }
+*/
   if(service_main(0)) return res_checkservice=(-1);
   if(service_main(1)) return res_checkservice=1;
   return res_checkservice=2;
