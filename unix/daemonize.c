@@ -3,6 +3,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.3.2.2  2003/07/13 09:39:29  gul
+ * Fix daemonize with libc5
+ *
  * Revision 2.3.2.1  2003/07/11 15:14:22  gul
  * Fix building with libc5
  *
@@ -26,15 +29,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <fcntl.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
-#ifdef HAVE_IOCTL_H
+#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
 #endif
-#include <sys/types.h>
 
 #include "../tools.h"
 #include "daemonize.h"
@@ -52,17 +56,17 @@ if (already_daemonized)
 	return 0;
 
 #ifdef HAVE_DAEMON
-if (daemon(nochdir,0) == -1)
-	{ Log(2,"Daemon() failed, %s",strerror(errno)); return -1; }
+if (daemon(nochdir, 0) == -1)
+	{ Log(2, "Daemon() failed, %s", strerror(errno)); return -1; }
 
 #elif defined(HAVE_SETSID)
 if (fork() != 0) exit(0);
 if (setsid() == -1)
 #ifdef ultrix
 	/* Sendmail wisdom has been used */
-	if ((setpgrp(0, 0) < 0) || (setsid() < 0))
+	if ((setpgrp() < 0) || (setsid() < 0))
 #endif
-	{ Log(2,"Setsid() failed, %s",strerror(errno)); return -1; }
+	{ Log(2, "Setsid() failed, %s", strerror(errno)); }
 
 freopen("/dev/null","r",stdin);
 freopen("/dev/null","w",stdout);
@@ -74,16 +78,16 @@ if (!nochdir)
 #elif defined(HAVE_TIOCNOTTY)
 
 if (fork() != 0) exit(0);
-if (setpgrp(0,0) <0)
-	{ Log(2,"Setpgrp failed, %s",strerror(errno)); return -1; }
+if (setpgrp() < 0)
+	{ Log(2, "Setpgrp failed, %s", strerror(errno)); }
 
-{ register int fd;
-  if ((fd = open("/dev/tty", 2)) >= 0)
+{ int fd;
+  if ((fd = open("/dev/tty", O_RDWR)) >= 0)
 	{ ioctl(fd, TIOCNOTTY, (char*)0);
 	  close(fd);
 	}
   else
-	{ Log(2,"Cannot open /dev/tty, %s", strerror(errno)); return -1; }
+	{ Log(2, "Cannot open /dev/tty, %s", strerror(errno)); }
 }
 
 if (!nochdir)
