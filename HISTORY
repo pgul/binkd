@@ -1,3 +1,7 @@
+2003/09/09 20:57:45 0.9.6a-169 stream
+exitproc.c,2.26,2.27
+Do not unload config on exit (considered useless and potentially unstable)
+
 2003/09/08 20:05:44 0.9.6a-168 stream
 srif.c,2.13,2.14
 Big memory leak in evt_queue()
