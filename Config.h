@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.122  2003/08/18 09:41:03  gul
+ * Auto increase patchlevel, set 0.9.6a-109
+ * Little cleanup in handle perl errors
+ *
  * Revision 2.121  2003/08/18 09:15:41  gul
  * Auto increase patchlevel, set 0.9.6a-108
  * Cosmetics
@@ -527,7 +531,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-108"
+#define MYVER "0.9.6a-109"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
