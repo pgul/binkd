@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30  2003/08/26 21:01:10  gul
+ * Fix compilation under unix
+ *
  * Revision 2.29  2003/08/26 16:06:27  stream
  * Reload configuration on-the fly.
  *
@@ -133,6 +136,14 @@
  * We now use branch(). Listening changed.
  */
 
+#include <stdlib.h>
+#include <string.h>
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
+
 #include "readcfg.h"
 #include "common.h"
 #include "server.h"
@@ -146,12 +157,6 @@
 #include "sem.h"
 #if defined(WITH_PERL)
 #include "perlhooks.h"
-#endif
-
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#else
-#include <time.h>
 #endif
 
 int n_servers = 0;

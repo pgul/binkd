@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/08/26 21:01:09  gul
+ * Fix compilation under unix
+ *
  * Revision 2.3  2003/08/26 16:06:26  stream
  * Reload configuration on-the fly.
  *
@@ -45,7 +48,7 @@
 
 #include <stdlib.h>
 #include <signal.h>
-#include "Config.h"
+#include "readcfg.h"
 #include "sys.h"
 #include "common.h"
 #include "tools.h"

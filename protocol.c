@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.109  2003/08/26 21:01:10  gul
+ * Fix compilation under unix
+ *
  * Revision 2.108  2003/08/26 16:06:26  stream
  * Reload configuration on-the fly.
  *
@@ -407,6 +410,16 @@
  * NT port by ufm
  */
 
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <sys/stat.h>
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
+
 #include "readcfg.h"
 #include "protocol.h"
 
@@ -424,14 +437,6 @@
 #include "sem.h"
 #include "md5b.h"
 #include "crypt.h"
-
-#include <ctype.h>
-#include <sys/stat.h>
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#else
-#include <time.h>
-#endif
 
 #ifdef WITH_PERL
 #include "perlhooks.h"

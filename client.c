@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.43  2003/08/26 21:01:09  gul
+ * Fix compilation under unix
+ *
  * Revision 2.42  2003/08/26 16:06:26  stream
  * Reload configuration on-the fly.
  *
@@ -180,14 +183,16 @@
  * Now fork()'s or _beginthread()'s
  */
 
-#include "readcfg.h"
-#include "client.h"
-
+#include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 #ifdef HAVE_FORK
 #include <signal.h>
 #include <setjmp.h>
 #endif
+
+#include "readcfg.h"
+#include "client.h"
 
 #include "common.h"
 #include "iptools.h"

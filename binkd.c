@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.59  2003/08/26 21:01:09  gul
+ * Fix compilation under unix
+ *
  * Revision 2.58  2003/08/26 18:18:51  gul
  * Process "-?" commandline switch as "-h"
  *
@@ -246,6 +249,8 @@
  *    Port to NT
  */
 
+#include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 
 #include "readcfg.h"
@@ -257,6 +262,7 @@
 #include "bsy.h"
 #include "protocol.h"
 #include "setpttl.h"
+#include "sem.h"
 
 #ifdef HAVE_GETOPT
 #include <unistd.h>
@@ -281,7 +287,6 @@
 #endif
 
 #ifdef HAVE_THREADS
-#include "sem.h"
 MUTEXSEM hostsem = 0;
 MUTEXSEM resolvsem = 0;
 MUTEXSEM lsem = 0;

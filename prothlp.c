@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/08/26 21:01:10  gul
+ * Fix compilation under unix
+ *
  * Revision 2.4  2003/08/26 16:06:26  stream
  * Reload configuration on-the fly.
  *
@@ -43,6 +46,9 @@
  * Initial revision
  *
  */
+
+#include <stdlib.h>
+#include <string.h>
 
 #include "readcfg.h"
 #include "prothlp.h"

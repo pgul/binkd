@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.48  2003/08/26 21:01:10  gul
+ * Fix compilation under unix
+ *
  * Revision 2.47  2003/08/26 16:06:27  stream
  * Reload configuration on-the fly.
  *
@@ -210,6 +213,15 @@
  * `include', extened `node', more?
  */
 
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <sys/stat.h>
+#if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
+#define SYSLOG_NAMES
+#include <syslog.h>
+#endif
+
 #include "readcfg.h"
 #include "common.h"
 
@@ -218,13 +230,6 @@
 #include "srif.h"
 #include "iptools.h"
 #include "readflo.h"
-
-#include <ctype.h>
-#include <sys/stat.h>
-#if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
-#define SYSLOG_NAMES
-#include <syslog.h>
-#endif
 
 /*
  * Pointer to actual config used by all processes
@@ -498,8 +503,6 @@ static int read_check_pkthdr (KEYWORD *key, int wordcount, char **words);
 
 /* Helper functions for shared akas implementation */
 static int read_shares (KEYWORD *key, int wordcount, char **words);
-static void add_shares(SHARED_CHAIN * chain);
-static void add_address(SHARED_CHAIN * chain, FTN_ADDR_CHAIN * aka);
 
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
 static int read_syslog_facility (KEYWORD *key, int wordcount, char **words);

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/08/26 21:01:10  gul
+ * Fix compilation under unix
+ *
  * Revision 2.4  2003/04/07 18:22:16  gul
  * Wait for external process under win32 bugfix
  *
@@ -42,6 +45,7 @@
 #include <windows.h>
 #endif
 
+#include "readcfg.h"
 #include "run.h"
 #include "tools.h"
 

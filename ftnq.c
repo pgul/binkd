@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.24  2003/08/26 21:01:10  gul
+ * Fix compilation under unix
+ *
  * Revision 2.23  2003/08/26 16:06:26  stream
  * Reload configuration on-the fly.
  *
@@ -121,6 +124,11 @@
  * Addedd q_scan_addrs()
  */
 
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <sys/stat.h>
+
 #include "readcfg.h"
 #include "ftnq.h"
 
@@ -129,9 +137,6 @@
 #ifdef WITH_PERL
 #include "perlhooks.h"
 #endif
-
-#include <ctype.h>
-#include <sys/stat.h>
 
 const char prio[] = "IiCcDdOoFfHh";
 static const char flo_flvrs[] = "icdfhICDFH";

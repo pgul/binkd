@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.20  2003/08/26 21:01:10  gul
+ * Fix compilation under unix
+ *
  * Revision 2.19  2003/08/26 16:06:26  stream
  * Reload configuration on-the fly.
  *
@@ -98,6 +101,11 @@
  * Added more paranoia
  */
 
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <sys/stat.h>
+
 #include "readcfg.h"
 #include "inbound.h"
 #include "common.h"
@@ -107,9 +115,6 @@
 #ifdef WITH_PERL
 #include "perlhooks.h"
 #endif
-
-#include <ctype.h>
-#include <sys/stat.h>
 
 /* Removes both xxxxx.hr and it's xxxxx.dt */
 static void remove_hr (char *path)
