@@ -30,5 +30,9 @@
 - send-hold-on-outgoing option
 - argus-compatible freq (M_NUL "FREQ")
 - select() bug on win9x: 100% cpu load on sending file
-- options -snr, -snd - force send in NR or ND mode on binkp/1.1
+- option -snr - force send in NR mode on binkp/1.1
 - turn on NR-mode if exists incomplete files from this link (optional?)
+- option -mc - must crypt. Drop session if remote does not support crypt mode
+- use getopt() for commandline parser
+- xBSO
+- go to tray under windows
