@@ -1,1058 +1,132 @@
-# Microsoft Developer Studio Generated NMAKE File, Based on binkd.dsp
+# Microsoft Visual C++ Makefile
 # $Id$
-!IFNDEF BINKD9X
-!MESSAGE To make binkd9x, you can specify BINKD9X macros when running NMAKE
-!MESSAGE by defining the macro BINKD9X on the command line. For example:
-!MESSAGE
-!MESSAGE NMAKE BINKD9X=
-!MESSAGE
-!ENDIF
+#
+# Usage: nmake [DEBUG=1] [BINKD9X=1]
+#
 
-!IF "$(CFG)" == ""
-CFG=binkd - Win32 Release
-!MESSAGE No configuration specified. Defaulting to binkd - Win32 Release.
-!ENDIF 
+!ifdef BINKD9X
+BINKDEXE=  binkd9x
+BINKD9X_DEFINES= -D "_WINDOWS" -D "BINKDW9X"
+BINKD9X_SUBSYSTEM= windows
+OUTDIRSUFFIX= -w9x
+!else
+BINKDEXE=  binkd
+BINKD9X_DEFINES= -D"_CONSOLE"
+BINKD9X_SUBSYSTEM= console
+OUTDIRSUFFIX=
+!endif
 
-!IF "$(CFG)" != "binkd - Win32 Debug" && "$(CFG)" != "binkd - Win32 Release"
-!MESSAGE Invalid configuration "$(CFG)" specified.
-!MESSAGE You can specify a configuration when running NMAKE
-!MESSAGE by defining the macro CFG on the command line. For example:
-!MESSAGE 
-!MESSAGE NMAKE CFG="binkd - Win32 Debug"
-!MESSAGE 
-!MESSAGE Possible choices for configuration are:
-!MESSAGE 
-!MESSAGE "binkd - Win32 Debug"   
-!MESSAGE "binkd - Win32 Release" (default)
-!MESSAGE 
-!ERROR An invalid configuration is specified.
-!ENDIF 
+!ifndef DEBUG
+CFLAGS=    -nologo -MT  -W3 -GX -Ox -c
+CDEBUG=
+OUTDIR=    .\Release$(OUTDIRSUFFIX)
+BINKDSBR=
+LDEBUG=
+!else
+CFLAGS=    -nologo -MTd -W3 -Gm -GX -ZI -Od -c
+CDEBUG=    -D"_DEBUG"
+OUTDIR=    .\Debug$(OUTDIRSUFFIX)
+BINKDSBR=  -FR"$(OUTDIR)\\"
+LDEBUG=    /incremental:yes /map:"$(OUTDIR)\$(BINKDEXE).map" /debug
+!endif
 
-!IF "$(OS)" == "Windows_NT"
-NULL=
-!ELSE 
-NULL=nul
-!ENDIF 
+CC=        cl
+CDEFS=     $(CDEBUG) $(BINKD9X_DEFINES) -D"HTTPS" -D"WIN32" -D"HAVE_THREADS" -D"HAVE_IO_H" -D"HAVE_DOS_H" -D"VISUALCPP" -D"AMIGADOS_4D_OUTBOUND"
+COPT=      $(BINKDSBR) -Fo"$(OUTDIR)\\" -Fp"$(OUTDIR)\$(BINKDEXE).pch" -YX -Fd"$(OUTDIR)\\"
+LINK=      link
+LFLAGS=    /nologo /machine:I386
+LOPT=      $(LDEBUG) /subsystem:$(BINKD9X_SUBSYSTEM) /pdb:"$(OUTDIR)\$(BINKDEXE).pdb" /out:"$(OUTDIR)\$(BINKDEXE).exe"
+LLIBS=     kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib wsock32.lib
+BSC=       bscmake
+BINKDBSC=  "$(OUTDIR)\$(BINKDEXE).bsc"
+BSCFLAGS=  /nologo /o$(BINKDBSC)
 
-!IFNDEF BINKD9X
-OutFile=binkd
-ModeOpt=/D "_CONSOLE"
-SubSys=console
-!ELSE
-OutFile=binkd9x
-ModeOpt=/D "_WINDOWS" /D "BINKDW9X"
-SubSys=windows
-!ENDIF
+!ifdef BINKD9X
+BINKD9X_OBJ="$(OUTDIR)\win9x.obj"
+NTSERVICE_OBJ=
+!else
+BINKD9X_OBJ=
+NTSERVICE_OBJ="$(OUTDIR)\service.obj"
+!endif
 
-!IF  "$(CFG)" == "binkd - Win32 Debug"
+NTLM_OBJS= \
+ "$(OUTDIR)\des_enc.obj"  "$(OUTDIR)\helpers.obj"  "$(OUTDIR)\ecb_enc.obj" \
+ "$(OUTDIR)\md4_dgst.obj" "$(OUTDIR)\set_key.obj"
+NT_OBJS= \
+ "$(OUTDIR)\breaksig.obj" "$(OUTDIR)\sem.obj"      "$(OUTDIR)\getfree.obj" \
+ "$(OUTDIR)\TCPErr.obj"   "$(OUTDIR)\WSock.obj"    "$(OUTDIR)\dirwin32.obj"
+OBJS= \
+ "$(OUTDIR)\binkd.obj"    "$(OUTDIR)\readcfg.obj"  "$(OUTDIR)\tools.obj"   \
+ "$(OUTDIR)\ftnaddr.obj"  "$(OUTDIR)\ftnq.obj"     "$(OUTDIR)\client.obj"  \
+ "$(OUTDIR)\server.obj"   "$(OUTDIR)\protocol.obj" "$(OUTDIR)\bsy.obj"     \
+ "$(OUTDIR)\inbound.obj"  "$(OUTDIR)\branch.obj"   "$(OUTDIR)\ftndom.obj"  \
+ "$(OUTDIR)\ftnnode.obj"  "$(OUTDIR)\srif.obj"     "$(OUTDIR)\pmatch.obj"  \
+ "$(OUTDIR)\readflo.obj"  "$(OUTDIR)\prothlp.obj"  "$(OUTDIR)\iptools.obj" \
+ "$(OUTDIR)\run.obj"      "$(OUTDIR)\binlog.obj"   "$(OUTDIR)\exitproc.obj"\
+ "$(OUTDIR)\getw.obj"     "$(OUTDIR)\xalloc.obj"   "$(OUTDIR)\setpttl.obj" \
+ "$(OUTDIR)\https.obj"    "$(OUTDIR)\md5b.obj"     "$(OUTDIR)\crypt.obj"   \
+ $(NT_OBJS) $(NTSERVICE_OBJ) $(BINKD9X_OBJ) $(NTLM_OBJS)
 
-!IFNDEF BINKD9X
-OUTDIR=.\Debug
-INTDIR=.\Debug
-# Begin Custom Macros
-OutDir=.\Debug
-# End Custom Macros
-!ELSE
-OUTDIR=.\Debug-w9x
-INTDIR=.\Debug-w9x
-# Begin Custom Macros
-OutDir=.\Debug-w9x
-# End Custom Macros
-!ENDIF
+!ifdef DEBUG
+SBRS= $(OBJS:.obj=.sbr)
+BSCTARGET= $(BINKDBSC)
+!endif
 
-ALL : "$(OUTDIR)\$(OutFile).exe" "$(OUTDIR)\$(OutFile).bsc"
+all:      "$(OUTDIR)" "$(OUTDIR)\$(BINKDEXE).exe" $(BSCTARGET)
 
-
-CLEAN :
-	-@erase "$(INTDIR)\service.obj"
-	-@erase "$(INTDIR)\https.obj"
-	-@erase "$(INTDIR)\helpers.obj"
-	-@erase "$(INTDIR)\ecb_enc.obj"
-	-@erase "$(INTDIR)\des_enc.obj"
-	-@erase "$(INTDIR)\md4_dgst.obj"
-	-@erase "$(INTDIR)\set_key.obj"
-	-@erase "$(INTDIR)\BINKD.OBJ"
-	-@erase "$(INTDIR)\BINKD.SBR"
-	-@erase "$(INTDIR)\binlog.obj"
-	-@erase "$(INTDIR)\binlog.sbr"
-	-@erase "$(INTDIR)\branch.obj"
-	-@erase "$(INTDIR)\branch.sbr"
-	-@erase "$(INTDIR)\breaksig.obj"
-	-@erase "$(INTDIR)\breaksig.sbr"
-	-@erase "$(INTDIR)\BSY.OBJ"
-	-@erase "$(INTDIR)\BSY.SBR"
-	-@erase "$(INTDIR)\CLIENT.OBJ"
-	-@erase "$(INTDIR)\CLIENT.SBR"
-	-@erase "$(INTDIR)\dirwin32.obj"
-	-@erase "$(INTDIR)\dirwin32.sbr"
-	-@erase "$(INTDIR)\exitproc.obj"
-	-@erase "$(INTDIR)\exitproc.sbr"
-	-@erase "$(INTDIR)\FTNADDR.OBJ"
-	-@erase "$(INTDIR)\FTNADDR.SBR"
-	-@erase "$(INTDIR)\ftndom.obj"
-	-@erase "$(INTDIR)\ftndom.sbr"
-	-@erase "$(INTDIR)\ftnnode.obj"
-	-@erase "$(INTDIR)\ftnnode.sbr"
-	-@erase "$(INTDIR)\FTNQ.OBJ"
-	-@erase "$(INTDIR)\FTNQ.SBR"
-	-@erase "$(INTDIR)\getfree.obj"
-	-@erase "$(INTDIR)\getfree.sbr"
-	-@erase "$(INTDIR)\getw.obj"
-	-@erase "$(INTDIR)\getw.sbr"
-	-@erase "$(INTDIR)\INBOUND.OBJ"
-	-@erase "$(INTDIR)\INBOUND.SBR"
-	-@erase "$(INTDIR)\iptools.obj"
-	-@erase "$(INTDIR)\iptools.sbr"
-	-@erase "$(INTDIR)\pmatch.obj"
-	-@erase "$(INTDIR)\pmatch.sbr"
-	-@erase "$(INTDIR)\prothlp.obj"
-	-@erase "$(INTDIR)\prothlp.sbr"
-	-@erase "$(INTDIR)\PROTOCOL.OBJ"
-	-@erase "$(INTDIR)\PROTOCOL.SBR"
-	-@erase "$(INTDIR)\READCFG.OBJ"
-	-@erase "$(INTDIR)\READCFG.SBR"
-	-@erase "$(INTDIR)\readflo.obj"
-	-@erase "$(INTDIR)\readflo.sbr"
-	-@erase "$(INTDIR)\run.obj"
-	-@erase "$(INTDIR)\run.sbr"
-	-@erase "$(INTDIR)\sem.obj"
-	-@erase "$(INTDIR)\sem.sbr"
-	-@erase "$(INTDIR)\SERVER.OBJ"
-	-@erase "$(INTDIR)\SERVER.SBR"
-	-@erase "$(INTDIR)\setpttl.obj"
-	-@erase "$(INTDIR)\setpttl.sbr"
-	-@erase "$(INTDIR)\srif.obj"
-	-@erase "$(INTDIR)\srif.sbr"
-	-@erase "$(INTDIR)\TCPErr.obj"
-	-@erase "$(INTDIR)\TCPErr.sbr"
-	-@erase "$(INTDIR)\TOOLS.OBJ"
-	-@erase "$(INTDIR)\TOOLS.SBR"
-	-@erase "$(INTDIR)\vc60.idb"
-	-@erase "$(INTDIR)\vc60.pdb"
-	-@erase "$(INTDIR)\WSock.obj"
-	-@erase "$(INTDIR)\WSock.sbr"
-	-@erase "$(INTDIR)\xalloc.obj"
-	-@erase "$(INTDIR)\xalloc.sbr"
-	-@erase "$(OUTDIR)\$(OutFile).bsc"
-	-@erase "$(OUTDIR)\$(OutFile).exe"
-	-@erase "$(OUTDIR)\$(OutFile).ilk"
-	-@erase "$(OUTDIR)\$(OutFile).map"
-	-@erase "$(OUTDIR)\$(OutFile).pdb"
-	-@erase "$(INTDIR)\md5b.obj"
-	-@erase "$(INTDIR)\crypt.obj"
-	-@erase "$(INTDIR)\win9x.obj"
-
-"$(OUTDIR)" :
-    if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
-
-CPP=cl.exe
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /D "HTTPS" /D "_DEBUG" /D "WIN32" $(ModeOpt) /D "HAVE_THREADS" /D "HAVE_IO_H" /D "HAVE_DOS_H" /D "VISUALCPP" /D "AMIGADOS_4D_OUTBOUND" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\$(OutFile).pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /c 
-
-.c{$(INTDIR)}.obj:
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
+"$(OUTDIR)\$(BINKDEXE).exe": "$(OUTDIR)" $(OBJS)
+          $(LINK) $(LFLAGS) $(LOPT) @<<
+$(LLIBS) $(OBJS)
 <<
 
-.c{$(INTDIR)}.sbr:
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
+$(BINKDBSC): "$(OUTDIR)" $(SBRS)
+          $(BSC) $(BSCFLAGS) @<<
+$(SBRS)
 <<
 
-RSC=rc.exe
-BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\$(OutFile).bsc" 
-BSC32_SBRS= \
-	"$(INTDIR)\BINKD.SBR" \
-	"$(INTDIR)\binlog.sbr" \
-	"$(INTDIR)\branch.sbr" \
-	"$(INTDIR)\breaksig.sbr" \
-	"$(INTDIR)\BSY.SBR" \
-	"$(INTDIR)\CLIENT.SBR" \
-	"$(INTDIR)\dirwin32.sbr" \
-	"$(INTDIR)\exitproc.sbr" \
-	"$(INTDIR)\FTNADDR.SBR" \
-	"$(INTDIR)\ftndom.sbr" \
-	"$(INTDIR)\ftnnode.sbr" \
-	"$(INTDIR)\FTNQ.SBR" \
-	"$(INTDIR)\getfree.sbr" \
-	"$(INTDIR)\getw.sbr" \
-	"$(INTDIR)\INBOUND.SBR" \
-	"$(INTDIR)\iptools.sbr" \
-	"$(INTDIR)\pmatch.sbr" \
-	"$(INTDIR)\prothlp.sbr" \
-	"$(INTDIR)\PROTOCOL.SBR" \
-	"$(INTDIR)\READCFG.SBR" \
-	"$(INTDIR)\readflo.sbr" \
-	"$(INTDIR)\run.sbr" \
-	"$(INTDIR)\sem.sbr" \
-	"$(INTDIR)\SERVER.SBR" \
-	"$(INTDIR)\setpttl.sbr" \
-	"$(INTDIR)\srif.sbr" \
-	"$(INTDIR)\TCPErr.sbr" \
-	"$(INTDIR)\TOOLS.SBR" \
-	"$(INTDIR)\WSock.sbr" \
-	"$(INTDIR)\xalloc.sbr"
-
-"$(OUTDIR)\$(OutFile).bsc" : "$(OUTDIR)" $(BSC32_SBRS)
-    $(BSC32) @<<
-  $(BSC32_FLAGS) $(BSC32_SBRS)
+.c{$(OUTDIR)}.obj::
+          $(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
+$<
+<<
+{nt}.c{$(OUTDIR)}.obj::
+          $(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
+$<
+<<
+{ntlm}.c{$(OUTDIR)}.obj::
+          $(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
+$<
 <<
 
-LINK32=link.exe
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib wsock32.lib /nologo /subsystem:$(SubSys) /incremental:yes /pdb:"$(OUTDIR)\$(OutFile).pdb" /map:"$(INTDIR)\$(OutFile).map" /debug /machine:I386 /out:"$(OUTDIR)\$(OutFile).exe" 
-LINK32_OBJS= \
-!IFDEF BINKD9X
-	"$(INTDIR)\win9x.obj" \
-!ENDIF
-!IFNDEF BINKD9X
-	"$(INTDIR)\service.obj" \
-!ENDIF
-	"$(INTDIR)\https.obj" \
-	"$(INTDIR)\helpers.obj" \
-	"$(INTDIR)\ecb_enc.obj" \
-	"$(INTDIR)\des_enc.obj" \
-	"$(INTDIR)\set_key.obj" \
-	"$(INTDIR)\md4_dgst.obj" \
-	"$(INTDIR)\BINKD.OBJ" \
-	"$(INTDIR)\binlog.obj" \
-	"$(INTDIR)\branch.obj" \
-	"$(INTDIR)\breaksig.obj" \
-	"$(INTDIR)\BSY.OBJ" \
-	"$(INTDIR)\CLIENT.OBJ" \
-	"$(INTDIR)\dirwin32.obj" \
-	"$(INTDIR)\exitproc.obj" \
-	"$(INTDIR)\FTNADDR.OBJ" \
-	"$(INTDIR)\ftndom.obj" \
-	"$(INTDIR)\ftnnode.obj" \
-	"$(INTDIR)\FTNQ.OBJ" \
-	"$(INTDIR)\getfree.obj" \
-	"$(INTDIR)\getw.obj" \
-	"$(INTDIR)\INBOUND.OBJ" \
-	"$(INTDIR)\iptools.obj" \
-	"$(INTDIR)\pmatch.obj" \
-	"$(INTDIR)\prothlp.obj" \
-	"$(INTDIR)\PROTOCOL.OBJ" \
-	"$(INTDIR)\READCFG.OBJ" \
-	"$(INTDIR)\readflo.obj" \
-	"$(INTDIR)\run.obj" \
-	"$(INTDIR)\sem.obj" \
-	"$(INTDIR)\SERVER.OBJ" \
-	"$(INTDIR)\setpttl.obj" \
-	"$(INTDIR)\srif.obj" \
-	"$(INTDIR)\TCPErr.obj" \
-	"$(INTDIR)\TOOLS.OBJ" \
-	"$(INTDIR)\WSock.obj" \
-	"$(INTDIR)\md5b.obj" \
-	"$(INTDIR)\crypt.obj" \
-	"$(INTDIR)\xalloc.obj"
-
-"$(OUTDIR)\$(OutFile).exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
-    $(LINK32) @<<
-  $(LINK32_FLAGS) $(LINK32_OBJS)
+.c{$(OUTDIR)}.sbr::
+          $(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
+$<
+<<
+{nt}.c{$(OUTDIR)}.sbr::
+          $(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
+$<
+<<
+{ntlm}.c{$(OUTDIR)}.sbr::
+          $(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
+$<
 <<
 
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-!IFNDEF BINKD9X
-OUTDIR=.\Release
-INTDIR=.\Release
-# Begin Custom Macros
-OutDir=.\Release
-# End Custom Macros
-!ELSE
-OUTDIR=.\Release-w9x
-INTDIR=.\Release-w9x
-# Begin Custom Macros
-OutDir=.\Release-w9x
-# End Custom Macros
-!ENDIF
-
-ALL : "$(OUTDIR)\$(OutFile).exe"
-
-
-CLEAN :
-	-@erase "$(INTDIR)\service.obj"
-	-@erase "$(INTDIR)\https.obj"
-	-@erase "$(INTDIR)\helpers.obj"
-	-@erase "$(INTDIR)\ecb_enc.obj"
-	-@erase "$(INTDIR)\des_enc.obj"
-	-@erase "$(INTDIR)\md4_dgst.obj"
-	-@erase "$(INTDIR)\set_key.obj"
-	-@erase "$(INTDIR)\BINKD.OBJ"
-	-@erase "$(INTDIR)\binlog.obj"
-	-@erase "$(INTDIR)\branch.obj"
-	-@erase "$(INTDIR)\breaksig.obj"
-	-@erase "$(INTDIR)\BSY.OBJ"
-	-@erase "$(INTDIR)\CLIENT.OBJ"
-	-@erase "$(INTDIR)\dirwin32.obj"
-	-@erase "$(INTDIR)\exitproc.obj"
-	-@erase "$(INTDIR)\FTNADDR.OBJ"
-	-@erase "$(INTDIR)\ftndom.obj"
-	-@erase "$(INTDIR)\ftnnode.obj"
-	-@erase "$(INTDIR)\FTNQ.OBJ"
-	-@erase "$(INTDIR)\getfree.obj"
-	-@erase "$(INTDIR)\getw.obj"
-	-@erase "$(INTDIR)\INBOUND.OBJ"
-	-@erase "$(INTDIR)\iptools.obj"
-	-@erase "$(INTDIR)\pmatch.obj"
-	-@erase "$(INTDIR)\prothlp.obj"
-	-@erase "$(INTDIR)\PROTOCOL.OBJ"
-	-@erase "$(INTDIR)\READCFG.OBJ"
-	-@erase "$(INTDIR)\readflo.obj"
-	-@erase "$(INTDIR)\run.obj"
-	-@erase "$(INTDIR)\sem.obj"
-	-@erase "$(INTDIR)\SERVER.OBJ"
-	-@erase "$(INTDIR)\setpttl.obj"
-	-@erase "$(INTDIR)\srif.obj"
-	-@erase "$(INTDIR)\TCPErr.obj"
-	-@erase "$(INTDIR)\TOOLS.OBJ"
-	-@erase "$(INTDIR)\vc60.idb"
-	-@erase "$(INTDIR)\vc60.pdb"
-	-@erase "$(INTDIR)\WSock.obj"
-	-@erase "$(INTDIR)\$(OutFile).obj"
-	-@erase "$(OUTDIR)\$(OutFile).exe"
-	-@erase "$(OUTDIR)\$(OutFile).ilk"
-	-@erase "$(INTDIR)\md5b.obj"
-	-@erase "$(INTDIR)\crypt.obj"
-	-@erase "$(INTDIR)\win9x.obj"
-
-"$(OUTDIR)" :
-    if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
-
-CPP=cl.exe
-CPP_PROJ=/nologo /MT /W3 /GX /Ox /D "HTTPS" /D "WIN32" $(ModeOpt) /D "HAVE_THREADS" /D "HAVE_IO_H" /D "VISUALCPP" /D "AMIGADOS_4D_OUTBOUND" /Fp"$(INTDIR)\$(OutFile).pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /c 
-
-.c{$(INTDIR)}.obj:
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.c{$(INTDIR)}.sbr:
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-RSC=rc.exe
-BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\$(OutFile).bsc" 
-BSC32_SBRS= \
-	
-LINK32=link.exe
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib wsock32.lib /nologo /subsystem:$(SubSys) /pdb:"$(OUTDIR)\$(OutFile).pdb" /machine:I386 /out:"$(OUTDIR)\$(OutFile).exe" 
-LINK32_OBJS= \
-!IFDEF BINKD9X
-	"$(INTDIR)\win9x.obj" \
-!ENDIF
-!IFNDEF BINKD9X
-	"$(INTDIR)\service.obj" \
-!ENDIF
-	"$(INTDIR)\https.obj" \
-	"$(INTDIR)\helpers.obj" \
-	"$(INTDIR)\ecb_enc.obj" \
-	"$(INTDIR)\des_enc.obj" \
-	"$(INTDIR)\set_key.obj" \
-	"$(INTDIR)\md4_dgst.obj" \
-	"$(INTDIR)\BINKD.OBJ" \
-	"$(INTDIR)\binlog.obj" \
-	"$(INTDIR)\branch.obj" \
-	"$(INTDIR)\breaksig.obj" \
-	"$(INTDIR)\BSY.OBJ" \
-	"$(INTDIR)\CLIENT.OBJ" \
-	"$(INTDIR)\dirwin32.obj" \
-	"$(INTDIR)\exitproc.obj" \
-	"$(INTDIR)\FTNADDR.OBJ" \
-	"$(INTDIR)\ftndom.obj" \
-	"$(INTDIR)\ftnnode.obj" \
-	"$(INTDIR)\FTNQ.OBJ" \
-	"$(INTDIR)\getfree.obj" \
-	"$(INTDIR)\getw.obj" \
-	"$(INTDIR)\INBOUND.OBJ" \
-	"$(INTDIR)\iptools.obj" \
-	"$(INTDIR)\pmatch.obj" \
-	"$(INTDIR)\prothlp.obj" \
-	"$(INTDIR)\PROTOCOL.OBJ" \
-	"$(INTDIR)\READCFG.OBJ" \
-	"$(INTDIR)\readflo.obj" \
-	"$(INTDIR)\run.obj" \
-	"$(INTDIR)\sem.obj" \
-	"$(INTDIR)\SERVER.OBJ" \
-	"$(INTDIR)\setpttl.obj" \
-	"$(INTDIR)\srif.obj" \
-	"$(INTDIR)\TCPErr.obj" \
-	"$(INTDIR)\TOOLS.OBJ" \
-	"$(INTDIR)\WSock.obj" \
-	"$(INTDIR)\md5b.obj" \
-	"$(INTDIR)\crypt.obj" \
-	"$(INTDIR)\xalloc.obj"
-
-"$(OUTDIR)\$(OutFile).exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
-    $(LINK32) @<<
-  $(LINK32_FLAGS) $(LINK32_OBJS)
-<<
-
-!ENDIF 
-
-
-!IF "$(NO_EXTERNAL_DEPS)" != "1"
-!IF EXISTS("Makefile.dep")
-!INCLUDE "Makefile.dep"
-!ELSE 
-!MESSAGE Warning: cannot find "Makefile.dep"
-!ENDIF 
-!ENDIF 
-
-
-!IF "$(CFG)" == "binkd - Win32 Debug" || "$(CFG)" == "binkd - Win32 Release"
-SOURCE=.\BINKD.C
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\BINKD.OBJ"	"$(INTDIR)\BINKD.SBR" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\BINKD.OBJ" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\binlog.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\binlog.obj"	"$(INTDIR)\binlog.sbr" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\binlog.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\branch.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\branch.obj"	"$(INTDIR)\branch.sbr" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\branch.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\nt\breaksig.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\breaksig.obj"	"$(INTDIR)\breaksig.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\breaksig.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
-SOURCE=.\BSY.C
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\BSY.OBJ"	"$(INTDIR)\BSY.SBR" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\BSY.OBJ" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\CLIENT.C
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\CLIENT.OBJ"	"$(INTDIR)\CLIENT.SBR" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\CLIENT.OBJ" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\nt\dirwin32.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\dirwin32.obj"	"$(INTDIR)\dirwin32.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\dirwin32.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
-SOURCE=.\exitproc.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\exitproc.obj"	"$(INTDIR)\exitproc.sbr" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\exitproc.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\FTNADDR.C
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\FTNADDR.OBJ"	"$(INTDIR)\FTNADDR.SBR" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\FTNADDR.OBJ" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\ftndom.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\ftndom.obj"	"$(INTDIR)\ftndom.sbr" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\ftndom.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\ftnnode.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\ftnnode.obj"	"$(INTDIR)\ftnnode.sbr" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\ftnnode.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\FTNQ.C
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\FTNQ.OBJ"	"$(INTDIR)\FTNQ.SBR" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\FTNQ.OBJ" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\nt\getfree.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\getfree.obj"	"$(INTDIR)\getfree.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\getfree.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
-SOURCE=.\getw.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\getw.obj"	"$(INTDIR)\getw.sbr" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\getw.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\INBOUND.C
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\INBOUND.OBJ"	"$(INTDIR)\INBOUND.SBR" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\INBOUND.OBJ" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\iptools.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\iptools.obj"	"$(INTDIR)\iptools.sbr" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\iptools.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\pmatch.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\pmatch.obj"	"$(INTDIR)\pmatch.sbr" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\pmatch.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\prothlp.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\prothlp.obj"	"$(INTDIR)\prothlp.sbr" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\prothlp.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\PROTOCOL.C
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\PROTOCOL.OBJ"	"$(INTDIR)\PROTOCOL.SBR" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\PROTOCOL.OBJ" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\READCFG.C
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\READCFG.OBJ"	"$(INTDIR)\READCFG.SBR" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\READCFG.OBJ" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\readflo.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\readflo.obj"	"$(INTDIR)\readflo.sbr" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\readflo.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\run.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\run.obj"	"$(INTDIR)\run.sbr" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\run.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\nt\sem.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\sem.obj"	"$(INTDIR)\sem.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\sem.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
-SOURCE=.\SERVER.C
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\SERVER.OBJ"	"$(INTDIR)\SERVER.SBR" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\SERVER.OBJ" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\setpttl.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\setpttl.obj"	"$(INTDIR)\setpttl.sbr" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\setpttl.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\srif.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\srif.obj"	"$(INTDIR)\srif.sbr" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\srif.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\nt\TCPErr.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\TCPErr.obj"	"$(INTDIR)\TCPErr.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\TCPErr.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
-SOURCE=.\TOOLS.C
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\TOOLS.OBJ"	"$(INTDIR)\TOOLS.SBR" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\TOOLS.OBJ" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\nt\WSock.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\WSock.obj"	"$(INTDIR)\WSock.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\WSock.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
-SOURCE=.\xalloc.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\xalloc.obj"	"$(INTDIR)\xalloc.sbr" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\xalloc.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-
-SOURCE=.\https.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\https.obj"	"$(INTDIR)\https.SBR" : $(SOURCE) "$(INTDIR)"
-	$(CPP) /DNTLM $(CPP_PROJ) $(SOURCE)
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\https.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) /DNTLM $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
-SOURCE=.\md5b.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\md5b.obj"	"$(INTDIR)\md5b.SBR" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\md5b.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-
-SOURCE=.\crypt.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-
-"$(INTDIR)\crypt.obj"	"$(INTDIR)\crypt.SBR" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-
-"$(INTDIR)\crypt.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-
-!IFNDEF BINKD9X
-SOURCE=.\nt\service.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-"$(INTDIR)\service.obj"	"$(INTDIR)\service.SBR" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-"$(INTDIR)\service.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-!ENDIF 
-!ENDIF
-
-SOURCE=.\ntlm\ecb_enc.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-"$(INTDIR)\ecb_enc.obj"	"$(INTDIR)\ecb_enc.SBR" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(NTLM_FLAGS) $(SOURCE)
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-"$(INTDIR)\ecb_enc.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(NTLM_FLAGS) $(SOURCE)
-
-!ENDIF 
-
-
-SOURCE=.\ntlm\helpers.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-"$(INTDIR)\helpers.obj"	"$(INTDIR)\helpers.SBR" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(NTLM_FLAGS) $(SOURCE)
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-"$(INTDIR)\helpers.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(NTLM_FLAGS) $(SOURCE)
-
-!ENDIF 
-
-
-SOURCE=.\ntlm\md4_dgst.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-"$(INTDIR)\md4_dgst.obj"	"$(INTDIR)\md4_dgst.SBR" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(NTLM_FLAGS) $(SOURCE)
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-"$(INTDIR)\md4_dgst.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(NTLM_FLAGS) $(SOURCE)
-
-!ENDIF 
-
-
-SOURCE=.\ntlm\des_enc.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-"$(INTDIR)\des_enc.obj"	"$(INTDIR)\des_enc.SBR" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(NTLM_FLAGS) $(SOURCE)
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-"$(INTDIR)\des_enc.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(NTLM_FLAGS) $(SOURCE)
-
-!ENDIF 
-
-
-SOURCE=.\ntlm\set_key.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-"$(INTDIR)\set_key.obj"	"$(INTDIR)\set_key.SBR" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(NTLM_FLAGS) $(SOURCE)
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-"$(INTDIR)\set_key.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(NTLM_FLAGS) $(SOURCE)
-
-!ENDIF 
-
-
-!IFDEF BINKD9X
-SOURCE=.\nt\win9x.c
-
-!IF  "$(CFG)" == "binkd - Win32 Debug"
-
-"$(INTDIR)\win9x.obj" "$(INTDIR)\win9x.SBR" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
-
-"$(INTDIR)\win9x.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-!ENDIF
-!ENDIF 
-
-!ENDIF 
-
+"$(OUTDIR)":
+          mkdir "$(OUTDIR)"
+
+clean:
+          -@del "$(OUTDIR)\*.obj"
+          -@del "$(OUTDIR)\$(BINKDEXE).pch"
+          -@del "$(OUTDIR)\*.sbr"
+          -@del "$(OUTDIR)\*.idb"
+          -@del "$(OUTDIR)\$(BINKDEXE).ilk"
+
+distclean: clean
+          -@del "$(OUTDIR)\$(BINKDEXE).exe"
+          -@del "$(OUTDIR)\$(BINKDEXE).bsc"
+          -@del "$(OUTDIR)\$(BINKDEXE).map"
+          -@del "$(OUTDIR)\*.pdb"
+
+!if exists("Makefile.dep")
+!include "Makefile.dep"
+!endif
+          
