@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.17  2003/08/26 14:36:47  gul
+ * Perl hooks in os2-emx
+ *
  * Revision 2.16  2003/08/26 07:43:54  stream
  * Use generic lists
  *
@@ -80,7 +83,7 @@
 #ifndef _MSC_VER
 #include <sys/wait.h>
 #endif
-#ifdef __OS2__
+#ifdef OS2
 #define INCL_DOSPROCESS
 #include <os2.h>
 #endif
@@ -852,6 +855,18 @@ extern void msg_send2 (STATE *state, t_msg m, char *s1, char *s2);
   XSRETURN_EMPTY;
 }
 
+#if defined(OS2)
+void boot_DynaLoader(CV *cv);
+void boot_DB_File(CV *cv);
+void boot_Fcntl(CV *cv);
+void boot_POSIX(CV *cv);
+void boot_SDBM_File(CV *cv);
+void boot_IO(CV *cv);
+void boot_OS2__Process(CV *cv);
+void boot_OS2__ExtAttr(CV *cv);
+void boot_OS2__REXX(CV *cv);
+#endif
+
 /* xs_init */
 #ifdef _MSC_VER
 EXTERN_C void xs_init (pTHXo)
@@ -860,7 +875,7 @@ static void xs_init(void)
 #endif
 {
   static char *file = __FILE__;
-#if defined(__OS2__)
+#if defined(OS2)
   newXS("DB_File::bootstrap", boot_DB_File, file);
   newXS("Fcntl::bootstrap", boot_Fcntl, file);
   newXS("POSIX::bootstrap", boot_POSIX, file);
