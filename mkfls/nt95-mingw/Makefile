@@ -235,7 +235,7 @@ $(OBJDIR)/%.o: %.c
 
 $(OBJDIR)/%.o: %.rc
 	@echo Compiling $<...
-	@$(WINDRES) --use-temp-file $(CDEFS) -D"BINKDNAME=$(BINKDNAME)" -D"BINKDEXE=$(BINKDEXE)" $< $@
+	@$(WINDRES) $(CDEFS) -D"BINKDNAME=$(BINKDNAME)" -D"BINKDEXE=$(BINKDEXE)" $< $@
 
 $(OUTDIR)/$(BINKDEXE): $(OBJS) $(RESOBJS)
 	@echo Linking $(BINKDEXE)...
