@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.29  2004/01/08 12:57:18  val
+ * * parse up to 3 comma-separated passwords (in,pkt,out)
+ * * use out password for outgoing sessions if it's set
+ *
  * Revision 2.28  2004/01/02 15:31:30  stas
  * Fix the minfree token usage and fix getfree() on Win >w95
  *
@@ -407,20 +411,19 @@ int inb_reject (STATE *state, BINKD_CONFIG *config)
 }
 
 /* val: check if pkt header is one of the session aka */
-int check_pkthdr(int nfa, FTN_ADDR *from, char *netname, char *tmp_name, 
+int check_pkthdr(STATE *state, char *netname, char *tmp_name, 
                  char *real_name, BINKD_CONFIG *config) {
   FTN_NODE *node;
   FILE *PKT;
   PKTHDR buf;
-  int i, check = 0, listed = 0, secure = 0;
+  int i, check = 0, listed = 0, secure = (state->state == P_SECURE);
   short cz = -1, cn = -1, cf = -1, cp = -1;
   /* ext not defined - no check */
   if (config->pkthdr_bad == NULL) return 1;
   /* lookup in node records */
-  for (i = 0; i < nfa; i++)
-    if ( (node = get_node_info(from+i, config)) != NULL ) {
+  for (i = 0; i < state->nallfa; i++)
+    if ( (node = get_node_info(state->fa+i, config)) != NULL ) {
       if (node->fa.z > 0) listed = 1;
-      if (strcmp(node->pwd, "-") != 0) secure = 1;
       /* no check is forced */
       if (node->HC_flag == HC_OFF) return 1;
       /* check is on for one aka */
@@ -458,11 +461,11 @@ int check_pkthdr(int nfa, FTN_ADDR *from, char *netname, char *tmp_name,
     check = 1;
     Log (5, "pkt addr is %d:%d/%d.%d for %s", cz, cn, cf, cp, netname);
     /* do check */
-    for (i = 0; i < nfa; i++)
-      if ( (cz < 0 || (from+i)->z == cz) &&
-           (cn < 0 || (from+i)->net == cn ) && 
-           ( (from+i)->node == cf ) &&
-           (cp < 0 || (from+i)->p == cp) ) {
+    for (i = 0; i < state->nallfa; i++)
+      if ( (cz < 0 || (state->fa+i)->z == cz) &&
+           (cn < 0 || (state->fa+i)->net == cn ) && 
+           ( (state->fa+i)->node == cf ) &&
+           (cp < 0 || (state->fa+i)->p == cp) ) {
                                              if (PKT != NULL) fclose(PKT);
                                              return 1;                 
                                            }
@@ -544,7 +547,7 @@ int inb_done (TFILE *file, char *real_name, STATE *state, BINKD_CONFIG *config)
     if (ispkt (netname) || istic (netname) || isarcmail (netname) || isreq (netname))
       s -= 4;
     /* val: check pkt file header */
-    if (ispkt (netname)) check_pkthdr(state->nallfa, state->fa, netname, tmp_name, real_name, config);
+    if (ispkt (netname)) check_pkthdr(state, netname, tmp_name, real_name, config);
 
     if (touch (tmp_name, file->time) != 0)
       Log (1, "touch %s: %s", tmp_name, strerror (errno));

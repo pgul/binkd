@@ -14,6 +14,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.44  2004/01/08 12:57:18  val
+ * * parse up to 3 comma-separated passwords (in,pkt,out)
+ * * use out password for outgoing sessions if it's set
+ *
  * Revision 2.43  2004/01/07 12:23:39  gul
  * Remove zaccept keyword, receiving compressed files possibility
  * is always on now if binkd was compiled with zlib/bzip2 support.
@@ -1230,6 +1234,8 @@ static int add_node_to_hv(FTN_NODE *node, void *hv)
   hv2 = newHV();
   VK_ADD_HASH_str(hv2, sv, "hosts", node->hosts);
   VK_ADD_HASH_str(hv2, sv, "pwd", node->pwd);
+  VK_ADD_HASH_str(hv2, sv, "pkt_pwd", node->pkt_pwd);
+  VK_ADD_HASH_str(hv2, sv, "out_pwd", node->out_pwd);
   VK_ADD_HASH_str(hv2, sv, "ibox", node->ibox);
   VK_ADD_HASH_str(hv2, sv, "obox", node->obox);
   buf[0] = node->obox_flvr; buf[1] = 0;

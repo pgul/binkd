@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.66  2004/01/08 12:57:18  val
+ * * parse up to 3 comma-separated passwords (in,pkt,out)
+ * * use out password for outgoing sessions if it's set
+ *
  * Revision 2.65  2004/01/07 13:12:29  gul
  * Update 2003->2004 in copyright notices
  *
@@ -1067,6 +1071,22 @@ static int include (KEYWORD *key, int wordcount, char **words)
   return success;
 }
 
+static void split_passwords(char *password, char **pkt_pwd, char **out_pwd)
+{
+  if (!password) { *pkt_pwd = *out_pwd = NULL; return; }
+  /* parse "in_pwd,pkt_pwd,out_pwd" to password,pkt_pwd,out_pwd */
+  /* if any (pkt|out)_pwd is omitted, set pointer to NULL not to "" */
+  *pkt_pwd = strchr(password, ',');
+  *out_pwd = NULL;
+  if (*pkt_pwd) {
+    *((*pkt_pwd)++) = 0; 
+    *out_pwd = strchr(*pkt_pwd, ',');
+    if (*out_pwd) *((*out_pwd)++) = 0;
+    if (!**pkt_pwd) *pkt_pwd = NULL;
+    if (*out_pwd && !**out_pwd) *out_pwd = NULL;
+  }
+}
+
 static int passwords (KEYWORD *key, int wordcount, char **words)
 {
   FILE *in;
@@ -1095,18 +1115,10 @@ static int passwords (KEYWORD *key, int wordcount, char **words)
       password = strtok(NULL, spaces);
       if (password && parse_ftnaddress (node, &fa, work_config.pDomains.first)) /* Do not process if any garbage found */
       {
-        /* parse "in_pwd,pkt_pwd,out_pwd" to password,pkt_pwd,out_pwd */
-        /* if any (pkt|out)_pwd is omitted, set pointer to NULL not to "" */
-        char *pkt_pwd = strchr(password, ','), *out_pwd = NULL;
-        if (pkt_pwd) {
-          *(pkt_pwd++) = 0; 
-          out_pwd = strchr(pkt_pwd, ',');
-          if (out_pwd) *(out_pwd++) = 0;
-          if (!*pkt_pwd) pkt_pwd = NULL;
-          if (!*out_pwd) out_pwd = NULL;
-        }
+        char *pkt_pwd, *out_pwd;
+        split_passwords(password, &pkt_pwd, &out_pwd);
         exp_ftnaddress (&fa, work_config.pAddr, work_config.nAddr, work_config.pDomains.first);
-        add_node (&fa, NULL, password, '-', NULL, NULL,
+        add_node (&fa, NULL, password, pkt_pwd, out_pwd, '-', NULL, NULL,
                   NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, HC_USE_OLD, NP_USE_OLD, &work_config);
       }
     }
@@ -1207,7 +1219,7 @@ static int read_domain_info (KEYWORD *key, int wordcount, char **words)
 static int read_node_info (KEYWORD *key, int wordcount, char **words)
 {
 #define ARGNUM 6
-  char *w[ARGNUM], *tmp;
+  char *w[ARGNUM], *tmp, *pkt_pwd, *out_pwd;
   int   i, j;
   int   NR_flag = NR_USE_OLD, ND_flag = ND_USE_OLD, HC_flag = HC_USE_OLD,
         MD_flag = MD_USE_OLD, NP_flag = NP_USE_OLD, restrictIP = RIP_USE_OLD;
@@ -1277,7 +1289,8 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
   check_dir_path (w[4]);
   check_dir_path (w[5]);
 
-  add_node (&fa, w[1], w[2], (char)(w[3] ? w[3][0] : '-'), w[4], w[5],
+  split_passwords(w[2], &pkt_pwd, &out_pwd);
+  add_node (&fa, w[1], w[2], pkt_pwd, out_pwd, (char)(w[3] ? w[3][0] : '-'), w[4], w[5],
             NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, &work_config);
 
   return 1;
@@ -1735,11 +1748,17 @@ static int read_proxy (KEYWORD *key, int wordcount, char **words)
 static int print_node_info_1 (FTN_NODE *fn, void *arg)
 {
   char szfa[FTN_ADDR_SZ + 1];
+  char pwd[(MAXPWDLEN + 1) * 3];
 
   UNUSED_ARG(arg);
   ftnaddress_to_str (szfa, &fn->fa);
+  strcpy(pwd, fn->pwd);
+  if (fn->pkt_pwd != (char*)&(fn->pwd) || fn->out_pwd != (char*)&(fn->pwd)) {
+    strcat(strcat(pwd, ","), (fn->pkt_pwd) ? fn->pkt_pwd : "-");
+    strcat(strcat(pwd, ","), (fn->out_pwd) ? fn->out_pwd : "-");
+  }
   printf("\n    %-20.20s %s %s %c %s %s%s%s%s%s%s%s%s%s%s",
-         szfa, fn->hosts ? fn->hosts : "-", fn->pwd,
+         szfa, fn->hosts ? fn->hosts : "-", pwd,
          fn->obox_flvr, fn->obox ? fn->obox : "-",
          fn->ibox ? fn->ibox : "-",
          (fn->NR_flag == NR_ON)  ? " -nr" : "",

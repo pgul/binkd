@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.28  2004/01/08 12:57:18  val
+ * * parse up to 3 comma-separated passwords (in,pkt,out)
+ * * use out password for outgoing sessions if it's set
+ *
  * Revision 2.27  2004/01/07 12:07:47  gul
  * New function free_nodes()
  *
@@ -173,8 +177,8 @@ static void sort_nodes (BINKD_CONFIG *config)
 /*
  * Add a new node, or edit old settings for a node
  */
-static void add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
-	      char *obox, char *ibox, int NR_flag, int ND_flag,
+static void add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pwd,
+              char obox_flvr, char *obox, char *ibox, int NR_flag, int ND_flag,
 	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, BINKD_CONFIG *config)
 {
   int cn;
@@ -227,10 +231,20 @@ static void add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flv
     pn->hosts = xstrdup (hosts);
   }
 
-  if (pwd && *pwd && strcmp(pwd, "-"))
-  {
-    strnzcpy (pn->pwd, pwd, sizeof (pn->pwd));
+  /* pwd, "-" for no password (why not empty string ???) */
+  if (pwd && strcmp(pwd, "-")) strnzcpy(pn->pwd, pwd, sizeof(pn->pwd));
+  /* if NULL keep pointer to pn->pwd, if "-" use no password */
+  if (pkt_pwd) {
+    if (strcmp(pkt_pwd, "-")) pn->pkt_pwd = xstrdup(pkt_pwd);
+    else pn->pkt_pwd = NULL;
   }
+  else pn->pkt_pwd = (char*)&(pn->pwd);
+  /* if NULL keep pointer to pn->pwd, if "-" use no password */
+  if (out_pwd) {
+    if (strcmp(out_pwd, "-")) pn->out_pwd = xstrdup(out_pwd);
+    else pn->out_pwd = NULL;
+  }
+  else pn->out_pwd = (char*)&(pn->pwd);
 
   if (obox_flvr != '-')
   {
@@ -250,13 +264,13 @@ static void add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flv
   }
 }
 
-void add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
-	      char *obox, char *ibox, int NR_flag, int ND_flag,
+void add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pwd,
+              char obox_flvr, char *obox, char *ibox, int NR_flag, int ND_flag,
 	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, BINKD_CONFIG *config)
 {
   locknodesem();
-  add_node_nolock(fa, hosts, pwd, obox_flvr, obox, ibox, NR_flag, ND_flag,
-                  MD_flag, restrictIP, HC_flag, NP_flag, config);
+  add_node_nolock(fa, hosts, pwd, pkt_pwd, out_pwd, obox_flvr, obox, ibox, 
+                  NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, config);
   releasenodesem();
 }
 
@@ -313,7 +327,7 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
     return on;
   }
 
-  add_node_nolock(fa, np->hosts, NULL, np->obox_flvr, np->obox, np->ibox,
+  add_node_nolock(fa, np->hosts, NULL, NULL, NULL, np->obox_flvr, np->obox, np->ibox,
        np->NR_flag, np->ND_flag, np->MD_flag, np->restrictIP, np->HC_flag, np->NP_flag, config);
   sort_nodes (config);
   memcpy (&n.fa, fa, sizeof (FTN_ADDR));
@@ -399,7 +413,7 @@ int poll_node (char *s, BINKD_CONFIG *config)
     Log (4, "creating a poll for %s (`%c' flavour)", buf, POLL_NODE_FLAVOUR);
     locknodesem();
     if (!get_node_info_nolock (&target, config))
-      add_node_nolock (&target, "*", NULL, '-', NULL, NULL, NR_USE_OLD, ND_USE_OLD,
+      add_node_nolock (&target, "*", NULL, NULL, NULL, '-', NULL, NULL, NR_USE_OLD, ND_USE_OLD,
                        MD_USE_OLD, RIP_USE_OLD, HC_USE_OLD, NP_USE_OLD, config);
     releasenodesem();
     return create_poll (&target, POLL_NODE_FLAVOUR, config);
@@ -421,6 +435,8 @@ void free_nodes(BINKD_CONFIG *config)
     xfree(node->hosts);
     xfree(node->obox);
     xfree(node->ibox);
+    if (node->pkt_pwd && node->pkt_pwd != (char*)&(node->pwd)) free(node->pkt_pwd);
+    if (node->out_pwd && node->out_pwd != (char*)&(node->pwd)) free(node->out_pwd);
     free(node);
   }
   xfree(config->pNodArray);

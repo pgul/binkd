@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.150  2004/01/08 12:57:18  val
+ * * parse up to 3 comma-separated passwords (in,pkt,out)
+ * * use out password for outgoing sessions if it's set
+ *
  * Revision 2.149  2004/01/08 11:36:06  gul
  * Fix typo in previous patch
  *
@@ -1507,7 +1511,9 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
   /* set expected password on outgoing session
    * for drop remote AKAs with another passwords */
   if (state->to)
-    memcpy (state->expected_pwd, state->to->pwd, sizeof (state->expected_pwd));
+    memcpy(state->expected_pwd, 
+           state->to->out_pwd ? state->to->out_pwd : "-", 
+           sizeof(state->expected_pwd));
 
   for (i = 1; (w = getwordx (s, i, 0)) != 0; ++i)
   {
@@ -1676,7 +1682,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
           pn->restrictIP == ipStrict
         ) ip_check = CHECK_WRONG;
       }
-      if (ip_check == CHECK_WRONG && pn->pwd && strcmp(pn->pwd, "-") && !state->to) {
+      if (ip_check == CHECK_WRONG && !state->to && pn->pwd && strcmp(pn->pwd, "-")) {
         Log (1, "addr: %s (not from allowed remote IP, aborted)", szFTNAddr);
         msg_send2 (state, M_ERR, "Bad source IP", 0);
         return 0;
@@ -1696,14 +1702,15 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 
     if (state->expected_pwd[0] && pn)
     {
+      char *pwd = state->to ? pn->out_pwd : pn->pwd;
       state->listed_flag = 1;
       if (!strcmp (state->expected_pwd, "-"))
       {
-	memcpy (state->expected_pwd, pn->pwd, sizeof (state->expected_pwd));
+	memcpy(state->expected_pwd, pwd, sizeof (state->expected_pwd));
 	state->MD_flag=pn->MD_flag;
       }
-      else if (pn->pwd && strcmp(pn->pwd, "-") &&
-               strcmp(state->expected_pwd, pn->pwd))
+      else if (pwd && strcmp(pwd, "-") &&
+               strcmp(state->expected_pwd, pwd))
       {
 	if (state->to)
 	  Log (2, "inconsistent pwd settings for this node, aka %s dropped", szFTNAddr);
@@ -1827,7 +1834,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
     do_prescan (state, config);
     if(state->MD_challenge)
     {
-      char *tp=MD_buildDigest(state->to->pwd, state->MD_challenge);
+      char *tp=MD_buildDigest(state->to->out_pwd ? state->to->out_pwd : "-", state->MD_challenge);
       if(!tp)
       {
         Log(2, "Unable to build MD5 digest");
@@ -1845,7 +1852,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
       return 0;
     }
     else
-      msg_send2 (state, M_PWD, state->to->pwd, 0);
+      msg_send2 (state, M_PWD, state->to->out_pwd ? state->to->out_pwd : "-", 0);
   }
   return 1;
 }
@@ -1889,9 +1896,9 @@ static int complete_login (STATE *state, BINKD_CONFIG *config)
     state->crypt_flag = YES_CRYPT;
     Log (3, "session in CRYPT mode");
     if (state->to)
-    { init_keys(state->keys_out, state->to->pwd);
+    { init_keys(state->keys_out, state->to->out_pwd ? state->to->out_pwd : "-");
       init_keys(state->keys_in,  "-");
-      for (p=state->to->pwd; *p; p++)
+      for (p=state->to->out_pwd ? state->to->out_pwd : "-"; *p; p++)
         update_keys(state->keys_in, (int)*p);
     } else
     { init_keys(state->keys_in, state->expected_pwd);
@@ -2037,7 +2044,7 @@ static int OK (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
   UNUSED_ARG(sz);
 
   if (!state->to) return 0;
-  state->state = !strcmp (state->to->pwd, "-") ? P_NONSECURE : P_SECURE;
+  state->state = state->to->out_pwd && strcmp(state->to->out_pwd, "-") != 0 ? P_SECURE : P_NONSECURE;
   for (i = 1; (w = getwordx (buf, i, 0)) != 0; ++i)
   {
     if (state->state == P_SECURE && strcmp(w, "non-secure") == 0)

@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2004/01/08 12:57:18  val
+ * * parse up to 3 comma-separated passwords (in,pkt,out)
+ * * use out password for outgoing sessions if it's set
+ *
  * Revision 2.3  2003/12/26 21:12:06  gul
  * Change unixtime and file length/offset to unsigned in protocol messages
  *
@@ -74,6 +78,7 @@ struct _FTN_NODE
 
   FTN_ADDR fa;
   char pwd[MAXPWDLEN + 1];
+  char *pkt_pwd, *out_pwd;
   char obox_flvr;
   char *obox;
   char *ibox;
