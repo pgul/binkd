@@ -1,3 +1,7 @@
+2003/10/20 15:20:20 1.0a-257 gul
+Config.h,2.273,2.274
+Fix DOS compilation
+
 2003/10/20 15:08:12 1.0a-256 gul
 perlhooks.c,2.30,2.31
 Minor bugfix in perl error handling under win32
