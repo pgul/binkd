@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2002/11/12 17:27:46  gul
+ * Ignore empty (\r\n) line in lo-files
+ *
  * Revision 2.0  2001/01/10 12:12:39  gul
  * Binkd is under CVS again
  *
@@ -49,7 +52,7 @@ int read_flo_line (char *dst, int *action, FILE *flo)
     if (!fgets (buf, MAXPATHLEN, flo))
       return 0;
 
-    for (i = strlen (buf) - 1; i > 0 && isspace (buf[i]); --i)
+    for (i = strlen (buf) - 1; i >= 0 && isspace (buf[i]); --i)
       buf[i] = 0;
 
     switch (*buf)
