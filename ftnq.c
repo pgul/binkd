@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.29  2003/12/02 19:32:24  gul
+ * Prevent several clients calls to the same node
+ *
  * Revision 2.28  2003/10/29 21:08:38  gul
  * Change include-files structure, relax dependences
  *
@@ -1075,6 +1078,7 @@ FTN_NODE *q_next_node (BINKD_CONFIG *config)
   else
   {
     fn->mail_flvr = fn->files_flvr = 0;
+    fn->busy = 'c';
     return fn;
   }
 }
