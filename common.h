@@ -13,6 +13,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/07/16 15:08:49  stas
+ * Fix NT services to use getopt(). Improve logging for service
+ *
  * Revision 2.5  2003/06/20 10:37:02  val
  * Perl hooks for binkd - initial revision
  *
@@ -60,6 +63,8 @@ enum serviceflags{
    w32_queryservice=4,
    w32_run_as_service=-4
  };
+#define CTRL_SERVICESTOP_EVENT    254
+#define CTRL_SERVICERESTART_EVENT 255
 #endif
 
 /*

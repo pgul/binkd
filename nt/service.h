@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/07/16 15:08:49  stas
+ * Fix NT services to use getopt(). Improve logging for service
+ *
  * Revision 2.2  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -28,5 +31,22 @@
  *
  */
 
+/* checkservice() return values */
+#define CHKSRV_CANT_INSTALL  -1
+#define CHKSRV_NOT_INSTALLED  1
+#define CHKSRV_INSTALLED      2
+
+/* Check service status
+ * Return:
+ * -1 : can't install service
+ *  1 : Service not installed
+ *  2 : Service installed
+ */
 int checkservice(void);
+
 int service(int argc, char **argv, char **envp);
+
+/* Try connect to NT service controller
+ * Return 1 if program running standalone or system error
+ */
+int tell_start_ntservice(void);

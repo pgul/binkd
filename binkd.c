@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.44  2003/07/16 15:08:49  stas
+ * Fix NT services to use getopt(). Improve logging for service
+ *
  * Revision 2.43  2003/07/07 10:39:24  gul
  * getopt() usage fix
  *
@@ -282,16 +285,20 @@ void usage (void)
 #endif
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
 	  "i"
-#elif defined(BINKDW9X)
-	  "iut"
 #elif defined(WIN32)
-	  "Tiut"
+	  "iu"
+#if !defined(BINKDW9X)
+          "T"
 #endif
-	  "pqrsvmh] [-P node] "
+#endif
+	  "pqrsvmh] [-P node]"
 #if defined(WIN32)
-	  "[-S name] "
+	  " [-S name]"
+#if defined(BINKDW9X)
+          " [t cmd]"
 #endif
-	  "config"
+#endif
+	  " config"
 #ifdef OS2
 	  " [socket]"
 #endif
@@ -316,7 +323,6 @@ void usage (void)
 	  "  -T       minimize to Tray\n"
 	  "  -i       install WindowsNT service\n"
 	  "  -u       UNinstall WindowsNT service\n"
-	  "  -t cmd   (start|stop|restart|status) service(s)\n"
 	  "  -S name  set WindowsNT service name\n"
 #endif
 	  "  -P node  poll a node\n"
@@ -399,9 +405,9 @@ char *parseargs (int argc, char *argv[])
 		"T"
 #endif
 #if defined(BINKDW9X)
-		"Z"
+		"t:"
 #endif
-		"t:iuS:"
+		"ZiuS:"
 #endif
 		  )) != -1)
   {
@@ -440,7 +446,7 @@ char *parseargs (int argc, char *argv[])
 #if defined(WIN32)
 #if !defined (BINKDW9X)
 	    case 'T':
-	      if (!rerun) tray_flag = 1;
+	      tray_flag = 1;
 	      break;
 #endif
 
@@ -561,7 +567,21 @@ char *parseargs (int argc, char *argv[])
   return cfgfile;
 }
 
+#if defined(WIN32) && !defined(BINKDW9X)
+int binkd_main (int argc, char *argv[], char *envp[]);
+int main (int argc, char *argv[], char *envp[])
+{ int res=-1;
+
+  if( argc!=1 || (tell_start_ntservice()) )  /* See nt/service.c */
+    res=binkd_main(argc,argv,envp); /* Running not as NT service */
+
+  return res;
+}
+#endif
+
 #ifdef BINKDW9X
+int binkd_main (int argc, char *argv[], char *envp[])
+#elif defined(WIN32)
 int binkd_main (int argc, char *argv[], char *envp[])
 #else
 int main (int argc, char *argv[], char *envp[])
@@ -582,17 +602,18 @@ int main (int argc, char *argv[], char *envp[])
   configpath = parseargs(argc, argv);
 #endif
 
+#ifdef WIN32
+  if (service_flag==w32_installservice && !configpath)
+    Log (0, "%s: invalid command line: config name must be specified", extract_filename(argv[0]));
 #ifdef BINKDW9X
   {
     int win9x_rc;
     
-    if (service_flag==w32_installservice && !configpath)
-      Log (0, "%s: invalid command line: config name must be specified", extract_filename(argv[0]));
-     
     win9x_rc = win9x_process(argc, argv);
     if (win9x_rc != -1)
       return win9x_rc;
   }
+#endif
 #endif
 
   tzset();
@@ -604,7 +625,6 @@ int main (int argc, char *argv[], char *envp[])
   if (service_flag!=w32_noservice)
     if (service(argc, argv, envp) && service_flag!=w32_run_as_service) {
       Log(0, "Windows NT service error");
-      exit(-1);
     }
 #endif
 
@@ -667,7 +687,7 @@ int main (int argc, char *argv[], char *envp[])
 
   print_args (tmp, sizeof (tmp), argv + 1);
 #ifdef WIN32
-  if (service_flag==w32_run_as_service)
+  if (isService)
     Log (4, "BEGIN service '%s', " MYNAME "/" MYVER "%s%s", service_name, get_os_string(), tmp);
   else
     Log (4, "BEGIN standalone, " MYNAME "/" MYVER "%s%s", get_os_string(), tmp);
