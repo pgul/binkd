@@ -1,3 +1,8 @@
+2004/01/07 14:23:42 1.0a-354 gul
+!README.FIX,2.45,2.46 !README.perl,2.4,2.5 binkd.cfg,2.39,2.40 perlhooks.c,2.42,2.43 protocol.c,2.146,2.147 readcfg.c,2.63,2.64 readcfg.h,2.28,2.29 todo.lst,2.43,2.44
+Remove zaccept keyword, receiving compressed files possibility
+is always on now if binkd was compiled with zlib/bzip2 support.
+
 2004/01/07 14:09:47 1.0a-353 gul
 ftnnode.h,2.16,2.17
 New function free_nodes()
