@@ -1,3 +1,7 @@
+2003/12/02 15:02:31 1.0a-301 gul
+setpttl.c,2.2,2.3
+Use own snprintf() instead of sprintf() if no HAVE_SNPRINTF
+
 2003/11/21 21:40:07 1.0a-300 stream
 btypes.h,2.1,2.2 ftnnode.c,2.25,2.26 ftnnode.h,2.15,2.16 readcfg.c,2.59,2.60
 Initial support for "-noproxy" node option
