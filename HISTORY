@@ -1,3 +1,7 @@
+2003/08/30 19:38:56 0.9.6a-153 gul
+win9x.c,2.17,2.18
+Fix compilation warnings
+
 2003/08/29 16:27:37 0.9.6a-152 gul
 protocol.c,2.110,2.111
 Do not save zero-length .dt files
