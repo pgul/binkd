@@ -1,3 +1,7 @@
+2004/01/02 23:20:19 1.0a-329 stas
+w32tools.c,2.10,2.11 w32tools.h,2.6,2.7
+GetMainWindow(): function retrieves the window handle used by the main window of application
+
 2004/01/02 22:58:59 1.0a-328 stas
 !README.FIX,2.39,2.40 Config.h,2.350,2.351 tools.c,2.57,2.58
 Log file may be defined in enviroment variable BINKD_LOG
