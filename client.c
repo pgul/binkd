@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.53  2004/08/03 20:06:08  gul
+ * Remove unneeded longjump from signal handler
+ *
  * Revision 2.52  2003/12/06 00:27:23  gul
  * Coredump on exit cmgr with DEBUGCHILD
  *
@@ -219,7 +222,6 @@
 #include <ctype.h>
 #ifdef HAVE_FORK
 #include <signal.h>
-#include <setjmp.h>
 #include <sys/wait.h>
 #endif
 
@@ -249,12 +251,8 @@ int n_clients = 0;
 
 #ifdef HAVE_FORK
 
-static jmp_buf jmpbuf;
-
 static void chld (int signo)
 {
-  if (signo == SIGALRM)
-    longjmp(jmpbuf, 1);
 #define CHILDCOUNT n_clients
 #include "reapchld.inc"
 }
@@ -558,31 +556,25 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       }
 #ifdef HAVE_FORK
       if (config->connect_timeout)
-      {
-	if (setjmp(jmpbuf))
-	{
-	  save_err = strerror (ETIMEDOUT);
-	  goto badtry;
-	}
-	signal(SIGALRM, chld);
 	alarm(config->connect_timeout);
-      }
 #endif
       if (connect (sockfd, (struct sockaddr *) & sin, sizeof (sin)) == 0)
       {
 #ifdef HAVE_FORK
 	alarm(0);
-	signal(SIGALRM, SIG_DFL);
 #endif
 	Log (4, "connected");
 	break;
       }
 
-      save_err = TCPERR ();
 #ifdef HAVE_FORK
-badtry:
+      if (errno == EINTR && config->connect_timeout)
+	save_err = strerror (ETIMEDOUT);
+      else
+	save_err = TCPERR ();
       alarm(0);
-      signal(SIGALRM, SIG_DFL);
+#else
+      save_err = TCPERR ();
 #endif
       if (!binkd_exit)
       {
