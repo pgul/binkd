@@ -1,3 +1,7 @@
+2003/10/19 15:22:22 1.0a-253 gul
+compress.c,NONE,2.1 compress.h,NONE,2.1 binkd.c,2.68,2.69 binkd.cfg,2.34,2.35 perlhooks.c,2.29,2.30 protoco2.h,2.15,2.16 protocol.c,2.131,2.132 readcfg.c,2.56,2.57 readcfg.h,2.25,2.26 zlibdl.c,2.8,2.9 zlibdl.h,2.10,2.11
+Stream compression
+
 2003/10/19 13:28:12 1.0a-252 gul
 server.c,2.35,2.36
 Minor DEBUGCHILD fix
