@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2001/10/23 08:33:44  gul
+ * Change filename (not ext) in incoming *.req if already exists
+ *
  * Revision 2.0  2001/01/10 12:12:39  gul
  * Binkd is under CVS again
  *
@@ -153,6 +156,7 @@ char *get_os_string ();
  * Test netnames against some wildcards
  */
 int ispkt (char *s);
+int isreq (char *s);
 int isarcmail (char *s);
 int istic (char *s);
 

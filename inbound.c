@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2001/10/23 08:33:44  gul
+ * Change filename (not ext) in incoming *.req if already exists
+ *
  * Revision 2.1  2001/04/23 07:58:57  gul
  * getfree() on large drives fixed
  *
@@ -310,7 +313,7 @@ int inb_done (char *netname, size_t size, time_t time,
 
   /* gul: for *.pkt and *.?ic (tic, zic etc.) change name but not extension */
   /* ditto for arcmail -- mff */
-  if (ispkt (netname) || istic (netname) || isarcmail (netname))
+  if (ispkt (netname) || istic (netname) || isarcmail (netname) || isreq (netname))
     s -= 4;
 
   if (touch (tmp_name, time) != 0)

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2001/10/23 08:33:44  gul
+ * Change filename (not ext) in incoming *.req if already exists
+ *
  * Revision 2.2  2001/09/30 13:49:59  gul
  * Do not put log to socket if run via inetd
  *
@@ -675,6 +678,11 @@ char *get_os_string ()
 int ispkt (char *s)
 {
   return pmatch ("*.[Pp][Kk][Tt]", s);
+}
+
+int isreq (char *s)
+{
+  return pmatch ("*.[Rr][Ee][Qq]", s);
 }
 
 int istic (char *s)
