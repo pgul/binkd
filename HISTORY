@@ -1,3 +1,7 @@
+2004/01/03 14:38:28 1.0a-333 stas
+binkd.c,2.77,2.78
+Small change (win32)
+
 2004/01/03 14:18:16 1.0a-332 stas
 Config.h,2.354,2.355 binkd.c,2.76,2.77 exitproc.c,2.36,2.37 sem.h,2.11,2.12
 Implement full icon support (winNT/2k/XP)
