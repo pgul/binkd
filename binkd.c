@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30.2.5  2003/08/27 12:59:35  stas
+ * Update usage(), optimize code
+ *
  * Revision 2.30.2.4  2003/08/27 12:00:46  stas
  * Fix binkd9x build
  *
@@ -241,8 +244,11 @@ void usage (void)
 	char *s=NULL;
 	if(checkservice() > 0)
 	{
-	  s="iu\0  -i[(service-name)]  install WindowsNT service\n"
-	    "  -u[(service-name)]  UNinstall WindowsNT service\n";
+	  s="iu\0  -i       install WindowsNT service\n"
+                "  -u       uninstall WindowsNT service\n"
+                "  -S srvn  name of WindowsNT service (default: "
+                DEFAULT_SRVNAME ")"
+                "\n";
 	}
 #endif
 
@@ -250,7 +256,7 @@ void usage (void)
 	AllocTempConsole();
 #endif
 
-  printf ("usage: binkd [-Cc"
+  printf ("usage: binkd [-Ccpqrsvmh"
 #if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
           "D"
 #endif
@@ -259,9 +265,9 @@ void usage (void)
 #elif defined(BINKDW9X)
 	  "iut"
 #elif defined(WIN32)
-	  "T%s"
+	  "T%s] [-S srvn"
 #endif
-	  "pqrsvmh] [-P node] config"
+	  "] [-P node] config"
 #ifdef OS2
 	  " [socket]"
 #endif
@@ -282,7 +288,7 @@ void usage (void)
 	  "  -u[(service-name|--all)][q]  UNinstall Win9x service\n"
 	  "  -t[start|stop|restart][(service-name|--all)][q]  status|control service(s)\n"
 #elif defined(WIN32)
-	  "  -T       minimize to Tray\n"
+	  "  -T       minimize to System Tray\n"
 	  "%s"
 #endif
 	  "  -P node  poll a node\n"
@@ -397,8 +403,7 @@ int main (int argc, char *argv[], char *envp[])
 #if defined(WIN32)
 	    case 'S': /* Skip parameter */
 	      if (!s[1]){ ++i; }
-	      s="t";
-	      break;
+	      goto BREAK_WHILE;
 #endif
 	    case 'P':
 	      if (argv[i][2] == 0)
