@@ -15,6 +15,15 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.119  2003/08/18 07:35:11  val
+ * Auto increase patchlevel, set 0.9.6a-106
+ * multiple changes:
+ * - hide-aka/present-aka logic
+ * - address mask matching via pmatch
+ * - delay_ADR in STATE (define DELAY_ADR removed)
+ * - ftnaddress_to_str changed to xftnaddress_to_str (old version #define'd)
+ * - parse_ftnaddress now sets zone to domain default if it's omitted
+ *
  * Revision 2.118  2003/08/18 07:29:41  val
  * Auto increase patchlevel, set 0.9.6a-105
  * multiple changes:
@@ -510,7 +519,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-105"
+#define MYVER "0.9.6a-106"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
