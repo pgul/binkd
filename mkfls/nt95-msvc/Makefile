@@ -2,13 +2,23 @@
 # $Id$
 #
 # Usage: nmake [DEBUG=1] [DLLRTL=1] [BINKD9X=1] [PERL=1] [PERLDL=1]
-#              [ZLIB=1] [BZLIB2=1] [DEBUGCHILD=1]
+#              [ZLIB=1] [BZLIB2=1] [ZLIBDL=1] [DEBUGCHILD=1]
 #
 #
 
+# define path to perl sources if using PERL=1
 !ifdef PERL
-PERL_BASE=c:\programs\Perl
-PERL_LIB=perl56.lib
+PERL_BASE=c:\programs\Perl   # set perl package base path
+PERL_VER=56                  # set perl version (56 for 5.6, 58 for 5.8)
+!endif
+
+# define path to zlib sources if using ZLIB=1 without ZLIBDL
+!if defined(ZLIB) && !defined(ZLIBDL)
+ZLIB_SRC=..\zlib
+!endif
+# define path to bzlib2 sources if using BZLIB2=1 without ZLIBDL
+!if defined(BZLIB2) && !defined(ZLIBDL)
+BZLIB2_SRC=..\bzlib2
 !endif
 
 !ifdef DLLRTL
@@ -55,31 +65,42 @@ DEBUGCHILD_CDEFS= -D"DEBUGCHILD"
 PERL_COPT= -I"$(PERL_BASE)\lib\core"
 !ifndef PERLDL
 PERL_CDEFS= -D"WITH_PERL" -DNDEBUG -DNO_STRICT -DHAVE_DES_FCRYPT -DPERL_IMPLICIT_CONTEXT -DPERL_IMPLICIT_SYS -DPERL_MSVCRT_READFIX
-PERL_LLIBS= $(PERL_BASE)\lib\core\$(PERL_LIB)
+PERL_LLIBS= $(PERL_BASE)\lib\core\perl$(PERL_VER).lib
 !else
-PERL_CDEFS= -D"WITH_PERL" -D"PERLDL" -DNDEBUG -DNO_STRICT -DHAVE_DES_FCRYPT -DPERL_IMPLICIT_CONTEXT -DPERL_IMPLICIT_SYS -DPERL_MSVCRT_READFIX
+PERL_CDEFS= -D"WITH_PERL=$(PERL_VER)" -D"PERLDL" -DNDEBUG -DNO_STRICT -DHAVE_DES_FCRYPT -DPERL_IMPLICIT_CONTEXT -DPERL_IMPLICIT_SYS -DPERL_MSVCRT_READFIX
 !endif
 PERL_OBJS= $(OUTDIR)\perlhooks.obj
 !endif
 
-!if defined(ZLIB) && defined(BZLIB2)
-ZLIB_CDEFS= -DWITH_ZLIB -DWITH_BZLIB2 -DZLIBDL
+!if defined(ZLIB) || defined(BZLIB2)
 ZLIB_OBJS = $(OUTDIR)\zlibdl.obj
-!elseif defined(BZLIB2)
-ZLIB_CDEFS= -DWITH_BZLIB2 -DZLIBDL
-ZLIB_OBJS = $(OUTDIR)\zlibdl.obj
-!elseif defined(ZLIB)
-ZLIB_CDEFS= -DWITH_ZLIB -DZLIBDL
-ZLIB_OBJS = $(OUTDIR)\zlibdl.obj
+!endif
+!if defined(ZLIB)
+ZLIB_CDEFS= $(ZLIB_CDEFS) -DWITH_ZLIB
+!endif
+!if defined(BZLIB2)
+ZLIB_CDEFS= $(ZLIB_CDEFS) -DWITH_BZLIB2
+!endif
+!ifdef ZLIBDL
+ZLIB_CDEFS= $(ZLIB_CDEFS) -DZLIBDL
+!else
+! if defined(ZLIB)
+ZLIB_COPT= -I"$(ZLIB_SRC)"
+ZLIB_LLIBS= $(ZLIB_LLIBS) $(ZLIB_SRC)\zlib.lib
+! endif
+! if defined(BZLIB2)
+ZLIB_COPT= -I"$(BZLIB2_SRC)"
+ZLIB_LLIBS= $(ZLIB_LLIBS) $(BZLIB2_SRC)\libbz2.lib
+! endif
 !endif
 
 CC=        cl
 CDEFS=     $(CDEBUG) $(DEBUGCHILD_CDEFS) $(BINKD9X_DEFINES) $(RTL_DEFINES) $(PERL_CDEFS) $(ZLIB_CDEFS) -D"HTTPS" -D"WIN32" -D"HAVE_THREADS" -D"HAVE_IO_H" -D"HAVE_DOS_H" -D"HAVE_STDARG_H" -D"HAVE_SNPRINTF" -D"HAVE_VSNPRINTF" -D"VISUALCPP" -D"AMIGADOS_4D_OUTBOUND"
-COPT=      $(BINKDSBR) $(PERL_COPT) -Fo"$(OUTDIR)\\" -Fp"$(OUTDIR)\$(BINKDEXE).pch" -YX -Fd"$(OUTDIR)\\"
+COPT=      $(BINKDSBR) $(PERL_COPT) $(ZLIB_COPT) -Fo"$(OUTDIR)\\" -Fp"$(OUTDIR)\$(BINKDEXE).pch" -YX -Fd"$(OUTDIR)\\"
 LINK=      link
 LFLAGS=    /nologo /machine:I386
 LOPT=      $(LDEBUG) /subsystem:$(BINKD9X_SUBSYSTEM) /pdb:"$(OUTDIR)\$(BINKDEXE).pdb" /out:"$(OUTDIR)\$(BINKDEXE).exe" $(PERL_LOPT)
-LLIBS=     kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib wsock32.lib $(PERL_LLIBS)
+LLIBS=     kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib wsock32.lib $(ZLIB_LLIBS) $(PERL_LLIBS)
 BSC=       bscmake
 BINKDBSC=  "$(OUTDIR)\$(BINKDEXE).bsc"
 BSCFLAGS=  /nologo /o$(BINKDBSC)
