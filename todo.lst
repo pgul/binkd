@@ -1,8 +1,16 @@
 - nolog "call to*" "*:unknown host" "some annoing message"
 - set root-domain for every domain
 - crc32 check
-- perl hooks
+- perl hooks:
+  - recvfile
+  - sendfile
+  - beforesession
+  - aftersession
+  - startsession
+  - log
+  - start, atexit
 - shared aka
+- reread config "on fly" in multithread versions
 - do not kill attaches (save and ignore) if drive missing (unmounted)
 - no incoming calls under BeOS (file locking problem)
 - no syslog support under BeOS
