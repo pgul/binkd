@@ -30,7 +30,7 @@ from Russian by Michael Dukelsky 2:5020/1042.
     19. 'skipmask' Keyword Does Not Work.
     20. BinkD Under DOS.
     21. BinkD Under Windows 3.x.
-    22. Different FTN Domains in BinkD.
+    22. Different FTN Domains in BinkD And a Tosser Without 5D Support.
     23. How Does "domain ... alias-for ..." In The Configuration File Work?
     24. What Does "send: TCP/IP error (-10000)" Mean and How To Cure It?
     25. Argus (Radius) and BinkD: Argus Error "Aborting due to carrier loss"
@@ -736,14 +736,14 @@ and Novell TCP/IP Client for Win 3.11 (see the answer to the question
 ----------------------------------------------------------------------------
 
 
-        22. Different FTN Domains in BinkD And Tosser Without 5D Support
+        22. Different FTN Domains in BinkD And a Tosser Without 5D Support
 
-    Suppose there are two domains (with different zone numbers though it does
-not matter).  Mail can be successfully sent to the first domain but not to
-the second one. This situation may be produced if the tosser, tracker and other
-your FTN programs do not supports 5D outbound.
+    Suppose there are two domains (with different zone numbers though it
+does not matter).  Mail can be successfully sent to the first domain but
+not to the second one. This situation may be produced if the tosser,
+tracker and other your FTN programs do not support 5D outbound.
 
-    This is typical configuration of the binkd for two FTN domains and 5D
+    This is a typical BinkD configuration for two FTN domains and 5D
 outbound:
 
     domain fidonet c:\\ftn\\outbound\\fido 2
