@@ -1,3 +1,7 @@
+2003/10/06 20:01:37 1.0a-212 stas
+service.c,2.24,2.25
+Fix "we're running as a service" test
+
 2003/10/06 19:54:53 1.0a-211 stas
 service.c,2.23,2.24
 (Prevent warnings.) Prepare to implement full service control
