@@ -1,4 +1,4 @@
-binkd.c: \
+binkd.o: \
 	"Config.h" \
 	"assert.h" \
 	"binlog.h" \
@@ -21,7 +21,7 @@ binkd.c: \
 	"nt\win9x.h" \
 	"nt\wsock.h"
 
-binlog.c: \
+binlog.o: \
 	"Config.h" \
 	"assert.h" \
 	"binlog.h" \
@@ -39,13 +39,13 @@ binlog.c: \
 	"tools.h" \
 	"nt\wsock.h"
 
-branch.c: \
+branch.o: \
 	"Config.h" \
 	"getw.h" \
 	"sys.h" \
 	"tools.h"
 
-bsy.c: \
+bsy.o: \
 	"Config.h" \
 	"assert.h" \
 	"bsy.h" \
@@ -62,7 +62,7 @@ bsy.c: \
 	"nt\dirwin32.h" \
 	"nt\wsock.h"
 
-client.c: \
+client.o: \
 	"Config.h" \
 	"assert.h" \
 	"bsy.h" \
@@ -84,10 +84,10 @@ client.c: \
 	"tools.h" \
 	"nt\wsock.h"
 
-crypt.c: \
+crypt.o: \
 	"crypt.h"
 
-exitproc.c: \
+exitproc.o: \
 	"Config.h" \
 	"binlog.h" \
 	"bsy.h" \
@@ -103,7 +103,7 @@ exitproc.c: \
 	"tools.h" \
 	"nt\wsock.h"
 
-ftnaddr.c: \
+ftnaddr.o: \
 	"Config.h" \
 	"ftnaddr.h" \
 	"ftndom.h" \
@@ -115,13 +115,13 @@ ftnaddr.c: \
 	"tools.h" \
 	"nt\wsock.h"
 
-ftndom.c: \
+ftndom.o: \
 	"ftnaddr.h" \
 	"ftndom.h" \
 	"getw.h" \
 	"tools.h"
 
-ftnnode.c: \
+ftnnode.o: \
 	"Config.h" \
 	"assert.h" \
 	"ftnaddr.h" \
@@ -136,7 +136,7 @@ ftnnode.c: \
 	"tools.h" \
 	"nt\wsock.h"
 
-ftnq.c: \
+ftnq.o: \
 	"Config.h" \
 	"assert.h" \
 	"ftnaddr.h" \
@@ -152,10 +152,10 @@ ftnq.c: \
 	"nt\dirwin32.h" \
 	"nt\wsock.h"
 
-getw.c: \
+getw.o: \
 	"getw.h"
 
-https.c: \
+https.o: \
 	"Config.h" \
 	"ftnaddr.h" \
 	"ftndom.h" \
@@ -170,7 +170,7 @@ https.c: \
 	"tools.h" \
 	"nt\wsock.h"
 
-inbound.c: \
+inbound.o: \
 	"Config.h" \
 	"common.h" \
 	"ftnaddr.h" \
@@ -187,7 +187,7 @@ inbound.c: \
 	"nt\dirwin32.h" \
 	"nt\wsock.h"
 
-iptools.c: \
+iptools.o: \
 	"Config.h" \
 	"ftnaddr.h" \
 	"ftndom.h" \
@@ -201,7 +201,7 @@ iptools.c: \
 	"tools.h" \
 	"nt\wsock.h"
 
-md5b.c: \
+md5b.o: \
 	"Config.h" \
 	"ftnaddr.h" \
 	"ftndom.h" \
@@ -218,7 +218,7 @@ md5b.c: \
 	"tools.h" \
 	"nt\wsock.h"
 
-prothlp.c: \
+prothlp.o: \
 	"Config.h" \
 	"assert.h" \
 	"ftnaddr.h" \
@@ -235,7 +235,7 @@ prothlp.c: \
 	"tools.h" \
 	"nt\wsock.h"
 
-protocol.c: \
+protocol.o: \
 	"Config.h" \
 	"assert.h" \
 	"binlog.h" \
@@ -264,7 +264,7 @@ protocol.c: \
 	"tools.h" \
 	"nt\wsock.h"
 
-readcfg.c: \
+readcfg.o: \
 	"Config.h" \
 	"assert.h" \
 	"common.h" \
@@ -284,19 +284,19 @@ readcfg.c: \
 	"tools.h" \
 	"nt\wsock.h"
 
-readflo.c: \
+readflo.o: \
 	"Config.h" \
 	"assert.h" \
 	"getw.h" \
 	"readflo.h" \
 	"tools.h"
 
-run.c: \
+run.o: \
 	"getw.h" \
 	"run.h" \
 	"tools.h"
 
-server.c: \
+server.o: \
 	"Config.h" \
 	"assert.h" \
 	"common.h" \
@@ -315,10 +315,10 @@ server.c: \
 	"tools.h" \
 	"nt\wsock.h"
 
-setpttl.c: \
+setpttl.o: \
 	"setpttl.h"
 
-srif.c: \
+srif.o: \
 	"Config.h" \
 	"ftnaddr.h" \
 	"ftndom.h" \
@@ -335,7 +335,7 @@ srif.c: \
 	"tools.h" \
 	"nt\wsock.h"
 
-tools.c: \
+tools.o: \
 	"Config.h" \
 	"assert.h" \
 	"common.h" \
@@ -352,15 +352,15 @@ tools.c: \
 	"nt\dirwin32.h" \
 	"nt\wsock.h"
 
-xalloc.c: \
+xalloc.o: \
 	"getw.h" \
 	"tools.h"
 
-nt\WSock.c: \
+nt\WSock.o: \
 	"getw.h" \
 	"tools.h"
 
-nt\breaksig.c: \
+nt\breaksig.o: \
 	"Config.h" \
 	"binlog.h" \
 	"bsy.h" \
@@ -376,53 +376,53 @@ nt\breaksig.c: \
 	"nt\win9x.h" \
 	"nt\wsock.h"
 
-nt\dirwin32.c: \
+nt\dirwin32.o: \
 	"nt\dirwin32.h"
 
-nt\getfree.c: \
+nt\getfree.o: \
 	"config.h" \
 	"getw.h" \
 	"tools.h"
 
-nt\sem.c: \
+nt\sem.o: \
 	"getw.h" \
 	"tools.h"
 
-nt\service.c: \
+nt\service.o: \
 	"Config.h" \
 	"getw.h" \
 	"tools.h" \
 	"nt\service.h"
 
-nt\win9x.c: \
+nt\win9x.o: \
 	"Config.h" \
 	"getw.h" \
 	"tools.h" \
 	"nt\win9x.h"
 
-ntlm\des_enc.c: \
+ntlm\des_enc.o: \
 	"ntlm\des.h" \
 	"ntlm\des_locl.h" \
 	"ntlm\ncbc_enc.c"
 
-ntlm\ecb_enc.c: \
+ntlm\ecb_enc.o: \
 	"ntlm\des.h" \
 	"ntlm\des_locl.h" \
 	"ntlm\spr.h"
 
-ntlm\helpers.c: \
+ntlm\helpers.o: \
 	"iphdr.h" \
 	"sys.h" \
 	"nt\wsock.h" \
 	"ntlm\des.h" \
 	"ntlm\md4.h"
 
-ntlm\md4_dgst.c: \
+ntlm\md4_dgst.o: \
 	"ntlm\md32_com.h" \
 	"ntlm\md4.h" \
 	"ntlm\md4_locl.h"
 
-ntlm\set_key.c: \
+ntlm\set_key.o: \
 	"ntlm\des.h" \
 	"ntlm\des_locl.h"
 
