@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.57  2003/11/17 01:03:27  hbrew
+ * Fix BINKDW9X macro
+ *
  * Revision 2.56  2003/10/29 21:08:40  gul
  * Change include-files structure, relax dependences
  *
@@ -274,7 +277,7 @@
 #include "perlhooks.h"
 #endif
 
-#if defined(WIN32) && !defined(BINKD9X)
+#if defined(WIN32) && !defined(BINKDW9X)
 #include "nt/w32tools.h"
 #endif
 
