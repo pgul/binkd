@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.17  2004/01/07 12:09:45  gul
+ * New function free_nodes()
+ *
  * Revision 2.16  2003/11/21 19:39:59  stream
  * Initial support for "-noproxy" node option
  *
@@ -147,6 +150,11 @@ void add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
  * Iterates through nodes while func() == 0.
  */
 int foreach_node (int (*func) (FTN_NODE *fn, void *a2), void *a3, BINKD_CONFIG *config);
+
+/*
+ * Free pNodArray
+ */
+void free_nodes(BINKD_CONFIG *config);
 
 /*
  * Create a poll for an address (in "z:n/n.p" format) (0 -- bad)

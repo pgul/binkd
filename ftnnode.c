@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.27  2004/01/07 12:07:47  gul
+ * New function free_nodes()
+ *
  * Revision 2.26  2003/11/21 19:39:59  stream
  * Initial support for "-noproxy" node option
  *
@@ -402,3 +405,24 @@ int poll_node (char *s, BINKD_CONFIG *config)
     return create_poll (&target, POLL_NODE_FLAVOUR, config);
   }
 }
+
+/*
+ * Free pNodArray
+ * Semaphoring is not needed
+ */
+void free_nodes(BINKD_CONFIG *config)
+{
+  int i;
+  FTN_NODE *node;
+
+  for (i = 0; i < config->nNod; i++)
+  {
+    node = config->pNodArray[i];
+    xfree(node->hosts);
+    xfree(node->obox);
+    xfree(node->ibox);
+    free(node);
+  }
+  xfree(config->pNodArray);
+}
+
