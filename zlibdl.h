@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2003/10/23 21:16:09  gul
+ * Fix MSVC bzlib2 ZLIBDL compilation
+ *
  * Revision 2.14  2003/10/23 16:45:33  gul
  * Fix win32 zlibdl compilation
  *
@@ -72,16 +75,25 @@
 #ifdef WITH_BZLIB2
 
 #ifdef ZLIBDL
+
+#ifdef WIN32
+#define _WIN32    1
+#define BZ_IMPORT 1
+#define BZ2_bzCompressInit	dl_BZ2_bzCompressInit
+#define BZ2_bzCompress		dl_BZ2_bzCompress
+#define BZ2_bzCompressEnd	dl_BZ2_bzCompressEnd
+#define BZ2_bzDecompressInit	dl_BZ2_bzDecompressInit
+#define BZ2_bzDecompress	dl_BZ2_bzDecompress
+#define BZ2_bzDecompressEnd	dl_BZ2_bzDecompressEnd
+#else
 #define BZ2_bzCompressInit	(*dl_BZ2_bzCompressInit)
 #define BZ2_bzCompress		(*dl_BZ2_bzCompress)
 #define BZ2_bzCompressEnd	(*dl_BZ2_bzCompressEnd)
 #define BZ2_bzDecompressInit	(*dl_BZ2_bzDecompressInit)
 #define BZ2_bzDecompress	(*dl_BZ2_bzDecompress)
 #define BZ2_bzDecompressEnd	(*dl_BZ2_bzDecompressEnd)
-
-#ifdef WIN32
-#define _WIN32    1
 #endif
+
 #endif
 
 #include <stdio.h>
