@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.112  2003/09/05 06:44:05  val
+ * Argus-style freq's (M_NUL FREQ) support, not tested yet
+ *
  * Revision 2.111  2003/08/29 13:27:34  gul
  * Do not save zero-length .dt files
  *
@@ -1096,6 +1099,10 @@ static int NUL (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
     strnzcpy (state->sysop, s + 4, sizeof (state->sysop));
   else if (!memcmp (s, "LOC ", 4))
     strnzcpy (state->location, s + 4, sizeof (state->location));
+  else if (!memcmp (s, "FREQ", 4)) {
+    state->delay_EOB = 1;
+    Log(2, "Remote claims to have a FREQ for us");
+  }
   free (s);
   return 1;
 }
@@ -1728,6 +1735,10 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
 	            state->in_complete.time, state->fa, state->nallfa,
 		    state->inbound, realname, state, config) == 0)
         return 0; /* error, drop session */
+      /* val: check for *.req if got M_NUL FREQ */
+      if (state->delay_EOB && isreq(state->in_complete.netname))
+        state->delay_EOB = 0;
+      /* val: /check */
       if (*realname)
       {
         /* Set flags */
@@ -2188,6 +2199,7 @@ static int EOB (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
   UNUSED_ARG(sz);
 
   state->remote_EOB = 1;
+  state->delay_EOB = 0; /* val: we can do it anyway now :) */
   if (state->in.f)
   {
     fclose (state->in.f);
@@ -2790,8 +2802,11 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
       /* No more files to send in this batch, so send EOB */
       if (!state.q && !state.local_EOB && state.state != P_NULL && state.sent_fls == 0)
       {
-	state.local_EOB = 1;
-	msg_send2 (&state, M_EOB, 0, 0);
+        /* val: don't send EOB for binkp/1.0 if delay_EOB is set */
+	if (!state.delay_EOB || (state.major * 100 + state.minor > 100)) {
+	  state.local_EOB = 1;
+	  msg_send2 (&state, M_EOB, 0, 0);
+        }
       }
 
       FD_ZERO (&r);
