@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.123  2003/09/19 12:52:57  val
+ * fix bug with not sending GZ parameter to M_FILE after M_GET
+ *
  * Revision 2.122  2003/09/17 07:04:45  val
  * Cosmetics and comment on #define VAL_STYLE
  *
@@ -2114,6 +2117,7 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 {
   const int argc = 4;
   char *argv[4];
+  char extra[64];
   int i, rc = 0;
   off_t offset, fsize=0;
   time_t ftime=0;
@@ -2128,6 +2132,10 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
         Log ( 1, "File time parsing error: %s! (M_GET \"%s %s %s %s\")", errmesg, argv[0], argv[1], argv[0], argv[2], argv[3] );
       }
     }
+    extra[0] = 0;
+#ifdef WITH_ZLIB
+    if (state->z_send) strcat(extra, " GZ");
+#endif
     /* Check if the file was already sent */
     for (i = 0; i < state->n_sent_fls; ++i)
     {
@@ -2163,8 +2171,9 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
       { /* response for status */
 	rc = 1;
 	/* to satisfy remote GET_FILE_balance */
-	msg_sendf (state, M_FILE, "%s %li %lu %li", state->out.netname,
-	   (long) state->out.size, (unsigned long) state->out.time, atol(argv[3]));
+	msg_sendf (state, M_FILE, "%s %li %lu %li%s", state->out.netname,
+	           (long) state->out.size, (unsigned long) state->out.time, atol(argv[3]),
+                   extra);
 	if (atol(argv[3])==(long)state->out.size && (state->ND_flag & WE_ND))
 	{
 	  state->send_eof = 1;
@@ -2192,8 +2201,9 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
       else
       {
 	Log (2, "sending %s from %li", argv[0], offset);
-	msg_sendf (state, M_FILE, "%s %li %lu %li", state->out.netname,
-		   (long) state->out.size, (unsigned long) state->out.time, offset);
+	msg_sendf (state, M_FILE, "%s %li %lu %li%s", state->out.netname,
+		   (long) state->out.size, (unsigned long) state->out.time, offset,
+                   extra);
 	rc = 1;
       }
     }
