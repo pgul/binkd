@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22  2004/08/24 11:31:22  gul
+ * Fix typo in prev patch
+ *
  * Revision 2.21  2004/08/06 07:05:22  gul
  * Fixed typo in prev patch
  *
@@ -167,7 +170,7 @@
 #if defined(HAVE_FORK) && defined(HAVE_SIGPROCMASK) && defined(HAVE_WAITPID) && defined(SIG_BLOCK)
   void switchsignal(int how);
   #define blockchld()    switchsignal(SIG_BLOCK)
-  #define unblockchld()  switchsignal(SIG_BLOCK)
+  #define unblockchld()  switchsignal(SIG_UNBLOCK)
   #define BLOCK_CHLD     1
 #else
   #define blockchld()
