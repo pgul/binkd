@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2003/10/06 06:30:36  val
+ * zlib code fix
+ *
  * Revision 2.6  2003/09/25 06:41:43  val
  * fix compilation under win32
  *
@@ -99,18 +102,16 @@ int do_compress(int type, char *dst, int *dst_len, char *src, int src_len,
   switch (type) {
 #ifdef WITH_BZLIB2
     case 2: {
-      unsigned int d;
-      if (lvl == 0) lvl = 6;
-      rc = BZ2_bzBuffToBuffCompress(dst, &d, src, src_len, lvl, 0, 0);
+      unsigned int d = *dst_len;
+      rc = BZ2_bzBuffToBuffCompress(dst, &d, src, src_len, 1, 0, 0);
       *dst_len = (int)d;
       return rc;
     }
 #endif
 #ifdef WITH_ZLIB
     case 1: {
-      uLongf d;
-      if (lvl == 0) lvl = Z_DEFAULT_COMPRESSION;
-      rc = compress2(dst, &d, src, src_len, lvl);
+      uLongf d = *dst_len;
+      rc = compress2(dst, &d, src, src_len, lvl ? lvl : Z_DEFAULT_COMPRESSION);
       *dst_len = (int)d;
       return rc;
     }
@@ -126,7 +127,7 @@ int do_decompress(int type, char *dst, int *dst_len, char *src, int src_len) {
   switch (type) {
 #ifdef WITH_BZLIB2
     case 2: {
-      unsigned int d;
+      unsigned int d = *dst_len;
       rc = BZ2_bzBuffToBuffDecompress(dst, &d, src, src_len, 0, 0);
       *dst_len = (int)d;
       return rc;
@@ -134,7 +135,7 @@ int do_decompress(int type, char *dst, int *dst_len, char *src, int src_len) {
 #endif
 #ifdef WITH_ZLIB
     case 1: {
-      uLongf d;
+      uLongf d = *dst_len;
       rc = uncompress(dst, &d, src, src_len);
       *dst_len = (int)d;
       return rc;
