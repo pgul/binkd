@@ -26,6 +26,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.5  2003/08/16 09:08:33  gul
+ * Binlog semaphoring removed
+ *
  * Revision 2.4  2003/04/02 13:12:57  gul
  * Try to use workaround for buggy windows time functions (timezone)
  *
@@ -67,42 +70,6 @@
 #include "protoco2.h"
 #include "assert.h"
 #include "sem.h"
-
-/*--------------------------------------------------------------------*/
-/*                         Global definitions                         */
-/*--------------------------------------------------------------------*/
-
-/*--------------------------------------------------------------------*/
-/*                          Global variables                          */
-/*--------------------------------------------------------------------*/
-
-/*--------------------------------------------------------------------*/
-/*                           Local variables                          */
-/*--------------------------------------------------------------------*/
-
-#if defined(HAVE_THREADS) || defined(AMIGA)
-static MUTEXSEM BLSem;		/* =0 removed */
-#endif
-
-/*--------------------------------------------------------------------*/
-/*    void BinLogInit(Void)                                           */
-/*                                                                    */
-/*    Initialise BinLog semaphore.                                    */
-/*--------------------------------------------------------------------*/
-
-void BinLogInit(void) {
-	InitSem(&BLSem);
-}
-
-/*--------------------------------------------------------------------*/
-/*    void BinLogDeInit(Void)                                         */
-/*                                                                    */
-/*    Deinitialise BinLog semaphore.                                  */
-/*--------------------------------------------------------------------*/
-
-void BinLogDeInit(void) {
-	CleanSem(&BLSem);
-}
 
 /*--------------------------------------------------------------------*/
 /*    void TLogStat (char*, STATE*)                                   */
@@ -214,8 +181,8 @@ void FDLogStat (STATE *state)
 	std.Cost = 0; /* Let it be free :) */
 
 
-	if (state->to) fp = fopen( fdouthist, "ab+" );
-		  else fp = fopen( fdinhist , "ab+" );
+	if (state->to) fp = fopen( fdouthist, "ab" );
+		  else fp = fopen( fdinhist , "ab" );
 
 	if( fp != NULL )
 	{
@@ -234,9 +201,7 @@ void FDLogStat (STATE *state)
 
 void BinLogStat (char *status, STATE *state)
 {
-  LockSem (&BLSem);
   TLogStat (status, state);
   FDLogStat (state);
-  ReleaseSem (&BLSem);
 }
 

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.52  2003/08/16 09:08:32  gul
+ * Binlog semaphoring removed
+ *
  * Revision 2.51  2003/08/11 08:33:16  val
  * better error handling in perl hooks
  *
@@ -726,7 +729,6 @@ int main (int argc, char *argv[], char *envp[])
     Log (0, "sock_init: %s", TCPERR ());
 
   bsy_init ();
-  BinLogInit ();
   rnd ();
   initsetproctitle (argc, argv, envp);
 #ifdef WIN32
