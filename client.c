@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.26  2003/03/19 14:36:03  gul
+ * Fix typo
+ *
  * Revision 2.25  2003/03/14 21:58:33  gul
  * Changed function SLEEP() to define for multithread version
  *
@@ -460,7 +463,7 @@ badtry:
     }
 #ifdef HAVE_THREADS
 #ifdef HTTPS
-    if (!proxy[0] && !host[0])
+    if (!proxy[0] && !socks[0])
 #endif
     {
       if (hp && hp->h_addr_list != alist)
@@ -484,7 +487,7 @@ badtry:
 #endif
   }
 #if defined(HAVE_THREADS) && defined(HTTPS)
-  if ((proxy[0] || host[0]) && hp->h_addr_list != alist)
+  if ((proxy[0] || socks[0]) && hp->h_addr_list != alist)
   {
     if (hp->h_addr_list && hp->h_addr_list[0])
       free(hp->h_addr_list[0]);
