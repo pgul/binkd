@@ -1,3 +1,7 @@
+2003/10/06 20:03:40 1.0a-213 stas
+service.c,2.25,2.26
+Fix logic of checkservice()
+
 2003/10/06 20:01:37 1.0a-212 stas
 service.c,2.24,2.25
 Fix "we're running as a service" test
