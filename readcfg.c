@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.32  2003/07/28 10:23:33  val
+ * Perl DLL dynamic load for Win32, config keyword perl-dll, nmake PERLDL=1
+ *
  * Revision 2.31  2003/07/07 08:33:25  val
  * `perl-hooks' config keyword to specify perl script
  *
@@ -246,6 +249,9 @@ int aso = 0;
 #endif
 #ifdef WITH_PERL
 char perl_script[MAXPATHLEN + 1] = "";
+# ifdef PERLDL
+char perl_dll[MAXPATHLEN + 1] = "";
+# endif
 #endif
 
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
@@ -380,6 +386,9 @@ KEYWORD keywords[] =
 
 #ifdef WITH_PERL
   {"perl-hooks", read_string, perl_script, 'f', 0},
+# ifdef PERLDL
+  {"perl-dll", read_string, perl_dll, 'f', 0},
+# endif
 #endif
   {NULL, NULL, NULL, 0, 0}
 };

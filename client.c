@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.41  2003/07/28 10:23:33  val
+ * Perl DLL dynamic load for Win32, config keyword perl-dll, nmake PERLDL=1
+ *
  * Revision 2.40  2003/06/20 10:37:02  val
  * Perl hooks for binkd - initial revision
  *
@@ -563,7 +566,7 @@ void call (void *arg)
   void *cperl;
 #endif
 
-#if defined(WITH_PERL) && defined(HAVE_THREADS) && !defined(CLIENT_BUG)
+#if defined(WITH_PERL) && defined(HAVE_THREADS)
   cperl = perl_init_clone();
 #endif
   if (bsy_add (&node->fa, F_CSY))
@@ -571,7 +574,7 @@ void call (void *arg)
     call0 (node);
     bsy_remove (&node->fa, F_CSY);
   }
-#if defined(WITH_PERL) && defined(HAVE_THREADS) && !defined(CLIENT_BUG)
+#if defined(WITH_PERL) && defined(HAVE_THREADS)
   perl_done_clone(cperl);
 #endif
   free (arg);
