@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2003/02/22 21:32:46  gul
+ * Amiga Style Outbound support
+ *
  * Revision 2.0  2001/01/10 12:12:38  gul
  * Binkd is under CVS again
  *
@@ -140,8 +143,19 @@ void netname (char *s, TFILE *q)
     /* gul: bt+ arcshield */
     if ((z = strrchr (s, '.')) != NULL)
       if (strlen (++z) == 3)
+      {
 	if ((*z >= '0') && (*z < '7') && (z[1] == '#'))
 	  memcpy (z, weekext[*z - '0'], 2);
+#ifdef AMIGADOS_4D_OUTBOUND
+	if (aso && isarcmail(s))
+	{ /* "2:2/0 aso name shorter then bso */
+	  char ext[4];
+	  unsigned zone, net, node, p;
+	  if (sscanf(s, "%u.%u.%u.%u.%3s", &zone, &net, &node, &p, ext) == 5)
+	    sprintf(s, "%08lx.%s", rnd(), ext);
+	}
+#endif
+      }
 
     z = strquote(s, SQ_CNTRL | SQ_SPACE);
     strnzcpy (s, z, MAX_NETNAME);

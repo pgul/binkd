@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/02/22 21:32:46  gul
+ * Amiga Style Outbound support
+ *
  * Revision 2.3  2003/02/22 15:53:46  gul
  * Bugfix with locking array of nodes in multithread version
  *
@@ -175,9 +178,12 @@ FTNQ *q_scan (FTNQ *q)
 	  FTN_ADDR fa;
 
 	  FA_ZERO (&fa);
-	  fa.z = ((de->d_name[len] == '.') ?
-		  strtol (de->d_name + len + 1, (char **) NULL, 16) :
-		  curr_domain->z[0]);
+#ifdef AMIGADOS_4D_OUTBOUND
+	  if (!aso)
+#endif
+	    fa.z = ((de->d_name[len] == '.') ?
+		    strtol (de->d_name + len + 1, (char **) NULL, 16) :
+		    curr_domain->z[0]);
 	  if (de->d_name[len] == 0 || fa.z != curr_domain->z[0])
 	  {
 	    strcpy (fa.domain, curr_domain->name);
@@ -499,15 +505,76 @@ static FTNQ *q_add_dir (FTNQ *q, char *dir, FTN_ADDR *fa1)
 
     while ((de = readdir (dp)) != 0)
     {
-      s = de->d_name;
-
-      for (j = 0; j < 8; ++j)
-	if (!isxdigit (s[j]))
-	  break;
-
-      if (j == 8 && strchr (s, 0) - s == 12 &&
-	  strchr (s, '.') - s == 8 && strrchr (s, '.') - s == 8)
+#ifdef AMIGADOS_4D_OUTBOUND
+      if (aso)
       {
+        char ext[4];
+        int matched = 0;
+        size_t nlen = strlen(s = de->d_name);
+
+	for (; *s && isgraph(*s) != 0; s++);
+	if (s - de->d_name != nlen)
+	  continue;
+
+        memcpy (&fa2, fa1, sizeof(FTN_ADDR));
+
+        if (sscanf(s = de->d_name, "%u.%u.%u.%u.%3s%n",
+	         &fa2.z, &fa2.net, &fa2.node, &fa2.p, ext, &matched) != 5 ||
+	    matched != nlen || strlen(ext) != 3)
+	  continue;
+
+        if ((fa1->z != -1 && fa1->z != fa2.z) ||
+	    (fa1->net != -1 && fa1->net != fa2.net) ||
+	    (fa1->node != -1 && fa1->node != fa2.node) ||
+	    (fa1->p != -1 && fa1->p != fa2.p))
+	  continue;
+
+        strnzcpy(buf, dir, sizeof(buf));
+        strnzcpy(buf + strlen(buf), PATH_SEPARATOR, sizeof(buf) - strlen(buf));
+        strnzcpy(buf + strlen(buf), s, sizeof(buf) - strlen(buf));
+
+        if (!STRICMP(ext, "bsy") || !STRICMP(ext, "csy"))
+	  process_bsy(&fa2, buf);
+
+	locknodesem();
+        if (!get_node_info(&fa2) && !is5D(fa1))
+	{ releasenodesem();
+          continue;
+	}
+	releasenodesem();
+
+        if (strchr(out_flvrs, ext[0]) &&
+		  tolower(ext[1]) == 'u' && tolower(ext[2]) == 't')
+	  /* Adding *.?ut */
+	  q = q_add_file(q, buf, &fa2, ext[0], 'd', 'm');
+        else if (!STRICMP(ext, "req"))
+	  /* Adding *.req */
+	  q = q_add_file(q, buf, &fa2, 'h', 's', 'r');
+        else if (!STRICMP(ext, "hld"))
+	  process_hld(&fa2, buf);
+        else if (strchr(flo_flvrs, ext[0]) &&
+		        tolower(ext[1]) == 'l' && tolower(ext[2]) == 'o')
+	  /* Adding *.?lo */
+	  q = q_add_file(q, buf, &fa2, ext[0], 'd', 'l');
+	else if (!STRICMP (s + 9, "stc"))
+	{
+	  /* Adding *.stc */
+	  q = q_add_file (q, buf, &fa2, 'h', 0, 's');
+	}
+      }
+      else
+#endif /* AMIGADOS_4D_OUTBOUND */
+      {
+        s = de->d_name;
+
+        for (j = 0; j < 8; ++j)
+	  if (!isxdigit (s[j]))
+	    break;
+
+        if (j != 8 || strchr (s, 0) - s != 12 ||
+	    strchr (s, '.') - s != 8 || strrchr (s, '.') - s != 8)
+	  continue;
+
 	/* fa2 will store dest.address for the current (de->d_name) file */
 	memcpy (&fa2, fa1, sizeof (FTN_ADDR));
 
@@ -517,62 +584,58 @@ static FTNQ *q_add_dir (FTNQ *q, char *dir, FTN_ADDR *fa1)
 	  sscanf (s, "%4x%4x", &fa2.net, &fa2.node);
 
 	/* add the file if wildcard (f1) match the address (fa2) */
-	if (fa1->node == -1 || fa1->p == -1 || !ftnaddress_cmp (fa1, &fa2))
+	if (fa1->node != -1 && fa1->p != -1 && ftnaddress_cmp (fa1, &fa2))
+	  continue;
+
+	strnzcpy (buf, dir, sizeof (buf));
+	strnzcpy (buf + strlen (buf), PATH_SEPARATOR,
+		  sizeof (buf) - strlen (buf));
+	strnzcpy (buf + strlen (buf), s, sizeof (buf) - strlen (buf));
+
+	if (!STRICMP (s + 9, "pnt") && fa2.p == -1)
 	{
-	  strnzcpy (buf, dir, sizeof (buf));
-	  strnzcpy (buf + strlen (buf), PATH_SEPARATOR,
-		    sizeof (buf) - strlen (buf));
-	  strnzcpy (buf + strlen (buf), s, sizeof (buf) - strlen (buf));
+	  struct stat sb;
 
-	  if (!STRICMP (s + 9, "pnt") && fa2.p == -1)
-	  {
-	    struct stat sb;
+	  if (stat (buf, &sb) == 0 && sb.st_mode & S_IFDIR)
+	    q = q_add_dir (q, buf, &fa2);
+	  continue;
+	}
+	if (fa2.p == -1)
+	  fa2.p = 0;
 
-	    if (stat (buf, &sb) == 0 && sb.st_mode & S_IFDIR)
-	      q = q_add_dir (q, buf, &fa2);
-	  }
-	  else
-	  {
-	    if (fa2.p == -1)
-	      fa2.p = 0;
+	if (!STRICMP (s + 9, "bsy") || !STRICMP (s + 9, "csy"))
+	  process_bsy (&fa2, buf);
 
-	    if (!STRICMP (s + 9, "bsy") || !STRICMP (s + 9, "csy"))
-	      process_bsy (&fa2, buf);
-
-	    locknodesem();
-	    if (get_node_info (&fa2) || is5D (fa1))
-	    {
-	      releasenodesem();
-	      if (strchr (out_flvrs, s[9]) &&
-		  tolower (s[10]) == 'u' && tolower (s[11]) == 't')
-	      {
-		/* Adding *.?ut */
-		q = q_add_file (q, buf, &fa2, s[9], 'd', 'm');
-	      }
-	      else if (!STRICMP (s + 9, "req"))
-	      {
-		/* Adding *.req */
-		q = q_add_file (q, buf, &fa2, 'h', 's', 'r');
-	      }
-	      else if (!STRICMP (s + 9, "hld"))
-	      {
-		process_hld (&fa2, buf);
-	      }
-	      else if (strchr (flo_flvrs, s[9]) &&
-		       tolower (s[10]) == 'l' && tolower (s[11]) == 'o')
-	      {
-		/* Adding *.?lo */
-		q = q_add_file (q, buf, &fa2, s[9], 'd', 'l');
-	      }
-	      else if (!STRICMP (s + 9, "stc"))
-	      {
-		/* Adding *.stc */
-		q = q_add_file (q, buf, &fa2, 'h', 0, 's');
-	      }
-	    }
-	    else
-	      releasenodesem();
-	  }
+	locknodesem();
+	if (!get_node_info (&fa2) && !is5D (fa1))
+	{
+	  releasenodesem();
+	  continue;
+	}
+	releasenodesem();
+	if (strchr (out_flvrs, s[9]) &&
+	    tolower (s[10]) == 'u' && tolower (s[11]) == 't')
+	{
+	  /* Adding *.?ut */
+	  q = q_add_file (q, buf, &fa2, s[9], 'd', 'm');
+	}
+	else if (!STRICMP (s + 9, "req"))
+	{
+	  /* Adding *.req */
+	  q = q_add_file (q, buf, &fa2, 'h', 's', 'r');
+	}
+	else if (!STRICMP (s + 9, "hld"))
+	  process_hld (&fa2, buf);
+	else if (strchr (flo_flvrs, s[9]) &&
+	         tolower (s[10]) == 'l' && tolower (s[11]) == 'o')
+	{
+	  /* Adding *.?lo */
+	  q = q_add_file (q, buf, &fa2, s[9], 'd', 'l');
+	}
+	else if (!STRICMP (s + 9, "stc"))
+	{
+	  /* Adding *.stc */
+	  q = q_add_file (q, buf, &fa2, 'h', 0, 's');
 	}
       }
     }

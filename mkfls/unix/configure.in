@@ -143,6 +143,10 @@ esac
 
 extrasub=s%@HTTPS_SRC@%$HTTPS_SRC%g
 
+AC_ARG_WITH(aso,
+          [  --with-aso              Amiga Style Outbound (ASO) support (default no)],
+          AC_DEFINE(AMIGADOS_4D_OUTBOUND), )
+
 dnl -------------------------------------------------------------------------
 
 AC_OUTPUT(Makefile)

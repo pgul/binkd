@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2003/02/22 21:32:46  gul
+ * Amiga Style Outbound support
+ *
  * Revision 2.15  2003/02/22 20:19:54  gul
  * Update copyrightes, 2002->2003
  *
@@ -183,6 +186,9 @@ int prescan = 0;
 enum inbcasetype inboundcase = INB_SAVE;
 int connect_timeout = 0;
 struct conflist_type *config_list = NULL;
+#ifdef AMIGADOS_4D_OUTBOUND
+int aso = 0;
+#endif
 
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
 
@@ -300,6 +306,9 @@ KEYWORD keywords[] =
   {"inboundcase", read_inboundcase, &inboundcase, 0, 0},
   {"deletedirs", read_bool, &deletedirs, 0, 0},
   {"overwrite", read_overwrite, NULL, 0, 0},
+#ifdef AMIGADOS_4D_OUTBOUND
+  {"aso", read_bool, &aso, 0, 0},
+#endif
   {NULL, NULL, NULL, 0, 0}
 };
 

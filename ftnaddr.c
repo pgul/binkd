@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/02/22 21:32:46  gul
+ * Amiga Style Outbound support
+ *
  * Revision 2.1  2003/01/29 19:32:03  gul
  * Code cleanup, prevent segfault on bad config
  *
@@ -237,19 +240,32 @@ void ftnaddress_to_filename (char *s, FTN_ADDR *fa)
     char ext[] = "\0ext";	       /* ".ext" */
     char pnt[] = "\0pnt/0000xxxx";     /* ".pnt..." */
 
-    if (fa->z != d->z[0])
-      sprintf (ext, ".%03x", fa->z);
+#ifdef AMIGADOS_4D_OUTBOUND
+    if (aso)
+#ifdef HAVE_SNPRINTF
+      snprintf(s, MAXPATHLEN,
+#else
+      sprintf(s,
+#endif
+        "%s%s%s%s%u.%u.%u.%u", d->path, PATH_SEPARATOR, d->dir,
+         PATH_SEPARATOR, fa->z, fa->net, fa->node, fa->p);
+    else
+#endif
+    {
+      if (fa->z != d->z[0])
+	sprintf (ext, ".%03x", fa->z);
 
-    if (fa->p != 0)
-      sprintf (pnt, ".pnt%s%08x", PATH_SEPARATOR, fa->p);
+      if (fa->p != 0)
+	sprintf (pnt, ".pnt%s%08x", PATH_SEPARATOR, fa->p);
 
 #ifdef HAVE_SNPRINTF
-    snprintf(s, MAXPATHLEN,
+      snprintf(s, MAXPATHLEN,
 #else
-    sprintf(s,
+      sprintf(s,
 #endif
-       "%s%s%s%s%s%04x%04x%s",
-       d->path, PATH_SEPARATOR, d->dir, ext, PATH_SEPARATOR,
-       fa->net, fa->node, pnt);
+        "%s%s%s%s%s%04x%04x%s",
+        d->path, PATH_SEPARATOR, d->dir, ext, PATH_SEPARATOR,
+        fa->net, fa->node, pnt);
+    }
   }
 }

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/02/22 21:32:46  gul
+ * Amiga Style Outbound support
+ *
  * Revision 2.4  2003/02/22 14:30:18  gul
  * Make nNod var static
  *
@@ -117,6 +120,9 @@ extern int deleteablebox;
 #ifdef HTTPS
 extern char proxy[MAXHOSTNAMELEN + 40];
 extern char socks[MAXHOSTNAMELEN + 40];
+#endif
+#ifdef AMIGADOS_4D_OUTBOUND
+extern int aso;
 #endif
 extern struct conflist_type 
   { char *path;

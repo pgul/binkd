@@ -508,3 +508,5 @@ NT/95:  ctrl-c problems fixed
 
 	Do not give unsecure mail to secure link when send-if-pwd.
 
+	Amiga Style Outbound (ASO) support.
+
