@@ -26,6 +26,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.11  2004/08/04 13:06:58  gul
+ * Binlogs writes correctly now independent on bytes order and alignment
+ *
  * Revision 2.10  2003/10/29 21:08:38  gul
  * Change include-files structure, relax dependences
  *
@@ -87,6 +90,20 @@
 #include "tools.h"
 #include "sem.h"
 
+/* Write 16-bit integer to file in intel bytes order */
+static int fput16(u16 arg, FILE *file)
+{
+	if (fputc(arg % 0xff, file) == EOF) return EOF;
+	return fputc(arg >> 8, file);
+}
+
+/* Write 32-bit integer to file in intel bytes order */
+static int fput32(u32 arg, FILE *file)
+{
+	if (fput16((u16)(arg%0xffff), file) == EOF) return EOF;
+	return fput16((u16)(arg/0x10000), file);
+}
+
 /*--------------------------------------------------------------------*/
 /*    static void TLogStat (char*, STATE*, char*, int)                */
 /*                                                                    */
@@ -115,16 +132,16 @@ static void TLogStat (char *status, STATE *state, char *binlogpath, int tzoff)
 		TS.fStatus = 0;
 
 		if (state->to) {
-			TS.fZone = state->to->fa.z;
-			TS.fNet = state->to->fa.net;
-			TS.fNode = state->to->fa.node;
-			TS.fPoint = state->to->fa.p;
+			TS.fZone = (u16)state->to->fa.z;
+			TS.fNet = (u16)state->to->fa.net;
+			TS.fNode = (u16)state->to->fa.node;
+			TS.fPoint = (u16)state->to->fa.p;
 			TS.fStatus = 1;
 		} else if (state->fa) {
-			TS.fZone = state->fa->z;
-			TS.fNet = state->fa->net;
-			TS.fNode = state->fa->node;
-			TS.fPoint = state->fa->p;
+			TS.fZone = (u16)state->fa->z;
+			TS.fNet = (u16)state->fa->net;
+			TS.fNode = (u16)state->fa->node;
+			TS.fPoint = (u16)state->fa->p;
 			TS.fStatus = 2;
 		} else {
 			TS.fZone = 0;
@@ -133,18 +150,31 @@ static void TLogStat (char *status, STATE *state, char *binlogpath, int tzoff)
 			TS.fPoint = 0;
 			TS.fStatus = 0;
 		}
-		TS.fBReceive = state->bytes_rcvd;
-		TS.fBSent = state->bytes_sent;
-		TS.fFReceive = state->files_rcvd;
-		TS.fFSent = state->files_sent;
-		TS.fSTime = state->start_time + tz_off(state->start_time, tzoff)*60;
-		TS.fLTime = safe_time() - state->start_time;
+		TS.fBReceive = (u32)state->bytes_rcvd;
+		TS.fBSent = (u32)state->bytes_sent;
+		TS.fFReceive = (u8)state->files_rcvd;
+		TS.fFSent = (u8)state->files_sent;
+		TS.fSTime = (u32)(state->start_time + tz_off(state->start_time, tzoff)*60);
+		TS.fLTime = (u32)(safe_time() - state->start_time);
 		if (STRICMP(status, "OK") != 0) {
 			TS.fStatus |= 3;
 		}
 		LockSem(&blsem);
 		if ((fl = fopen(binlogpath,"ab")) != NULL) {
-			fwrite(&TS,sizeof(TS),1,fl);
+			/* fwrite(&TS, sizeof(TS), 1, fl); */
+			/* FIXME: check retcode and set original file size
+			 * if write failed */
+			fput16(TS.fZone,     fl);
+			fput16(TS.fNet,      fl);
+			fput16(TS.fNode,     fl);
+			fput16(TS.fPoint,    fl);
+			fput32(TS.fSTime,    fl);
+			fput32(TS.fLTime,    fl);
+			fput32(TS.fBReceive, fl);
+			fput32(TS.fBSent,    fl);
+			fputc (TS.fFReceive, fl);
+			fputc (TS.fFSent,    fl);
+			fput16(TS.fStatus,   fl);
 			fclose(fl);
 			ReleaseSem(&blsem);
 		} else {
@@ -188,25 +218,35 @@ static void FDLogStat (STATE *state, char *fdinhist, char *fdouthist, int tzoff)
 	t = safe_time();
 	std.TimeStart = (u32)(state->start_time + tz_off(state->start_time, tzoff)*60);
 	std.TimeEnd = (u32)(t + tz_off(t, tzoff)*60);
-	std.Zone = state->fa->z;
-	std.Net = state->fa->net;
-	std.Node = state->fa->node;
-	std.Point = state->fa->p;
+	std.Zone = (u16)state->fa->z;
+	std.Net = (u16)state->fa->net;
+	std.Node = (u16)state->fa->node;
+	std.Point = (u16)state->fa->p;
 	strnzcpy (std.Domain, state->fa->domain, sizeof (std.Domain));
 	strnzcpy (std.StationName, state->sysname, sizeof (std.StationName));
 	strnzcpy (std.StationLoc, state->location, sizeof (std.StationLoc));
-	std.Received = state->bytes_rcvd;
-	std.Sent = state->bytes_sent;
+	std.Received = (u32)(state->bytes_rcvd);
+	std.Sent = (u32)(state->bytes_sent);
 	std.Cost = 0; /* Let it be free :) */
 
-
 	LockSem(&blsem);
-	if (state->to) fp = fopen( fdouthist, "ab" );
-		  else fp = fopen( fdinhist , "ab" );
-
-	if( fp != NULL )
+	if ((fp = fopen ( state->to ? fdouthist : fdinhist, "ab" )) != NULL)
 	{
-		fwrite ( &std, (size_t) sizeof(std), (size_t) 1, fp);
+		/* fwrite ( &std, (size_t) sizeof(std), (size_t) 1, fp); */
+		/* FIXME: check retcode and set original file size
+		 * if write failed */
+		fput16(std.Zone,       fp);
+		fput16(std.Net,        fp);
+		fput16(std.Node,       fp);
+		fput16(std.Point,      fp);
+		fwrite(std.Domain,     sizeof(std.Domain), 1, fp);
+		fput32(std.TimeStart,  fp);
+		fput32(std.TimeEnd,    fp);
+		fwrite(std.StationName,sizeof(std.StationName), 1, fp);
+		fwrite(std.StationLoc, sizeof(std.StationLoc),  1, fp);
+		fput32(std.Received,   fp);
+		fput32(std.Sent,       fp);
+		fput32(std.Cost,       fp);
 		fclose( fp );
 		ReleaseSem(&blsem);
 	}
@@ -225,7 +265,7 @@ static void FDLogStat (STATE *state, char *fdinhist, char *fdouthist, int tzoff)
 
 void BinLogStat (char *status, STATE *state, BINKD_CONFIG *config)
 {
-  TLogStat (status, state, config->binlogpath, config->tzoff);
-  FDLogStat (state, config->fdinhist, config->fdouthist, config->tzoff);
+	TLogStat (status, state, config->binlogpath, config->tzoff);
+	FDLogStat (state, config->fdinhist, config->fdouthist, config->tzoff);
 }
 
