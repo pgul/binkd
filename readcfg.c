@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.77  2004/10/26 17:36:59  gul
+ * Set time intervals in human-readable form (12h instead of 43200 etc.)
+ *
  * Revision 2.76  2004/10/26 15:46:42  gul
  * Process option skipmask for backward compatibility
  *
@@ -605,6 +608,7 @@ static int read_aka_list (KEYWORD *key, int wordcount, char **words);
 static int read_domain_info (KEYWORD *key, int wordcount, char **words);
 static int read_node_info (KEYWORD *key, int wordcount, char **words);
 static int read_int (KEYWORD *key, int wordcount, char **words);
+static int read_time (KEYWORD *key, int wordcount, char **words);
 static int read_string (KEYWORD *key, int wordcount, char **words);
 static int read_bool (KEYWORD *key, int wordcount, char **words);
 static int read_flag_exec_info (KEYWORD *key, int wordcount, char **words);
@@ -641,7 +645,7 @@ static KEYWORD keywords[] =
   {"binlog", read_string, work_config.binlogpath, 'f', 0},
   {"fdinhist", read_string, work_config.fdinhist, 'f', 0},
   {"fdouthist", read_string, work_config.fdouthist, 'f', 0},
-  {"tzoff", read_int, &work_config.tzoff, DONT_CHECK, DONT_CHECK},
+  {"tzoff", read_time, &work_config.tzoff, -12*60*60, 12*60*60},
   {"domain", read_domain_info, NULL, 0, 0},
   {"address", read_aka_list, NULL, 0, 0},
   {"sysname", read_string, work_config.sysname, 0, MAXSYSTEMNAME},
@@ -651,9 +655,9 @@ static KEYWORD keywords[] =
   {"nodeinfo", read_string, work_config.nodeinfo, 0, MAXNODEINFO},
   {"iport", read_port, &work_config.iport, 0, 0},
   {"oport", read_port, &work_config.oport, 0, 0},
-  {"rescan-delay", read_int, &work_config.rescan_delay, 1, DONT_CHECK},
-  {"call-delay", read_int, &work_config.call_delay, 1, DONT_CHECK},
-  {"timeout", read_int, &work_config.nettimeout, 1, DONT_CHECK},
+  {"rescan-delay", read_time, &work_config.rescan_delay, 1, DONT_CHECK},
+  {"call-delay", read_time, &work_config.call_delay, 1, DONT_CHECK},
+  {"timeout", read_time, &work_config.nettimeout, 1, DONT_CHECK},
   {"oblksize", read_int, &work_config.oblksize, MIN_BLKSIZE, MAX_BLKSIZE},
   {"maxservers", read_int, &work_config.max_servers, 0, DONT_CHECK},
   {"maxclients", read_int, &work_config.max_clients, 0, DONT_CHECK},
@@ -663,8 +667,8 @@ static KEYWORD keywords[] =
   {"node", read_node_info, NULL, 0, 0},
   {"defnode", read_node_info, NULL, 1, 0},
   {"kill-dup-partial-files", read_bool, &work_config.kill_dup_partial_files, 0, 0},
-  {"kill-old-partial-files", read_int, &work_config.kill_old_partial_files, 1, DONT_CHECK},
-  {"kill-old-bsy", read_int, &work_config.kill_old_bsy, 1, DONT_CHECK},
+  {"kill-old-partial-files", read_time, &work_config.kill_old_partial_files, 1, DONT_CHECK},
+  {"kill-old-bsy", read_time, &work_config.kill_old_bsy, 1, DONT_CHECK},
   {"percents", read_bool, &work_config.percents, 0, 0},
   {"minfree", read_int, &work_config.minfree, 0, DONT_CHECK},
   {"minfree-nonsecure", read_int, &work_config.minfree_nonsecure, 0, DONT_CHECK},
@@ -672,8 +676,8 @@ static KEYWORD keywords[] =
   {"exec", read_flag_exec_info, NULL, 'e', 0},
   {"printq", read_bool, &work_config.printq, 0, 0},
   {"try", read_int, &work_config.tries, 0, 0xffff},
-  {"hold", read_int, &work_config.hold, 0, DONT_CHECK},
-  {"hold-skipped", read_int, &work_config.hold_skipped, 0, DONT_CHECK},
+  {"hold", read_time, &work_config.hold, 0, DONT_CHECK},
+  {"hold-skipped", read_time, &work_config.hold_skipped, 0, DONT_CHECK},
   {"backresolv", read_bool, &work_config.backresolv, 0, 0},
   {"pid-file", read_string, work_config.pid_file, 'f', 0},
 #ifdef HTTPS
@@ -687,7 +691,7 @@ static KEYWORD keywords[] =
   {"send-if-pwd", read_bool, &work_config.send_if_pwd, 0, 0},
   {"root-domain", read_string, work_config.root_domain, 0, MAXHOSTNAMELEN},
   {"prescan", read_bool, &work_config.prescan, 0, 0},
-  {"connect-timeout", read_int, &work_config.connect_timeout, 0, DONT_CHECK},
+  {"connect-timeout", read_time, &work_config.connect_timeout, 0, DONT_CHECK},
 #ifdef MAILBOX
   {"filebox", read_string, work_config.tfilebox, 'd', 0},
   {"brakebox", read_string, work_config.bfilebox, 'd', 0},
@@ -800,6 +804,11 @@ static int ConfigError(char *format, ...)
 static int ConfigNeedNumber(char *s)
 {
   return ConfigError("%s: expecting a number", s);
+}
+
+static int ConfigNeedTime(char *s)
+{
+  return ConfigError("%s: expecting a time interval", s);
 }
 
 static int isDefined(char *value, char *name)
@@ -1211,7 +1220,7 @@ static int read_aka_list (KEYWORD *key, int wordcount, char **words)
     }
     for (n = 0; n < work_config.nAddr; n++)
       if (!ftnaddress_cmp (&a, work_config.pAddr + n))
-	break;
+        break;
     if (n < work_config.nAddr)
     {
       Log (2, "Duplicate address %s in config ignored", words[i]);
@@ -1501,6 +1510,53 @@ static int read_bool (KEYWORD *key, int wordcount, char **words)
 
   (void) words;
   *(int *) (key->var) = 1;
+  return 1;
+}
+
+static int read_time (KEYWORD *key, int wordcount, char **words)
+{
+  int *target = (int *) (key->var);
+  char *s;
+  int curnum = -1;
+
+  if (!isArgCount(1, wordcount))
+    return 0;
+
+  *target = 0;
+  s = words[0];
+  if (*s == '-') s++;  /* tzoff can be negative */
+  for (; *s; s++)
+  {
+    if (isdigit(*s))
+    {
+      if (curnum == -1) curnum = 0;
+      else curnum *= 10;
+      curnum += *s-'0';
+      continue;
+    }
+    if (curnum == -1)
+      return ConfigNeedTime(words[0]);
+    switch (tolower(*s))
+    {
+      case 'w': curnum *= 7;
+      case 'd': curnum *= 24;
+      case 'h': curnum *= 60;
+      case 'm': curnum *= 60;
+      case 's': break;
+      default:  return ConfigNeedTime(words[0]);
+    }
+    *target += curnum;
+    curnum = -1;
+  }
+  if (curnum != -1)
+    *target += curnum;
+  if (words[0][0] == '-')
+    *target = -*target;
+
+  if ((key->option1 != DONT_CHECK && *target < key->option1) ||
+      (key->option2 != DONT_CHECK && *target > key->option2))
+    return ConfigError("%s: incorrect value", words[0]);
+
   return 1;
 }
 
@@ -1992,6 +2048,37 @@ void debug_readcfg (void)
       printf("%d", *(int *)(k->var));
     else if (k->callback == read_bool)
       printf(*(int *)(k->var) ? "[yes]" : "<not defined>");
+    else if (k->callback == read_time)
+    {
+      int i = *(int *)(k->var);
+      if (i<0)
+      {
+        printf("-");
+        i = -i;
+      }
+      if (i >= 7*24*60*60)
+      {
+        printf("%dw", i/7*24*60*60);
+        i %= 7*24*60*60;
+      }
+      if (i >= 24*60*60)
+      {
+        printf("%dd", i/24*60*60);
+        i %= 24*60*60;
+      }
+      if (i >= 60*60)
+      {
+        printf("%dh", i/60*60);
+        i %= 60*60;
+      }
+      if (i >= 60)
+      {
+        printf("%dm", i/60);
+        i %= 60;
+      }
+      if (i > 0 || *(int *)(k->var) == 0)
+        printf("%ds", i);
+    }
     else if (k->callback == include)
     {
       struct conflist_type *c;
@@ -2060,7 +2147,7 @@ void debug_readcfg (void)
       for (sk = work_config.skipmask.first; sk; sk = sk->next)
         printf("\n    %s %c%ld \"%s\"", describe_addrtype(sk->atype),
                (sk->destr ? '!' : ' '),
-	       (long)(sk->size < 0 ? sk->size : sk->size >> 10),
+               (long)(sk->size < 0 ? sk->size : sk->size >> 10),
                sk->mask);
     }
     else if (k->callback == read_mask)
