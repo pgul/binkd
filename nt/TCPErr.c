@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.6  2003/05/25 12:52:35  stas
+ * Replace CR and LF with spaces in system error messages
+ *
  * Revision 2.5  2003/05/23 17:54:08  stas
  * Display default text at unknown win32 error
  *
@@ -174,6 +177,7 @@ static const char *sockerrors[] =
 char *W32APIstrerror(int errnum)
 { static char st[W32API_StrErrorSize];
   char stemp[W32API_StrErrorSize];
+  char *cp;
 
   stemp[0]='\0';
     FormatMessage(
@@ -187,6 +191,12 @@ char *W32APIstrerror(int errnum)
         NULL
     );
     AnsiToOem(stemp,st);
+  for(cp=st; *cp; cp++)
+    switch(*cp){           /* Replace '\r' and '\n' with space */
+      case '\r':
+      case '\n':
+        *cp=' ';
+    }
 
   return st;
 }
