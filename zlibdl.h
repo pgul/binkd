@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2003/10/20 15:44:29  gul
+ * Declare DLL functions as WINAPI
+ *
  * Revision 2.11  2003/10/19 12:21:47  gul
  * Stream compression
  *
@@ -39,6 +42,11 @@
 #define inflateInit_	(*dl_inflateInit_)
 #define inflate		(*dl_inflate)
 #define inflateEnd	(*dl_inflateEnd)
+
+#ifdef WIN32
+#define WINDOWS  1
+#define ZLIB_DLL 1
+#endif
 #endif
 
 #include "zconf.h"
@@ -56,6 +64,11 @@
 #define BZ2_bzDecompressInit	(*dl_BZ2_bzDecompressInit)
 #define BZ2_bzDecompress	(*dl_BZ2_bzDecompress)
 #define BZ2_bzDecompressEnd	(*dl_BZ2_bzDecompressEnd)
+
+#ifdef WIN32
+#define _WIN32    1
+#define BZ_EXPORT 1
+#endif
 #endif
 
 #include <stdio.h>
