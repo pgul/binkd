@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2003/10/06 16:50:22  stas
+ * Drop excessive numeric values of enumeration in parameter and return values of service_main()
+ *
  * Revision 2.7  2003/10/06 16:47:28  stas
  * Use enumeration in parameter and return values of service_main()
  *
@@ -45,29 +48,29 @@
 
 /* service_main types of call */
 enum service_main_types{
-   service_main_services      = 0, /* Check: we can operate with services */
-   service_main_testinstalled = 1, /* Check: installed or not */
-   service_main_install       = 2, /* Install service */
-   service_main_uninstall     = 3, /* Uninstall service */
-   service_main_start         = 4, /* Start service */
-   service_main_installstart  = 5, /* Install and start service */
-   service_main_testrunning   = 6, /* Check: service is running */
-   service_main_stop          = 7, /* Stop service */
+   service_main_services  = 0, /* Check: we can operate with services */
+   service_main_testinstalled, /* Check: installed or not */
+   service_main_install      , /* Install service */
+   service_main_uninstall    , /* Uninstall service */
+   service_main_start        , /* Start service */
+   service_main_installstart , /* Install and start service */
+   service_main_testrunning  , /* Check: service is running */
+   service_main_stop         , /* Stop service */
 };
 
 /* service_main return values */
 enum service_main_retcodes{
-   service_main_ret_ok          = 0,
-   service_test_notinstall      = 1, /* Service not installed (OpenService() failed or other) */
-   service_test_fail            = 2, /* Can't check service: QueryServiceStatus() fail */
-   service_test_notrunning      = 3, /* Service not running */
-   service_main_ret_failinstall = 1, /* Service install fail */
-   service_main_ret_failstart   = 1, /* Service start failed */
-   service_main_ret_failstop    = 1, /* Service stop failed */
-   service_main_ret_faildelete  = 1, /* Service delete failed */
-   service_main_ret_fail        = 2, /* Can't check service: QueryServiceStatus() fail */
-   service_main_ret_not         = 2, /* Can't operate: OpenSCManagerA() dont exist (incompatible OS) */
-   service_main_ret_failcontrol = 3, /* OpenSCManager failed */
+   service_main_ret_ok      = 0,
+   service_test_notinstall     , /* Service not installed (OpenService() failed or other) */
+   service_test_fail           , /* Can't check service: QueryServiceStatus() fail */
+   service_test_notrunning     , /* Service not running */
+   service_main_ret_failinstall, /* Service install fail */
+   service_main_ret_failstart  , /* Service start failed */
+   service_main_ret_failstop   , /* Service stop failed */
+   service_main_ret_faildelete , /* Service delete failed */
+   service_main_ret_fail       , /* Can't check service: QueryServiceStatus() fail */
+   service_main_ret_not        , /* Can't operate: OpenSCManagerA() dont exist (incompatible OS) */
+   service_main_ret_failcontrol, /* OpenSCManager failed */
 };
 
 extern char *service_name;
