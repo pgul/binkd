@@ -524,3 +524,8 @@ NT/95:  ctrl-c problems fixed
 	Bugfixes in NT service exit (Stas Degteff).
 
 	Some minor bugfixes.
+
+0.9.7
+-----
+	Fix in client manager (poll nodes queue).
+
