@@ -472,3 +472,6 @@ NT/95:  ctrl-c problems fixed
 	binkd/unix: run as daemon (Alex Semenyaka <alexs@snark.rinet.ru>).
 
 	New option "-crypt" in "node" line - crypt traffic
+
+	New option skipmask in binkd.cfg - don't receive (destructive skip)
+	files by specified wildcards.
