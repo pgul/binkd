@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.25  2003/10/14 07:20:40  gul
+ * Fixed typo
+ *
  * Revision 2.24  2003/09/24 07:32:17  val
  * bzlib2 compression support, new compression keyword: zlevel
  *
@@ -337,7 +340,7 @@ int  get_host_and_port (int n, char *host, unsigned short *port, char *src, FTN_
 
 char *mask_test(char *s, struct maskchain *chain);
 
-#if defined(WITH_ZLIB) || defined(WITH_ZLIB2)
+#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
 struct zrule *zrule_test(int type, char *s, struct zrule *root);
 #endif
 
