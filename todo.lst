@@ -10,3 +10,4 @@
 - MB-mode, MPWD-mode (FSP-1011)
 - charsets support, unicode
 - present aka
+- do not resolve domains when use proxy
