@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.33  2004/08/04 06:40:27  gul
+ * Use uintmax_t and PRIuMAX for printing file size (off_t)
+ *
  * Revision 2.32  2004/02/08 21:13:24  gul
  * Inhibit redundrant error message in log about filebox under unix
  *
@@ -919,10 +922,10 @@ void q_list (FILE *out, FTNQ *q, BINKD_CONFIG *config)
       if (!q->sent)
       {
 	ftnaddress_to_str (buf, &q->fa);
-	fprintf (out, "%-20s %c%c%c %8lu %s\n",
+	fprintf (out, "%-20s %c%c%c %8" PRIuMAX " %s\n",
 		 buf, q->flvr, q->action ? q->action : '-',
 		 q->type ? q->type : '-',
-		 q->size, q->path);
+		 (uintmax_t)q->size, q->path);
       }
     }
   }

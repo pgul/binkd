@@ -10,9 +10,9 @@ AC_PROG_INSTALL
 CFLAGS=
 
 dnl Checks for header files.
-AC_CHECK_HEADERS(unistd.h io.h)
+dnl AC_CHECK_HEADERS(inttypes.h unistd.h)
 AC_CHECK_HEADERS(sys/vfs.h sys/statfs.h sys/statvfs.h sys/param.h sys/mount.h)
-AC_CHECK_HEADERS(arpa/inet.h sys/ioctl.h sys/time.h stdarg.h)
+AC_CHECK_HEADERS(arpa/inet.h sys/ioctl.h sys/time.h stdarg.h io.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 
@@ -43,6 +43,14 @@ AC_MSG_CHECKING(for socklen_t)
 AC_TRY_COMPILE([#include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>], [socklen_t i], AC_DEFINE(HAVE_SOCKLEN_T) AC_MSG_RESULT(yes), AC_MSG_RESULT(no), AC_MSG_RESULT(cross-compiling. No assumptions made))
+
+dnl check for intmax_t
+dnl 
+case $ac_cv_header_inttypes_h in
+ yes) AC_MSG_CHECKING(for intmax_t)
+      AC_TRY_COMPILE([#include <inttypes.h>], [intmax_t i], AC_DEFINE(HAVE_INTMAX_T) AC_MSG_RESULT(yes), AC_MSG_RESULT(no), AC_MSG_RESULT(cross-compiling. No assumptions made))
+      ;;
+esac
 
 dnl -------------------------------------------------------------------------
 dnl Signal handling

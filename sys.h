@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.17  2004/08/04 06:40:27  gul
+ * Use uintmax_t and PRIuMAX for printing file size (off_t)
+ *
  * Revision 2.16  2003/12/24 00:36:40  gul
  * Move system-dependent macros from Config.h to sys.h,
  * add pipe() wrapper for mingw32.
@@ -88,6 +91,9 @@
 #ifndef _sys_h
 #define _sys_h
 
+#ifdef HAVE_INTTYPES_H
+  #include <inttypes.h>
+#endif
 #ifdef HAVE_UNISTD_H
   #include <unistd.h>
 #endif
@@ -200,6 +206,15 @@ int vsnprintf (char *str, size_t count, const char *fmt, va_list args);
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned long u32;
+
+#ifndef PRIdMAX
+#define PRIdMAX "ld"
+#define PRIuMAX "lu"
+#endif
+#ifndef HAVE_INTMAX_T
+typedef long int intmax_t;
+typedef unsigned long int uintmax_t;
+#endif
 
 #define UNUSED_ARG(s)  (void)(s)
 
