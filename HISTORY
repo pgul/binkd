@@ -1,3 +1,7 @@
+2003/12/06 00:17:07 1.0a-304 stas
+Config.h,2.324,2.325
+Use own snprinf() and vsnprintf() instead MS VC RTL (buggy) implemetation
+
 2003/12/06 00:14:26 1.0a-303 stas
 snprintf.c,1.1,1.2
 Fix warnings (type conversions) at MS Visual C
