@@ -109,6 +109,7 @@ LLIBS=     kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.
 BSC=       bscmake
 BINKDBSC=  "$(OUTDIR)\$(BINKDEXE).bsc"
 BSCFLAGS=  /nologo /o$(BINKDBSC)
+RSC=       rc
 
 !ifdef BINKD9X
 BINKD9X_OBJ="$(OUTDIR)\win9x.obj"
@@ -124,7 +125,7 @@ NTLM_OBJS= \
 NT_OBJS= \
  "$(OUTDIR)\breaksig.obj" "$(OUTDIR)\sem.obj"      "$(OUTDIR)\getfree.obj" \
  "$(OUTDIR)\TCPErr.obj"   "$(OUTDIR)\WSock.obj"    "$(OUTDIR)\dirwin32.obj" \
- "$(OUTDIR)\w32tools.obj"  "$(OUTDIR)\tray.obj"
+ "$(OUTDIR)\w32tools.obj" "$(OUTDIR)\tray.obj"
 OBJS= \
  "$(OUTDIR)\binkd.obj"    "$(OUTDIR)\readcfg.obj"  "$(OUTDIR)\tools.obj"   \
  "$(OUTDIR)\ftnaddr.obj"  "$(OUTDIR)\ftnq.obj"     "$(OUTDIR)\client.obj"  \
@@ -138,6 +139,9 @@ OBJS= \
  "$(OUTDIR)\getopt.obj"                                                    \
  $(NT_OBJS) $(NTSERVICE_OBJ) $(BINKD9X_OBJ) $(NTLM_OBJS) $(PERL_OBJS) $(ZLIB_OBJS) $(ZLIBDL_OBJS)
 
+RESOBJS= \
+ "$(OUTDIR)\binkdres.res"
+
 !ifdef DEBUG
 SBRS= $(OBJS:.obj=.sbr)
 BSCTARGET= $(BINKDBSC)
@@ -145,9 +149,9 @@ BSCTARGET= $(BINKDBSC)
 
 all:      "$(OUTDIR)" "$(OUTDIR)\$(BINKDEXE).exe" $(BSCTARGET)
 
-"$(OUTDIR)\$(BINKDEXE).exe": "$(OUTDIR)" $(OBJS)
+"$(OUTDIR)\$(BINKDEXE).exe": "$(OUTDIR)" $(OBJS) $(RESOBJS)
 	$(LINK) $(LFLAGS) $(LOPT) @<<
-$(LLIBS) $(OBJS)
+$(LLIBS) $(OBJS) $(RESOBJS)
 <<
 
 $(BINKDBSC): "$(OUTDIR)" $(SBRS)
@@ -180,6 +184,9 @@ $<
 	$(CC) $(CFLAGS) $(CDEFS) $(COPT) @<<
 $<
 <<
+
+{nt}.rc{$(OUTDIR)}.res:
+	$(RSC) $(CDEFS) -D"BINKDNAME=$(BINKDEXE)" -D"BINKDEXE=$(BINKDEXE).exe" -D"_MSC_VER" /fo$@ "$<"
 
 "$(OUTDIR)":
 	mkdir "$(OUTDIR)"

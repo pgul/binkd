@@ -1,0 +1,99 @@
+/*
+ * binkdres.rc -- Win32 resources for binkd
+ *
+ * binkdres.rc is a part of binkd project
+ *  Copyright (C) 2003 Alexander Reznikov, homebrewer@yandex.ru (Fido 2:4600/220)
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version. See COPYING.
+ */
+
+/*
+ * $Id$
+ *
+ * Revision history:
+ * $Log$
+ * Revision 1.1  2003/10/21 08:14:32  hbrew
+ * Win32 version/icon support
+ *
+ *
+ */
+
+#include <winver.h>
+#include "../Config.h"
+/* !!! Todo: confopt.h 
+#include "../confopt.h"
+*/
+
+#define RES_STR(s) _RES_STR(s)
+#define _RES_STR(s) #s
+
+LANGUAGE 0x0, 0x0 /* LANG_NEUTRAL, SUBLANG_NEUTRAL */
+#pragma code_page(1251)
+
+/* !!! Todo: Icon (simply uncomment next line)
+0 ICON DISCARDABLE "nt\\binkd_rays2.ico"
+*/
+
+VS_VERSION_INFO VERSIONINFO
+  FILEVERSION MAJOR, MINOR, 0, PATCHLEVEL
+  PRODUCTVERSION MAJOR, MINOR, 0, PATCHLEVEL
+  FILEFLAGSMASK 0x3f
+/* todo: FILEFLAG VS_FF_PRERELEASE */
+#if defined(DEBUG)
+  FILEFLAGS VS_FF_DEBUG
+#else
+  FILEFLAGS 0
+#endif
+  FILEOS VOS__WINDOWS32
+  FILETYPE VFT_APP
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0" /* LANG_ENGLISH/SUBLANG_ENGLISH_US, Unicode CP */
+    BEGIN
+/*   Comments: Specifies additional information that should be displayed for diagnostic purposes. */
+/* !!! Todo: Compilation flags (see confopt) */
+      VALUE "Comments", "binkd " MYVER ". binkp protocol ver. " PRTCLVER "." /* " Compilation flags: " _DBNKD "." */ "\0"
+
+/* ! CompanyName: Specifies the company that produced the file-for example, "Microsoft Corporation" or "Standard Microsystems Corporation, Inc." This string is required. */
+      VALUE "CompanyName", "binkd Team\0"
+
+/* ! FileDescription: Specifies a file description to be presented to users. This string may be displayed in a list box when the user is choosing files to install-for example, "Keyboard Driver for AT-Style Keyboards". This string is required. */
+      VALUE "FileDescription", "binkd - transfer files between two Fidonet systems over TCP/IP (binkp protocol)\0"
+
+/* ! FileVersion: Specifies the version number of the file-for example, "3.10" or "5.00.RC2". This string is required. */
+      VALUE "FileVersion", MYVER "\0"
+
+/* ! InternalName: Specifies the internal name of the file, if one exists-for example, a module name if the file is a dynamic-link library. If the file has no internal name, this string should be the original filename, without extension. This string is required. */
+      VALUE "InternalName", RES_STR(BINKDNAME) "\0"
+
+/*   LegalCopyright: Specifies all copyright notices that apply to the file. This should include the full text of all notices, legal symbols, copyright dates, and so on-for example, "Copyrightc Microsoft Corporation 1990-1999". This string is optional. */
+      VALUE "LegalCopyright", "Copyright c 1996-2003 Dima Maloff and binkd Team. Distributed under General Public License (GPL).\0"
+
+/*   LegalTrademarks: Specifies all trademarks and registered trademarks that apply to the file. This should include the full text of all notices, legal symbols, trademark numbers, and so on. This string is optional. */
+/*    VALUE "LegalTrademarks", "\0" */
+
+/* ! OriginalFilename: Specifies the original name of the file, not including a path. This information enables an application to determine whether a file has been renamed by a user. The format of the name depends on the file system for which the file was created. This string is required. */
+      VALUE "OriginalFilename", RES_STR(BINKDEXE) "\0"
+
+/*   PrivateBuild: Specifies information about a private version of the file-for example, "Built by TESTER1 on \TESTBED". This string should be present only if VS_FF_PRIVATEBUILD is specified in the fileflags parameter of the root block. */
+/*    VALUE "PrivateBuild", "\0" */
+
+/* ! ProductName: Specifies the name of the product with which the file is distributed. This string is required. */
+      VALUE "ProductName", "binkd\0"
+
+/* ! ProductVersion: Specifies the version of the product with which the file is distributed-for example, "3.10" or "5.00.RC2". This string is required. */
+      VALUE "ProductVersion", MYVER "\0"
+
+/*   SpecialBuild: Specifies how this version of the file differs from the standard version-for example, "Private build for TESTER1 solving mouse problems on M250 and M250E computers". This string should be present only if VS_FF_SPECIALBUILD is specified in the fileflags parameter of the root block. */
+/*    VALUE "SpecialBuild", "\0" */
+    END
+  END
+
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0409, 0x04B0
+  END
+END

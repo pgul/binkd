@@ -17,6 +17,7 @@
 # =============================================================================
 
 CC=gcc
+WINDRES=windres
 
 ifeq ($(OSTYPE),msys)
 SHELL=sh
@@ -46,6 +47,7 @@ SRCS= binkd.c readcfg.c tools.c ftnaddr.c ftnq.c client.c server.c protocol.c \
       nt/TCPErr.c nt/WSock.c nt/w32tools.c nt/tray.c      \
       ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c ntlm/des_enc.c ntlm/helpers.c
 
+RES=  nt/binkdres.rc
 
 OBJDIR= $(OUTDIR)/obj
 MAKEDIRSONLY= $(OBJDIR) $(OBJDIR)/nt $(OBJDIR)/ntlm
@@ -192,6 +194,7 @@ endif
 BINKDEXE = $(BINKDNAME).exe
 
 OBJS=$(addprefix $(OBJDIR)/,$(patsubst %.c,%.o, $(SRCS)))
+RESOBJS=$(addprefix $(OBJDIR)/, $(patsubst %.rc,%.o, $(RES)))
 
 .PHONY : all printinfo install html clean distclean makedirs
 
@@ -230,9 +233,13 @@ $(OBJDIR)/%.o: %.c
 	@echo Compiling $<...
 	@$(CC) -c -MMD $(CFLAGS) $(CDEFS) $(C_DIRS) -o $@ $<
 
-$(OUTDIR)/$(BINKDEXE): $(OBJS)
+$(OBJDIR)/%.o: %.rc
+	@echo Compiling $<...
+	@$(WINDRES) --use-temp-file $(CDEFS) -D"BINKDNAME=$(BINKDNAME)" -D"BINKDEXE=$(BINKDEXE)" $< $@
+
+$(OUTDIR)/$(BINKDEXE): $(OBJS) $(RESOBJS)
 	@echo Linking $(BINKDEXE)...
-	@$(CC) $(CFLAGS) $(LFLAGS) $(L_DIRS) -o $@ $(OBJS) $(LIBS)
+	@$(CC) $(CFLAGS) $(LFLAGS) $(L_DIRS) -o $@ $(OBJS) $(RESOBJS) $(LIBS)
 
 makedirs: $(MAKEDIRS)
 
@@ -268,3 +275,7 @@ DEPS:=$(foreach dir,$(MAKEDIRSONLY),$(wildcard $(dir)/*.d))
 ifneq ($(DEPS),)
 include $(DEPS)
 endif
+
+# Dependencies for resourses
+# !!! Todo: add confopt.h
+$(RESOBJS): Config.h
