@@ -10,7 +10,7 @@ AC_PROG_INSTALL
 dnl Checks for header files.
 AC_CHECK_HEADERS(unistd.h io.h)
 AC_CHECK_HEADERS(sys/vfs.h sys/statfs.h sys/statvfs.h sys/param.h sys/mount.h)
-AC_CHECK_HEADERS(arpa/inet.h)
+AC_CHECK_HEADERS(arpa/inet.h sys/ioctl.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 

@@ -3,6 +3,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.1  2001/01/16 03:57:06  gul
+ * Added HAVE_SYS_IOCTL_H
+ *
  * Revision 2.0  2001/01/16 03:49:26  gul
  * *** empty log message ***
  *
@@ -19,7 +22,9 @@
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_IOCTL_H
 #include <sys/ioctl.h>
+#endif
 #include <sys/types.h>
 
 #include "tools.h"
