@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.27  2003/08/24 13:30:33  stream
+ * Socket wasn't closed if branch() failed
+ *
  * Revision 2.26  2003/08/23 15:51:51  stream
  * Implemented common list routines for all linked records in configuration
  *
@@ -323,6 +326,8 @@ accepterr:
       threadsafe(++n_servers);
       if ((pid = branch (serv, (void *) &new_sockfd, sizeof (new_sockfd))) < 0)
       {
+        del_socket(new_sockfd);
+        soclose(new_sockfd);
         rel_grow_handles (-6);
 	threadsafe(--n_servers);
 	PostSem(&eothread);
