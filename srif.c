@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2004/02/29 08:51:13  gul
+ * Fixed *A@ macro on event calls
+ * (patch from Victor Levenets).
+ *
  * Revision 2.15  2003/10/29 21:08:40  gul
  * Change include-files structure, relax dependences
  *
@@ -345,7 +349,7 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa,
 	    pa += strlen(pa);
 	  }
 	  aka[2]=sp[2];
-	  w = ed (w, aka, adr, &sw);
+	  w = ed (w, aka, addrlist, &sw);
 	  free(addrlist);
 	  break;
 	}
