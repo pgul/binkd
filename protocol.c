@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2001/02/16 09:13:25  gul
+ * Disable crypt with plaintext password
+ *
  * Revision 2.2  2001/02/15 16:05:59  gul
  * crypt bugfix
  *
@@ -911,6 +914,10 @@ static void complete_login (STATE *state)
     Log (3, "we are in NR mode");
   if (state->state != P_SECURE)
     state->crypt_flag = NO_CRYPT;
+  else if (state->crypt_flag == (WE_CRYPT|THEY_CRYPT) && !state->MD_flag)
+  { state->crypt_flag = NO_CRYPT;
+    Log (3, "Crypt allowed only with MD5 authorization");
+  }
   else if (state->crypt_flag == (WE_CRYPT|THEY_CRYPT))
   { char *p;
     state->crypt_flag = YES_CRYPT;
