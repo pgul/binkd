@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10.2.3  2003/08/24 18:58:34  gul
+ * Bugfix in timeout check on win32
+ *
  * Revision 2.10.2.2  2003/08/24 00:35:46  hbrew
  * Cosmetic change for previous patch
  *
@@ -157,7 +160,7 @@ void ReleaseErrorList(void);
   #define sock_init() WinsockIni()
   #define sock_deinit() WinsockClean()
   #define soclose(h) closesocket(h)
-/* w9x_workaround_sleep: 100000 = 1 sec, 10000 = 10 ms */
+/* w9x_workaround_sleep: 1000000 = 1 sec, 10000 = 10 ms */
   #define w9x_workaround_sleep 10000
 #else
   #include <errno.h>
