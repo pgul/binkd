@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.116  2003/09/08 16:39:39  stream
+ * Fixed race conditions when accessing array of nodes in threaded environment
+ * ("jumpimg node structures")
+ *
  * Revision 2.115  2003/09/05 10:17:21  gul
  * Send argus-compatible freqs.
  * Warning: works only with prescan!
@@ -1217,7 +1221,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
   int i, j, main_AKA_ok = 0, ip_verified = 0;
   char *w;
   FTN_ADDR fa;
-  FTN_NODE n, *pn;
+  FTN_NODE *pn;
   char szFTNAddr[FTN_ADDR_SZ + 1];
   int secure_NR, unsecure_NR;
   int secure_ND, unsecure_ND;
@@ -1280,9 +1284,9 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
       strcpy (fa.domain, get_matched_domain(fa.z, config->pAddr, config->nAddr, config));
 
     ftnaddress_to_str (szFTNAddr, &fa);
-    pn = get_node(&fa, &n, config);
+    pn = get_node_info(&fa, config);
 
-    if (pn && n.restrictIP
+    if (pn && pn->restrictIP
 #ifdef HTTPS
         && (state->to == 0 || (!config->proxy[0] && !config->socks[0]))
 #endif
@@ -1302,12 +1306,12 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
         ipok = 2;
       }
 
-      for (i = 1; n.hosts &&
-           (rc = get_host_and_port(i, host, &port, n.hosts, &n.fa, config)) != -1; ++i)
+      for (i = 1; pn->hosts &&
+           (rc = get_host_and_port(i, host, &port, pn->hosts, &pn->fa, config)) != -1; ++i)
       {
 	if (rc == 0)
 	{
-	  Log (1, "%s: %i: error parsing host list", n.hosts, i);
+	  Log (1, "%s: %i: error parsing host list", pn->hosts, i);
 	  continue;
 	}
 	if (strcmp(host, "-") == 0)
@@ -1349,11 +1353,11 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
       }
       else if (ipok == 0)
       { /* unresolvable */
-	if (n.restrictIP == 2 && ip_verified == 0) /* strict */
+	if (pn->restrictIP == 2 && ip_verified == 0) /* strict */
 	  ip_verified = -1;
       } else
       { /* not matched */
-	if (n.pwd && strcmp(n.pwd, "-") && state->to == 0)
+	if (pn->pwd && strcmp(pn->pwd, "-") && state->to == 0)
 	{
 	  Log (1, "addr: %s (not from allowed remote address)", szFTNAddr);
 	  msg_send2 (state, M_ERR, "Bad source IP", 0);
@@ -1377,11 +1381,11 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
       state->listed_flag = 1;
       if (!strcmp (state->expected_pwd, "-"))
       {
-	memcpy (state->expected_pwd, n.pwd, sizeof (state->expected_pwd));
-	state->MD_flag=n.MD_flag;
+	memcpy (state->expected_pwd, pn->pwd, sizeof (state->expected_pwd));
+	state->MD_flag=pn->MD_flag;
       }
-      else if (n.pwd && strcmp(n.pwd, "-") &&
-               strcmp(state->expected_pwd, n.pwd))
+      else if (pn->pwd && strcmp(pn->pwd, "-") &&
+               strcmp(state->expected_pwd, pn->pwd))
       {
 	if (state->to)
 	  Log (2, "inconsistent pwd settings for this node, aka %s dropped", szFTNAddr);
@@ -1422,9 +1426,9 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
     }
 
     if (!state->to && pn)
-    { if (n.ND_flag)
+    { if (pn->ND_flag)
       {
-	if (n.pwd && strcmp(n.pwd, "-"))
+	if (pn->pwd && strcmp(pn->pwd, "-"))
 	{
 	  secure_ND = THEY_ND;
 	  secure_NR = WANT_NR;
@@ -1435,9 +1439,9 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 	  unsecure_NR = WANT_NR;
 	}
       }
-      else if (n.NR_flag)
+      else if (pn->NR_flag)
       {
-	if (n.pwd && strcmp(n.pwd, "-"))
+	if (pn->pwd && strcmp(pn->pwd, "-"))
 	  secure_NR = WANT_NR;
 	else
 	  unsecure_NR = WANT_NR;
@@ -1515,11 +1519,9 @@ static char *select_inbound (FTN_ADDR *fa, int secure_flag, BINKD_CONFIG *config
   FTN_NODE *node;
   char *p;
 
-  locknodesem();
   node = get_node_info(fa, config);
   p = ((node && node->ibox) ? node->ibox :
 	  (secure_flag == P_SECURE ? config->inbound : config->inbound_nonsecure));
-  releasenodesem();
   return p;
 }
 

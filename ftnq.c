@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.27  2003/09/08 16:39:39  stream
+ * Fixed race conditions when accessing array of nodes in threaded environment
+ * ("jumpimg node structures")
+ *
  * Revision 2.26  2003/09/05 10:17:20  gul
  * Send argus-compatible freqs.
  * Warning: works only with prescan!
@@ -294,13 +298,9 @@ FTNQ *q_scan_addrs (FTNQ *q, FTN_ADDR *fa, int n, int to, BINKD_CONFIG *config)
     {
       /* do not give unsecure mail even to secure link when send-if-pwd */
       FTN_NODE *fn;
-      locknodesem();
       if ((fn = get_node_info(fa+i, config)) == NULL ||
            fn->pwd == NULL || strcmp(fn->pwd, "-") == 0)
-      { releasenodesem();
 	continue;
-      }
-      releasenodesem();
     }
     ftnaddress_to_filename (buf, fa + i, config);
     if (*buf)
@@ -423,7 +423,7 @@ static FTNQ *q_scan_box (FTNQ *q, FTN_ADDR *fa, char *boxpath, char flvr, int de
  */
 FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n, BINKD_CONFIG *config)
 {
-  FTN_NODE node;
+  FTN_NODE *node;
   int i;
 #ifdef MAILBOX
   char buf[MAXPATHLEN + 1];
@@ -434,25 +434,25 @@ FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n, BINKD_CONFIG *config)
   for (i = 0; i < n; ++i)
   {
 #ifndef MAILBOX
-    if (get_node (fa + i, &node, config) != NULL && node.obox != NULL)
+    if ((node = get_node_info (fa + i, config)) != NULL && node->obox != NULL)
     {
-      q = q_scan_box (q, fa+i, node.obox, node.obox_flvr, 0, config);
+      q = q_scan_box (q, fa+i, node->obox, node->obox_flvr, 0, config);
     }
 #else
-    if (get_node (fa + i, &node, config) != NULL && ((node.obox != NULL) || config->tfilebox[0] || config->bfilebox[0]))
+    if ((node = get_node_info (fa + i, config)) != NULL && ((node->obox != NULL) || config->tfilebox[0] || config->bfilebox[0]))
     {
-      if (node.obox)
-        q = q_scan_box (q, fa+i, node.obox, node.obox_flvr, 0, config);
+      if (node->obox)
+        q = q_scan_box (q, fa+i, node->obox, node->obox_flvr, 0, config);
       if (config->bfilebox[0]) {
         strnzcpy (buf, config->bfilebox, sizeof (buf));
         strnzcat (buf, PATH_SEPARATOR, sizeof (buf));
         snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
                 "%s.%u.%u.%u.%u.",
-                node.fa.domain,
-                node.fa.z,
-                node.fa.net,
-                node.fa.node,
-                node.fa.p);
+                node->fa.domain,
+                node->fa.z,
+                node->fa.net,
+                node->fa.node,
+                node->fa.p);
         s = buf + strlen(buf);
         for (j = 0; j < sizeof(brakeExt)/sizeof(brakeExt[0]); j++) {
           strnzcat (buf, brakeExt[j].ext, sizeof (buf));
@@ -466,10 +466,10 @@ FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n, BINKD_CONFIG *config)
         strnzcat ( buf, PATH_SEPARATOR, sizeof (buf));
         snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
                 "%u.%u.%u.%u",
-                node.fa.z,
-                node.fa.net,
-                node.fa.node,
-                node.fa.p);
+                node->fa.z,
+                node->fa.net,
+                node->fa.node,
+                node->fa.p);
         q = q_scan_box (q, fa+i, buf, 'f', config->deleteablebox, config);
         strnzcat ( buf, ".H", sizeof (buf));
 #ifdef UNIX
@@ -484,10 +484,10 @@ FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n, BINKD_CONFIG *config)
         strnzcat ( buf, PATH_SEPARATOR, sizeof (buf));
         snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
                 "%c%c%c%c%c%c%c%c.%c%c",
-                to32(node.fa.z/32),     to32(node.fa.z%32),
-                to32(node.fa.net/1024), to32((node.fa.net/32)%32), to32(node.fa.net%32),
-                to32(node.fa.node/1024),to32((node.fa.node/32)%32),to32(node.fa.node%32),
-                to32(node.fa.p/32),     to32(node.fa.p%32));
+                to32(node->fa.z/32),     to32(node->fa.z%32),
+                to32(node->fa.net/1024), to32((node->fa.net/32)%32), to32(node->fa.net%32),
+                to32(node->fa.node/1024),to32((node->fa.node/32)%32),to32(node->fa.node%32),
+                to32(node->fa.p/32),     to32(node->fa.p%32));
         q = q_scan_box (q, fa+i, buf, 'f', config->deleteablebox, config);
         strnzcat (buf, "H", sizeof (buf));
 #ifdef UNIX
@@ -511,7 +511,6 @@ void process_hld (FTN_ADDR *fa, char *path, BINKD_CONFIG *config)
   FTN_NODE *node;
   long hold_until_tmp;
 
-  locknodesem();
   if ((node = get_node_info(fa, config)) != NULL)
   {
     FILE *f;
@@ -531,7 +530,6 @@ void process_hld (FTN_ADDR *fa, char *path, BINKD_CONFIG *config)
       delete (path);
     }
   }
-  releasenodesem();
 }
 
 static void process_bsy (FTN_ADDR *fa, char *path, BINKD_CONFIG *config)
@@ -551,13 +549,11 @@ static void process_bsy (FTN_ADDR *fa, char *path, BINKD_CONFIG *config)
   }
   else
   {
-    locknodesem();
     if ((node = get_node_info (fa, config)) != 0 && node->busy != 'b' &&
 	   (!STRICMP (s, ".bsy") || !STRICMP (s, ".csy")))
     {
       node->busy = tolower (s[1]);
     }
-    releasenodesem();
   }
 }
 
@@ -615,12 +611,8 @@ static FTNQ *q_add_dir (FTNQ *q, char *dir, FTN_ADDR *fa1, BINKD_CONFIG *config)
         if (!STRICMP(ext, "bsy") || !STRICMP(ext, "csy"))
 	  process_bsy(&fa2, buf, config);
 
-	locknodesem();
         if (!get_node_info(&fa2, config) && !is5D(fa1))
-	{ releasenodesem();
           continue;
-	}
-	releasenodesem();
 
         if (strchr(out_flvrs, ext[0]) &&
 		  tolower(ext[1]) == 'u' && tolower(ext[2]) == 't')
@@ -684,13 +676,8 @@ static FTNQ *q_add_dir (FTNQ *q, char *dir, FTN_ADDR *fa1, BINKD_CONFIG *config)
 	if (!STRICMP (s + 9, "bsy") || !STRICMP (s + 9, "csy"))
 	  process_bsy (&fa2, buf, config);
 
-	locknodesem();
 	if (!config->havedefnode && !get_node_info (&fa2, config) && !is5D (fa1))
-	{
-	  releasenodesem();
 	  continue;
-	}
-	releasenodesem();
 	if (strchr (out_flvrs, s[9]) &&
 	    tolower (s[10]) == 'u' && tolower (s[11]) == 't')
 	{
@@ -813,7 +800,6 @@ FTNQ *q_add_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action
   {
     FTN_NODE *node;
 
-    locknodesem();
     if ((node = get_node_info (fa1, config)) != NULL)
     {
       if (type == 'm')
@@ -821,7 +807,6 @@ FTNQ *q_add_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action
       else
 	node->files_flvr = MAXFLVR (flvr, node->files_flvr);
     }
-    releasenodesem();
   }
   return q;
 }
@@ -1142,10 +1127,8 @@ void hold_node (FTN_ADDR *fa, time_t hold_until, BINKD_CONFIG *config)
     {
       fprintf (f, "%li", (long int) hold_until);
       fclose (f);
-      locknodesem();
       if ((fn = get_node_info (fa, config)) != NULL)
 	fn->hold_until = hold_until;
-      releasenodesem();
     }
     else
     {

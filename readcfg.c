@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.51  2003/09/08 16:39:39  stream
+ * Fixed race conditions when accessing array of nodes in threaded environment
+ * ("jumpimg node structures")
+ *
  * Revision 2.50  2003/09/08 08:21:20  stream
  * Cleanup config semaphore, free memory of base config on exit.
  *
@@ -426,13 +430,15 @@ void unlock_config_structure(BINKD_CONFIG *c)
 
     xfree(c->pAddr);
 
-    for (i = 0, node = c->pNod; i < c->nNod; i++, node++)
+    for (i = 0; i < c->nNod; i++)
     {
+      node = c->pNodArray[i];
       xfree(node->hosts);
       xfree(node->obox);
       xfree(node->ibox);
+      free(node);
     }
-    xfree(c->pNod);
+    xfree(c->pNodArray);
     xfree(c->pkthdr_bad);
 
     simplelist_free(&c->config_list.linkpoint, destroy_configlist);

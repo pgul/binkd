@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.21  2003/09/08 16:39:39  stream
+ * Fixed race conditions when accessing array of nodes in threaded environment
+ * ("jumpimg node structures")
+ *
  * Revision 2.20  2003/09/08 08:21:20  stream
  * Cleanup config semaphore, free memory of base config on exit.
  *
@@ -115,12 +119,12 @@ void nodes_init (void)
   InitSem (&NSem);
 }
 
-void locknodesem (void)
+static void locknodesem (void)
 {
   LockSem (&NSem);
 }
 
-void releasenodesem (void)
+static void releasenodesem (void)
 {
   ReleaseSem (&NSem);
 }
@@ -133,8 +137,10 @@ void nodes_deinit(void)
 /*
  * Compares too nodes. 0 == don't match
  */
-static int node_cmp (FTN_NODE *a, FTN_NODE *b)
+static int node_cmp (FTN_NODE **pa, FTN_NODE **pb)
 {
+  FTN_NODE *a = *pa;
+  FTN_NODE *b = *pb;
   return ftnaddress_cmp (&a->fa, &b->fa);
 }
 
@@ -143,7 +149,7 @@ static int node_cmp (FTN_NODE *a, FTN_NODE *b)
  */
 static void sort_nodes (BINKD_CONFIG *config)
 {
-  qsort (config->pNod, config->nNod, sizeof (FTN_NODE), (int (*) (const void *, const void *)) node_cmp);
+  qsort (config->pNodArray, config->nNod, sizeof (FTN_NODE *), (int (*) (const void *, const void *)) node_cmp);
   config->nNodSorted = 1;
 }
 
@@ -159,7 +165,7 @@ static void add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flv
 
   for (cn = 0; cn < config->nNod; ++cn)
   {
-    pn = config->pNod + cn;
+    pn = config->pNodArray[cn];
     if (!ftnaddress_cmp (&(pn->fa), fa))
       break;
   }
@@ -167,8 +173,8 @@ static void add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flv
   if (cn >= config->nNod)
   {
     cn = config->nNod;
-    config->pNod = xrealloc (config->pNod, sizeof (FTN_NODE) * ++(config->nNod));
-    pn = config->pNod + cn;
+    config->pNodArray = xrealloc (config->pNodArray, sizeof (FTN_NODE *) * ++(config->nNod));
+    config->pNodArray[cn] = pn = xalloc(sizeof(FTN_NODE));
     memset (pn, 0, sizeof (FTN_NODE));
     memcpy (&(pn->fa), fa, sizeof (FTN_ADDR));
     strcpy (pn->pwd, "-");
@@ -187,7 +193,7 @@ static void add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flv
 
   if (MD_flag != MD_USE_OLD)
     pn->MD_flag = MD_flag;
-  if (restrictIP != RIP_USE_OLD) 
+  if (restrictIP != RIP_USE_OLD)
     pn->restrictIP = restrictIP;
   if (NR_flag != NR_USE_OLD)
     pn->NR_flag = NR_flag;
@@ -200,7 +206,7 @@ static void add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flv
 
   if (hosts && *hosts)
   {
-    xfree (pn->hosts);	       
+    xfree (pn->hosts);
     pn->hosts = xstrdup (hosts);
   }
 
@@ -237,6 +243,15 @@ void add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
   releasenodesem();
 }
 
+static FTN_NODE *search_for_node(FTN_NODE *np, BINKD_CONFIG *config)
+{
+  FTN_NODE **npp;
+
+  npp = (FTN_NODE **) bsearch (&np, config->pNodArray, config->nNod, sizeof (FTN_NODE *),
+                               (int (*) (const void *, const void *)) node_cmp);
+  return npp ? *npp : NULL;
+}
+
 static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *config)
 {
   struct hostent *he;
@@ -247,8 +262,7 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
 
   strcpy(n.fa.domain, "defnode");
   n.fa.z=n.fa.net=n.fa.node=n.fa.p=0;
-  np = (FTN_NODE *) bsearch (&n, config->pNod, config->nNod, sizeof (FTN_NODE),
-                 (int (*) (const void *, const void *)) node_cmp);
+  np = search_for_node(&n, config);
 
   if (!np) /* we don't have defnode info */
     return on;
@@ -281,25 +295,23 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
     return on;
   }
 
-  add_node_nolock(fa, host, NULL, np->obox_flvr, np->obox, np->ibox, 
+  add_node_nolock(fa, host, NULL, np->obox_flvr, np->obox, np->ibox,
        np->NR_flag, np->ND_flag, np->MD_flag, np->restrictIP, np->HC_flag, config);
   sort_nodes (config);
   memcpy (&n.fa, fa, sizeof (FTN_ADDR));
-  return (FTN_NODE *) bsearch (&n, config->pNod, config->nNod, sizeof (FTN_NODE),
-                      (int (*) (const void *, const void *)) node_cmp);
+  return search_for_node(&n, config);
 }
 /*
  * Return up/downlink info by fidoaddress. 0 == node not found
  */
-FTN_NODE *get_node_info (FTN_ADDR *fa, BINKD_CONFIG *config)
+static FTN_NODE *get_node_info_nolock (FTN_ADDR *fa, BINKD_CONFIG *config)
 {
   FTN_NODE n, *np;
 
   if (!config->nNodSorted)
     sort_nodes (config);
   memcpy (&n.fa, fa, sizeof (FTN_ADDR));
-  np = (FTN_NODE *) bsearch (&n, config->pNod, config->nNod, sizeof (FTN_NODE),
-			   (int (*) (const void *, const void *)) node_cmp);
+  np = search_for_node(&n, config);
   if ((!np || !np->hosts) && config->havedefnode)
     np=get_defnode_info(fa, np, config);
   if (np && !np->hosts) /* still no hosts? */
@@ -311,19 +323,14 @@ FTN_NODE *get_node_info (FTN_ADDR *fa, BINKD_CONFIG *config)
  * Find up/downlink info by fidoaddress and write info into node var.
  * Return pointer to node structure or NULL if node not found.
  */
-FTN_NODE *get_node (FTN_ADDR *fa, FTN_NODE *node, BINKD_CONFIG *config)
+FTN_NODE *get_node_info (FTN_ADDR *fa, BINKD_CONFIG *config)
 {
   FTN_NODE *n;
 
   locknodesem();
-  if ((n = get_node_info(fa, config)) == NULL)
-  {
-    releasenodesem();
-    return NULL;
-  }
-  memcpy(node, n, sizeof(*node));
+  n = get_node_info_nolock(fa, config);
   releasenodesem();
-  return node;
+  return n;
 }
 
 /*
@@ -340,10 +347,12 @@ int foreach_node (int (*func) (FTN_NODE *, void *), void *arg, BINKD_CONFIG *con
 
   for (i = 0; i < config->nNod; ++i)
   {
-    if (!config->pNod[i].hosts)
-      rc = func (get_node_info(&(config->pNod[i].fa), config), arg);
+    FTN_NODE *n = config->pNodArray[i];
+
+    if (!n->hosts)
+      rc = func (get_node_info_nolock(&(n->fa), config), arg);
     else
-      rc = func (config->pNod + i, arg);
+      rc = func (n, arg);
     if (rc != 0)
       break;
   }
@@ -371,7 +380,7 @@ int poll_node (char *s, BINKD_CONFIG *config)
     ftnaddress_to_str (buf, &target);
     Log (4, "creating a poll for %s (`%c' flavour)", buf, POLL_NODE_FLAVOUR);
     locknodesem();
-    if (!get_node_info (&target, config))
+    if (!get_node_info_nolock (&target, config))
       add_node_nolock (&target, "*", 0, '-', 0, 0, 0, 0, 0, 0, 0, config);
     releasenodesem();
     return create_poll (&target, POLL_NODE_FLAVOUR, config);

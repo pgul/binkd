@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2003/09/08 16:39:39  stream
+ * Fixed race conditions when accessing array of nodes in threaded environment
+ * ("jumpimg node structures")
+ *
  * Revision 2.13  2003/08/26 16:06:26  stream
  * Reload configuration on-the fly.
  *
@@ -120,21 +124,9 @@ void nodes_init (void);
 void nodes_deinit (void);
 
 /*
- * Lock and release pNod array
- */
-void locknodesem (void);
-void releasenodesem (void);
-
-/*
  * Return up/downlink info by fidoaddress. 0 == node not found
  */
 FTN_NODE *get_node_info (FTN_ADDR *fa, BINKD_CONFIG *config);
-
-/*
- * Find up/downlink info by fidoaddress and write info into node var.
- * Return pointer to node structure or NULL if node not found.
- */
-FTN_NODE *get_node (FTN_ADDR *fa, FTN_NODE *node, BINKD_CONFIG *config);
 
 /*
  * Add a new node, or edit old settings for a node
