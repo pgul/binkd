@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.57  2004/11/05 12:44:24  gul
+ * Client manager did not reload config on change
+ * in fork versions (unix, os2-emx)
+ *
  * Revision 2.56  2004/11/01 13:05:31  gul
  * Bugfix in connect-timeout
  *
@@ -420,7 +424,11 @@ void clientmgr (void *arg)
   {
     BINKD_CONFIG *config;
 
-    if (client_flag && !server_flag && !poll_flag)
+    if (
+#ifdef HAVE_THREADS
+        !server_flag && 
+#endif
+        !poll_flag)
       checkcfg();
 
     config = lock_current_config();
