@@ -1,0 +1,216 @@
+\input texinfo   @c -*-texinfo-*-
+
+@c %**start of header
+@c $Id$
+@setfilename binkd-howto-ru.info
+@set BINKD binkd
+@set VERSION 1.0
+@set DESCR @value{BINKD} @value{VERSION} How-To
+@settitle @value{DESCR}
+@setchapternewpage odd
+@documentlanguage ru
+@c @documentencoding KOI8-R
+@c %**end of header
+
+@titlepage
+@title @value{DESCR}
+@subtitle Русская редакция
+@author Stas Degteff  2:5080/102@fidonet, g@grumbler.org
+@page
+@c{empty page to get the page numbering right}
+@end titlepage
+
+@ifinfo
+@dircategory Fidonet Software
+@direntry
+* @value{BINKD} How-To: (binkd-howto).               @value{DESCR} russian
+@end direntry
+@end ifinfo
+
+@iftex
+@parindent=0pt
+@end iftex
+@iftex
+@afourpaper
+@end iftex
+
+@node Top, 01, (dir), (dir)
+@top @value{BINKD}
+Этот документ описывает типичные действия по настройке @value{BINKD}
+@value{VERSION}.
+
+@menu
+* 01::                Как подружить binkd и HTTP-прокси.
+* 02::                Как подружить binkd и SOCKS-прокси.
+* 03::                Как добавить binkd в фидо-станцию, работающую на модеме.
+* 04::                Как binkd обрабатывает описания линков и файл паролей.
+
+@c * Overview::                    What is @value{BINKD}?
+@c * Installation::                Installation. @emph{Read this!}
+@c * Configuration Reference::     Explanation of the configuration file.
+@c * Advanced Concepts::           Advanced features and concepts.
+@c * Keyword Index::               Configuration File Keywords Index
+@end menu
+
+@node 01, 02, Top, Top
+@chapter Как подружить binkd и HTTP-прокси.
+
+    Нередко в ЛВС организации пользователи выходят в Internet исключитально
+через прокси-сервер, установленный на единственном компьютере, имеющем выход
+в Сеть.
+При этом binkd не может установить прямое соединение с удаленным узлом и нужно
+использовать этот прокси-сервер.
+    Поддержка прокси-серверов была включена в версии 0.9.3.https, 0.9.4 и
+более поздние.
+    Работа через HTTP прокси возможна только в том случае, если
+в прокси-сервере разрешена команда CONNECT host 24554 (соединение с портом
+24554) либо команда CONNECT разрешена для любого порта назначения. Обычно эта
+команда используется в протоколе "защищенный HTTP" (ссылки вида HTTPS://...),
+иначе называемого S-HTTP. Из-за этого такой прокси нередко называют
+"HTTPS-прокси".
+    Если binkd сообщит, что произошла ошибка авторизации, значит в настройке
+прокси-сервера нужная команда запрещена (или разрешена только для порта 443,
+что для нас несущественно).
+
+    Предположим, что компьютер, подключенный к Internet, имеет во внутренней
+сети IP-адрес 192.168.0.1 и прокси-сервер на нем "отвечает" по порту 3128.
+Вот строка в файле конфигурации binkd, нобходимая для работы через этот
+HTTP-прокси:
+
+    1. Прокси-сервер без авторизации пользователя (не требуется вводить имя
+и пароль):
+
+@example
+    proxy 192.168.0.1:3128
+@end example
+
+    2. Прокси-сервер с авторизацией пользователя (требуется вводить имя и
+пароль, к примеру, имя user и пароль password):
+
+@example
+    proxy 192.168.0.1:3128/user/password
+@end example
+
+    3. Прокси-сервер фирмы Microsoft с авторизацией пользователя по протоколу
+NTLM. (Требуется входить в домен.)
+К примеру, имя user и пароль password, компьютер пользователя host и домен
+ntdomain:
+
+@example
+    proxy 192.168.0.1:3128/user/password/host/ntdomain
+@end example
+
+    Если администратор прокси-сервера разрешил соединения только с избранными
+портами (обычно это порт 443) - тогда binkd выдаст диагностику "Connection
+rejected by proxy". Вот пример:
+
+@verbatim
+      31 Mar 16:48:43 [59987] BEGIN, binkd/0.9.3/SOCKS/HTTPS -p BINKD.CFG
+      31 Mar 16:48:43 [59987] clientmgr started
+    + 31 Mar 16:48:43 [40423] call to 2:5000/44@fidonet
+      31 Mar 16:48:43 [40423] trying 195.209.235.3, port 24554...
+      31 Mar 16:48:43 [40423] connected to proxy.osu.ru:24554
+      31 Mar 16:48:44 [40423] Connection rejected by proxy (HTTP/1.0 403 Forbidden)
+    ? 31 Mar 16:48:44 [40423] unable to connect: {13} Permission denied
+@end verbatim
+
+    В этом случае можно попробовать использовать http-туннелинг, например
+с помощью httport (взять можно на http://www.htthost.com/)
+
+
+
+@node 02, 03, 01, Top
+@chapter Как подружить binkd и SOCKS-прокси.
+
+    Иногда в ЛВС организации пользователи входят в Internet исключитально
+через прокси-сервер типа "socks", установленный на единственном компьютере,
+имеющем выход в Сеть. При этом binkd не может установить прямое соединение
+с удаленным узлом и нужно использовать этот прокси-сервер.
+    Поддержка socks прокси-серверов была включена в версию 0.9.4 и более
+поздние.
+    Binkd работает с SOCKS-прокси версий 4 и 5. Первые не требуют авторизации
+(ввода имени и пароля), вторые как правило ее требуют.
+
+    Предположим, что компьютер, подключенный к Internet, имеет во внутренней
+сети IP-адрес 192.168.0.1 и SOCKS-сервер на нем "отвечает" по порту 1080.
+Вот строка в файле конфигурации binkd, нобходимая для работы через этот
+SOCKS-прокси:
+
+    1. SOCKS-сервер без авторизации пользователя (не требуется вводить имя
+и пароль):
+
+@example
+    socks 192.168.0.1:1080
+@end example
+
+    2. SOCKS-сервер с авторизацией пользователя (требуется вводить имя и
+пароль, к примеру, имя user и пароль password):
+
+@example
+    socks 192.168.0.1:1080/user/password
+@end example
+
+    Если администратор прокси-сервера разрешил соединения только с избранными
+портами (обычно это порт 443) - тогда binkd выдаст диагностику "Connection
+rejected by proxy". Пример диагностики см. в разделе @xref{01,"Как подружить binkd и
+HTTP-прокси"}.
+
+
+
+@node 03, 04, 02, Top
+@chapter Как добавить binkd в фидо-станцию, работающую на модеме.
+
+    1. Нужно настроить модемный мэйлер и тоссер на режим BSO (binkley-style
+outbound), так чтобы у всех (и у binkd тоже) совпадали адреса, inbound- и
+outbound-каталоги. Если же мэйлер "умеет" только AMA (arcmail-attach)
+- придется сменить мэйлер.
+    Нужно также настроить упаковку нетмэйла в BSO. Для этого обычно необходимо
+усттановить и настроить специальную программу: простой паковщик нетмэйла (bip
+или другой) либо более функциональный нетмэйл-трекер (ftrack или другой).
+Некоторые мэйлеры умеют паковать нетмэйл в BSO самостоятельно.
+    При использовании файлбоксов в конфиге binkd нужно указать путь к каталогу
+файлбоксов, который используется модемным мэйлером.
+
+    Вот рабочий пример настройки связки binkd и t-mail (показаны только нужные
+для совместной работы мэйлеров токены конфигов):
+
+@verbatim
+    t-mail.ctl:
+    Address             2:5080/102.1@fidonet
+    Address             7:1500/102.1@fidonet
+    BinkStyle_Pack_For  All
+    Busy_Flags_Scan     Bink
+    Busy_Flags_Create   Bink
+    BinkOutbound        \ftn\outbound\fidonet
+    Inbound             \ftn\inbound\
+    InboundUnProtected  \ftn\inbound\uncheck\
+    FileBoxes           \ftn\outbound\fboxes\
+    Security            \ftn\t-mail\password.ctl
+
+    binkd.cfg:
+    address             2:5080/102.1@fidonet 7:1500/102.1@fidonet
+    domain fidonet      \\ftn\\outbound\\fidonet 2
+    inbound             \\ftn\\inbound
+    inbound-nonsecure   \\ftn\\inbound\\uncheck
+    filebox             \\ftn\\fboxes
+    passwords           \\ftn\\t-mail\\password.ctl
+@end verbatim
+
+
+@node 04, , 03, Top
+@chapter Как binkd обрабатывает описания линков и файл паролей.
+
+    Информация о линках содержится в токенах конфига node, defnode, также в
+файле паролей, указанном в токене passwords.
+    Если указаны несколько токенов node в конфиге или несколько паролей в файле
+паролей для одного линка, параметры каждого последующего перекрывают предыдущие
+описания.
+    В первую очередь обрабатывается конфиг: описания отдельных линков (node) и
+описание линка по умолчанию (defnode). Затем считывается файл паролей.
+    Для явно описанных в конфиге линков действуют параметры и пароль, указанный
+в описании линка. Чтобы задействовать пароль из файла паролей, в описании линка
+вместо пароля нужно поставить прочерк (знак минуса).
+    Для прочих линков действует пароль, указанный в файле паролей.
+
+
+@bye
