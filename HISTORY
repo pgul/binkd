@@ -1,3 +1,7 @@
+2004/01/03 17:39:24 1.0a-336 stas
+binkd.c,2.78,2.79
+Implement service control option for Windows NT/2k/XP
+
 2004/01/03 17:38:54 1.0a-335 stas
 service.c,2.45,2.46
 Implement service control option for Windows NT/2k/XP
