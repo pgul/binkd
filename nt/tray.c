@@ -79,7 +79,7 @@ void wndthread(void *par)
     char bn[20];
     ATOM wa;
     HWND wnd;
-    HICON hi=NULL,loaded_icon=NULL;
+    HICON hi=NULL,loaded_icon=NULL, save_icon_big, save_icon_small;
     HANDLE in, out;
     int i;
 
@@ -129,28 +129,32 @@ sleep(1); /* Workaround: somewhere (unknown) code is not thread-safe.
         }
     }
 
-    hi = (HICON)SendMessage(mainWindow, WM_GETICON, ICON_SMALL, 0);
-    if (!hi)
-    {
-        hi = (HICON)SendMessage(mainWindow, WM_GETICON, ICON_BIG, 0);
-    }
-    if (!hi)
-    {
-        loaded_icon = hi = LoadImage( NULL, BINKD_ICON_FILE, IMAGE_ICON, 0, 0,
-                        LR_LOADFROMFILE | LR_LOADTRANSPARENT );
-        if(loaded_icon)
-          Log(12,"Icon for systray is loaded from %s", BINKD_ICON_FILE);
-    }
+    /* Save icon of window */
+    save_icon_small = (HICON)SendMessage(mainWindow, WM_GETICON, ICON_SMALL, 0);
+    save_icon_big = (HICON)SendMessage(mainWindow, WM_GETICON, ICON_BIG, 0);
+
+    /* Load icon from file */
+    loaded_icon = hi = LoadImage( NULL, BINKD_ICON_FILE, IMAGE_ICON, 0, 0,
+                                  LR_LOADFROMFILE | LR_LOADTRANSPARENT );
+    if(loaded_icon)
+      Log(12,"Icon for systray is loaded from %s", BINKD_ICON_FILE);
+
+    /* Load icon from resource */
     if (!hi)
     { HMODULE hModule;
       if( (hModule = GetModuleHandle(NULL)) )
         loaded_icon = hi = LoadImage( hModule, MAKEINTRESOURCE(0), IMAGE_ICON,
                                       0, 0, LR_LOADTRANSPARENT);
     }
+    /* Load standard icon "?" */
     if (!hi)
     {
         hi = LoadIcon(NULL, IDI_INFORMATION);
     }
+
+    /* Set icon of window */
+    SendMessage(mainWindow, WM_SETICON, ICON_SMALL, (LPARAM)hi);
+    SendMessage(mainWindow, WM_SETICON, ICON_BIG,   (LPARAM)hi);
 
     memset(&rc, 0, sizeof(rc));
     rc.lpszClassName = cn;
@@ -225,7 +229,13 @@ sleep(1); /* Workaround: somewhere (unknown) code is not thread-safe.
             }
     	}
     }
-    if(DestroyIcon(loaded_icon)==FALSE)
+
+    /* Restore icon of window (This is needed for w9x? Check please...) */
+    SendMessage(mainWindow, WM_SETICON, ICON_SMALL, (LPARAM)save_icon_small);
+    SendMessage(mainWindow, WM_SETICON, ICON_BIG,   (LPARAM)save_icon_big);
+
+    /* Release loaded icon */
+    if(loaded_icon) if(DestroyIcon(loaded_icon)==FALSE)
     {
       Log(1,"Error in DestroyIcon(): %s", w32err(GetLastError()));
     }
