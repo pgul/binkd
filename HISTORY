@@ -1,3 +1,7 @@
+2004/01/04 17:19:39 1.0a-346 stas
+service.c,2.49,2.50
+Use Service Display Name to display (log, windows title)
+
 2004/01/03 21:33:44 1.0a-345 stas
 binkd.c,2.81,2.82 !README.FIX,2.41,2.42
 Implement install and uninstall win* services using -t option
