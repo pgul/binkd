@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2003/10/20 18:04:46  gul
+ * Previous patch break OS/2 compilation. Fixed.
+ *
  * Revision 2.11  2003/10/20 17:57:13  gul
  * Dynamic load bzlib.dll built as C++
  *
@@ -64,6 +67,7 @@
 	    loaded = 0;
 #elif defined(OS2)
 #define LOADFUNC(name) if (loaded && (DosQueryProcAddr(hl, 0, #name, (PFN*)(&dl_##name)) != 0 || dl_##name == NULL)) loaded = 0;
+#define LOADFUNC2(name, size) if (loaded && (DosQueryProcAddr(hl, 0, #name, (PFN*)(&dl_##name)) != 0 || dl_##name == NULL)) loaded = 0;
 #endif
 
 #ifdef WITH_ZLIB
