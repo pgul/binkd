@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/03/03 22:11:27  gul
+ * Fix compilation by msvc/2
+ *
  * Revision 2.2  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -39,6 +42,7 @@
 #include "sem.h"
 #include "sys.h"
 #include "assert.h"
+#include "readdir.h" /* for rmdir() */
 
 #if defined(HAVE_THREADS) || defined(AMIGA)
 
