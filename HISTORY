@@ -1,3 +1,7 @@
+2003/10/06 22:00:01 1.0a-218 stas
+breaksig.c,2.13,2.14 brw32sig.h,2.3,2.4 service.c,2.28,2.29
+Prevent double calls of ReportStatusToSCMgr(SERVICE_STOPPED,...) and double restart service
+
 2003/10/06 20:53:18 1.0a-217 stas
 breaksig.c,2.12,2.13 win9x.c,2.24,2.25
 (Prevent compiler warning.) Remove type convertion at CreateWin9xThread() call
