@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2003/03/01 17:33:25  gul
+ * Clean daemonize code
+ *
  * Revision 2.15  2003/03/01 15:55:02  gul
  * Current outgoing address is now attibute of session, but not node
  *
@@ -126,7 +129,9 @@
 #include "assert.h"
 #include "binlog.h"
 #include "setpttl.h"
-#include "daemonize.h"
+#ifdef UNIX
+#include "unix/daemonize.h"
+#endif
 
 #ifdef WIN32
 #include <windows.h>
@@ -198,7 +203,7 @@ void usage (void)
 	  " [socket]"
 #endif
 	  "\n"
-#if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
+#ifdef BINKD_DAEMONIZE
 	  "  -D       run as daemon\n"
 #endif
 #if defined(HAVE_FORK) || defined(BINKDW9X)
@@ -241,7 +246,7 @@ void usage (void)
 
 /* Command line flags */
 int inetd_flag = 0;		       /* Run from inetd (-i) */
-#if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
+#ifdef BINKD_DAEMONIZE
 int daemon_flag = 0;		       /* Run as daemon (-D) */
 #endif
 int server_flag = 0;		       /* Run servermgr (-s) */
@@ -331,7 +336,7 @@ int main (int argc, char *argv[], char *envp[])
 	    case 'v':
 	      ++verbose_flag;
 	      break;
-#if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
+#ifdef BINKD_DAEMONIZE
 	    case 'D':
 	      daemon_flag = 1;
 	      /* remove this switch from saved_argv */
@@ -475,7 +480,7 @@ int main (int argc, char *argv[], char *envp[])
   }
 #endif
 
-#if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
+#ifdef BINKD_DAEMONIZE
   if (daemon_flag)
   {
 	 if (!server_flag)

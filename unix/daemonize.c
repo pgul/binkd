@@ -3,6 +3,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.3  2003/03/01 17:33:25  gul
+ * Clean daemonize code
+ *
  * Revision 2.2  2001/02/15 10:38:12  gul
  * fix #include pathes
  *
@@ -31,7 +34,7 @@
 #include <sys/types.h>
 
 #include "../tools.h"
-#include "../daemonize.h"
+#include "daemonize.h"
 
 /*									*/
 /* Daemonize binkd if we know how to do it				*/

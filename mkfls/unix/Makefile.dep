@@ -2,7 +2,7 @@ md5b.o: md5b.c tools.h getw.h sys.h md5b.h prothlp.h ftnq.h Config.h \
   ftnaddr.h ftnnode.h iphdr.h readcfg.h ftndom.h protoco2.h
 binkd.o: binkd.c Config.h sys.h iphdr.h readcfg.h ftnaddr.h ftndom.h \
   ftnnode.h server.h client.h tools.h getw.h bsy.h protocol.h assert.h \
-  binlog.h setpttl.h daemonize.h reapchld.inc
+  binlog.h setpttl.h unix/daemonize.h reapchld.inc
 readcfg.o: readcfg.c Config.h readcfg.h iphdr.h sys.h ftnaddr.h ftndom.h \
   ftnnode.h tools.h getw.h ftnq.h srif.h prothlp.h protoco2.h iptools.h \
   assert.h readflo.h
@@ -14,14 +14,14 @@ ftnq.o: ftnq.c assert.h tools.h getw.h Config.h ftnq.h ftnaddr.h \
   ftnnode.h iphdr.h sys.h readcfg.h ftndom.h readdir.h
 client.o: client.c Config.h sys.h client.h readcfg.h iphdr.h ftnaddr.h \
   ftndom.h ftnnode.h iptools.h ftnq.h tools.h getw.h protocol.h bsy.h \
-  assert.h setpttl.h reapchld.inc
+  assert.h setpttl.h sem.h https.h reapchld.inc
 server.o: server.c Config.h iphdr.h sys.h iptools.h tools.h getw.h \
   readcfg.h ftnaddr.h ftndom.h ftnnode.h protocol.h server.h assert.h \
-  setpttl.h reapchld.inc
+  setpttl.h sem.h reapchld.inc
 protocol.o: protocol.c Config.h sys.h iphdr.h iptools.h tools.h getw.h \
   readcfg.h ftnaddr.h ftndom.h ftnnode.h ftnq.h bsy.h inbound.h srif.h \
   prothlp.h protoco2.h readflo.h protocol.h assert.h binlog.h setpttl.h \
-  md5b.h crypt.h
+  sem.h md5b.h crypt.h
 bsy.o: bsy.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
   ftnnode.h bsy.h tools.h getw.h sem.h assert.h
 inbound.o: inbound.c Config.h sys.h readcfg.h iphdr.h ftnaddr.h ftndom.h \
@@ -41,7 +41,7 @@ readflo.o: readflo.c Config.h readflo.h assert.h tools.h getw.h
 prothlp.o: prothlp.c Config.h sys.h ftnq.h ftnaddr.h ftnnode.h iphdr.h \
   prothlp.h srif.h readcfg.h ftndom.h protoco2.h assert.h tools.h getw.h
 iptools.o: iptools.c iphdr.h sys.h iptools.h tools.h getw.h readcfg.h \
-  Config.h ftnaddr.h ftndom.h ftnnode.h
+  Config.h ftnaddr.h ftndom.h ftnnode.h sem.h
 run.o: run.c run.h tools.h getw.h
 binlog.o: binlog.c Config.h binlog.h sys.h readcfg.h iphdr.h ftnaddr.h \
   ftndom.h ftnnode.h prothlp.h ftnq.h protoco2.h assert.h tools.h getw.h \
@@ -52,4 +52,11 @@ getw.o: getw.c getw.h
 xalloc.o: xalloc.c tools.h getw.h
 crypt.o: crypt.c crypt.h
 setpttl.o: unix/setpttl.c
-daemonize.o: unix/daemonize.c tools.h getw.h daemonize.h
+daemonize.o: unix/daemonize.c tools.h getw.h unix/daemonize.h
+https.o: https.c Config.h readcfg.h iphdr.h sys.h ftnaddr.h ftndom.h \
+  ftnnode.h tools.h getw.h https.h iptools.h sem.h ntlm/helpers.h
+des_enc.o: ntlm/des_enc.c ntlm/des_locl.h ntlm/des.h ntlm/ncbc_enc.c
+helpers.o: ntlm/helpers.c iphdr.h sys.h ntlm/des.h ntlm/md4.h
+ecb_enc.o: ntlm/ecb_enc.c ntlm/des_locl.h ntlm/des.h ntlm/spr.h
+md4_dgst.o: ntlm/md4_dgst.c ntlm/md4_locl.h ntlm/md4.h ntlm/md32_common.h
+set_key.o: ntlm/set_key.c ntlm/des_locl.h ntlm/des.h
