@@ -16,7 +16,7 @@ NT/95:  The "reference" compiler changed. NT & W95 versions are compiled
 
 	readcfg.c rewritten
 
-	FTN_DOMAIN and FTN_NODE moved to ftndom.h, ftndom.c, ftnnode.h, 
+	FTN_DOMAIN and FTN_NODE moved to ftndom.h, ftndom.c, ftnnode.h,
 	ftnnode.c
 
 	Now one can specify an alternative port for a node in config.file:
@@ -25,7 +25,7 @@ NT/95:  The "reference" compiler changed. NT & W95 versions are compiled
 
 	Fixed "bind: Address already in use"
 
-	Now we define and use INVALID_SOCKET and SOCKET_ERROR instead of -1 
+	Now we define and use INVALID_SOCKET and SOCKET_ERROR instead of -1
 	for WINSOCK compatibility
 
 	Logfile is opened just before writing and closed right after that
@@ -36,7 +36,7 @@ NT/95:  The "reference" compiler changed. NT & W95 versions are compiled
 	Now binkd removes partial .pkt's (When next time creates
 	a new temporary name in the inbound dir)
 
-	When trying to receive a new file: remove from inbound partial 
+	When trying to receive a new file: remove from inbound partial
 	files with this name but diff.size or time. (By default binkd
 	will left old parts as .dt and .hr in the inbound directory)
 		#
@@ -71,7 +71,7 @@ NT/95:  ctrl-c problems fixed
 	New keyword:
 		#
 		minfree <Kbytes>
-	binkd will skip all files from a node if 
+	binkd will skip all files from a node if
 	  size of the next file for us there + minfree < free space in inbound
 	Default -- don't check
 
@@ -98,12 +98,12 @@ NT/95:  ctrl-c problems fixed
 		flag [!]path wildcard ...
 	`!' before the pathname stands for "immediate" flag
 
-	Binkd has become a really quiet thing. Use 
+	Binkd has become a really quiet thing. Use
 		#
 		printq
 	keyword to make	queue rescans verbose, and
 		#
-		conlog <loglevel> 
+		conlog <loglevel>
 	if you want binkd's log at your console.
 
 	New keywords:
@@ -134,15 +134,15 @@ NT/95:  ctrl-c problems fixed
 	New keyword:
 		#	
 		hold-skipped <S>
-	Binkd will hold all mail, skipped by a node, for S seconds. 
+	Binkd will hold all mail, skipped by a node, for S seconds.
 	(Def. -- 3600)
 
 	Extended the syntax of the Node statement:
 		#
 		node [[z:]n/]n[.p] [{host[:port]|-} [{pwd|-} [flavour [{obox|-} [{ibox|-}]]]]]
 	Flavour is one of i, c, d, -, h; and is the flavour for the outbound
-	filebox. All non-"-" fields will redefine values specified for the 
-	same node earlier in config. Default for ibox is inbound or 
+	filebox. All non-"-" fields will redefine values specified for the
+	same node earlier in config. Default for ibox is inbound or
         inbound-nosecure depending on the pwd field. Default for port is oport.
 	Binkd sends from obox all non-dir entries NOT matching ".*" wildcard.
 	EVERY TIME YOU PUT A FILE INTO OBOX CHECK IF BINKD WILL BE ABLE TO
@@ -168,20 +168,20 @@ NT/95:  ctrl-c problems fixed
 
 	Added command line options:
 		-i	run from inetd (OS/2 or *IX only)
-			(*IX: don't forget to turn `printq', `conlog' and 
+			(*IX: don't forget to turn `printq', `conlog' and
 			`percents' OFF when running from inetd -- binkd'll
 			not take care about this itself!!!)
 		-c	start clientmgr only
 		-p	start clientmgr only, make polls, quit if the queue
 			seems to be empty after the next rescan
-		-s	start servmgr only 
+		-s	start servmgr only
 	
-	Changes based on patch by Boris Tobotras -- 
+	Changes based on patch by Boris Tobotras --
 	1) you can now use service names (as in /etc/services) with iport/oport
-	2) before using 24554 as the default port number, binkd will try 
+	2) before using 24554 as the default port number, binkd will try
 	to find "binkp" entry in /etc/services database first
 
-	Binkd/0.8.5+ used to lose netmail under UNIXs sometimes and 
+	Binkd/0.8.5+ used to lose netmail under UNIXs sometimes and
 	left .pkt's as .dt under OS/2, NT, etc. :-( Fixed. (Many reports)
 
 	Added syslog support -- to use it you need to make binkd with
@@ -199,14 +199,14 @@ NT/95:  ctrl-c problems fixed
 	Extended the syntax of the Node statement:
 		#
 		node [[z:]n/]n[.p] [-nr] [{host[:port]|-} [{pwd|-} [flavour [{obox|-} [{ibox|-}]]]]]
-        `-nr' stands for `Not Reliable Link', this works only on outbound calls 
+        `-nr' stands for `Not Reliable Link', this works only on outbound calls
 	with another binkp/1.1 mailer. The option solves the only problem with
-	binkd having no enough time to start receiving of a file from 
-	non-zero offset before IP link's down, so don't use it unless you 
+	binkd having no enough time to start receiving of a file from
+	non-zero offset before IP link's down, so don't use it unless you
 	have this problem -- really not effective
 
 	Map paths in flo's:
-		#      
+		#
 		ftrans old-string new-string
 	eg,
 		#
@@ -238,7 +238,7 @@ NT/95:  ctrl-c problems fixed
 
 	Changed a bit pid-file handling.
 
-	Binkd will not complain about missing .rsp files when running 
+	Binkd will not complain about missing .rsp files when running
 	programms with "exec" statement without using of *S macro.
 
 	Binary log in T-Mail format:
@@ -254,7 +254,7 @@ NT/95:  ctrl-c problems fixed
 	every incoming connection. (EMX BUG: binkd will not quit until all
 	active connections are closed)
 
-	Session would never end if remote skips files being sent 
+	Session would never end if remote skips files being sent
 	from our outbound filebox.
 
 	New keyword:	
@@ -336,7 +336,7 @@ NT/95:  ctrl-c problems fixed
 *IX:    Changed code for renaming of files, now should work on FAT, SMBFS,
 	etc.
 
-	Now binkd will sort files from fileboxes before sending -- by type 
+	Now binkd will sort files from fileboxes before sending -- by type
 	(first *.pkt's, then arcmail, other files, last *.?ic's) and then by
 	file time (new files last).
 
@@ -538,3 +538,4 @@ NT/95:  ctrl-c problems fixed
 
 	Reload config "on fly" (Roman Trunov <stream@proxyma.ru>).
 
+	Ifcico/qico passwords file format support (Stas Degteff <g@ural.org>)
