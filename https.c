@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2003/03/10 17:24:28  gul
+ * Fixed signed/unsigned char conversions
+ *
  * Revision 2.10  2003/03/05 13:21:50  gul
  * Fix warnings
  *
@@ -124,7 +127,7 @@ int h_connect(int so, char *host)
 		strncpy(buf, proxy, sizeof(buf));
 		if ((sp=strchr(proxy, '/')) != NULL)
 			*sp++ = '\0';
-		Log(4, "connected to proxy %s:%d", buf);
+		Log(4, "connected to proxy %s", buf);
 		if(sp) 
 		{
 			char *sp1;
@@ -305,7 +308,7 @@ int h_connect(int so, char *host)
 				buf[0]=buf[1]=0;
 				if((recv(so, buf, 2, 0)<2)||(buf[1]))
 				{
-					Log(1, "Authentication failed (socks5 returns %02X%02X)", buf[0], buf[1]);
+					Log(1, "Authentication failed (socks5 returns %02X%02X)", (unsigned char)buf[0], (unsigned char)buf[1]);
 					free(sauth);
 					SetTCPError(PR_ERROR);
 					return 1;
@@ -380,7 +383,7 @@ int h_connect(int so, char *host)
 						return 1;
 					}
 					if (buf[1]!=90) {
-						Log(2, "connection rejected by socks4 server (%d)", buf[1]);
+						Log(2, "connection rejected by socks4 server (%d)", (unsigned char)buf[1]);
 						SetTCPError(PR_ERROR);
 						break; /* try next IP */
 					}
@@ -395,7 +398,7 @@ int h_connect(int so, char *host)
 						return 1;
 					}
 					if ((buf[3]==1) && (i<9)) continue;
-					if ((buf[3]==3) && (i<(6+buf[4]))) continue;
+					if ((buf[3]==3) && (i<(6+(unsigned char)buf[4]))) continue;
 					if ((buf[3]==4) && (i<21)) continue;
 					if (!buf[1])	return 0;
 					free(sauth);
@@ -409,7 +412,7 @@ int h_connect(int so, char *host)
 						case 6: Log (2, "TTL expired (socks5)"); break;
 						case 7: Log (2, "Command not supported by socks5"); break;
 						case 8: Log (2, "Address type not supported"); break;
-						default: Log (2, "Unknown reply (0x%02X) from socks5 server", buf[1]);
+						default: Log (2, "Unknown reply (0x%02X) from socks5 server", (unsigned char)buf[1]);
 					}
 					SetTCPError(PR_ERROR);
 					return 1;
