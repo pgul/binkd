@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10.2.13  2003/10/19 12:51:44  stream
+ * Auto increase patchlevel, set 0.9.5p7-stable
+ * Missing return value for q_scan_boxes()
+ *
  * Revision 2.10.2.12  2003/10/16 06:09:20  gul
  * Auto increase patchlevel, set 0.9.5p6-stable
  * Removed erroneous tag binkd-0_9_5-stable from files
@@ -128,7 +132,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.5p6-stable"
+#define MYVER "0.9.5p7-stable"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
