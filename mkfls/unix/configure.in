@@ -218,7 +218,7 @@ if test ".$do_zlib" != ".no" ; then
 	found_zlib=no
 
 	if test ".$do_zlib" = ".yes"; then
-	  zlib_paths="/usr/local /usr /usr/local/zlib"
+	  zlib_paths="/usr /usr/local /usr/local/zlib"
 	else
 	  zlib_paths="$do_zlib"
 	fi
@@ -227,8 +227,13 @@ if test ".$do_zlib" != ".no" ; then
 	  if test ! -d "$zlib_path/lib" ; then
 	    continue
 	  fi
-	  LIBS="-L$zlib_path/lib -lz $save_LIBS"
-	  CFLAGS="-I$zlib_path/include $save_CFLAGS"
+	  if test "$zlib_path" = "/usr"]; then
+	    LIBS="-lz $save_LIBS"
+	    CFLAGS="$save_CFLAGS"
+	  else
+	    LIBS="-L$zlib_path/lib -lz $save_LIBS"
+	    CFLAGS="-I$zlib_path/include $save_CFLAGS"
+	  fi
 	  AC_TRY_LINK(
 [
 #include <zlib.h>

@@ -534,7 +534,7 @@ fi
 
 
 
-for ac_prog in mawk gawk nawk awk
+for ac_prog in gawk mawk nawk awk
 do
 # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -1495,12 +1495,12 @@ else
 #line 1496 "configure"
 #include "confdefs.h"
 #include <stdio.h>
-main()
+int main()
 {
   FILE *f=fopen("conftestval", "w");
-  if (!f) exit(1);
+  if (!f) return(1);
   fprintf(f, "%d\n", sizeof(short));
-  exit(0);
+  return(0);
 }
 EOF
 if { (eval echo configure:1507: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
@@ -1534,12 +1534,12 @@ else
 #line 1535 "configure"
 #include "confdefs.h"
 #include <stdio.h>
-main()
+int main()
 {
   FILE *f=fopen("conftestval", "w");
-  if (!f) exit(1);
+  if (!f) return(1);
   fprintf(f, "%d\n", sizeof(int));
-  exit(0);
+  return(0);
 }
 EOF
 if { (eval echo configure:1546: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
@@ -1573,12 +1573,12 @@ else
 #line 1574 "configure"
 #include "confdefs.h"
 #include <stdio.h>
-main()
+int main()
 {
   FILE *f=fopen("conftestval", "w");
-  if (!f) exit(1);
+  if (!f) return(1);
   fprintf(f, "%d\n", sizeof(long));
-  exit(0);
+  return(0);
 }
 EOF
 if { (eval echo configure:1585: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
@@ -2089,7 +2089,7 @@ echo "configure:2087: checking for libz" >&5
 	found_zlib=no
 
 	if test ".$do_zlib" = ".yes"; then
-	  zlib_paths="/usr/local /usr /usr/local/zlib"
+	  zlib_paths="/usr /usr/local /usr/local/zlib"
 	else
 	  zlib_paths="$do_zlib"
 	fi
@@ -2098,10 +2098,15 @@ echo "configure:2087: checking for libz" >&5
 	  if test ! -d "$zlib_path/lib" ; then
 	    continue
 	  fi
-	  LIBS="-L$zlib_path/lib -lz $save_LIBS"
-	  CFLAGS="-I$zlib_path/include $save_CFLAGS"
+	  if test "$zlib_path" = "/usr"]; then
+	    LIBS="-lz $save_LIBS"
+	    CFLAGS="$save_CFLAGS"
+	  else
+	    LIBS="-L$zlib_path/lib -lz $save_LIBS"
+	    CFLAGS="-I$zlib_path/include $save_CFLAGS"
+	  fi
 	  cat > conftest.$ac_ext <<EOF
-#line 2105 "configure"
+#line 2110 "configure"
 #include "confdefs.h"
 
 #include <zlib.h>
@@ -2116,7 +2121,7 @@ int main() {
 
 ; return 0; }
 EOF
-if { (eval echo configure:2120: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2125: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   found_zlib="$zlib_path"
 else
