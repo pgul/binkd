@@ -83,8 +83,6 @@ void wndthread(void *par)
     HANDLE in, out;
     int i;
 
-sleep(1); /* Workaround: somewhere (unknown) code is not thread-safe.
-             Need to finds this code... */
     i = GetConsoleTitle(buf, sizeof(buf));
     if (i < 0) i = 0;
     buf[i] = 0;
@@ -125,7 +123,6 @@ sleep(1); /* Workaround: somewhere (unknown) code is not thread-safe.
                 Sleep(100);
             }
             if (!mainWindow) return;
-            /*_isService=0; Why this need? (commented out by stas)*/
         }
     }
 
