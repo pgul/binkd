@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.6  2003/10/28 20:20:10  stas
+ * Rewrite NT service code, remove obsoleted code and add some checks. Found a thread-not-safety problem.
+ *
  * Revision 2.5  2003/10/18 18:50:48  stas
  * Move to new 'tray.c' file several functions when is related with 'minimize to tray' feature
  *
@@ -27,6 +30,8 @@
  * Add CVS tags
  *
  */
+
+#define AlertWin(text) MessageBox(NULL, text, MYNAME, MB_OK|MB_ICONSTOP|0x00200000L|MB_SYSTEMMODAL|MB_SETFOREGROUND)
 
 /* Test on Windows 95/98/Me
    Return 0 if not match

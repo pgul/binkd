@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.42  2003/10/28 20:20:10  stas
+ * Rewrite NT service code, remove obsoleted code and add some checks. Found a thread-not-safety problem.
+ *
  * Revision 2.41  2003/10/24 18:18:40  stas
  * use macro instead number; remove unused comparision
  *
@@ -172,6 +175,9 @@
 #include "brw32sig.h"
 #include "tray.h"
 
+#define args_REG_type REG_BINARY /* REG_MULTI_SZ */
+#define path_REG_type REG_SZ
+
 /* ChangeServiceConfig2() prototype:
  */
 typedef BOOL (WINAPI *CSD_T)(SC_HANDLE, DWORD, LPCVOID);
@@ -190,8 +196,6 @@ static SERVICE_STATUS sstat;
 static int res_checkservice=0;
 static DWORD dwErr=0;
 static char **serv_argv=NULL;
-static char **serv_envp=NULL;
-static enum service_main_retcodes service_main(enum service_main_types type);
 extern int checkcfg_flag;
 MUTEXSEM exitsem=NULL;
 
@@ -281,96 +285,127 @@ void atServiceExitEnds(void)
   {
     sp=serv_argv[0];
     free(serv_argv);
-    free(sp);
+    if(sp)free(sp);
     serv_argv=NULL;
-  }
-  if(serv_envp)
-  {
-    sp=serv_envp[0];
-    free(serv_envp);
-    free(sp);
-    serv_envp=NULL;
   }
   CleanSem(&exitsem);
   ReportStatusToSCMgr(SERVICE_STOPPED, NO_ERROR, 0);
 }
 
+/* Retrieve value from registry. Return length of data.
+ * hk      - (in) registry key handle (created using RegOpenKey())
+ * name    - (in) name of the value to query
+ * reqtype - (in) type of the value to query
+ * data    - (out) pointer to array of bytes (function stores malloc'ed array)
+ */
+static int get_string_registry_value(HKEY hk, char *name, DWORD reqtype, char **data)
+{ DWORD type, size=0;
+  LPBYTE pdata=NULL;
+  LONG rc;
+
+  if( !hk )
+  {
+    AlertWin("get_string_registry_value(): Parameter 'hk' is NULL");
+    return 0;
+  }
+  if( !data )
+  {
+    AlertWin("get_string_registry_value(): Parameter 'data' is NULL");
+    return 0;
+  }
+  *data=NULL;
+  rc = RegQueryValueEx(hk, name, NULL, &type, pdata, &size);
+  if( type!=reqtype )
+  { char ttt[512];
+    snprintf(ttt,sizeof(ttt),"Incompatible type of registry value '%s'", (name&&name[0])?name:"Default" );
+    AlertWin(ttt);
+    return 0;
+  }
+  if( rc!=ERROR_SUCCESS && rc!=ERROR_MORE_DATA )
+  {
+    AlertWin(w32err(rc));
+    return 0;
+  }
+  if( !(pdata=(LPBYTE)malloc(size)) )
+  {
+    AlertWin( "Low memory");
+    return 0;
+  }
+  if( RegQueryValueEx(hk, name, NULL, &type, pdata, &size)!=ERROR_SUCCESS )
+  {
+    free(pdata);
+    return 0;
+  }
+  *data = (char*)pdata;
+  return size;
+}
+
 int binkd_main(int argc, char **argv, char **envp);
 static void ServiceStart()
 {
-  HKEY hk;
-  LONG rc;
-  DWORD dw, sw=MAXPATHLEN+1;
+  HKEY hk=NULL;
+  DWORD sw=MAXPATHLEN+1;
   int i, argc;
   char *sp=(char*)malloc(sw);
-  char *env=NULL;
 
-  strcpy(sp, reg_path_prefix);
-  strcat(sp, srvname);
-  strcat(sp, reg_path_suffix);
   InitSem (&exitsem); /* See exitproc.c */
 
+  if(!sp) AlertWin("Low memory!");
+  strnzcpy(sp, reg_path_prefix,sw);
+  strnzcat(sp, srvname,sw);
+  strnzcat(sp, reg_path_suffix,sw);
+
   atexit(atServiceExitEnds);
-  for(;;)
+
+  if( RegOpenKey(HKEY_LOCAL_MACHINE, sp, &hk)==ERROR_SUCCESS)
   {
-    if(RegOpenKey(HKEY_LOCAL_MACHINE, sp, &hk)!=ERROR_SUCCESS)
-    {
-      dwErr=GetLastError();
-      break;
-    }
-    if(RegQueryValueEx(hk, "path", NULL, &dw, sp, &sw)!=ERROR_SUCCESS)
-    {
-      dwErr=GetLastError();
-      break;
-    }
-    SetCurrentDirectory(sp);
-    sw=MAXPATHLEN+1;
-    switch(RegQueryValueEx(hk, "args", NULL, &dw, sp, &sw))
-    {
-    case ERROR_SUCCESS: break;
-    case ERROR_MORE_DATA:
-      free(sp);
-      sp=(char*)malloc(sw);
-      if(RegQueryValueEx(hk, "args", NULL, &dw, sp, &sw)==ERROR_SUCCESS)
-        break;
-    default:
-      dwErr=GetLastError();
-    }
-    if(dwErr!=NO_ERROR)
-      break;
-    sw=0;
-    rc=RegQueryValueEx(hk, "env", NULL, &dw, env, &sw);
-    if(((rc==ERROR_MORE_DATA)||(rc==ERROR_SUCCESS))&&(sw))
-    {
-      env=(char*)malloc(sw);
-      if(RegQueryValueEx(hk, "env", NULL, &dw, env, &sw)!=ERROR_SUCCESS)
-      {
-        free(env);
-        env=NULL;
+    { /* Read and use key "path" */
+      char *path = NULL;
+      if( 0==get_string_registry_value(hk, "path", path_REG_type, &path) )
+      { char ttt[MAXPATHLEN+70];
+        snprintf(ttt,sizeof(ttt),"Can't read value of \"path\" from registry key HKLM\\%s",sp);
+        AlertWin(ttt);
+        free(sp);
+        goto ServiceStart_error;
       }
+      SetCurrentDirectory(path);
+      free(path);
     }
-    RegCloseKey(hk);
-    hk=0;
+    { /* Read and parse key "args" */
+      char *args=NULL;
+      int sz;
+      sz = get_string_registry_value(hk, "args", args_REG_type, &args);
+      if(!sz)
+      { char ttt[MAXPATHLEN+70];
+        snprintf(ttt,sizeof(ttt),"Can't read value of \"args\" from registry key HKLM\\%s",sp);
+        AlertWin(ttt);
+        free(sp);
+        goto ServiceStart_error;
+      }
+      for(i=argc=0;args[i];i+=strlen(args+i)+1) argc++;
+      serv_argv=(char**)malloc(sizeof(char*)*(argc+1));
+      for(i=argc=0;args[i];i+=strlen(args+i)+1) serv_argv[argc++]=args+i;
+      serv_argv[argc]=NULL;
+    }
 
-    if (!ReportStatusToSCMgr(SERVICE_RUNNING, NO_ERROR, 0)) break;
-
-    if(env)
+    if (!ReportStatusToSCMgr(SERVICE_RUNNING, NO_ERROR, 0))
     {
-      for(i=argc=0;env[i];i+=strlen(env+i)+1) argc++;
-      serv_envp=(char**)malloc(sizeof(char*)*(argc+1));
-      for(i=argc=0;env[i];i+=strlen(env+i)+1) serv_envp[argc++]=env+i;
-      serv_envp[argc++]=NULL;
+      dwErr=GetLastError();
+      goto ServiceStart_error;
     }
-    for(i=argc=0;sp[i];i+=strlen(sp+i)+1) argc++;
-    serv_argv=(char**)malloc(sizeof(char*)*(argc+1));
-    for(i=argc=0;sp[i];i+=strlen(sp+i)+1) serv_argv[argc++]=sp+i;
-    serv_argv[argc]=NULL;
 
-    binkd_main(argc, serv_argv, serv_envp);
-    break;
+    binkd_main(argc, serv_argv, NULL);
   }
+  else
+  {
+    dwErr=GetLastError();
+  }
+
+ServiceStart_error:
+
   if(hk) RegCloseKey(hk);
 }
+
 
 static void WINAPI ServiceMain(DWORD argc,LPSTR* args)
 {
@@ -391,171 +426,259 @@ static void WINAPI ServiceMain(DWORD argc,LPSTR* args)
 }
 
 static DWORD srvtype = SERVICE_WIN32_OWN_PROCESS;
-static enum service_main_retcodes service_main(enum service_main_types type)
+static SC_HANDLE sman=NULL, shan=NULL;
+
+static void cleanup_service(void)
 {
-  SC_HANDLE sman=NULL, shan=NULL;
-  int i;
-  enum service_main_retcodes rc=service_main_ret_ok;
-
-  if(!IsNT())
-    return service_main_ret_not;
-
-  sman=OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
-  if(!sman)
-  { int err = GetLastError();
-    if(res_checkservice)
-      Log(1, "OpenSCManager failed: %s",w32err(err));
-    else if(err==ERROR_ACCESS_DENIED)
-    {
-      Log(isService()?1:-1, "Access to NT service controls is denied.");
-    }
-    return 3;
+  if(shan)
+  {
+    CloseServiceHandle(shan);
+    shan = NULL;
   }
-  if(!type)  /* return 0 if we can install service */
+  if(sman)
   {
     CloseServiceHandle(sman);
-    return service_main_ret_ok;
+    sman = NULL;
   }
-  shan=OpenService(sman, srvname, SERVICE_ALL_ACCESS);
+}
 
-  switch(type)
+static void try_open_service(void)
+{
+  if(!sman)
   {
-  case service_main_testrunning:
-    if(!shan) rc=service_test_notinstall; else
-    if(!QueryServiceStatus(shan,&sstat)) rc=service_test_fail; else
-    if(sstat.dwCurrentState != SERVICE_START_PENDING) rc=service_test_notrunning;
-    break;
-  case service_main_testinstalled: /* return 0 if service installed, or 1 if not */
-    if(!shan) rc=service_test_notinstall;
-    break;
-  case service_main_installstart:
-  case service_main_install: /* install, if we don have one */
-    if(!shan)
-    {
-      char path[MAXPATHLEN+1];
-      if(GetModuleFileName(NULL, path, MAXPATHLEN)<1)
+    sman = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+    if(!sman)
+    { int err = GetLastError();
+      if(res_checkservice)
+        Log(1, "OpenSCManager failed: %s",w32err(err));
+      else if(err==ERROR_ACCESS_DENIED)
       {
-        Log(1, "Error in GetModuleFileName()=%s", w32err(GetLastError()) );
-        CloseServiceHandle(sman);
-        return service_main_ret_failinstall;
-      }
-      shan=CreateService( sman,                 /* SCManager database */
-                          srvname,              /* name of service */
-                          service_name,         /* name to display */
-                          SERVICE_ALL_ACCESS,   /* desired access */
-                          srvtype,              /* service type */
-                          SERVICE_AUTO_START,   /* start type */
-                          SERVICE_ERROR_NORMAL, /* error control type */
-                          path,                 /* service's binary */
-                          NULL,                 /* no load ordering group */
-                          NULL,                 /* no tag identifier */
-                          dependencies,         /* dependencies */
-                          NULL,                 /* user account */
-                          NULL );               /* account password */
-
-      if(!shan)
-      {
-        Log(1, "Error in CreateService()=%s", w32err(GetLastError()) );
-        rc=service_main_ret_failinstall;
-      }
-      else
-      {
-        CSD_T ChangeServiceDescription;
-        HANDLE hwin2000scm;
-
-        hwin2000scm = GetModuleHandle(libname);
-        if (hwin2000scm) {
-          ChangeServiceDescription = (CSD_T) GetProcAddress(hwin2000scm,
-                                                    "ChangeServiceConfig2A");
-          if (ChangeServiceDescription)
-          {
-            ChangeServiceDescription( shan,
-                                      1 /* SERVICE_CONFIG_DESCRIPTION */,
-                                      &description );
-          }
-        }
+        Log(isService()?1:-1, "R/W access to NT service controls is denied.");
       }
     }
-    if((rc)||(type==service_main_install)) break;
-  case service_main_start: /* start service */
+  }
+  if(sman && !shan)
+    shan=OpenService(sman, srvname, SERVICE_ALL_ACCESS);
+}
+
+/* Return 0 if service status is equal with parameter.
+ */
+static int query_service(DWORD servicestatus)
+{
+  if( !shan ) try_open_service();
+  if( !QueryServiceStatus(shan,&sstat) ) return -1;
+  return !(sstat.dwCurrentState == servicestatus);
+}
+
+static int store_data_into_registry(char **argv,char **envp)
+{ int len, rc=0;
+  char sp[MAXPATHLEN+1];
+  BYTE *asp=NULL;
+  HKEY hk=0;
+
+  strnzcpy(sp, reg_path_prefix,sizeof(sp));
+  strnzcat(sp, srvname,sizeof(sp));
+  if( RegOpenKey(HKEY_LOCAL_MACHINE, sp, &hk)==ERROR_SUCCESS )
+  {
+    RegCloseKey(hk);
+    hk = NULL;
+  }
+  else
+  {
+    Log(1, "Unable to open registry key %s!", sp);
+    return -1;
+  }
+  strnzcat(sp, reg_path_suffix,sizeof(sp));
+
+  /* build arguments list for service */
+  len = build_service_arguments((char**)(&asp), argv, 0);
+
+  if(  (  (RegOpenKey(HKEY_LOCAL_MACHINE, sp, &hk)==ERROR_SUCCESS)
+        ||(RegCreateKey(HKEY_LOCAL_MACHINE, sp, &hk)==ERROR_SUCCESS)
+       )
+     &&(RegSetValueEx(hk, "args", 0, args_REG_type, (BYTE*)asp, len)==ERROR_SUCCESS)
+     &&(GetCurrentDirectory(sizeof(sp), sp)>0)
+     &&(RegSetValueEx(hk, "path", 0, path_REG_type, (BYTE*)sp, strlen(sp))==ERROR_SUCCESS)
+    )
+  {
+      rc = 0;
+  }
+  else
+  {
+      rc = -1;
+  }
+  if(hk) RegCloseKey(hk);
+  if(rc)
+  {
+    Log(1, "Unable to store data in registry for service '%s'", service_name);
+    res_checkservice=(CHKSRV_CANT_INSTALL);
+  }
+  xfree(asp);
+
+  return rc;
+}
+
+static int install_service(char **argv,char **envp)
+{
+
+  if(!sman) try_open_service();
+  if(!sman) return -1;
+
+  if(!shan)
+  {
+    char path[MAXPATHLEN+1];
+    if(GetModuleFileName(NULL, path, MAXPATHLEN)<1)
+    {
+      Log(1, "Error in GetModuleFileName()=%s", w32err(GetLastError()) );
+      CloseServiceHandle(sman);
+      return -1;
+    }
+    shan=CreateService( sman,                 /* SCManager database */
+                        srvname,              /* name of service */
+                        service_name,         /* name to display */
+                        SERVICE_ALL_ACCESS,   /* desired access */
+                        srvtype,              /* service type */
+                        SERVICE_AUTO_START,   /* start type */
+                        SERVICE_ERROR_NORMAL, /* error control type */
+                        path,                 /* service's binary */
+                        NULL,                 /* no load ordering group */
+                        NULL,                 /* no tag identifier */
+                        dependencies,         /* dependencies */
+                        NULL,                 /* user account */
+                        NULL );               /* account password */
+
     if(!shan)
     {
-      Log(-1, "Service \"%s\" not installed...", srvname);
-      rc=service_test_notinstall;
-      break;
-    }
-    if(StartService(shan, 0, NULL))
-    {
-      int j;
-      for(i=j=0;(i<30)&&(QueryServiceStatus(shan,&sstat));i++)
-      {
-        if((sstat.dwCurrentState == SERVICE_START_PENDING)||
-          ((i<3)&&(sstat.dwCurrentState != SERVICE_RUNNING))||((j++)<9))
-        {
-          printf(".");
-          Sleep(300);
-        }
-        else break;
-      }
-      putchar('\n');
-      if(sstat.dwCurrentState != SERVICE_RUNNING)
-      {
-        Log(-1, "Service not started...");
-        rc=service_main_ret_failstart;
-      }
+      Log(1, "Error in CreateService()=%s", w32err(GetLastError()) );
+      return -1;
     }
     else
     {
-      Log(1, "Error in StartService()=%s", w32err(GetLastError()) );
-      rc=service_main_ret_failstart;
-    }
-    break;
-  case service_main_stop:      /* stop */
-  case service_main_uninstall: /* stop & uninstall. */
-    if(!shan) break;
-    /* try to stop the service  */
-    if(ControlService(shan, SERVICE_CONTROL_STOP, &sstat))
-    {
-      for(i=0;(i<30)&&(QueryServiceStatus(shan,&sstat));i++)
-      {
-        if((sstat.dwCurrentState==SERVICE_STOP_PENDING) ||
-          ((i<3)&&(sstat.dwCurrentState!=SERVICE_STOPPED)))
+      CSD_T ChangeServiceDescription;
+      HANDLE hwin2000scm;
+
+      hwin2000scm = GetModuleHandle(libname);
+      if (hwin2000scm) {
+        ChangeServiceDescription = (CSD_T) GetProcAddress(hwin2000scm,
+                                                  "ChangeServiceConfig2A");
+        if (ChangeServiceDescription)
         {
-          printf(".");
-          Sleep(300);
+          ChangeServiceDescription( shan,
+                                    1 /* SERVICE_CONFIG_DESCRIPTION */,
+                                    &description );
         }
-        else break;
-      }
-      putchar('\n');
-      if(sstat.dwCurrentState!=SERVICE_STOPPED)
-      {
-        Log(1, "Unable to stop service!");
-        rc=service_main_ret_failstop;
       }
     }
-    if(( type==service_main_uninstall) && !DeleteService(shan) )
+    return store_data_into_registry(argv,envp);
+  }
+  Log(-1, "Service \"%s\" installed successfully.", service_name);
+  return 0;
+}
+
+static int wait_service_operation(DWORD pending_state, DWORD finish_state)
+{
+  int j,i;
+  for(i=j=0;(i<30)&&(QueryServiceStatus(shan,&sstat));i++)
+  {
+    if((sstat.dwCurrentState == pending_state)||
+      ((i<3)&&(sstat.dwCurrentState != finish_state))||((j++)<9))
     {
-      Log(1, "Error in DeleteService()=%s", w32err(GetLastError()) );
-      rc=service_main_ret_faildelete;
+      printf(".");
+      Sleep(300);
     }
-    break;
-    default:
-    ;
+    else break;
+  }
+  putchar('\n');
+
+  return (sstat.dwCurrentState != finish_state);
+}
+
+static int start_service(void)
+{
+
+  if(!sman) try_open_service();
+  if(!sman) return -1;
+  if(!shan)
+  {
+    Log(-1, "Service \"%s\" is not installed, can't start service.", service_name);
+    return -1;
+  }
+  if( query_service(SERVICE_RUNNING)==0 )
+  {
+    Log(-1, "Service \"%s\" already started.", service_name);
+    return 0;
   }
 
-  if(shan) CloseServiceHandle(shan);
-  CloseServiceHandle(sman);
-  return rc;
+  if( /*query_service(SERVICE_START_PENDING) &&*/ !StartService(shan, 0, NULL) )
+  {
+    Log(1, "Error in StartService()=%s", w32err(GetLastError()) );
+    return -1;
+  }
+
+  if( wait_service_operation(SERVICE_START_PENDING,SERVICE_RUNNING) )
+  {
+    Log(-1, "Unable to start service '%s'.", service_name);
+    return -1;
+  }
+
+  Log(-1, "Service '%s' started successfully.", service_name);
+  return 0;
+}
+
+static int stop_service(void)
+{
+
+  if(!sman) try_open_service();
+  if(!sman) return -1;
+  if(!shan)
+  {
+    Log(-1, "Service \"%s\" is not installed...", service_name);
+    return -1;
+  }
+
+  if( query_service(SERVICE_STOPPED)==0 )
+  {
+    Log(-1, "Service \"%s\" is not running...", service_name);
+    return 0;
+  }
+
+  if( ControlService(shan, SERVICE_CONTROL_STOP, &sstat) &&
+      wait_service_operation(SERVICE_STOP_PENDING,SERVICE_STOPPED) )
+  {
+    Log(1, "Unable to stop service '%s'!", service_name);
+    return -1;
+  }
+
+  Log(-1, "Service '%s' stopped successfully.", service_name);
+  return 0;
+}
+
+static int uninstall_service(void)
+{
+
+  if(!sman) try_open_service();
+  if(!sman) return -1;
+  if(!shan)
+  {
+    Log(-1, "Service \"%s\" is not installed...", service_name);
+    return -1;
+  }
+
+  if( !DeleteService(shan) )
+  {
+    Log(1, "Error in DeleteService()=%s", w32err(GetLastError()) );
+    return -1;
+  }
+
+  Log(-1, "Service '%s' uninstalled successfully.", service_name);
+  return 0;
 }
 
 
 
 int service(int argc, char **argv, char **envp)
 {
-  int i, j, k, len;
-  char *sp=NULL;
-  char *esp=NULL, *asp=NULL;
-  HKEY hk=0;
+  int j, rc=0;
 
   if(service_flag==w32_noservice) return 0;
   else{
@@ -565,7 +688,6 @@ int service(int argc, char **argv, char **envp)
       return 1;
     }
   }
-
 
   if(service_name) srvname = get_service_name(service_name);  /* Use service name from command line if specified */
   else service_name = srvname;
@@ -588,101 +710,33 @@ int service(int argc, char **argv, char **envp)
 
   case w32_installservice:
     if (j==CHKSRV_INSTALLED){
-      Log(-1, "Service %s already installed...", srvname);
+      Log(-1, "Service %s already installed...", service_name);
       exit(0);
     }else{
 
-      sp=(char*)malloc(MAXPATHLEN+1);
-      strcpy(sp, reg_path_prefix);
-      strcat(sp, srvname);
-      if(!service_main(service_main_install))
-      {
-        Log(-1, "Service '%s' installed...", srvname);
-      }
-      else
-      {
-        Log(1, "Unable to install service %s!",srvname);
-        free(sp);
-        return -1;
-      }
-      if( RegOpenKey(HKEY_LOCAL_MACHINE, sp, &hk)==ERROR_SUCCESS )
-      {
-        RegCloseKey(hk);
-        hk = NULL;
-      }
-      else
-      {
-        Log(1, "Unable to open registry key %s!", sp);
-        free(sp);
-        return -1;
-      }
+      rc = install_service(argv,envp);
 
-      /* build arguments list for service */
-      len = build_service_arguments(&asp, argv, 0);
-
-      /* build enviroment */
-      if(envp)
-      {
-        for(i=j=0; envp[i];i++) j+=strlen(envp[i])+1;
-        j += strlen("BINKD_RERUN=NTSERVICE");
-        esp=(char*)malloc(++j);
-        for(i=j=0; envp[i];i++)
-        {
-          strcpy(esp+j, envp[i]);
-          j+=strlen(envp[i])+1;
-        }
-          strcpy(esp+j, "BINKD_RERUN=NTSERVICE");
-        esp[j++]=0;
-      }
-
-      strcat(sp, reg_path_suffix);
-      k=1;
-      if((RegOpenKey(HKEY_LOCAL_MACHINE, sp, &hk)==ERROR_SUCCESS) ||
-         (RegCreateKey(HKEY_LOCAL_MACHINE, sp, &hk)==ERROR_SUCCESS))
-      for(;;)
-      {
-        if(RegSetValueEx(hk, "args", 0, REG_BINARY, asp, len)!=ERROR_SUCCESS) break;
-        if((esp)&&
-           (RegSetValueEx(hk, "env", 0, REG_BINARY, esp, j)!=ERROR_SUCCESS)) break;
-        if(GetCurrentDirectory(MAXPATHLEN, sp)<1) break;
-        if(RegSetValueEx(hk, "path", 0, REG_SZ, sp, strlen(sp))!=ERROR_SUCCESS) break;
-        k=0;
-        break;
-      }
-      RegCloseKey(hk);
-      if(k)
-      {
-        Log(1, "Unable to store data in registry...");
-        res_checkservice=(CHKSRV_CANT_INSTALL);
-      }
-      free(sp);
-      free(asp);
-      if(esp) free(esp);
-      if(!service_main(service_main_start))
-      {
-        Log(-1, "Service '%s' started.", srvname);
+      if( !rc && !(rc=start_service()) )
         exit(0);
-      }
-      Log(1, "Unable to start service!");
-      return -1;
+      rc = -1;
     }
     break;
 
   case w32_uninstallservice:
-    if (j==CHKSRV_NOT_INSTALLED){
-      Log(-1, "Service '%s' already uninstalled...", srvname);
-      exit(0);
-    }else{
-      if(service_main(service_main_uninstall))  return argc;
-      Log(-1, "Service '%s' uninstalled.", srvname);
-      exit(0);
+    if (j==CHKSRV_NOT_INSTALLED)
+      Log(-1, "Service '%s' already uninstalled...", service_name);
+    else{
+      rc = stop_service() + uninstall_service();
     }
+    cleanup_service();
+    exit(0);
     break;
 
   default:
     break;
   }
-  return 0;
+  cleanup_service();
+  return rc;
 }
 
 /* Return:
@@ -693,9 +747,15 @@ int service(int argc, char **argv, char **envp)
 int checkservice(void)
 {
   if(res_checkservice) return res_checkservice;
+
   if(!IsNT()) return res_checkservice=(CHKSRV_CANT_INSTALL);
-  if(service_main(service_main_services)) return res_checkservice=(CHKSRV_CANT_INSTALL);
-  if(service_main(service_main_testinstalled)) return res_checkservice=CHKSRV_NOT_INSTALLED;
+
+  try_open_service();
+  if(!sman)
+    return res_checkservice=CHKSRV_CANT_INSTALL;
+  if(!shan)
+    return res_checkservice=CHKSRV_NOT_INSTALLED;
+
   return res_checkservice=CHKSRV_INSTALLED;
 }
 
