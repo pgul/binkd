@@ -1,3 +1,7 @@
+2004/01/03 15:35:34 1.0a-334 stas
+tools.c,2.58,2.59
+Fix log file name usage (from enviroment)
+
 2004/01/03 14:38:28 1.0a-333 stas
 binkd.c,2.77,2.78
 Small change (win32)
