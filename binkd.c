@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2001/10/29 19:31:44  gul
+ * Added -h option (print usage)
+ *
  * Revision 2.4  2001/10/28 14:52:58  gul
  * Cyrillic filenames fix
  *
@@ -153,7 +156,7 @@ void usage ()
 #elif defined(WIN32)
 	  "T%s"
 #endif
-	  "pqsv] [-Pnode] config"
+	  "pqsvmh] [-Pnode] config"
 #ifdef OS2
 	  " [socket]"
 #endif
@@ -179,6 +182,7 @@ void usage ()
 	  "  -s       run server only\n"
 	  "  -v       be verbose / dump version and quit\n"
 	  "  -m       disable CRAM-MD5 authorization\n"
+	  "  -h       print this help\n"
 	  "\n"
 	  "Copyright (c) 1996-2001 Dima Maloff and others.\n"
 	  "\n"
@@ -255,9 +259,9 @@ int main (int argc, char *argv[], char *envp[])
 	      break;
 #endif
 #if defined(WIN32)
-        case 'T':
-        case 't':
-          break;
+	    case 'T':
+	    case 't':
+	      break;
 #endif
 	    case 'P':
 	      if (argv[i][2] == 0)
@@ -293,6 +297,8 @@ int main (int argc, char *argv[], char *envp[])
 	      }
 	      break;
 #endif
+	    case 'h':
+	      usage();
 	    default:
 	      Log (0, "%s: -%c: unknown command line switch", argv[0], *s);
 	    case 0:
