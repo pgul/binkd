@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of Sep 01 2003
+        Version of Sep 09 2003
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -32,9 +32,10 @@ from Russian by Michael Dukelsky 2:5020/1042.
     21. BinkD Under Windows 3.x.
     22. Different FTN Domains in BinkD.
     23. How Does "domain ... alias-for ..." In The Configuration File Work?
-    24. I Have Found a Bug in BinkD!
-    25. I Want To Talk To Developers.
-    26. I Want To Get Information About Changes In BinkD Immediately!
+    24. What Does "send: TCP/IP error (-10000)" Mean and How To Cure It?
+    25. I Have Found a Bug in BinkD!
+    26. I Want To Talk To Developers.
+    27. I Want To Get Information About Changes In BinkD Immediately!
 
 
 ----------------------------------------------------------------------------
@@ -730,6 +731,36 @@ address 1:2/3.4@fidonet.net will be dealt with as 1:2/3.4@fidonet.
 ----------------------------------------------------------------------------
 
 
+        What Does "send: TCP/IP error (-10000)" Mean and How To Cure It?
+
+    There are two bugs here, one of them had been fixed before a branch for
+binkd 0.9.5-stable was created.
+
+    1. The fact is that unlike others the MS Visual C run-time library does
+not correspond to the standard. 'errno' and 'h_errno' are macros in MSVC
+RTL and they expand to system calls which in the end call GetLastError().
+And the variable errno to which the function returns its value is cleared
+to zero at every successful system call.  Thus errno is cleared at
+successful file open (according to the C standard errno should not change
+if there were no more errors). The influence of the bug is fixed in BinkD:
+
+    2003/04/28 07:30:16  gul
+    * Bugfix: Log() changes TCPERRNO
+
+    2. A Winsock bug: select() always returns successful for a non-blocked
+socket.  The influence of this and other Winsock bugs is fixed:
+
+    2003/06/06 16:27:44  gul
+    * Workaround winsock bug - giveup CPU when sending file
+    2003/08/11 08:41:55  gul
+    * workaround winsock bug (patch by Alexander Reznikov)
+    2003/08/24 00:29:31  hbrew
+    * win9x-select-workaround fix, thanks to Pavel Gulchouck)
+
+
+----------------------------------------------------------------------------
+
+
         I Have Found a Bug in BinkD!
 
     Try to refresh your BinkD version (it is possible that the bug has
@@ -752,7 +783,7 @@ piece of detailed log (loglevel more than 5).
 
     Dmitry Malov who is the author of the first BinkD versions does not
 develop it any more now.  Beginning with year 2000-2001 the project is
-coordinated by Pavel Gulchouck 2:463/68 (Pavel Gulchouck <gul@gul.kiev.ua>). 
+coordinated by Pavel Gulchouck 2:463/68 (Pavel Gulchouck <gul@gul.kiev.ua>).
 He also writes the most part of the code.
 
     There is a mailing list for developers and testers:
