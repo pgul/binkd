@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/03/25 20:37:46  gul
+ * free_hostent() function
+ *
  * Revision 2.2  2003/02/28 08:53:38  gul
  * Fixed proxy usage
  *
@@ -38,6 +41,8 @@
 const char *get_hostname (struct sockaddr_in * addr, char *host, int len);
 
 void copy_hostent(struct hostent *dest, struct hostent *src);
+
+void free_hostent(struct hostent *hp, char **alist);
 
 /*
  * Sets non-blocking mode for a given socket

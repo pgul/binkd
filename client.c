@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.27  2003/03/25 20:37:46  gul
+ * free_hostent() function
+ *
  * Revision 2.26  2003/03/19 14:36:03  gul
  * Fix typo
  *
@@ -465,15 +468,7 @@ badtry:
 #ifdef HTTPS
     if (!proxy[0] && !socks[0])
 #endif
-    {
-      if (hp && hp->h_addr_list != alist)
-      {
-        if (hp->h_addr_list && hp->h_addr_list[0])
-          free(hp->h_addr_list[0]);
-        if (hp->h_addr_list)
-          free(hp->h_addr_list);
-      }
-    }
+      free_hostent(hp, alist);
 #endif
 #ifdef HTTPS
     if (sockfd != INVALID_SOCKET && (proxy[0] || socks[0]) &&
@@ -487,13 +482,8 @@ badtry:
 #endif
   }
 #if defined(HAVE_THREADS) && defined(HTTPS)
-  if ((proxy[0] || socks[0]) && hp->h_addr_list != alist)
-  {
-    if (hp->h_addr_list && hp->h_addr_list[0])
-      free(hp->h_addr_list[0]);
-    if (hp->h_addr_list)
-      free(hp->h_addr_list);
-  }
+  if (proxy[0] || socks[0])
+    free_hostent(hp, alist);
 #endif
 
   if (sockfd == INVALID_SOCKET)

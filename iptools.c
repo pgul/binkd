@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/03/25 20:37:46  gul
+ * free_hostent() function
+ *
  * Revision 2.4  2003/03/01 18:46:05  gul
  * Use HAVE_SYS_IOCTL_H macro
  *
@@ -96,6 +99,17 @@ void copy_hostent(struct hostent *dest, struct hostent *src)
       }
       dest->h_addr_list[naddr] = NULL;
     }
+  }
+}
+
+void free_hostent(struct hostent *hp, char **alist)
+{
+  if (hp && hp->h_addr_list != alist)
+  {
+    if (hp->h_addr_list && hp->h_addr_list[0])
+      free(hp->h_addr_list[0]);
+    if (hp->h_addr_list)
+      free(hp->h_addr_list);
   }
 }
 #endif
