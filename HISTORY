@@ -1,3 +1,7 @@
+2004/08/04 09:41:11 1.0a-383 gul
+ftnq.c,2.32,2.33 sys.h,2.16,2.17
+Use uintmax_t and PRIuMAX for printing file size (off_t)
+
 2004/08/03 23:47:24 1.0a-382 gul
 tools.c,2.62,2.63 tools.h,2.26,2.27
 Use localtime_r() and gmtime_r() if exists
