@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30  2004/01/08 13:03:51  val
+ * * new functions for parsing and updating addresses in pkt header (raw, char*)
+ * * use these functions in shared aka logic
+ * * set password in pkt to the pkt password for the main aka of sharing node
+ * * config file description updated
+ *
  * Revision 2.29  2004/01/08 12:57:18  val
  * * parse up to 3 comma-separated passwords (in,pkt,out)
  * * use out password for outgoing sessions if it's set
@@ -451,7 +457,7 @@ int check_pkthdr(STATE *state, char *netname, char *tmp_name,
     /* qmail, zmail - not point-aware */
     if (buf.pcode_lo == 0x29 || buf.pcode_lo == 0x35) cz = buf.qmail_ozone;
     /* type 2 (fsc-39), 2+ */
-    else if (buf.cw_lo & 2) {
+    else if (buf.cw_lo & 1) {
       cz = buf.ozone;
       cp = buf.opoint;
       if (buf.cw_lo == buf.cwv_lo && buf.cw_hi == buf.cwv_hi) {

@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.60  2004/01/08 13:03:51  val
+ * * new functions for parsing and updating addresses in pkt header (raw, char*)
+ * * use these functions in shared aka logic
+ * * set password in pkt to the pkt password for the main aka of sharing node
+ * * config file description updated
+ *
  * Revision 2.59  2004/01/03 13:35:29  stas
  * Fix log file name usage (from enviroment)
  *
@@ -1193,6 +1199,64 @@ int read_pkthdr(FILE *F, PKTHDR *hdr) {
   READ_BYTE2(F, hdr->opoint, c, w1, w2);
   READ_BYTE2(F, hdr->dpoint, c, w1, w2);
   return c == (2*19 + 8 + 1*8);
+}
+
+#define GET_BYTE2(arr,x) (arr[(x)] + arr[(x)+1]*0x100)
+#define SET_BYTE2(arr,x,v) { arr[(x)] = v & 0xff; arr[(x)+1] = (v/0x100) & 0xff; }
+/* parse FTN address of the pkt header byte array */
+int pkt_getaddr(unsigned char *raw, 
+                short *oz, short *onet, short *onode, short *op,
+                short *dz, short *dnet, short *dnode, short *dp) 
+{
+  if (oz) *oz = -1; if (onet) *onet = -1; if (onode) *onode = -1; if (op) *op = -1;
+  if (dz) *dz = -1; if (dnet) *dnet = -1; if (dnode) *dnode = -1; if (dp) *dp = -1;
+  /* wrong pkt version */
+  if (GET_BYTE2(raw, 18) != 2) return 0;
+  /* fts-1 net and node */
+  if (onode) *onode = GET_BYTE2(raw, 0); if (onet) *onet = GET_BYTE2(raw, 20);
+  if (dnode) *dnode = GET_BYTE2(raw, 2); if (dnet) *dnet = GET_BYTE2(raw, 22);
+  /* qmail, zmail - not point-aware, get zone */
+  if (raw[24] == 0x29 || raw[24] == 0x35) {
+    if (oz) *oz = GET_BYTE2(raw, 34);
+    if (dz) *dz = GET_BYTE2(raw, 36);
+  }
+  /* type-2 */
+  else if (raw[44] & 1) {
+    if (oz) *oz = GET_BYTE2(raw, 46); if (op) *op = GET_BYTE2(raw, 50);
+    if (dz) *dz = GET_BYTE2(raw, 48); if (dp) *dp = GET_BYTE2(raw, 52);
+    /* type 2+ */
+    if (raw[44] == raw[41] && raw[45] == raw[40]) {
+      if (onet && GET_BYTE2(raw, 50) != 0 && *onet == -1)
+        *onet = GET_BYTE2(raw, 38);
+    }
+  }
+  return 1;
+}
+/* set FTN address into the pkt header byte array */
+int pkt_setaddr(unsigned char *raw, 
+                short oz, short onet, short onode, short op,
+                short dz, short dnet, short dnode, short dp) 
+{
+  /* wrong pkt version */
+  if (GET_BYTE2(raw, 18) != 2) return 0;
+  /* fts-1 net and node */
+  if (onode >= 0) SET_BYTE2(raw, 0, onode); if (onet >= 0) SET_BYTE2(raw, 20, onet);
+  if (dnode >= 0) SET_BYTE2(raw, 2, dnode); if (dnet >= 0) SET_BYTE2(raw, 22, dnet);
+  /* qmail, zmail - not point-aware, get zone */
+  if (raw[24] == 0x29 || raw[24] == 0x35) {
+    if (oz >= 0) SET_BYTE2(raw, 34, oz);
+    if (dz >= 0) SET_BYTE2(raw, 36, dz);
+  }
+  /* type-2 */
+  else if (raw[44] & 1) {
+    if (oz >= 0) SET_BYTE2(raw, 46, oz); if (op >= 0) SET_BYTE2(raw, 50, op);
+    if (dz >= 0) SET_BYTE2(raw, 48, dz); if (dp >= 0) SET_BYTE2(raw, 52, dp);
+    /* type 2+ */
+    if (raw[44] == raw[41] && raw[45] == raw[40]) {
+      if (GET_BYTE2(raw, 50) != 0) { raw[38] = raw[20]; raw[39] = raw[21]; raw[20] = raw[21] = -1; }
+    }
+  }
+  return 1;
 }
 
 int tz_off(time_t t, int tzoff)

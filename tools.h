@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.25  2004/01/08 13:03:51  val
+ * * new functions for parsing and updating addresses in pkt header (raw, char*)
+ * * use these functions in shared aka logic
+ * * set password in pkt to the pkt password for the main aka of sharing node
+ * * config file description updated
+ *
  * Revision 2.24  2003/10/29 21:08:40  gul
  * Change include-files structure, relax dependences
  *
@@ -322,6 +328,13 @@ struct _PKTHDR {
 };
 /* OS-safe read pkt header */
 int read_pkthdr(FILE *F, PKTHDR *hdr);
-
+/* parse FTN address of the pkt header byte array */
+int pkt_getaddr(unsigned char *raw, 
+                short *oz, short *onet, short *onode, short *op,
+                short *dz, short *dnet, short *dnode, short *dp);
+/* set FTN address into the pkt header byte array */
+int pkt_setaddr(unsigned char *raw, 
+                short oz, short onet, short onode, short op,
+                short dz, short dnet, short dnode, short dp);
 
 #endif

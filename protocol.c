@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.151  2004/01/08 13:03:51  val
+ * * new functions for parsing and updating addresses in pkt header (raw, char*)
+ * * use these functions in shared aka logic
+ * * set password in pkt to the pkt password for the main aka of sharing node
+ * * config file description updated
+ *
  * Revision 2.150  2004/01/08 12:57:18  val
  * * parse up to 3 comma-separated passwords (in,pkt,out)
  * * use out password for outgoing sessions if it's set
@@ -958,49 +964,34 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
          */
         if ((ftell(state->out.f)==(long)sz) && (sz >= 60) /* size of pkt header + 2 bytes */
             && ispkt(state->out.netname))
-        {/* This is the first block. Is this 2+ packet?
-          * (Currently supports this type packets only)
-          */
-
-          unsigned char * pkt = (unsigned char *)(buf);
-          SHARED_CHAIN * chn;
-          /* The price of portability... */
-#define PKTFIELD(x)       (pkt[(x)] + pkt[(x)+1]*256)
-#define SETFIELD(x,value) { pkt[(x)] = value & 0xFF; pkt[(x)+1] = (value >> 8) & 0xFF; }
-#define ZONEOFFSET   48
-#define NETOFFSET    22
-#define NODEOFFSET    2
-#define POINTOFFSET  52
-          /* Check for 2+ version */
-          if ((PKTFIELD(18) == 2) &&
-              ((PKTFIELD(44) & 0x0001) != 0) &&
-              (pkt[40] == pkt[45]) &&
-              (pkt[41] == pkt[44]))
-          {
+        {
+          short cz, cnet, cnode, cp;
+          SHARED_CHAIN *chn;
+          if (pkt_getaddr(buf, NULL, NULL, NULL, NULL, &cz, &cnet, &cnode, &cp)) {
             Log(9, "First block of %s", state->out.path);
-            Log(7, "Dest: %d:%d/%d.%d",
-                PKTFIELD(ZONEOFFSET), PKTFIELD(NETOFFSET),
-                PKTFIELD(NODEOFFSET), PKTFIELD(POINTOFFSET));
+            Log(7, "PKT dest: %d:%d/%d.%d", cz, cnet, cnode, cp);
             /* Scan all shared addresses */
-            for(chn = config->shares.first;chn;chn = chn->next)
+            for (chn = config->shares.first; chn; chn = chn->next)
             {
-              if ((chn->sha.z    == PKTFIELD(ZONEOFFSET )) &&
-                  (chn->sha.net  == PKTFIELD(NETOFFSET  ))  &&
-                  (chn->sha.node == PKTFIELD(NODEOFFSET )) &&
-                  (chn->sha.p    == PKTFIELD(POINTOFFSET)))
+              if ((chn->sha.z    == cz) &&
+                  (chn->sha.net  == cnet)  &&
+                  (chn->sha.node == cnode) &&
+                  (chn->sha.p    == cp))
               { /* Found */
-                FTN_ADDR * fa = NULL;
-                if (state->to) fa = &state->to->fa; else
-                  if (state->fa) fa = state->fa;
+                FTN_ADDR *fa = NULL;
+                if (state->to) fa = &state->to->fa;
+                  else if (state->fa) fa = state->fa;
                 if (fa)
-                { /* Change to main address */
-                  SETFIELD(ZONEOFFSET, fa->z   );
-                  SETFIELD(NETOFFSET,  fa->net );
-                  SETFIELD(NODEOFFSET, fa->node);
-                  SETFIELD(POINTOFFSET,fa->p   );
-                  Log(7, "Change dest to: %d:%d/%d.%d",
-                      PKTFIELD(ZONEOFFSET), PKTFIELD(NETOFFSET),
-                      PKTFIELD(NODEOFFSET), PKTFIELD(POINTOFFSET));
+                { /* Change to main address and check */
+                  pkt_setaddr(buf, -1, -1, -1, -1, (short)fa->z, (short)fa->net, (short)fa->node, (short)fa->p);
+                  pkt_getaddr(buf, NULL, NULL, NULL, NULL, &cz, &cnet, &cnode, &cp);
+                  Log(7, "Change dest to: %d:%d/%d.%d", cz, cnet, cnode, cp);
+                  /* Set corresponding pkt password */
+                  {
+                    FTN_NODE *fn = state->to ? state->to : get_node_info(fa, config);
+                    memset(buf+26, 0, 8);
+                    if (fn->pkt_pwd) memmove(buf+26, fn->pkt_pwd, 8);
+                  }
                 }
                 break;
               }
