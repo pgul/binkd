@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.78  2004/01/03 12:38:26  stas
+ * Small change (win32)
+ *
  * Revision 2.77  2004/01/03 12:17:43  stas
  * Implement full icon support (winNT/2k/XP)
  *
@@ -796,13 +799,13 @@ int main (int argc, char *argv[], char *envp[])
 
   print_args (tmp, sizeof (tmp), argv + 1);
 #ifdef WIN32
-#ifndef BINKDW9X
-  if (isService()) {
+/*#ifndef BINKDW9X*/
+  if (IsNT() && isService()) {
     service_flag = w32_run_as_service;
     if (!service_name)
       service_name = strdup((const char *)srvname);
   }
-#endif
+/*#endif*/
   if (service_flag==w32_run_as_service)
     Log (4, "BEGIN service '%s', " MYNAME "/" MYVER "%s%s", service_name, get_os_string(), tmp);
   else
