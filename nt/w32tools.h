@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.5  2003/10/18 18:50:48  stas
+ * Move to new 'tray.c' file several functions when is related with 'minimize to tray' feature
+ *
  * Revision 2.4  2003/08/21 15:40:35  gul
  * Change building commandline for service under win32
  * (patch by Alexander Reznikov)
@@ -59,3 +62,15 @@ char *get_service_name(char *display_name);
  * Return asp size.
  */
 int build_service_arguments(char **asp, char *argv[], int use_argv0);
+
+
+/**************************************************************************
+ * Determine if we're running as a service. Return 0 if binkd running not *
+ * as a service. Universal: any 32-bit version of Windows.                *
+ *                                                                        *
+ * Windows NT/2000/XP/2003: a hack to determine if we're running          *
+ * as a service without waiting for the SCM to fail.                      *
+ * (Idea taken from Apache sources)                                       *
+ * Windows 9x/Me: service indicated via undocumented command line option  *
+ */
+int isService();

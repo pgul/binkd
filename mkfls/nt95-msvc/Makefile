@@ -98,7 +98,7 @@ NTLM_OBJS= \
 NT_OBJS= \
  "$(OUTDIR)\breaksig.obj" "$(OUTDIR)\sem.obj"      "$(OUTDIR)\getfree.obj" \
  "$(OUTDIR)\TCPErr.obj"   "$(OUTDIR)\WSock.obj"    "$(OUTDIR)\dirwin32.obj" \
- "$(OUTDIR)\w32tools.obj"
+ "$(OUTDIR)\w32tools.obj"  "$(OUTDIR)\tray.obj"
 OBJS= \
  "$(OUTDIR)\binkd.obj"    "$(OUTDIR)\readcfg.obj"  "$(OUTDIR)\tools.obj"   \
  "$(OUTDIR)\ftnaddr.obj"  "$(OUTDIR)\ftnq.obj"     "$(OUTDIR)\client.obj"  \

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.55  2003/10/18 18:50:47  stas
+ * Move to new 'tray.c' file several functions when is related with 'minimize to tray' feature
+ *
  * Revision 2.54  2003/10/14 07:34:28  gul
  * Use getwordx() for parse optional M_FILE params
  *
@@ -269,7 +272,7 @@
 #endif
 
 #if defined(WIN32) && !defined(BINKD9X)
-#include "nt/service.h"
+#include "nt/w32tools.h"
 #endif
 
 /*

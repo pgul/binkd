@@ -20,6 +20,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.10  2003/10/18 18:50:48  stas
+ * Move to new 'tray.c' file several functions when is related with 'minimize to tray' feature
+ *
  * Revision 2.9  2003/10/18 17:02:29  stas
  * Don't set '-S name' option to NT service parameters list in registry
  *
@@ -50,7 +53,9 @@
 #include "../getopt.h"
 #endif
 
-extern const char *optstring;
+extern const char *optstring; /* binkd.c */
+extern enum serviceflags service_flag; /* binkd.c */
+
 
 /* Windows version test
  * Parameter: Platform ID (VER_PLATFORM_WIN32_NT, VER_PLATFORM_WIN32_WINDOWS
@@ -213,4 +218,36 @@ int build_service_arguments(char **asp, char *argv[], int use_argv0)
 
   *p = '\0';
   return ++len;
+}
+
+/**************************************************************************
+ * Determine if we're running as a service. Return 0 if binkd running not *
+ * as a service. Universal: any 32-bit version of Windows.                *
+ *                                                                        *
+ * Windows NT/2000/XP/2003: a hack to determine if we're running          *
+ * as a service without waiting for the SCM to fail.                      *
+ * (Idea taken from Apache sources)                                       *
+ * Windows 9x/Me: service indicated via undocumented command line option  *
+ */
+int isService()
+{ static int _isService=-1;
+
+  if (_isService != -1)
+    return _isService;
+
+  if (!IsNT())
+  {
+    _isService = (service_flag == w32_run_as_service);
+  }
+  else if (!AllocConsole())
+  {
+    _isService = 0;
+  }
+  else
+  {
+    FreeConsole();
+    _isService = 1;
+  }
+
+  return _isService;
 }
