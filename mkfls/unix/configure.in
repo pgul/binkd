@@ -17,7 +17,8 @@ AC_CHECK_HEADERS(arpa/inet.h sys/ioctl.h sys/time.h)
 dnl Checks for typedefs, structures, and compiler characteristics.
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(snprintf vsyslog waitpid statvfs statfs uname daemon setsid)
+AC_CHECK_FUNCS(snprintf vsyslog waitpid statvfs statfs uname)
+AC_CHECK_FUNCS(daemon setsid getopt)
 
 dnl Checks for libraries.
 AC_CHECK_FUNC(socket)
@@ -200,6 +201,11 @@ case x$do_perl in
        ;;
    esac
    ;;
+esac
+
+case $ac_cv_func_getopt in
+ no) OPT_SRC="$OPT_SRC getopt.c"
+     ;;
 esac
 
 extrasub=s%@OPT_SRC@%$OPT_SRC%g

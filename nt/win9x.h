@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.4  2003/07/07 10:13:54  gul
+ * Use getopt() for commandline parse
+ *
  * Revision 2.3  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -30,6 +33,9 @@
 #ifndef _win9x_h
 #define _win9x_h
 #ifdef BINKDW9X
+int win9x_process(int argc, char **argv);
+int win9x_check_name_all(void);
+
 void CreateWin9xThread(PHANDLER_ROUTINE phandler);
 /*
 void DestroyWin9xThread();

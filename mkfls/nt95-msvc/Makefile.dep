@@ -17,6 +17,7 @@ $(OUTDIR)\binkd.obj: \
 	"setpttl.h" \
 	"sys.h" \
 	"tools.h" \
+	"getopt.h" \
 	"nt\service.h" \
 	"nt\win9x.h" \
 	"nt\wsock.h"
@@ -393,6 +394,9 @@ $(OUTDIR)\sem.obj: \
 	"getw.h" \
 	"tools.h"
 
+$(OUTDIR)\getopt.obj: \
+	"getopt.h"
+
 $(OUTDIR)\service.obj: \
 	"Config.h" \
 	"common.h" \
@@ -405,6 +409,7 @@ $(OUTDIR)\service.obj: \
 
 $(OUTDIR)\win9x.obj: \
 	"Config.h" \
+	"common.h" \
 	"getw.h" \
 	"iphdr.h" \
 	"sys.h" \

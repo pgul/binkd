@@ -86,6 +86,7 @@ OBJS= \
  "$(OUTDIR)\run.obj"      "$(OUTDIR)\binlog.obj"   "$(OUTDIR)\exitproc.obj"\
  "$(OUTDIR)\getw.obj"     "$(OUTDIR)\xalloc.obj"   "$(OUTDIR)\setpttl.obj" \
  "$(OUTDIR)\https.obj"    "$(OUTDIR)\md5b.obj"     "$(OUTDIR)\crypt.obj"   \
+ "$(OUTDIR)\getopt.obj"                                                    \
  $(NT_OBJS) $(NTSERVICE_OBJ) $(BINKD9X_OBJ) $(NTLM_OBJS) $(PERL_OBJS)
 
 !ifdef DEBUG

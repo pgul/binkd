@@ -41,7 +41,7 @@ OBJS      = binkd.obj     readcfg.obj    tools.obj    ftnaddr.obj   &
             readflo.obj   prothlp.obj    iptools.obj  run.obj       &
             binlog.obj    exitproc.obj   getw.obj     xalloc.obj    &
             setpttl.obj   dirent.obj     md5b.obj     crypt.obj     &
-            https.obj     $(NTLM_OBJS)
+            getopt.obj    https.obj      $(NTLM_OBJS)
 
 .c.obj: .autodepend
 	-echo Compile  $<
