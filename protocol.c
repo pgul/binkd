@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67  2003/06/04 20:59:43  gul
+ * bugfix: do not force NR-mode if remote uses binkp/1.0
+ *
  * Revision 2.66  2003/06/02 17:56:03  gul
  * Workaround old binkd bug in asymmetric NR-mode
  *
@@ -1283,13 +1286,15 @@ static int PWD (STATE *state, char *pwd, int sz)
 
   if ((state->NR_flag & WANT_NR) &&
       !(state->ND_flag & CAN_NDA) && !(state->ND_flag & WE_ND))
-    /* workaround bug of old binkd */
+  { /* workaround bug of old binkd */
     /* force symmetric NR-mode with it */
-#if 0
-    state->NR_flag &= ~WANT_NR;
-#else
-    state->NR_flag |= WE_NR;
+#if 1
+    if (state->major * 100 + state->minor > 100)
+      state->NR_flag |= WE_NR;
+    else
 #endif
+      state->NR_flag &= ~WANT_NR;
+  }
 
   if ((state->NR_flag & WANT_NR) ||
       (state->crypt_flag == (WE_CRYPT | THEY_CRYPT)) ||
