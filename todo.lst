@@ -26,7 +26,6 @@
 - compression:
   - configurable dll paths
   - no-compression node switch, remove zaccept keyword
-  - NZ option for M_GET command - disable compression
 ? ssl
 ? true multibatch mode
 ? hide attaches and remove bsy during a session

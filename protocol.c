@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.144  2003/12/15 00:03:55  gul
+ * NZ option for M_GET command - request uncompressed file
+ *
  * Revision 2.143  2003/12/10 11:12:10  gul
  * Minor fix in decompression deinit
  *
@@ -2060,7 +2063,7 @@ struct skipchain *skip_test(STATE *state, BINKD_CONFIG *config)
  * Handles M_FILE msg from the remote
  * M_FILE args: "%s %li %lu %li", filename, size, time, offset
  * M_FILE ext.: "%s %li %lu %li %s...", space-separated params
- *     currently, only GZ parameter supported
+ *     currently, only GZ and BZ2 parameters supported
  */
 static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 {
@@ -2332,14 +2335,7 @@ static void z_send_init(STATE *state, BINKD_CONFIG *config, char **extra)
 {
   int rc;
 
-  if (state->z_send && state->z_odata)
-  { compress_abort(state->z_send, state->z_odata);
-    state->z_odata = NULL;
-    state->z_oleft = 0;
-  }
-  state->z_send = 0;
   *extra = "";
-  state->z_osize = state->z_cosize = 0;
   if (state->z_cansend && state->out.size >= config->zminsize
       && zrule_test(ZRULE_ALLOW, state->out.netname, config->zrules.first)) {
 #ifdef WITH_BZLIB2
@@ -2364,8 +2360,20 @@ static void z_send_init(STATE *state, BINKD_CONFIG *config, char **extra)
       }
   }
 }
+
+static void z_send_stop(STATE *state)
+{
+  if (state->z_send && state->z_odata)
+  { compress_abort(state->z_send, state->z_odata);
+    state->z_odata = NULL;
+    state->z_oleft = 0;
+  }
+  state->z_send = 0;
+  state->z_osize = state->z_cosize = 0;
+}
 #else
 #define z_send_init(state, config, extra)	(*(extra) = "")
+#define z_send_stop(state)
 #endif
 
 /*
@@ -2374,10 +2382,10 @@ static void z_send_init(STATE *state, BINKD_CONFIG *config, char **extra)
  */
 static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 {
-  const int argc = 4;
+  int argc = 4;
   char *argv[4];
   char *extra;
-  int i, rc = 0;
+  int i, rc = 0, nz = 0;
   off_t offset, fsize=0;
   time_t ftime=0;
 
@@ -2455,7 +2463,16 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
       else
       {
 	Log (2, "sending %s from %li", argv[0], offset);
-	z_send_init(state, config, &extra);
+	for (argc = 1; (extra = getwordx (args, argc, 0)) != 0; ++argc)
+	{
+	  if (strcmp(extra, "GZ") == 0 || strcmp(extra, "BZ2") == 0) ;
+	  else if (strcmp(extra, "NZ") == 0) nz = 1;
+	  else if (extra[0])
+	    Log (4, "Unknown option %s for %s ignored", extra, argv[0]);
+	  free(extra);
+	}
+	z_send_stop(state);
+	if (!nz) z_send_init(state, config, &extra);
 	msg_sendf (state, M_FILE, "%s %li %lu %li%s", state->out.netname,
 		   (long) state->out.size, (unsigned long) state->out.time,
 		   offset, extra);
