@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.93  2003/08/13 11:59:21  gul
+ * Undo my prev patch, sorry ;)
+ *
  * Revision 2.92  2003/08/13 11:49:05  gul
  * correct previous fix
  *
@@ -2557,7 +2560,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
   struct sockaddr_in peer_name;
   socklen_t peer_name_len = sizeof (peer_name);
   char host[MAXHOSTNAMELEN + 1];
-  const char *save_err;
+  const char *save_err = NULL;
   int ok = 1;                         /* drop to 0 to abort session */
 #ifdef DELAY_ADR
   int ADR_sent = 0;
@@ -2694,7 +2697,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
       tv.tv_usec = 0;
       Log (8, "tv.tv_sec=%li, tv.tv_usec=%li", (long) tv.tv_sec, (long) tv.tv_usec);
       no = select (socket + 1, &r, &w, 0, &tv);
-      if (no <= 0)
+      if (no < 0)
         save_err = TCPERR ();
       Log (8, "selected %i (r=%i, w=%i)", no, FD_ISSET (socket, &r), FD_ISSET (socket, &w));
 #if defined(WIN32) /* workaround winsock bug */
@@ -2703,7 +2706,6 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
     {
       Log (8, "win9x winsock workaround: timeout detected (nettimeout=%u sec, t_out=%lu sec)", nettimeout, t_out/100000);
       no = 0;
-      save_err = tcperr(10060); /* Connection timed out */
     }
 #endif
       bsy_touch ();		       /* touch *.bsy's */
