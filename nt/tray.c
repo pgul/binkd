@@ -108,7 +108,7 @@ void wndthread(void *par)
     mainWindow = GetMainWindow();
     hi = LoadBinkdIcon();
 
-    if (isService) SetConsoleTitle(service_name);
+    if (isService()) SetConsoleTitle(service_name);
 
     memset(&rc, 0, sizeof(rc));
     rc.lpszClassName = cn;
