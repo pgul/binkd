@@ -1,3 +1,7 @@
+2003/10/05 07:59:13 1.0a-200 stas
+service.c,2.18,2.19
+Fix service handler function definition; get service name from OS
+
 2003/10/04 23:47:28 1.0a-199 gul
 branch.c,2.9,2.10
 New configure --with-debug=nofork option, DEBUGCHILD macro
