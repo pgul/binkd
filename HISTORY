@@ -1,3 +1,7 @@
+2004/01/07 14:07:50 1.0a-352 gul
+ftnnode.c,2.26,2.27 readcfg.c,2.62,2.63
+New function free_nodes()
+
 2004/01/07 12:15:53 1.0a-351 gul
 binkd.c,2.83,2.84
 Remove redundant preprocessor directive
