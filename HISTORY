@@ -1,3 +1,7 @@
+2004/01/02 18:04:06 1.0a-326 stas
+tray.c,2.8,2.9
+Cleanup code, remove obsolete delay
+
 2004/01/02 18:02:25 1.0a-325 stas
 tray.c,2.7,2.8
 Show icon in the top left corner of the binkd window. Thanks to Alexander Reznikov <homebrewer@yandex.ru>
