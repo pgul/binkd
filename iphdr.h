@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2003/08/24 00:45:44  hbrew
+ * win9x-select-workaround fix, thanks to Pavel Gulchouck
+ *
  * Revision 2.12  2003/07/18 10:30:33  stas
  * New functions: IsNT(), Is9x(); small code cleanup
  *
@@ -157,6 +160,8 @@ void ReleaseErrorList(void);
   #define sock_init() WinsockIni()
   #define sock_deinit() WinsockClean()
   #define soclose(h) closesocket(h)
+/* w9x_workaround_sleep: 100000 = 1 sec, 10000 = 10 ms */
+  #define w9x_workaround_sleep 10000
 #else
   #include <errno.h>
   #define ReleaseErrorList()
