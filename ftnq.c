@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.32  2004/02/08 21:13:24  gul
+ * Inhibit redundrant error message in log about filebox under unix
+ *
  * Revision 2.31  2004/01/08 13:27:46  val
  * * extend struct dirent for dos and win32 in order to get file attribute
  * * ignore hidden files in boxes for dos/win32/os2
@@ -397,8 +400,9 @@ static FTNQ *q_scan_box (FTNQ *q, FTN_ADDR *fa, char *boxpath, char flvr, int de
   strnzcpy (buf, boxpath, sizeof (buf));
   strnzcat (buf, PATH_SEPARATOR, sizeof (buf));
 #ifdef UNIX
-  if (access(boxpath, 06) != 0) {
-    Log (1, "No access to filebox `%s'", boxpath);
+  if (access(boxpath, R_OK | W_OK) != 0) {
+    if (access(boxpath, F_OK) == 0)
+      Log (1, "No access to filebox `%s'", boxpath);
     return q;
   }
 #endif
