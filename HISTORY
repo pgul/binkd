@@ -1,3 +1,8 @@
+2004/10/01 12:55:21 1.0a-404 gul
+protocol.c,2.159,2.160
+Fixed memory leak
+(Reported by Victor Levenets <aq@takas.lt>)
+
 2004/09/21 11:32:26 1.0a-403 val
 protocol.c,2.158,2.159
 bandwidth limiting logic changed from "max for akas" to "min for akas"
