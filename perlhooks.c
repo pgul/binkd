@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/06/26 10:34:02  val
+ * some tips from mod_perl, maybe prevent perl from crashing in client mgr (win32)
+ *
  * Revision 2.1  2003/06/20 10:37:02  val
  * Perl hooks for binkd - initial revision
  *
@@ -630,18 +633,37 @@ void perl_done(int master) {
 #ifdef HAVE_THREADS
 /* clone root perl */
 void *perl_init_clone() {
+  UV cflags = 0;
   PerlInterpreter *p;
 
   Log(LL_DBG2, "perl_init_clone(), parent perl=%p", perl);
-  p = perl ? perl_clone(perl, 1) : NULL;
+  if (perl) {
+    PERL_SET_CONTEXT(perl);
+#ifdef WIN32
+    cflags |= CLONEf_CLONE_HOST | CLONEf_KEEP_PTR_TABLE;
+#endif
+    p = perl_clone(perl, cflags);
+    /* perl<5.6.1 hack, see http://www.apache.jp/viewcvs.cgi/modperl-2.0/src/modules/perl/modperl_interp.c.diff?r1=1.9&r2=1.10 */
+    if (p) { 
+      dTHXa(p); 
+      PERL_SET_CONTEXT(aTHX);
+      if (PL_scopestack_ix == 0) { ENTER; } 
+    }
+  }
+  else p = NULL;
   Log(LL_DBG, "perl_init_clone(): new clone %p", p);
   return p;
 }
 /* destruct a clone */
 void perl_done_clone(void *p) {
   Log(LL_DBG, "perl_done_clone(): destructing clone %p", p);
+  if (p == NULL) return;
+  PL_perl_destruct_level = 2;
+  PERL_SET_CONTEXT((PerlInterpreter *)p); /* as in mod_perl */
   perl_destruct((PerlInterpreter *)p);
+/* #ifndef WIN32 - mod_perl has it unless CLONEf_CLONE_HOST */
   perl_free((PerlInterpreter *)p);
+/* #endif */
 }
 #endif
 
