@@ -1,3 +1,7 @@
+2003/10/11 11:41:48 1.0a-233 gul
+readcfg.c,2.55,2.56
+stricmp() -> STRICMP()
+
 2003/10/11 09:54:58 1.0a-232 stas
 readcfg.c,2.54,2.55
 ifcico/qico passwords file support
