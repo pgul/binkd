@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.17  2004/06/07 10:47:12  gul
+ * Touch flag if its already exists
+ *
  * Revision 2.16  2004/02/29 08:51:13  gul
  * Fixed *A@ macro on event calls
  * (patch from Victor Levenets).
@@ -128,7 +131,10 @@ int evt_test (EVTQ **eq, char *filename, EVT_FLAG *evt_flags)
       {
 	Log (4, "got %s, %screating %s", curr->pattern, curr->imm ? "" : "delayed ", curr->path);
 	if (curr->imm)
-	  create_empty_sem_file (curr->path);
+	{
+	  if (create_empty_sem_file (curr->path) == 0)
+	    touch (curr->path, time(NULL));
+	}
 	else
 	  *eq = evt_queue(*eq, 'f', curr->path);
       }
@@ -159,7 +165,8 @@ void evt_set (EVTQ *eq)
     else
     {
       Log (4, "Creating %s", eq->path);
-      create_empty_sem_file(eq->path);
+      if (create_empty_sem_file(eq->path) == 0)
+	touch(eq->path, time(NULL));
     }
     curr = eq->next;
     free(eq->path);
