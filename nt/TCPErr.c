@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.8  2003/06/05 11:16:56  stas
+ * Fix warning; More accuracy errors strings list maintnance
+ *
  * Revision 2.7  2003/06/04 10:36:59  stas
  * Thread-safety tcperr() implementation on Win32
  *
@@ -71,11 +74,12 @@
 #include <winsock.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "../sem.h"
 
 /*--------------------------------------------------------------------*/
 /*                        Local include files                         */
 /*--------------------------------------------------------------------*/
+
+#include "../sem.h"
 
 /*--------------------------------------------------------------------*/
 /*                         Global definitions                         */
@@ -89,10 +93,11 @@
 /*                           Local variables                          */
 /*--------------------------------------------------------------------*/
 
+static char err_sem_init = 0;
 static MUTEXSEM err_sem;
 
 typedef struct s_StrErrList{
-  unsigned code;
+  int code;
   char *text;
   struct s_StrErrList *next;
 } *pStrErrList;
@@ -152,6 +157,7 @@ char *W32APIstrerror(int errnum)
 
 /* Store new error message taken from FormatMessage() to errlist
  * Return message
+ * Lock semaphore err_sem before call newerrortolist() please!
  */
 const char *newerrortolist(int err){
   pStrErrList newe;
@@ -176,36 +182,44 @@ const char *newerrortolist(int err){
 void ReleaseErrorList(void){
   pStrErrList el;
 
-  if( errlist && !LockSem(&err_sem) ){
-    while(errlist){
-      if(errlist->text) free(errlist->text);
-      el = errlist;
-      errlist=errlist->next;
-      free(el);
+  if( err_sem_init ){
+    if( errlist && !LockSem(&err_sem) ){
+      while(errlist){
+        if(errlist->text) free(errlist->text);
+        el = errlist;
+        errlist=errlist->next;
+        free(el);
+      }
+      ReleaseSem(&err_sem);
     }
-    ReleaseSem(&err_sem);
+    err_sem_init=0;
+    CleanSem(&err_sem);
   }
-  CleanSem(&err_sem);
 }
 
 /* Return error message from errlist
  */
 const char *errorfromlist(int err){
-  pStrErrList el;
+  pStrErrList el, sel;
   const char *errmess="";
-  static char first = 1;
 
-  for( el=errlist; el; el=el->next )
+  for( sel=el=errlist; el; el=el->next )
     if( el->code==err )
       return el->text;
 
-  if(first){ InitSem(&err_sem); first=0; }
+  if(!err_sem_init++){ InitSem(&err_sem); }
 
   if( !LockSem(&err_sem) ){
+    if(sel!=errlist)          /* List changed, check again */
+      for( el=errlist; el && (el!=sel); el=el->next )
+        if( el->code==err ){
+          errmess = el->text;
+          goto skip_newerrortolist;
+        }
     errmess = newerrortolist(err);
+skip_newerrortolist:
     ReleaseSem(&err_sem);
   }
-
   return errmess;
 }
 
@@ -323,7 +337,7 @@ const char *tcperr (int errnum) {
      Str = "{10053} An established connection was aborted by the software in your host machine";
      break;
   case 10054:
-/*     Str = "{10054} Connection reset by peer›Ê*/
+/*     Str = "{10054} Connection reset by peer]f*/
      Str = "{10054} An existing connection was forcibly closed by the remote host";
      break;
   case 10055:
