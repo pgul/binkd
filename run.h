@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2001/10/27 08:07:18  gul
+ * run and run_args returns exit code of calling process
+ *
  * Revision 2.0  2001/01/10 12:12:39  gul
  * Binkd is under CVS again
  *
@@ -25,6 +28,6 @@
 #ifndef _run_h
 #define _run_h
 
-void run (char *);
+int run (char *);
 
 #endif

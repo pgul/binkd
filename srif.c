@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2001/10/27 08:07:19  gul
+ * run and run_args returns exit code of calling process
+ *
  * Revision 2.1  2001/10/27 07:53:46  gul
  * Unlink req-file after run freq-processor
  *
@@ -192,7 +195,7 @@ static FTNQ *parse_response (FTNQ *q, char *rsp, FTN_ADDR *fa)
 }
 
 static char valid_filename_chars[]=".\\-_:/@";
-static void run_args(char *cmd, char *filename0, FTN_ADDR *fa, 
+static int run_args(char *cmd, char *filename0, FTN_ADDR *fa, 
                  int nfa, int prot, int listed, char *peer_name, STATE *st)
 {
   char *sp, *w;
@@ -201,7 +204,7 @@ static void run_args(char *cmd, char *filename0, FTN_ADDR *fa,
   char ipaddr[16];
   char aka[4];
   char adr[FTN_ADDR_SZ + 2];
-  int i;
+  int i, rc=-1;
   unsigned int l;
   unsigned int sw=1024;
   int use_fn=0;
@@ -300,8 +303,9 @@ static void run_args(char *cmd, char *filename0, FTN_ADDR *fa,
   if((fn!=filename0) && (use_fn))
     Log(1, "Security problem. Execution aborted...");
   else
-    run(w);
+    rc=run(w);
   free(w);
+  return rc;
 }
 
 /*
@@ -332,7 +336,8 @@ FTNQ *evt_run (FTNQ *q, char *filename0,
 
 	  if (srif_fill (srf, fa, nfa, filename0, rsp, prot, listed, peer_name))
 	  {
-            run_args (w, filename0, fa, nfa, prot, listed, peer_name, st);
+            if (!run_args (w, filename0, fa, nfa, prot, listed, peer_name, st))
+              delete(filename0);
 	  }
 	  else
 	    Log (1, "srif_fill: error");
@@ -340,7 +345,6 @@ FTNQ *evt_run (FTNQ *q, char *filename0,
 	  q = parse_response (q, rsp, fa);
 	  delete (srf);
 	  delete (rsp);
-          delete (filename0);
 	}
 	else
 	  Log (1, "mksrifpaths: error");

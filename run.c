@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2001/10/27 08:07:17  gul
+ * run and run_args returns exit code of calling process
+ *
  * Revision 2.0  2001/01/10 12:12:39  gul
  * Binkd is under CVS again
  *
@@ -33,22 +36,21 @@
 #include "run.h"
 #include "tools.h"
 
-void run (char *cmd)
+int run (char *cmd)
 {
+  int rc=-1;
 #if !defined(WIN32) && !defined(EMX)
   Log (3, "executing `%s'", cmd);
-  Log (3, "rc=%i", system (cmd));
+  Log (3, "rc=%i", (rc=system (cmd)));
 #elif defined(EMX)
-  {
-    sigset_t s;
+  sigset_t s;
     
-    sigemptyset(&s);
-    sigaddset(&s, SIGCHLD);
-    sigprocmask(SIG_BLOCK, &s, NULL);
-    Log (3, "executing `%s'", cmd);
-    Log (3, "rc=%i", system (cmd));
-    sigprocmask(SIG_UNBLOCK, &s, NULL);
-  }
+  sigemptyset(&s);
+  sigaddset(&s, SIGCHLD);
+  sigprocmask(SIG_BLOCK, &s, NULL);
+  Log (3, "executing `%s'", cmd);
+  Log (3, "rc=%i", (rc=system (cmd)));
+  sigprocmask(SIG_UNBLOCK, &s, NULL);
 #else /* WIN32 */
   STARTUPINFO si;
   PROCESS_INFORMATION pi;
@@ -90,11 +92,13 @@ void run (char *cmd)
       }
       else if (dw!=STILL_ACTIVE)
       {
-        Log (3, "rc=%i", dw);
+        rc = (int)dw;
+        Log (3, "rc=%i", rc);
         break;
       }
       Sleep(100);
     }
   free(cs);
 #endif
+  return rc;
 }
