@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of Mar 11 2004
+        Version of Apr 15 2004
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -38,6 +38,7 @@ from Russian by Michael Dukelsky 2:5020/1042.
     27. Is There a Possibility to Start an Application On an Event From BinkD?
     28. What Is the Difference Between BinkD/w32 and BinkD/w9x?
     29. I Miss a Chat in BinkD And I Want To Synchronize Time!
+    30. BinkD Receives an Incoming Call Only After an Outgoing One.
     A1. I Have Found a Bug in BinkD!
     A2. I Want To Talk To Developers.
     A3. I Want To Get Information About Changes In BinkD Immediately!
@@ -626,9 +627,9 @@ of type nnnnmmmm.REQ and to put it in the outbound directory near *.?ut and
 make a FREQ it is necessary to make a poll.
 
     One can configure BinkD for calling an external file request processor
-supporting SRIF (e.g. Allfix) for receiving and handling FREQs in BinkD.
-Please read the "!SRIF.TXT" file and the comment to 'exec' in the
-configuration file.
+supporting SRIF (FSC-0086) for receiving and handling FREQs in BinkD. Please
+read the "!SRIF.TXT" file and the comment to 'exec' in the configuration
+file.
 
     Here are the examples of lines in configuration file for DOS-based OS
 and for *nix (you should use regular expressions in the latter case for
@@ -638,6 +639,16 @@ BinkD to match both upper-case and lower-case letters, e.g. both *.REQ and
     exec "\\ftn\\allfix\\allfix.exe RP -SRIF *S" *.req
 
     exec "/ftn/bin/tmafreq *S" *.[rR][eE][qQ]
+
+    The following file request processors are compatible with BinkD (but 
+they are not the only ones, any other one supporting SRIF will do):
+
+    Allfix by Harms Software Engineering: it is a fileecho processor with
+built-in file request processor and it has versions for DOS and OS/2;
+
+    ViReq by Michael Haase (2:2432/280): a specialized FREQ processor for 
+Windows, it is distributed by Michael Massenberg (2:2411/505) via modem, 
+ISDN and Fido-over-IP.
 
 
 ----------------------------------------------------------------------------
@@ -944,6 +955,22 @@ may use the same channel. You may chat as much as you like.
     And there are special utilities for synchronizing time via IP, for
 example ntpdate. Unlike mailers such utilities take time from the precise
 time servers.
+
+
+----------------------------------------------------------------------------
+
+
+        30. BinkD Receives an Incoming Call Only After an Outgoing One.
+
+    Such a behaviour was observed for BinkD/w32 working as a service on a 
+computer with McAfee Firewall installed. The firewall starts after BinkD 
+start-up, does not detect any BinkD activity and does not allow to 
+establish a connection. Thus one must ensure that BinkD starts after 
+firewall has started.
+
+    The possible decisions: give up using BinkD as an independent Windows 
+NT service and start it from another service or start it as a usual program
+or stop using such a firewall.
 
 
 ----------------------------------------------------------------------------
