@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2002/05/06 19:25:39  gul
+ * new keyword inboundCase in config
+ *
  * Revision 2.2  2001/10/23 08:33:44  gul
  * Change filename (not ext) in incoming *.req if already exists
  *
@@ -306,9 +309,10 @@ int inb_done (char *netname, size_t size, time_t time,
   strnzcpy (real_name, inbound, MAXPATHLEN);
   strnzcat (real_name, PATH_SEPARATOR, MAXPATHLEN);
   s = real_name + strlen (real_name);
-  strnzcat (real_name, u = strdequote (netname), MAXPATHLEN);
+  strnzcat (real_name, u = makeinboundcase (strdequote (netname)), MAXPATHLEN);
   free (u);
   strwipe (s);
+
   s = real_name + strlen (real_name) - 1;
 
   /* gul: for *.pkt and *.?ic (tic, zic etc.) change name but not extension */

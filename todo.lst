@@ -12,4 +12,4 @@
 - present aka
 - do not resolve domains when use proxy
 - 3 passwords in passwd-file - "incoming,pkt,outgoing"
-- do not send 60-bytes *.?ut
+- do not send 60-bytes *.?ut and *.pkt

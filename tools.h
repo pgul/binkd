@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2002/05/06 19:25:40  gul
+ * new keyword inboundCase in config
+ *
  * Revision 2.1  2001/10/23 08:33:44  gul
  * Change filename (not ext) in incoming *.req if already exists
  *
@@ -78,6 +81,11 @@ int o_strnicmp (const char *s1, const char *s2, size_t n);
  * Lowercase the string
  */
 char *strlower (char *);
+
+/*
+ * Uppercase the string
+ */
+char *strupper (char *);
 
 /*
  * Copyes not more than len chars from src into dst, but, unlike strncpy(),
@@ -169,5 +177,10 @@ void print_args (char *buf, size_t sizeof_buf, int argc, char *argv[]);
  * Dup argv
  */
 char **mkargv (int argc, char **argv);
+
+/*
+ * Apply filename case style defined in inboundcase
+ */
+char *makeinboundcase (char *s);
 
 #endif

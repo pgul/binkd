@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2002/05/06 19:25:39  gul
+ * new keyword inboundCase in config
+ *
  * Revision 2.3  2002/02/22 00:18:34  gul
  * Run by-file events with the same command-line once after session
  *
@@ -143,6 +146,7 @@ int send_if_pwd = 0;
 int tzoff = 0;
 char root_domain[MAXHOSTNAMELEN + 1] = "fidonet.net.";
 int prescan = 0;
+enum inbcasetype inboundcase = INB_SAVE;
 int connect_timeout = 0;
 struct conflist_type *config_list = NULL;
 
@@ -182,6 +186,7 @@ static void read_bool (KEYWORD *, char *);
 static void read_flag_exec_info (KEYWORD *, char *);
 static void read_rfrule (KEYWORD *, char *);
 static void read_skipmask (KEYWORD *key, char *s);
+static void read_inboundcase (KEYWORD *, char *);
 void skipmask_add(char *mask);
 
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
@@ -256,6 +261,7 @@ KEYWORD keywords[] =
   {"deletebox", read_bool, &deleteablebox, 0, 0},
 #endif
   {"skipmask", read_skipmask, NULL, 0, 0},
+  {"inboundcase", read_inboundcase, &inboundcase, 0, 0},
   {NULL, NULL, NULL, 0, 0}
 };
 
@@ -710,6 +716,34 @@ static void read_int (KEYWORD *key, char *s)
       (key->option2 != DONT_CHECK && *target > key->option2))
     Log (0, "%s: %i: %i: incorrect value", path, line, *target);
 }
+
+static void read_inboundcase (KEYWORD *key, char *s)
+{
+  enum inbcasetype *target = (enum inbcasetype *) (key->var);
+  char *w;
+
+  if ((w = getword (s, 2)) == NULL)
+    Log (0, "%s: %i: missing an argument for `%s'", path, line, key->key);
+
+  if (getword (s, 3) != NULL)
+    Log (0, "%s: %i: extra arguments for `%s'", path, line, key->key);
+
+  *target = 0;
+
+  if (!STRICMP (w, "save"))
+    *target = INB_SAVE;
+  else if (!STRICMP (w, "upper"))
+    *target = INB_UPPER;
+  else if (!STRICMP (w, "lower"))
+    *target = INB_LOWER;
+  else if (!STRICMP (w, "mixed"))
+    *target = INB_MIXED;
+  else
+    Log (0, "%s: %i: the syntax is incorrect for '%s'", path, line, key->key);
+
+  free (w);
+}
+
 
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
 static void read_syslog_facility (KEYWORD *key, char *s)

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2002/05/06 19:25:40  gul
+ * new keyword inboundCase in config
+ *
  * Revision 2.1  2001/08/24 13:23:28  da
  * binkd/binkd.c
  * binkd/readcfg.c
@@ -95,6 +98,7 @@ extern int percents;
 extern int tzoff;
 extern char root_domain[MAXHOSTNAMELEN + 1];
 extern int prescan;
+extern enum inbcasetype { INB_SAVE,INB_UPPER,INB_LOWER,INB_MIXED } inboundcase;
 #ifdef MAILBOX
 /* FileBoxes dir */
 extern char tfilebox[MAXPATHLEN + 1];

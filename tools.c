@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2002/05/06 19:25:40  gul
+ * new keyword inboundCase in config
+ *
  * Revision 2.9  2002/03/20 15:31:19  gul
  * ftrans bugfix
  *
@@ -133,6 +136,18 @@ char *strlower (char *s)
 
   for (i = 0; s[i]; ++i)
     s[i] = tolower (s[i]);
+  return s;
+}
+
+/*
+ * Uppercase the string
+ */
+char *strupper (char *s)
+{
+  int i;
+
+  for (i = 0; s[i]; ++i)
+    s[i] = toupper (s[i]);
   return s;
 }
 
@@ -780,4 +795,35 @@ char **mkargv (int argc, char **argv)
   p[i] = NULL;
 
   return p;
+}
+
+/*
+ * Apply filename case style defined in inboundcase
+ */
+char *makeinboundcase (char *s)
+{
+  int i;
+  
+  switch (inboundcase) 
+  {
+      case INB_UPPER:
+	s = strupper(s);
+	Log (8, "uppercase filename");
+        break;
+      case INB_LOWER:
+	s = strlower(s);
+	Log (8, "lowercase filename");
+        break;
+      case INB_MIXED:
+        s[0] = toupper (s[0]);
+        for (i = 1; s[i]; ++i)
+          s[i] = isalnum(s[i-1]) ? tolower(s[i]) : toupper(s[i]);
+        Log (8, "mixing filename case");
+        break;
+      default:
+	Log (8, "nothing to do with filename case");
+        break;
+  }
+
+  return s;
 }

@@ -486,3 +486,6 @@ NT/95:  ctrl-c problems fixed
 	Run by-file events with the same command-line once after session.
 
 	Bugfix in ftrans (thanks to Aleksey I Zavilohin <villain@ems.ru>).
+	
+	New option inboundcase in binkd.cfg - set case style for received files
+	(Kostya Falkov 2:5014/33@fidonet)
