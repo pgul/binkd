@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.71  2003/07/16 15:51:17  stas
+ * Auto increase patchlevel, set 0.9.6a-60
+ * Fix: restore "Minimise to tray"
+ *
  * Revision 2.70  2003/07/16 15:50:46  stas
  * Auto increase patchlevel, set 0.9.6a-59
  * Fix: restore "Minimise to tray"
@@ -293,7 +297,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-59"
+#define MYVER "0.9.6a-60"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
