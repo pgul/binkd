@@ -1,3 +1,7 @@
+2003/12/06 02:27:29 1.0a-306 gul
+client.c,2.51,2.52
+Coredump on exit cmgr with DEBUGCHILD
+
 2003/12/06 01:39:39 1.0a-305 gul
 inbound.c,2.25,2.26
 Bugfix on inb_done() with ND-mode
