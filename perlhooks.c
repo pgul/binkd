@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.36  2003/10/27 21:31:26  gul
+ * Autodetect perl version, fix warning
+ *
  * Revision 2.35  2003/10/27 16:16:22  gul
  * Fix warnings with perl58
  *
@@ -288,7 +291,7 @@
 
 #ifdef PERLDL
 
-#if WITH_PERL<58
+#if PERL_REVISION<5 || (PERL_REVISION==5 && PERL_VERSION<8)
 # define SV_GMAGIC		2      /* sv.h */
 #endif
 
@@ -401,7 +404,7 @@ VK_MAKE_DFL(bool, dl_Perl_sv_2bool, (pTHX_ SV* sv));
 
 VK_MAKE_DFL(PerlInterpreter*, dl_perl_alloc, (void));
 VK_MAKE_DFL(void, dl_perl_construct, (PerlInterpreter* interp));
-#if WITH_PERL>=58
+#if PERL_REVISION>5 || (PERL_REVISION==5 && PERL_VERSION>=8)
 VK_MAKE_DFL(int, dl_perl_destruct, (PerlInterpreter* interp));
 #else
 VK_MAKE_DFL(void, dl_perl_destruct, (PerlInterpreter* interp));
@@ -494,7 +497,7 @@ VK_MAKE_DFL(void, dl_Perl_sv_setpvf_nocontext, (SV* sv, const char* pat, ...));
 #define VK_MAKE_DLFUNC(n) { (void **)&dl_##n, #n }
 
 struct perl_dlfunc { void **f; char *name; } perl_dlfuncs[] = {
-/*#if WITH_PERL>=58
+/*#if PERL_REVISION>5 || (PERL_REVISION==5 && PERL_VERSION>=8)
   VK_MAKE_DLFUNC(Perl_sv_2pv_flags),
 #else
   VK_MAKE_DLFUNC(Perl_sv_2pv),
@@ -516,7 +519,7 @@ struct perl_dlfunc { void **f; char *name; } perl_dlfuncs[] = {
   VK_MAKE_DLFUNC(perl_run),
   VK_MAKE_DLFUNC(perl_parse),
   VK_MAKE_DLFUNC(Perl_sv_setiv),
-/*#if WITH_PERL>=58
+/*#if PERL_REVISION>5 || (PERL_REVISION==5 && PERL_VERSION>=8)
   VK_MAKE_DLFUNC(Perl_sv_setsv_flags),
 #else
   VK_MAKE_DLFUNC(Perl_sv_setsv),
@@ -1102,7 +1105,7 @@ int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
 #ifdef OS2
       if (!DosQueryProcAddr(hl, 0, dlfunc->name, (PFN*)dlfunc->f))
 #else
-      if (*(dlfunc->f) = GetProcAddress(hl, dlfunc->name))
+      if ((*(dlfunc->f) = GetProcAddress(hl, dlfunc->name)))
 #endif
         Log(LL_DBG2, "perl_init(): load method %s: %p", dlfunc->name, *(dlfunc->f));
       else {
