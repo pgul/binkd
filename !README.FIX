@@ -555,3 +555,10 @@ NT/95:  ctrl-c problems fixed
 	Argus-compatible file requests implementation.
 
 	Log file may be defined in enviroment variable BINKD_LOG.
+
+	New option -S specifies service name (NT, w9x).
+
+	New option -t operates with NT and w9x service (start, stop, query
+        status).
+
+        Icons and binary descriptions for 32 bit windows versions.
