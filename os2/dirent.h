@@ -11,6 +11,17 @@
  *  (at your option) any later version. See COPYING.
  */
 
+/*
+ * $Id$
+ *
+ * Revision history:
+ * $Log$
+ * Revision 2.1  2003/03/01 20:26:36  gul
+ * *** empty log message ***
+ *
+ *
+ */
+
 #ifndef __DIRENT_H__
 #define __DIRENT_H__
 
