@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.24  2003/10/30 10:36:59  gul
+ * Do not append file partially received from busy remote aka,
+ * non-destructive skip it.
+ *
  * Revision 2.23  2003/10/29 21:08:38  gul
  * Change include-files structure, relax dependences
  *
@@ -142,8 +146,7 @@ static void remove_hr (char *path)
   }
 }
 
-static int creat_tmp_name (char *s, char *file, off_t size,
-			    time_t time, FTN_ADDR *from, char *inbound)
+static int creat_tmp_name (char *s, TFILE *file, FTN_ADDR *from, char *inbound)
 {
   FILE *f;
   char tmp[20];
@@ -166,8 +169,8 @@ static int creat_tmp_name (char *s, char *file, off_t size,
 	return 0;
       }
       ftnaddress_to_str (node, from);
-      if (fprintf (f, "%s %li %li %s\n",
-	           file, (long int) size, (long int) time, node) <= 0)
+      if (fprintf (f, "%s %li %li %s\n", file->netname, (long int)file->size,
+                   (long int) file->time, node) <= 0)
       {
 	Log (1, "%s: %s", s, strerror (errno));
 	fclose (f);
@@ -206,16 +209,16 @@ static int to_be_deleted (char *tmp_name, char *netname, BINKD_CONFIG *config)
  * Searches for the ``file'' in the inbound and returns it's tmp name in s.
  * S must have MAXPATHLEN chars. Returns 0 on error, 1=found, 2=created.
  */
-int find_tmp_name (char *s, char *file, off_t size,
-		    time_t time, FTN_ADDR *from, int nfa, char *inbound, BINKD_CONFIG *config)
+static int find_tmp_name (char *s, STATE *state, BINKD_CONFIG *config)
 {
   char buf[MAXPATHLEN + 80];
   DIR *dp;
   struct dirent *de;
   FILE *f;
   int i, found = 0;
-  char *t;
+  char *t, *inbound;
 
+  inbound = state->inbound;
   if (config->temp_inbound[0])
     inbound = config->temp_inbound;
 
@@ -252,18 +255,26 @@ int find_tmp_name (char *s, char *file, off_t size,
       for (i = 0; i < 4; ++i)
 	w[i] = getwordx (buf, i + 1, GWX_NOESC);
 
-      if (!strcmp (w[0], file) && parse_ftnaddress (w[3], &fa, config->pDomains.first))
+      if (!strcmp (w[0], state->in.netname) && parse_ftnaddress (w[3], &fa, config->pDomains.first))
       {
-	for (i = 0; i < nfa; i++)
-	  if (!ftnaddress_cmp (&fa, from + i))
+	for (i = 0; i < state->nallfa; i++)
+	  if (!ftnaddress_cmp (&fa, state->fa + i))
 	    break;
-	if (size == (off_t) atol (w[1]) &&
-	    (time & ~1) == (atol (w[2]) & ~1) &&
-	    i < nfa)
-	{
-	  found = 1;
+	if (state->in.size == (off_t) atol (w[1]) &&
+	    (state->in.time & ~1) == (atol (w[2]) & ~1) &&
+	    i < state->nallfa)
+	{ /* non-destructive skip file from busy aka */
+	  if (i >= state->nfa)
+	  {
+	    Log (2, "Skip partial file %s: aka %s busy", w[0], w[3]);
+	    for (i = 0; i < 4; ++i)
+	      xfree (w[i]);
+	    return 0;
+	  }
+	  else
+	    found = 1;
 	}
-	else if (config->kill_dup_partial_files && i < nfa)
+	else if (config->kill_dup_partial_files && i < state->nallfa)
 	{
 	  Log (5, "dup partial file %s removed", w[0]);
 	  remove_hr (s);
@@ -288,7 +299,7 @@ int find_tmp_name (char *s, char *file, off_t size,
   if (!found)
   {
     Log (5, "file not found, trying to create a tmpname");
-    if (creat_tmp_name (s, file, size, time, from, inbound))
+    if (creat_tmp_name (s, &(state->in), state->fa, inbound))
       found = 2;
     else
       return 0;
@@ -299,14 +310,13 @@ int find_tmp_name (char *s, char *file, off_t size,
   return found;
 }
 
-FILE *inb_fopen (char *netname, off_t size, time_t time, FTN_ADDR *from,
-                 int nfa, char *inbound, int secure_flag, BINKD_CONFIG *config)
+FILE *inb_fopen (STATE *state, BINKD_CONFIG *config)
 {
   char buf[MAXPATHLEN + 1];
   struct stat sb;
   FILE *f;
 
-  if (!find_tmp_name (buf, netname, size, time, from, nfa, inbound, config))
+  if (!find_tmp_name (buf, state, config))
     return 0;
 
 fopen_again:
@@ -328,49 +338,48 @@ fopen_again:
   {
     /* Free space req-d (Kbytes) */
     unsigned long freespace, freespace2;
-    int req_free = ((secure_flag == P_SECURE) ? config->minfree : config->minfree_nonsecure);
+    int req_free = ((state->state == P_SECURE) ? config->minfree : config->minfree_nonsecure);
 
     freespace = getfree(buf);
-    freespace2 = getfree(inbound);
+    freespace2 = getfree(state->inbound);
     if (freespace > freespace2) freespace = freespace2;
-    if (sb.st_size > size)
+    if (sb.st_size > state->in.size)
     {
       Log (1, "Partial size %lu > %lu (file size), delete partial", 
-           (unsigned long) sb.st_size, (unsigned long) size);
+           (unsigned long) sb.st_size, (unsigned long) state->in.size);
       fclose (f);
       if (trunc_file (buf) && sdelete (buf)) return 0;
       goto fopen_again;
     }
     if (req_free >= 0 &&
-	freespace < (unsigned long)(size - sb.st_size + 1023) / 1024 + req_free)
+	freespace < (unsigned long)(state->in.size - sb.st_size + 1023) / 1024 + req_free)
     {
       Log (1, "no enough free space in %s (%luK, req-d %luK)",
-	   (freespace == freespace2) ? inbound : config->temp_inbound,
+	   (freespace == freespace2) ? state->inbound : config->temp_inbound,
 	   freespace,
-	   (unsigned long) (size - sb.st_size + 1023) / 1024 + req_free);
+	   (unsigned long) (state->in.size - sb.st_size + 1023) / 1024 + req_free);
       fclose (f);
       return 0;
     }
   }
   else
-    Log (1, "%s: fstat: %s", netname, strerror (errno));
+    Log (1, "%s: fstat: %s", state->in.netname, strerror (errno));
 
   return f;
 }
 
-int inb_reject (char *netname, off_t size,
-		 time_t time, FTN_ADDR *from, int nfa, char *inbound, BINKD_CONFIG *config)
+int inb_reject (STATE *state, BINKD_CONFIG *config)
 {
   char tmp_name[MAXPATHLEN + 1];
 
-  if (find_tmp_name (tmp_name, netname, size, time, from, nfa, inbound, config) != 1)
+  if (find_tmp_name (tmp_name, state, config) != 1)
   {
-    Log (1, "missing tmp file for %s!", netname);
+    Log (1, "missing tmp file for %s!", state->in.netname);
     return 0;
   }
   else
   {
-    Log (2, "rejecting %s", netname);
+    Log (2, "rejecting %s", state->in.netname);
     /* Replacing .dt with .hr and removing temp. file */
     strcpy (strrchr (tmp_name, '.'), ".hr");
     remove_hr (tmp_name);
@@ -457,26 +466,21 @@ int check_pkthdr(int nfa, FTN_ADDR *from, char *netname, char *tmp_name,
  * Sets realname[MAXPATHLEN]
  */
 int inb_done (char *netname, off_t size, time_t time,
-	      FTN_ADDR *from, int nfa, char *inbound, char *real_name,
-              STATE *state, BINKD_CONFIG *config)
+	      char *real_name, STATE *state, BINKD_CONFIG *config)
 {
   char tmp_name[MAXPATHLEN + 1];
   char *s, *u;
   int  unlinked = 0, i;
 
-#ifndef WITH_PERL
-  UNUSED_ARG(state);
-#endif
-
   *real_name = 0;
 
-  if (find_tmp_name (tmp_name, netname, size, time, from, nfa, inbound, config) != 1)
+  if (find_tmp_name (tmp_name, state, config) != 1)
   {
     Log (1, "missing tmp file for %s!", netname);
     return 0;
   }
 
-  strnzcpy (real_name, inbound, MAXPATHLEN);
+  strnzcpy (real_name, state->inbound, MAXPATHLEN);
   strnzcat (real_name, PATH_SEPARATOR, MAXPATHLEN);
   s = real_name + strlen (real_name);
   strnzcat (real_name, u = makeinboundcase (strdequote (netname), (int)config->inboundcase), MAXPATHLEN);
@@ -484,7 +488,7 @@ int inb_done (char *netname, off_t size, time_t time,
   strwipe (s);
 
 #ifdef WITH_PERL
-  if (perl_after_recv(state, netname, size, time, from, nfa, tmp_name, real_name)) {
+  if (perl_after_recv(state, netname, size, time, tmp_name, real_name)) {
     /* Replacing .dt with .hr and removing temp. file */
     if (access(tmp_name, 0) == 0) sdelete (tmp_name);
     strcpy (strrchr (tmp_name, '.'), ".hr");
@@ -521,7 +525,7 @@ int inb_done (char *netname, off_t size, time_t time,
     if (ispkt (netname) || istic (netname) || isarcmail (netname) || isreq (netname))
       s -= 4;
     /* val: check pkt file header */
-    if (ispkt (netname)) check_pkthdr(nfa, from, netname, tmp_name, real_name, config);
+    if (ispkt (netname)) check_pkthdr(state->nallfa, state->fa, netname, tmp_name, real_name, config);
 
     if (touch (tmp_name, time) != 0)
       Log (1, "touch %s: %s", tmp_name, strerror (errno));

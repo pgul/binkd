@@ -2,6 +2,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/10/30 10:36:59  gul
+ * Do not append file partially received from busy remote aka,
+ * non-destructive skip it.
+ *
  * Revision 2.4  2003/08/26 16:06:26  stream
  * Reload configuration on-the fly.
  *
@@ -38,28 +42,18 @@ int inb_test (char *filename, off_t size, time_t t,
  * Open a partial file in the inbound directory for appending.
  * Creates it if the file does not exist
  */
-FILE *inb_fopen (char *netname, off_t size, time_t t,
-		  FTN_ADDR *from, int nfa, char *inbound, int state, BINKD_CONFIG *config);
+FILE *inb_fopen (STATE *state, BINKD_CONFIG *config);
 
 /*
  * File is complete, rename it to it's realname. 1=ok, 0=failed.
  * Sets realname[MAXPATHLEN]
  */
-int inb_done (char *netname, off_t size, time_t t,
-	       FTN_ADDR *from, int nfa, char *inbound, char *realname,
+int inb_done (char *netname, off_t size, time_t t, char *realname,
                STATE *state, BINKD_CONFIG *config);
 
 /*
  * Remove partial file
  */
-int inb_reject (char *netname, off_t size, time_t time,
-		 FTN_ADDR *from, int nfa, char *inbound, BINKD_CONFIG *config);
-
-/*
- * Searches for the ``file'' in the inbound and returns it's tmp name in s.
- * S must have MAXPATHLEN chars. Returns 0 on error, 1=found, 2=created.
- */
-int find_tmp_name (char *s, char *file, off_t size,
-		    time_t time, FTN_ADDR *from, int nfa, char *inbound, BINKD_CONFIG *config);
+int inb_reject (STATE *state, BINKD_CONFIG *config);
 
 #endif

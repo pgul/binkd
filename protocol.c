@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.138  2003/10/30 10:37:00  gul
+ * Do not append file partially received from busy remote aka,
+ * non-destructive skip it.
+ *
  * Revision 2.137  2003/10/29 21:08:39  gul
  * Change include-files structure, relax dependences
  *
@@ -194,7 +198,7 @@
  * Another fix for previous patch
  *
  * Revision 2.83  2003/07/02 18:16:43  gul
- * Bugfix fot patch about send status without NR-mode
+ * Bugfix for patch about send status without NR-mode
  *
  * Revision 2.82  2003/06/26 13:22:24  gul
  * *** empty log message ***
@@ -640,8 +644,7 @@ static int close_partial (STATE *state, BINKD_CONFIG *config)
     }
     fclose (state->in.f);
     if (s == 0)
-      inb_reject (state->in.netname, state->in.size, state->in.time,
-                  state->fa, state->nallfa, state->inbound, config);
+      inb_reject (state, config);
   }
   TF_ZERO (&state->in);
   return 0;
@@ -2069,8 +2072,7 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
       char szAddr[FTN_ADDR_SZ + 1];
 
       if (inb_done (state->in_complete.netname, state->in_complete.size,
-	            state->in_complete.time, state->fa, state->nallfa,
-		    state->inbound, realname, state, config) == 0)
+	            state->in_complete.time, realname, state, config) == 0)
         return 0; /* error, drop session */
       /* val: check for *.req if got M_NUL FREQ */
       if (state->delay_EOB && isreq(state->in_complete.netname))
@@ -2162,9 +2164,7 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
       }
       else if (!state->skip_all_flag)
       {
-	if ((state->in.f = inb_fopen (state->in.netname, state->in.size,
-				      state->in.time, state->fa, state->nallfa,
-				      state->inbound, state->state, config)) == 0)
+	if ((state->in.f = inb_fopen (state, config)) == 0)
 	{
 	  state->skip_all_flag = 1;
 	}
@@ -2489,10 +2489,17 @@ static int SKIP (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 	remove_from_sent_files_queue (state, n);
       }
     }
-    if (state->out.f && !tfile_cmp (&state->out, argv[0], fsize, ftime))
+    if (!tfile_cmp (&state->out, argv[0], fsize, ftime))
     {
       state->r_skipped_flag = 1;
-      fclose (state->out.f);
+      if (state->out.f)
+	fclose (state->out.f);
+      else
+      {
+	Log (1, "Cannot skip ND-status, session dropped");
+	msg_send2(state, M_ERR, "Cannot skip ND-status", 0);
+	return 0;
+      }
       Log (2, "%s skipped by remote", state->out.netname);
       TF_ZERO (&state->out);
     }
@@ -2625,8 +2632,7 @@ static int EOB (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
     char szAddr[FTN_ADDR_SZ + 1];
 
     if (inb_done (state->in_complete.netname, state->in_complete.size,
-                  state->in_complete.time, state->fa, state->nallfa,
-	          state->inbound, realname, state, config) == 0)
+                  state->in_complete.time, realname, state, config) == 0)
       return 0;
     if (*realname)
     {
@@ -2837,8 +2843,7 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
 	  else
 	  {
 	    if (inb_done (state->in.netname, state->in.size,
-		          state->in.time, state->fa, state->nallfa,
-		          state->inbound, realname, state, config) == 0)
+		          state->in.time, realname, state, config) == 0)
               return 0;
 	    if (*realname)
 	    {

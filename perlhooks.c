@@ -14,6 +14,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.39  2003/10/30 10:36:59  gul
+ * Do not append file partially received from busy remote aka,
+ * non-destructive skip it.
+ *
  * Revision 2.38  2003/10/29 21:08:39  gul
  * Change include-files structure, relax dependences
  *
@@ -1912,8 +1916,7 @@ int perl_before_recv(STATE *state, off_t offs) {
 /* return 0 to keep real_name, 1 to update real_name and try renaming,
           2 to kill tmp_name after having renamed it manually */
 int perl_after_recv(STATE *state, char *netname, off_t size, time_t time, 
-                    FTN_ADDR *fa, int nfa, char *tmp_name, 
-                    char *real_name) {
+                    char *tmp_name, char *real_name) {
   int    rc;
   STRLEN len;
   SV     *svret, *sv;
