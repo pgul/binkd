@@ -1,13 +1,4 @@
 - nolog "call to*" "*:unknown host" "some annoing message"
-- perl hooks:
-  - recvfile
-  - sendfile
-  - beforesession
-  - aftersession
-  - startsession (shared aka)
-  - log
-  - start, atexit
-  - outcall (i.e. only if more then N Kb mail)
 - rexx hooks
 - set root-domain for every domain
 - reread config "on fly" in multithread versions
@@ -23,6 +14,7 @@
 - exit immediately after session in "-p" mode
 - tzoff - ? Now used only for binlog
 - do not send files with hidden attribute from filebox
+- do not send r/o file from filebox with infinite session
 - binkd/dos: waterloo tcpip
 - single-thread version
 - put session time in "done" line
