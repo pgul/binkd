@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.9  2004/01/03 18:14:41  stas
+ * Two macroses: IsNTService and Is9xService
+ *
  * Revision 2.8  2004/01/03 12:17:44  stas
  * Implement full icon support (winNT/2k/XP)
  *
@@ -41,6 +44,9 @@
 #define __W32TOOLS_H
 
 #define AlertWin(text) MessageBox(NULL, text, MYNAME, MB_OK|MB_ICONSTOP|0x00200000L|MB_SYSTEMMODAL|MB_SETFOREGROUND)
+
+#define IsNTService (IsNT()&&isService())
+#define Is9xService (Is9x()&&isService())
 
 /* Test on Windows 95/98/Me
    Return 0 if not match
