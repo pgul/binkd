@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67.2.8  2003/08/24 00:29:31  hbrew
+ * win9x-select-workaround fix, thanks to Pavel Gulchouck)
+ *
  * Revision 2.67.2.7  2003/08/17 08:11:06  gul
  * Migrate patch from current:
  * Drop remote AKA with another password on outgoing sessions
@@ -2221,7 +2224,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
   int no, rd;
 #ifdef WIN32
   unsigned long t_out = 0;
-  unsigned long u_nettimeout = nettimeout*100000;
+  unsigned long u_nettimeout = nettimeout*100000l;
 #endif
   struct sockaddr_in peer_name;
   socklen_t peer_name_len = sizeof (peer_name);
@@ -2389,22 +2392,22 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
       if (FD_ISSET (socket, &w))       /* Clear to send */
       {
 	no = send_block (&state);
-	if (!no)
-	  break;
 #if defined(WIN32) /* workaround winsock bug - give up CPU */
         if (!rd && no == 2)
         {
 	  FD_ZERO (&r);
 	  FD_SET (socket, &r);
 	  tv.tv_sec = 0;
-	  tv.tv_usec = 10000; /* 10 ms */
+	  tv.tv_usec = w9x_workaround_timeout; /* see iphdr.h */
 	  if (!select (socket + 1, &r, 0, 0, &tv))
 	  {
-	    t_out += tv.tv_usec;
+	    t_out += w9x_workaround_timeout;
 	  } else { t_out = 0; }
         }
         else { t_out = 0; }
 #endif
+        if (!no)
+          break;
       }
     }
   }

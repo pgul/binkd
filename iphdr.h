@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10.2.1  2003/08/24 00:29:31  hbrew
+ * win9x-select-workaround fix, thanks to Pavel Gulchouck)
+ *
  * Revision 2.10  2003/06/04 10:36:58  stas
  * Thread-safety tcperr() implementation on Win32
  *
@@ -151,6 +154,8 @@ void ReleaseErrorList(void);
   #define sock_init() WinsockIni()
   #define sock_deinit() WinsockClean()
   #define soclose(h) closesocket(h)
+/* w9x_workaround_timeout: 100000 = 1 sec, 10000 = 10 ms */
+  #define w9x_workaround_timeout 10000
 #else
   #include <errno.h>
   #define ReleaseErrorList()
