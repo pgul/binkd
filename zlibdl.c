@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/09/24 09:53:16  val
+ * fix warnings
+ *
  * Revision 2.4  2003/09/24 07:32:17  val
  * bzlib2 compression support, new compression keyword: zlevel
  *
@@ -89,16 +92,25 @@ int bzlib2_init(const char *dll_name) {
 
 int do_compress(int type, char *dst, int *dst_len, char *src, int src_len, 
                 int lvl) {
+  int rc;
   switch (type) {
 #ifdef WITH_BZLIB2
-    case 2: 
+    case 2: {
+      unsigned int d;
       if (lvl == 0) lvl = 6;
-      return BZ2_bzBuffToBuffCompress(dst, dst_len, src, src_len, lvl, 0, 0);
+      rc = BZ2_bzBuffToBuffCompress(dst, &d, src, src_len, lvl, 0, 0);
+      *dst_len = (int)d;
+      return rc;
+    }
 #endif
 #ifdef WITH_ZLIB
-    case 1: 
+    case 1: {
+      uLong d;
       if (lvl == 0) lvl = Z_DEFAULT_COMPRESSION;
-      return compress2(dst, dst_len, src, src_len, lvl);
+      rc = compress2(dst, &d, src, src_len, lvl);
+      *dst_len = (int)d;
+      return rc;
+    }
 #endif
     default:
       Log (1, "Unknown compression method: %d; data lost", type);
@@ -107,14 +119,23 @@ int do_compress(int type, char *dst, int *dst_len, char *src, int src_len,
 }
 
 int do_decompress(int type, char *dst, int *dst_len, char *src, int src_len) {
+  int rc;
   switch (type) {
 #ifdef WITH_BZLIB2
-    case 2: 
-      return BZ2_bzBuffToBuffDecompress(dst, dst_len, src, src_len, 0, 0);
+    case 2: {
+      unsigned int d;
+      rc = BZ2_bzBuffToBuffDecompress(dst, &d, src, src_len, 0, 0);
+      *dst_len = (int)d;
+      return rc;
+    }
 #endif
 #ifdef WITH_ZLIB
-    case 1: 
-      return uncompress(dst, dst_len, src, src_len);
+    case 1: {
+      uLong d;
+      rc = uncompress(dst, &d, src, src_len);
+      *dst_len = (int)d;
+      return rc;
+    }
 #endif
     default:
       Log (1, "Unknown decompression method: %d; data lost", type);
