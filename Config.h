@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.121  2003/08/18 09:15:41  gul
+ * Auto increase patchlevel, set 0.9.6a-108
+ * Cosmetics
+ *
  * Revision 2.120  2003/08/18 08:23:05  gul
  * Auto increase patchlevel, set 0.9.6a-107
  * Return log semaphoring
@@ -523,7 +527,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-107"
+#define MYVER "0.9.6a-108"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
