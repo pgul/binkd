@@ -22,3 +22,5 @@
 - separate child status to signal and retcode
 - aftersession
 - tzoff - ? Now used only for binlog
+- do not send files with hidden attribute from filebox
+- non-destructive skip by mask
