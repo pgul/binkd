@@ -1,3 +1,7 @@
+2004/01/03 17:46:12 1.0a-337 stas
+service.c,2.46,2.47
+Fix: do not load icon into service control window at binkd service starts
+
 2004/01/03 17:39:24 1.0a-336 stas
 binkd.c,2.78,2.79
 Implement service control option for Windows NT/2k/XP
