@@ -28,9 +28,9 @@ AC_CHECK_FUNC(gethostbyname)
 case $ac_cv_func_gethostbyname in
  no) AC_CHECK_LIB(nsl, gethostbyname) ;;
 esac
-AC_CHECK_FUNC(setproctitle)
+AC_CHECK_FUNCS(setproctitle)
 case $ac_cv_func_setproctitle in
- no) AC_CHECK_LIB(util, setproctitle) ;;
+ no) AC_CHECK_LIB(util, setproctitle, AC_DEFINE(HAVE_SETPROCTITLE) LIBS="$LIBS -lutil") ;;
 esac
 AC_CHECK_SIZEOF(short, 0)
 AC_CHECK_SIZEOF(int, 0)
@@ -41,7 +41,7 @@ dnl
 AC_MSG_CHECKING(for socklen_t)
 AC_TRY_COMPILE([#include <sys/types.h>
 #include <sys/socket.h>
-#include <netdb.h>], [socklen_t i;], AC_DEFINE(HAVE_SOCKLEN_T) AC_MSG_RESULT(yes), AC_MSG_RESULT(no), AC_MSG_RESULT(cross-compiling. No assumptions made))
+#include <netdb.h>], [socklen_t i], AC_DEFINE(HAVE_SOCKLEN_T) AC_MSG_RESULT(yes), AC_MSG_RESULT(no), AC_MSG_RESULT(cross-compiling. No assumptions made))
 
 dnl -------------------------------------------------------------------------
 dnl Signal handling
