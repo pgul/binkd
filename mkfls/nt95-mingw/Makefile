@@ -41,6 +41,7 @@ clean:
 	-del /n *.ini >nul
 	-del /n *.err >nul
 	-del /n core  >nul
+	-rm -f *.RES *.obj *.o  nt/*.o ntlm/*.o *.map *.bak *.b *.ini *.err core
 
 depend	Makefile.dep:
 	gcc -MM $(CFLAGS) $(SRCS) | tee Makefile.dep
