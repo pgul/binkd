@@ -2,7 +2,7 @@
 # $Id$
 #
 # Usage: nmake [DEBUG=1] [STATIC=1] [BINKD9X=1] [PERL=1] [PERLDL=1]
-#              [ZLIB=1] [BZLIB2=1] [ZLIBDL=1] [DEBUGCHILD=1]
+#              [ZLIB=1] [BZLIB2=1] [ZLIBDL=1] [DEBUGCHILD=1] [BW_LIM=1]
 #
 #
 
@@ -122,6 +122,12 @@ BINKDTYPE=$(BINKDTYPE), debugchild
 CDEFS=$(CDEFS) -DDEBUGCHILD
 !endif
 # debugchild, nofork ----------------------------------------------------------
+
+# bandwidth limiting ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!ifdef BW_LIM
+CDEFS=$(CDEFS) -DBW_LIM=1
+!endif
+# bandwidth limiting ----------------------------------------------------------
 
 # perl support ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # PERLDL implies PERL

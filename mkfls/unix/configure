@@ -851,6 +851,7 @@ Optional Packages:
   --with-https            https support (default no)
   --with-ntlm             NTLM authorization support (default no)
   --with-aso              Amiga Style Outbound (ASO) support (default no)
+  --with-bwlim            Bandwidth limiting support (default no)
   --with-perl             Perl hooks (default no)
   --with-zlib[=path]      zlib compression (default auto)
   --with-bzip2[=path]     bzip2 compression (default auto)
@@ -6159,6 +6160,16 @@ if test "${with_aso+set}" = set; then
   withval="$with_aso"
   cat >>confdefs.h <<\_ACEOF
 #define AMIGADOS_4D_OUTBOUND 1
+_ACEOF
+
+fi;
+
+
+# Check whether --with-bwlim or --without-bwlim was given.
+if test "${with_bwlim+set}" = set; then
+  withval="$with_bwlim"
+  cat >>confdefs.h <<\_ACEOF
+#define BW_LIM 1
 _ACEOF
 
 fi;

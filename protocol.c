@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.167  2005/02/09 17:33:59  val
+ * config docs and makefile changes for the bandwidth limiting code
+ *
  * Revision 2.166  2004/11/21 12:18:05  val
  * bandwidth limiting code is now implemented for receiving too
  *
@@ -880,14 +883,6 @@ static void current_file_was_sent (STATE *state)
   }
 }
 
-#ifdef BW_LIM
-/*
- * send() wrapper for bandwidth limiting
- */
-static int send_wrapper (STATE *state)
-{
-}
-#endif
 /*
  * Sends next msg from the msg queue or next data block
  */
@@ -917,9 +912,9 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
       Log (9, "send: current cps is %u, avg. cps is %u", cps, state->bw_send_cps);
     }
     else if (state->bw_send && state->bw_send_bytes > state->bw_send) 
-      return 2; /* !!! val: temp !!! */
+      return 2; /* val: return 2 not release cpu on win32 */
     if (state->bw_send && state->bw_send_cps > state->bw_send) 
-      return 2; /* !!! val: temp measures !!! */
+      return 2; /* val: return 2 not release cpu on win32 */
 #endif
     Log (7, "sending %i byte(s)", state->oleft);
     n = send (state->s, state->optr, state->oleft, 0);
@@ -2980,9 +2975,9 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
       Log (9, "recv: current cps is %u, avg. cps is %u", cps, state->bw_recv_cps);
     }
     else if (state->bw_recv && state->bw_recv_bytes > state->bw_recv) 
-      return 1; /* !!! val: temp !!! */
+      return 1; /* val: return the same as if TCPERR_WOULDBLOCK */
     if (state->bw_recv && state->bw_recv_cps > state->bw_recv) 
-      return 1; /* !!! val: temp measures !!! */
+      return 1; /* val: return the same as if TCPERR_WOULDBLOCK */
   }
 #endif
   if (sz == 0)
