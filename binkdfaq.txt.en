@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of Oct 17 2003
+        Version of Oct 24 2003
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -420,7 +420,7 @@ of timeout).
 get your mail regularly then you need some additional program or a script.
 As an example in DOS, Windows or OS/2 it is enough to execute the command:
 
-    cd . > %outbound%\NNNNMMMM.ilo
+    cd . >> %outbound%\NNNNMMMM.ilo
 
     where NNNN is the hex net number,
           MMMM is the hex node number,
@@ -438,8 +438,8 @@ because the poll has been made by a command of the type
 
     echo . >> xxxxyyyy.flo
 
-    (you should change it to "type nul >> xxxxyyyy.flo" or
-"cd . >> xxxxyyyy.flo")
+    you should change it to "cd . >> xxxxyyyy.flo" or 
+"type nul >> xxxxyyyy.flo" (Windows, DOS or OS/2 only).
 
 
 ----------------------------------------------------------------------------

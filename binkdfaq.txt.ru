@@ -404,7 +404,7 @@ SOCKS-прокси:
 к binkd программы или скрипты. Например, в DOS, Windows или OS/2 достаточно
 выполнить команду:
 
-    cd . > %outbound%\NNNNMMMM.ilo
+    cd . >> %outbound%\NNNNMMMM.ilo
     где NNNN - шестнадцатиричный номер сети,
         MMMM - шестнадцатиричный номер узла,
         %outbound% - путь к аутбаунду нужной зоны.
@@ -420,7 +420,8 @@ SOCKS-прокси:
 
     echo . >> xxxxyyyy.flo
 
-(нужно заменить на "type nul >> xxxxyyyy.flo" или "cd . >> xxxxyyyy.flo")
+ее нужно заменить на "cd . >> xxxxyyyy.flo" или (только в Windows, DOS или
+OS/2) на "type nul >> xxxxyyyy.flo"
 
 
 ----------------------------------------------------------------------------
