@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.108  2003/08/14 11:43:21  val
+ * Auto increase patchlevel, set 0.9.6a-95
+ * free allocated log buffer in exitfunc()
+ *
  * Revision 2.107  2003/08/14 08:29:24  gul
  * Auto increase patchlevel, set 0.9.6a-94
  * Use snprintf() from sprintf.c if no such libc function
@@ -462,7 +466,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-94"
+#define MYVER "0.9.6a-95"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
