@@ -1,3 +1,7 @@
+2004/01/02 20:02:42 1.0a-327 stas
+service.c,2.44,2.45
+Small code change to simplification
+
 2004/01/02 18:04:06 1.0a-326 stas
 tray.c,2.8,2.9
 Cleanup code, remove obsolete delay
