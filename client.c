@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.25  2003/03/14 21:58:33  gul
+ * Changed function SLEEP() to define for multithread version
+ *
  * Revision 2.24  2003/03/11 14:11:01  gul
  * Bugfix
  *
@@ -141,9 +144,9 @@
 
 #include "Config.h"
 #include "sys.h"
+#include "iphdr.h"
 #include "client.h"
 #include "readcfg.h"
-#include "iphdr.h"
 #include "common.h"
 #include "iptools.h"
 #include "ftnq.h"
@@ -177,10 +180,7 @@ static void chld (int signo)
 #endif
 
 #if defined(HAVE_THREADS)
-void SLEEP (time_t s)
-{
-  WaitSem(&exitcmgr, s);
-}
+#define SLEEP(x) WaitSem(&exitcmgr, x)
 #elif defined(__MSC__)
 void SLEEP (time_t s)
 {
@@ -320,6 +320,7 @@ static int call0 (FTN_NODE *node)
   ftnaddress_to_str (szDestAddr, &node->fa);
   Log (2, "call to %s", szDestAddr);
   setproctitle ("call to %s", szDestAddr);
+  memset(&sin, 0, sizeof(sin));
 
 #ifdef HTTPS
   if (proxy[0] || socks[0])
@@ -438,14 +439,12 @@ static int call0 (FTN_NODE *node)
 #endif
       if (connect (sockfd, (struct sockaddr *) & sin, sizeof (sin)) == 0)
       {
-	{
 #ifdef HAVE_FORK
-	  alarm(0);
-	  signal(SIGALRM, SIG_DFL);
+	alarm(0);
+	signal(SIGALRM, SIG_DFL);
 #endif
-	  Log (4, "connected");
-	  break;
-	}
+	Log (4, "connected");
+	break;
       }
 
 #ifdef HAVE_FORK
