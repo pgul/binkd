@@ -9,6 +9,7 @@
   - startsession
   - log
   - start, atexit
+  - outcall (i.e. only if more then N Kb mail)
 - shared aka
 - reread config "on fly" in multithread versions
 - do not kill attaches (save and ignore) if drive missing (unmounted)
