@@ -1539,9 +1539,33 @@ EOF
 
 
 
+echo $ac_n "checking for socklen_t""... $ac_c" 1>&6
+echo "configure:1544: checking for socklen_t" >&5
+cat > conftest.$ac_ext <<EOF
+#line 1546 "configure"
+#include "confdefs.h"
+#include <sys/socket.h>
+int main() {
+socklen_t i;
+; return 0; }
+EOF
+if { (eval echo configure:1553: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  cat >> confdefs.h <<\EOF
+#define HAVE_SOCKLEN_T 1
+EOF
+ echo "$ac_t""yes" 1>&6
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  echo "$ac_t""no" 1>&6
+fi
+rm -f conftest*
+
 
 echo $ac_n "checking for reliable signals""... $ac_c" 1>&6
-echo "configure:1545: checking for reliable signals" >&5
+echo "configure:1569: checking for reliable signals" >&5
 if test "$cross_compiling" = yes; then
   cat >> confdefs.h <<\EOF
 #define SYS5SIGNALS 1
@@ -1550,7 +1574,7 @@ EOF
 
 else
   cat > conftest.$ac_ext <<EOF
-#line 1554 "configure"
+#line 1578 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -1584,7 +1608,7 @@ main()
 }
 
 EOF
-if { (eval echo configure:1588: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:1612: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   echo "$ac_t""yes" 1>&6
 else
@@ -1602,9 +1626,9 @@ fi
 
 
 echo $ac_n "checking for facilitynames""... $ac_c" 1>&6
-echo "configure:1606: checking for facilitynames" >&5
+echo "configure:1630: checking for facilitynames" >&5
 cat > conftest.$ac_ext <<EOF
-#line 1608 "configure"
+#line 1632 "configure"
 #include "confdefs.h"
 
 #include <stdio.h>
@@ -1617,7 +1641,7 @@ int main() {
 
 ; return 0; }
 EOF
-if { (eval echo configure:1621: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:1645: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   cat >> confdefs.h <<\EOF
 #define HAVE_FACILITYNAMES 1
@@ -1633,9 +1657,9 @@ rm -f conftest*
 
 
 echo $ac_n "checking for TIOCNOTTY""... $ac_c" 1>&6
-echo "configure:1637: checking for TIOCNOTTY" >&5
+echo "configure:1661: checking for TIOCNOTTY" >&5
 cat > conftest.$ac_ext <<EOF
-#line 1639 "configure"
+#line 1663 "configure"
 #include "confdefs.h"
 
 #include <sys/ioctl.h>
@@ -1646,7 +1670,7 @@ int main() {
 
 ; return 0; }
 EOF
-if { (eval echo configure:1650: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:1674: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   cat >> confdefs.h <<\EOF
 #define HAVE_TIOCNOTTY 1
@@ -1662,9 +1686,9 @@ rm -f conftest*
 
 
 echo $ac_n "checking for built-in setproctitle""... $ac_c" 1>&6
-echo "configure:1666: checking for built-in setproctitle" >&5
+echo "configure:1690: checking for built-in setproctitle" >&5
 cat > conftest.$ac_ext <<EOF
-#line 1668 "configure"
+#line 1692 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -1676,7 +1700,7 @@ int main() {
 
 ; return 0; }
 EOF
-if { (eval echo configure:1680: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:1704: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   cat >> confdefs.h <<\EOF
 #define HAVE_SETPROCTITLE 1

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2003/03/30 10:14:40  gul
+ * Use HAVE_SOCKLEN_T macro
+ *
  * Revision 2.8  2003/03/26 13:53:28  gul
  * Fix OS/2 compilation
  *
@@ -103,6 +106,10 @@
 
 #define MAXSERVNAME 80                      /* max id len in /etc/services */
 
+#ifndef HAVE_SOCKLEN_T
+  typedef int socklen_t;
+#endif
+
 #if defined(IBMTCPIP)
 const char *tcperr (void);
 
@@ -112,7 +119,6 @@ const char *tcperr (void);
   #define TCPERR_WOULDBLOCK EWOULDBLOCK
   #define TCPERR_AGAIN EAGAIN
   #define sock_deinit()
-  typedef int socklen_t;
   #ifndef MAXSOCKETS
     #define MAXSOCKETS 2048
   #endif
@@ -128,7 +134,6 @@ const char *tcperr (void);
   #define TCPERR_WOULDBLOCK EWOULDBLOCK
   #define TCPERR_AGAIN EAGAIN
   #define sock_deinit()
-  typedef int socklen_t;
 #elif defined(WIN32)
 const char *tcperr (void);
 
@@ -140,7 +145,6 @@ const char *tcperr (void);
   #define sock_init() WinsockIni()
   #define sock_deinit() WinsockClean()
   #define soclose(h) closesocket(h)
-  typedef int socklen_t;
 #else
   #include <errno.h>
   #define TCPERR() strerror(errno)
@@ -150,9 +154,6 @@ const char *tcperr (void);
   #define sock_init() 0
   #define sock_deinit()
   #define soclose(h) close(h)
-  #ifdef __EMX__
-    typedef int socklen_t;
-  #endif
 #endif
 
 #if !defined(WIN32)
