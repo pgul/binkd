@@ -15,6 +15,13 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2001/08/24 13:23:28  da
+ * binkd/binkd.c
+ * binkd/readcfg.c
+ * binkd/readcfg.h
+ * binkd/server.c
+ * binkd/nt/service.c
+ *
  * Revision 2.1  2001/05/23 16:48:04  gul
  * msvc warnings fixed
  *
@@ -178,7 +185,10 @@ void servmgr (void *arg)
     Log (1, "setsockopt (SO_REUSEADDR): %s", TCPERR ());
 
   serv_addr.sin_family = AF_INET;
-  serv_addr.sin_addr.s_addr = htonl (INADDR_ANY);
+  if (bindaddr[0])
+    serv_addr.sin_addr.s_addr = inet_addr (bindaddr);
+  else
+    serv_addr.sin_addr.s_addr = htonl (INADDR_ANY);
   serv_addr.sin_port = htons ((unsigned short) iport);
 
   if (bind (sockfd, (struct sockaddr *) & serv_addr, sizeof (serv_addr)) != 0)

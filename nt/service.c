@@ -14,6 +14,13 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2001/08/24 13:23:28  da
+ * binkd/binkd.c
+ * binkd/readcfg.c
+ * binkd/readcfg.h
+ * binkd/server.c
+ * binkd/nt/service.c
+ *
  * Revision 2.0  2001/01/10 12:12:40  gul
  * Binkd is under CVS again
  *
@@ -22,6 +29,8 @@
 
 #include <stdio.h>
 #include <windows.h>
+#include <process.h>
+#include <io.h>
 #include <direct.h>
 #include <string.h>
 #include "../tools.h"
@@ -34,7 +43,7 @@
 #endif
 
 static char libname[]="ADVAPI32";
-static char srvname[]="binkd-service";
+static char *srvname="binkd-service";
 static char reg_path[]="Software\\";
 static SERVICE_STATUS_HANDLE sshan;
 static SERVICE_STATUS sstat;
@@ -203,6 +212,7 @@ static void WINAPI ServiceMain(LPTSTR args)
   exit(0);
 }
 
+static DWORD srvtype = SERVICE_WIN32_OWN_PROCESS;
 static int service_main(int type)
 {
   SC_HANDLE sman=NULL, shan=NULL;
@@ -256,8 +266,9 @@ static int service_main(int type)
         CloseServiceHandle(sman);
         return 1;
       }
+      sprintf(path + strlen(path), " \1 -(%s)", srvname);
       shan=CreateService(sman, srvname, srvname, SERVICE_ALL_ACCESS,
-        SERVICE_WIN32_OWN_PROCESS, SERVICE_AUTO_START, 
+        srvtype, SERVICE_AUTO_START, 
         SERVICE_ERROR_NORMAL, path, NULL, NULL, NULL, NULL, NULL);
       if(!shan)
         Log(-1, "Error in CreateService()=%d\n", GetLastError());
@@ -327,6 +338,192 @@ static int service_main(int type)
   return rc;
 }
 
+static HWND mainWindow;
+static NOTIFYICONDATA nd;
+static int wstate = 0;
+
+static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,  LPARAM lParam)
+{
+    if ((lParam == WM_LBUTTONDBLCLK) || (lParam == WM_RBUTTONUP))
+    {
+    	ShowWindow(mainWindow, SW_RESTORE);
+        SetForegroundWindow(mainWindow);
+        Shell_NotifyIcon(NIM_DELETE, &nd);
+        wstate = 2;
+    }
+    return 1;
+}
+
+static void closeProcess(void)
+{
+    Shell_NotifyIcon(NIM_DELETE, &nd);
+    ShowWindow(mainWindow, SW_RESTORE);
+}
+
+static void processKeyCode(WORD kc, DWORD cs, HANDLE out)
+{
+    if ((cs & SHIFT_PRESSED) &&
+        ((kc == VK_UP) || (kc == VK_DOWN) || (kc == VK_LEFT) || (kc == VK_RIGHT)))
+    {
+        CONSOLE_SCREEN_BUFFER_INFO cb;
+        if(!GetConsoleScreenBufferInfo(out, &cb)) return;
+        switch(kc)
+        {
+            case VK_UP: cb.dwSize.Y-=10; break;
+            case VK_DOWN: cb.dwSize.Y+=10; break;
+            case VK_LEFT: cb.dwSize.X-=10; break;
+            case VK_RIGHT: cb.dwSize.X+=10; break;
+        }
+        SetConsoleScreenBufferSize(out, cb.dwSize);
+    }
+}
+
+extern int percents;
+extern int conlog;
+extern int printq;
+extern int quiet_flag;
+static void wndthread(void *par)
+{
+    WINDOWPLACEMENT wp;
+    WNDCLASS rc;
+    char *cn = "testclass";
+    char buf[256];
+    char bn[20];
+    ATOM wa;
+    HWND wnd;
+    HICON hi;
+    HANDLE in, out;
+    int i;
+
+    i = GetConsoleTitle(buf, sizeof(buf));
+    if (i < 0) i = 0;
+    buf[i] = 0;
+    sprintf(bn, "%x", GetCurrentThreadId());
+    for (i = 0; i < 40; i++)
+    {
+        SetConsoleTitle(bn);
+        if (((mainWindow = FindWindow(NULL, bn)) != NULL) || (isService)) break;
+        Sleep(100);
+    }
+    SetConsoleTitle(buf);
+    if ((!IsWindow(mainWindow)) || (!mainWindow)) 
+    {
+        if (!AllocConsole())
+        {
+            Log(1, "unable to find main window... (%s)", bn);
+            return;
+        }
+        else
+        {
+            HANDLE ha = GetStdHandle(STD_OUTPUT_HANDLE);
+            int hCrt = _open_osfhandle((long) ha, 0x4000);
+            FILE *hf = _fdopen( hCrt, "w" );
+            *stdout = *hf;
+
+            ha = GetStdHandle(STD_ERROR_HANDLE);
+            hCrt = _open_osfhandle((long) ha, 0x4000);
+            hf = _fdopen( hCrt, "w" );
+            *stderr = *hf;
+            setvbuf( stdout, NULL, _IONBF, 0 );
+            setvbuf( stderr, NULL, _IONBF, 0 );
+
+            strcpy(buf, srvname);
+            SetConsoleTitle(srvname);
+            for (i = 0; i < 40; i++)
+            {
+                if ((mainWindow = FindWindow(NULL, srvname)) != NULL) break;
+                Sleep(100);
+            }
+            if (!mainWindow) return;
+            isService = 0;
+        }
+    }
+
+    hi = (HICON)SendMessage(mainWindow, WM_GETICON, ICON_SMALL, 0);
+    if (!hi)
+    {
+        hi = (HICON)SendMessage(mainWindow, WM_GETICON, ICON_BIG, 0);
+    }
+    if (!hi)
+    {
+        hi = LoadIcon(NULL, IDI_INFORMATION);
+    }
+
+    memset(&rc, 0, sizeof(rc));
+    rc.lpszClassName = cn;
+    rc.lpfnWndProc = WindowProc;
+    wa = RegisterClass(&rc);
+    if (!wa)
+    {
+        Log(1, "unable to register class...");
+        return;
+    }
+    wnd = CreateWindow(cn, "", 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL); 
+    if (!wnd)
+    {
+        Log(1, "unable to create message window...");
+        return;
+    }
+    memset(&nd, 0, sizeof(nd));
+    nd.cbSize = sizeof(nd);
+    nd.hWnd = wnd;
+    nd.uID = 1111;
+    nd.uFlags = NIF_TIP|NIF_MESSAGE|NIF_ICON;
+    nd.uCallbackMessage = 1111;
+    nd.hIcon = hi;
+    atexit(closeProcess);
+    strncpy(nd.szTip, buf, 63);
+    i = 1000;
+    in = GetStdHandle(STD_INPUT_HANDLE);
+    out = GetStdHandle(STD_OUTPUT_HANDLE);
+    for (;;)
+    {
+        MSG msg;
+        INPUT_RECORD cb;
+        DWORD dw;
+        if (in)
+        {
+            while(PeekConsoleInput(in, &cb, 1, &dw))
+            {
+                if (!dw)
+                {
+                    break;
+                }
+                ReadConsoleInput(in, &cb, 1, &dw);
+                if ((cb.EventType == KEY_EVENT) && (cb.Event.KeyEvent.bKeyDown))
+                {
+                    processKeyCode(cb.Event.KeyEvent.wVirtualKeyCode, 
+                        cb.Event.KeyEvent.dwControlKeyState, out);
+                }
+            }
+	    }
+
+        while(PeekMessage( &msg, wnd, 0, 0, PM_REMOVE)) 
+        {
+            TranslateMessage( &msg );
+            DispatchMessage( &msg );
+        }
+        if ((i++) < 10)
+        {
+            Sleep(50);
+            continue;
+        }
+        i = 0;
+        if (wstate != 1)
+        {
+            memset(&wp, 0, sizeof(wp));
+            wp.length = sizeof(wp);
+            if ((GetWindowPlacement(mainWindow, &wp)) && 
+                (wp.showCmd == SW_SHOWMINIMIZED))
+            {
+    	        wstate = 1;
+                Shell_NotifyIcon(NIM_ADD, &nd);
+                ShowWindow(mainWindow, SW_HIDE);
+            }
+    	}
+    }
+}
+
 int service(int argc, char **argv, char **envp)
 {
   int i, j, k, len;
@@ -334,37 +531,66 @@ int service(int argc, char **argv, char **envp)
   char *esp=NULL, *asp=NULL;
   HKEY hk=0;
 
-  if(argc==1)
+  for(i=0;i<argc;i++) 
+  {
+    if(argv[i][0]=='-')
+    {
+      char *sp1 = strchr(argv[i], '(');
+      char *sp2 = strchr(argv[i], ')');
+      if ((sp1) && (sp2 > (sp1 + 1)))
+      {
+        srvname = (char*)calloc(1, sp2 - sp1);
+        memcpy(srvname, sp1 + 1, sp2 - sp1 - 1);
+        strcpy(sp1, sp2 + 1);
+      }
+    }
+  }
+
+  if ((argc==1) || ((argc == 3) && (argv[1][0] == 1)))
   {
     SERVICE_TABLE_ENTRY dt[]= { srvname, (LPSERVICE_MAIN_FUNCTION)ServiceMain, NULL, NULL};
     if(service_main(6)) return argc;
     if(!StartServiceCtrlDispatcher(dt)) return argc;
     exit(0);
   }
-  if((j=checkservice())<1) 
-    return argc;
+
+  j=checkservice();
   for(i=len=0;i<argc;i++) 
   {
     if(argv[i][0]=='-')
     {
-      if(!sp) sp=strchr(argv[i], j==1?'i':'u');
-      if(strchr(argv[i], j==2?'i':'u'))
+      if (j > 0)
       {
-        Log(-1, "Service already %sinstalled...", j==2?"":"UN");
-        exit(0);
+        if(!sp) sp=strchr(argv[i], j==1?'i':'u');
+        if(strchr(argv[i], j==2?'i':'u'))
+        {
+          Log(-1, "Service already %sinstalled...", j==2?"":"UN");
+          exit(0);
+        }
+      }
+      if (strchr(argv[i], 'T'))
+      {
+         srvtype |= SERVICE_INTERACTIVE_PROCESS;
+         _beginthread(wndthread, 0, NULL);
       }
     }    
     len+=strlen(argv[i])+1;
   }
 
+  if(j<1) return argc;
+
   if(sp)
   {
-    switch(checkservice())
+    switch(j)
     {
     case 1: /* service is not installed */
-      asp=(char*)malloc(len);
+      asp=(char*)malloc(len + strlen(srvname) + 10);
       for(i=len=0;i<argc;i++)
       {
+        if (i == 1)
+        {
+          len += sprintf(asp+len, "-(%s)t", srvname) + 1;
+        }
         if((argv[i][0]=='-')&&((sp=strchr(argv[i], 'i'))!=NULL))
         {
           if(!argv[i][2]) continue;

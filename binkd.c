@@ -15,6 +15,13 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2001/08/24 13:23:28  da
+ * binkd/binkd.c
+ * binkd/readcfg.c
+ * binkd/readcfg.h
+ * binkd/server.c
+ * binkd/nt/service.c
+ *
  * Revision 2.2  2001/05/23 15:44:09  gul
  * help-message fixed (-C option)
  *
@@ -126,10 +133,10 @@ void usage ()
 {
 #if defined(WIN32)	
 	char *s=NULL;
-	switch(checkservice())
+	if(checkservice() > 0)
 	{
-	case 1: s="i\0  -i       install WindowsNT service\n"; break;
-	case 2: s="u\0  -u       UNinstall WindowsNT service\n"; break;
+	  s="iu\0  -i[(service-name)]  install WindowsNT service\n"
+	    "  -u[(service-name)]  UNinstall WindowsNT service\n";
 	}
 #endif
 
@@ -140,7 +147,7 @@ void usage ()
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
 	  "i"
 #elif defined(WIN32)
-	  "%s"
+	  "T%s"
 #endif
 	  "pqsv] [-Pnode] config"
 #ifdef OS2
@@ -160,6 +167,7 @@ void usage ()
 	  "  -i       run from inetd\n"
 #elif defined(WIN32)
 	  "%s"
+	  "  -T       minimize to Tray\n"
 #endif
 	  "  -P node  poll a node\n"
 	  "  -p       run client only, poll, quit\n"
@@ -168,7 +176,7 @@ void usage ()
 	  "  -v       be verbose / dump version and quit\n"
 	  "  -m       disable CRAM-MD5 authorization\n"
 	  "\n"
-	  "Copyright (c) 1996-2000 Dima Maloff and others.\n"
+	  "Copyright (c) 1996-2001 Dima Maloff and others.\n"
 	  "\n"
     "This program is free software; you can redistribute it and/or modify\n"
     "it under the terms of the GNU General Public License as published by\n"
@@ -176,7 +184,7 @@ void usage ()
 	  "\n"
 	  "Report bugs to 2:463/68 or binkd-bugs@happy.kiev.ua.\n"
 #if defined(WIN32)	
-	  ,s?s:"", s?s+2:""
+	  ,s?s:"", s?s+3:""
 #endif
 	  );
   exit (1);
@@ -241,6 +249,11 @@ int main (int argc, char *argv[], char *envp[])
 	    case 'i':
 	      inetd_flag = 1;
 	      break;
+#endif
+#if defined(WIN32)
+        case 'T':
+        case 't':
+          break;
 #endif
 	    case 'P':
 	      if (argv[i][2] == 0)

@@ -15,6 +15,13 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2001/08/24 13:23:28  da
+ * binkd/binkd.c
+ * binkd/readcfg.c
+ * binkd/readcfg.h
+ * binkd/server.c
+ * binkd/nt/service.c
+ *
  * Revision 2.0  2001/01/10 12:12:39  gul
  * Binkd is under CVS again
  *
@@ -58,6 +65,7 @@ extern int call_delay;
 extern int max_servers;
 extern int max_clients;
 extern char sysname[MAXSYSTEMNAME + 1];
+extern char bindaddr[16];
 extern char sysop[MAXSYSOPNAME + 1];
 extern char location[MAXLOCATIONNAME + 1];
 extern char nodeinfo[MAXNODEINFO + 1];

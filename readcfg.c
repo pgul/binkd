@@ -15,6 +15,13 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2001/08/24 13:23:28  da
+ * binkd/binkd.c
+ * binkd/readcfg.c
+ * binkd/readcfg.h
+ * binkd/server.c
+ * binkd/nt/service.c
+ *
  * Revision 2.1  2001/02/15 11:03:18  gul
  * Added crypt traffic possibility
  *
@@ -126,6 +133,7 @@ char pid_file[MAXPATHLEN + 1] = "";
 char proxy[MAXHOSTNAMELEN + 40] = "";
 char socks[MAXHOSTNAMELEN + 40] = "";
 #endif
+char bindaddr[16] = "";
 int loglevel = 4;
 int conlog = 0;
 int send_if_pwd = 0;
@@ -195,6 +203,7 @@ KEYWORD keywords[] =
   {"domain", read_domain_info, NULL, 0, 0},
   {"address", read_aka_list, NULL, 0, 0},
   {"sysname", read_string, sysname, 0, MAXSYSTEMNAME},
+  {"bindaddr", read_string, bindaddr, 0, 16},
   {"sysop", read_string, sysop, 0, MAXSYSOPNAME},
   {"location", read_string, location, 0, MAXLOCATIONNAME},
   {"nodeinfo", read_string, nodeinfo, 0, MAXNODEINFO},
