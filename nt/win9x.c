@@ -16,6 +16,10 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.4.2.1  2003/06/14 00:47:36  hbrew
+ * Add NULL to new argv array.
+ * Fix binkd9x -t(--all) and -u(--all) crashes
+ *
  * Revision 2.4  2003/05/10 00:30:37  hbrew
  * binkd9x: -u option now support '--all' service name (uninstall all services).
  * Unneeded spaces cleanup.
@@ -143,11 +147,13 @@ void win9x_service_args(int argc, char **argv, char **envp)
                 if (!c_argv_bool[i])
                         c_argc++;
 
-        c_argv = (char **)malloc(c_argc*sizeof(char *));
+        c_argv = (char **)malloc((c_argc+1)*sizeof(char *));
 
         for (i=0, j=0; i<argc; i++)
                 if (!c_argv_bool[i])
                         c_argv[j++] = __argv[i];
+
+        c_argv[c_argc] = NULL;
 }
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -527,7 +533,7 @@ binkd_win9x_srvlst *win9x_get_services_list(int sort)
       if ((len<prefixlen)||(strncmp(tmp, Win9xServPrefix, prefixlen)!=0)||((len>prefixlen)&&(tmp[prefixlen]!='-')))
         continue;
 
-      srvlst->names = (char **)realloc(srvlst->names, srvlst->count+1);
+      srvlst->names = (char **)realloc(srvlst->names, (srvlst->count+1)*sizeof(char *));
       srvlst->names[srvlst->count] = strdup(tmp);
       srvlst->count++;
     }
@@ -552,6 +558,8 @@ void win9x_free_services_list(binkd_win9x_srvlst *srvlst)
     if (srvlst->names[i])
       free(srvlst->names[i]);
 
+  if (srvlst->names)
+    free(srvlst->names);
   free(srvlst);
 }
 
