@@ -39,7 +39,6 @@
 /*                    UUPC/extended include files                     */
 /*--------------------------------------------------------------------*/
 
-//#include "lib.h"
 #include "getopt.h"
 
 int   optind = 1;
