@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.17  2003/01/16 13:35:26  gul
+ * Fixed crash on bad incoming packets
+ *
  * Revision 2.16  2002/11/22 14:40:42  gul
  * Check free space on inbox if defined
  *
@@ -1045,6 +1048,7 @@ static int PWD (STATE *state, char *pwd, int sz)
 
 static int OK (STATE *state, char *buf, int sz)
 {
+  if (!state->to) return 0;
   state->state = !strcmp (state->to->pwd, "-") ? P_NONSECURE : P_SECURE;
   if (state->state == P_SECURE && strcmp(buf, "non-secure") == 0)
     Log (1, "Warning: remote set UNSECURE session");

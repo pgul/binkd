@@ -500,3 +500,5 @@ NT/95:  ctrl-c problems fixed
 
 	Check free space on inbox if defined.
 
+	Fix security vulernability (DoS) (andrew clarke <mail@ozzmosis.com>).
+
