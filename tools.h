@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/06/10 07:28:25  gul
+ * Fix patch about commandline parsing
+ *
  * Revision 2.9  2003/04/04 07:33:11  gul
  * Fix syntax error
  *
@@ -196,7 +199,7 @@ int istic (char *s);
 /*
  * Formats and prints argv into buf (for logging purposes)
  */
-void print_args (char *buf, size_t sizeof_buf, int argc, char *argv[]);
+void print_args (char *buf, size_t sizeof_buf, char *argv[]);
 
 /*
  * Dup argv

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.32  2003/06/10 07:28:25  gul
+ * Fix patch about commandline parsing
+ *
  * Revision 2.31  2003/06/09 13:27:28  stas
  * New command line parser
  *
@@ -243,7 +246,7 @@ void usage (void)
 #endif
 
   printf ("usage: binkd [-Cc"
-#if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
+#if defined(BINKD_DAEMONIZE)
           "D"
 #endif
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
@@ -331,18 +334,21 @@ int tray_flag = 0;                     /* minimize to tray */
 #endif
 #endif
 
-/* Parce and check command line parameters. Return config file name or NULL
+/* Parse and check command line parameters. Return config file name or NULL
  * On error prints usage information and exit (see usage() function)
  */
-char *parceargs (int argc, char *argv[]){
+char *parseargs (int argc, char *argv[])
+{
   char *cfgfile=NULL;
-  char *s=NULL, *st;
+  char *s=NULL;
   int i;
   struct polls *psP;
 
   for (i = 1; i < argc; ++i)
   {
 #if defined(WIN32)
+    char *st;
+
     if (argv[i][0] == '\001'){ /* binkd called as NT Service */
       service_flag = w32_run_as_service;
       i++;
@@ -576,10 +582,11 @@ char *parceargs (int argc, char *argv[]){
 	      daemon_flag = 1;
 	      /* remove this switch from saved_argv */
 	      { int j;
-	        free(saved_argv[i]);
+	        free(argv[i]);
 	        for (j=i; j<argc; j++)
-	          saved_argv[j]=saved_argv[j+1];
-	        saved_argc--;
+	          argv[j]=argv[j+1];
+	        i--;
+		argv[--argc] = NULL;
 	      }
 	      break;
 #endif
@@ -614,19 +621,21 @@ int main (int argc, char *argv[], char *envp[])
 #endif
 {
   char tmp[128];
-  char **saved_argv;
-  int saved_argc;
-#if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
+#if defined(BINKD_DAEMONIZE)
   int  nochdir;
 #endif
-
-  tzset();
+#if defined(HAVE_FORK) || defined(BINKD_DAEMONIZE)
+  char **saved_argv;
 
   /* save argv as setproctitle() under some systems will change it */
   saved_argv = mkargv (argc, argv);
-  saved_argc = argc;
 
-  configpath = parceargs(argc, argv);
+  configpath = parseargs(argc, saved_argv);
+#else
+  configpath = parseargs(argc, argv);
+#endif
+
+  tzset();
 
 #if defined(WIN32) && !defined(BINKDW9X)
   if(service(argc, argv, envp) && service_flag!=w32_run_as_service){
@@ -713,7 +722,7 @@ int main (int argc, char *argv[], char *envp[])
 	break;
     }
 
-  print_args (tmp, sizeof (tmp), argc - 1, argv + 1);
+  print_args (tmp, sizeof (tmp), argv + 1);
 #ifdef WIN32
   if(service_flag==w32_run_as_service)
     Log (4, "BEGIN service '%s', " MYNAME "/" MYVER "%s%s", service_name, get_os_string(), tmp);
@@ -799,12 +808,12 @@ int main (int argc, char *argv[], char *envp[])
     Log (0, "cannot branch out");
   }
 
-#if defined(UNIX) || defined(AMIGA) || (defined(OS2) && defined(HAVE_FORK))
+#if defined(HAVE_FORK)
   if (setjmp (jb))
   {
 binkdrestart:
     exitfunc();
-    print_args (tmp, sizeof (tmp), saved_argc - 1, saved_argv + 1);
+    print_args (tmp, sizeof (tmp), saved_argv + 1);
     Log (2, "exec %s%s", saved_argv[0], tmp);
     if (execv (saved_argv[0], saved_argv) == -1)
       Log (1, "execv: %s", strerror (errno));

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.23  2003/06/10 07:28:25  gul
+ * Fix patch about commandline parsing
+ *
  * Revision 2.22  2003/04/02 13:12:57  gul
  * Try to use workaround for buggy windows time functions (timezone)
  *
@@ -867,13 +870,13 @@ int isarcmail (char *s)
 /*
  * Formats and prints argv into buf (for logging purposes)
  */
-void print_args (char *buf, size_t sizeof_buf, int argc, char *argv[])
+void print_args (char *buf, size_t sizeof_buf, char *argv[])
 {
   int i, j, quote;
 
   assert (sizeof_buf > 5);
   *buf = 0;
-  for (i = 0; i < argc; ++i)
+  for (i = 0; argv[i]; ++i)
   {
     quote = 0;
     if (argv[i][0] == 0)
