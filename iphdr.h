@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2003/10/06 17:16:47  stas
+ * (Cosmetics) Rename tcperr() to w32err() for win32/win9x versions
+ *
  * Revision 2.15  2003/08/26 16:06:26  stream
  * Reload configuration on-the fly.
  *
@@ -157,11 +160,11 @@ const char *tcperr (void);
   #define TCPERR_AGAIN EAGAIN
   #define sock_deinit()
 #elif defined(WIN32)
-const char *tcperr (int);
+const char *w32err (int);
 void ReleaseErrorList(void);
 
   #include <errno.h>
-  #define TCPERR() tcperr(h_errno)
+  #define TCPERR() w32err(h_errno)
   #define TCPERRNO (h_errno)
   #define TCPERR_WOULDBLOCK WSAEWOULDBLOCK
   #define TCPERR_AGAIN WSAEWOULDBLOCK
@@ -190,8 +193,8 @@ typedef int SOCKET;
   #define SOCKET_ERROR (-1)
 #endif
 
-#ifndef INADDR_NONE                 
+#ifndef INADDR_NONE
   #define INADDR_NONE -1
-#endif                              
+#endif
 
 #endif

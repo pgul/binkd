@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.27  2003/10/06 17:16:47  stas
+ * (Cosmetics) Rename tcperr() to w32err() for win32/win9x versions
+ *
  * Revision 2.26  2003/10/06 17:03:38  stas
  * Fix logic of checkservice()
  *
@@ -322,7 +325,7 @@ static enum service_main_retcodes service_main(enum service_main_types type)
   if(!sman)
   { int err = GetLastError();
     if(res_checkservice)
-      Log(1, "OpenSCManager failed: %s",tcperr(err));
+      Log(1, "OpenSCManager failed: %s",w32err(err));
     else if(err==ERROR_ACCESS_DENIED)
     {
       Log(isService()?1:-1, "Access to NT service controls is denied.");
@@ -353,7 +356,7 @@ static enum service_main_retcodes service_main(enum service_main_types type)
       char path[MAXPATHLEN+1];
       if(GetModuleFileName(NULL, path, MAXPATHLEN)<1)
       {
-        Log(1, "Error in GetModuleFileName()=%s", tcperr(GetLastError()) );
+        Log(1, "Error in GetModuleFileName()=%s", w32err(GetLastError()) );
         CloseServiceHandle(sman);
         return service_main_ret_failinstall;
       }
@@ -373,7 +376,7 @@ static enum service_main_retcodes service_main(enum service_main_types type)
 
       if(!shan)
       {
-        Log(1, "Error in CreateService()=%s", tcperr(GetLastError()) );
+        Log(1, "Error in CreateService()=%s", w32err(GetLastError()) );
         rc=service_main_ret_failinstall;
       }
       else
@@ -424,7 +427,7 @@ static enum service_main_retcodes service_main(enum service_main_types type)
     }
     else
     {
-      Log(1, "Error in StartService()=%s", tcperr(GetLastError()) );
+      Log(1, "Error in StartService()=%s", w32err(GetLastError()) );
       rc=service_main_ret_failstart;
     }
     break;
@@ -453,7 +456,7 @@ static enum service_main_retcodes service_main(enum service_main_types type)
     }
     if(( type==service_main_uninstall) && !DeleteService(shan) )
     {
-      Log(1, "Error in DeleteService()=%s", tcperr(GetLastError()) );
+      Log(1, "Error in DeleteService()=%s", w32err(GetLastError()) );
       rc=service_main_ret_faildelete;
     }
     break;
@@ -851,7 +854,7 @@ int tell_start_ntservice(void)
        Log(-1,"Error %u: The specified dispatch table contains entries that are not in the proper format.", ERROR_INVALID_DATA);
        break;
     default:
-       Log(-1, "tell_start_ntservice(): %s",TCPERR() );
+       Log(-1, "tell_start_ntservice(): %s", w32err(GetLastError()) );
     }
   }
   return res;

@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.14  2003/10/06 17:16:47  stas
+ * (Cosmetics) Rename tcperr() to w32err() for win32/win9x versions
+ *
  * Revision 2.13  2003/08/05 05:36:14  hbrew
  * 'static const char rcsid[]' removed
  *
@@ -233,7 +236,7 @@ skip_newerrortolist:
 /* Return error message
  * (Massages taken from MSDN)
  */
-const char *tcperr (int errnum) {
+const char *w32err (int errnum) {
   const char *Str;
 
   switch( errnum ){
