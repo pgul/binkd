@@ -14,6 +14,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/12/09 21:58:20  gul
+ * Bugfix in resend file in compression mode,
+ * new functions compress_abort() and decompress_abort().
+ *
  * Revision 2.2  2003/10/27 23:22:54  gul
  * Fix OS/2 compilation
  *
@@ -31,9 +35,11 @@
 int compress_init(int type, int lvl, void **data);
 int do_compress(int type, char *dst, int *dst_len, char *src, int *src_len, int finish, void *data);
 void compress_deinit(int type, void *data);
+void compress_abort(int type, void *data);
 int decompress_init(int type, void **data);
 int do_decompress(int type, char *dst, int *dst_len, char *src, int *src_len, void *data);
 int decompress_deinit(int type, void *data);
+int decompress_abort(int type, void *data);
 
 #define ZBLKSIZE	1024	/* read/write file buffer size */
 

@@ -14,6 +14,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/12/09 21:58:20  gul
+ * Bugfix in resend file in compression mode,
+ * new functions compress_abort() and decompress_abort().
+ *
  * Revision 2.1  2003/10/19 12:21:46  gul
  * Stream compression
  *
@@ -139,6 +143,20 @@ void compress_deinit(int type, void *data)
   free(data);
   return;
 }
+void compress_abort(int type, void *data)
+{
+  char buf[1024];
+  int i, j;
+
+  if (data) { 
+    Log (4, "Purge compress buffers");
+    do {
+      i=sizeof(buf);
+      j=0;
+    } while (do_compress(type, buf, &i, NULL, &j, 1, data) == 0);
+    compress_deinit(type, data);
+  }
+}
 
 int decompress_init(int type, void **data)
 {
@@ -229,4 +247,19 @@ int decompress_deinit(int type, void *data)
   }
   free(data);
   return rc;
+}
+
+int decompress_abort(int type, void *data) {
+  char buf[1024];
+  int i, j;
+
+  if (data) {
+    Log (4, "Purge decompress buffers");
+    do {
+      i=sizeof(buf);
+      j=0;
+    } while (do_decompress(type, buf, &i, NULL, &j, data) == 0);
+    return decompress_deinit(type, data);
+  }
+  return 0;
 }

@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.142  2003/12/09 21:58:20  gul
+ * Bugfix in resend file in compression mode,
+ * new functions compress_abort() and decompress_abort().
+ *
  * Revision 2.141  2003/11/20 16:21:17  gul
  * Bugfix in sending ND-status with compression
  *
@@ -678,9 +682,9 @@ static int deinit_protocol (STATE *state, BINKD_CONFIG *config)
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
   xfree (state->z_obuf);
   if (state->z_recv && state->z_idata)
-    decompress_deinit(state->z_recv, state->z_idata);
+    decompress_abort(state->z_recv, state->z_idata);
   if (state->z_send && state->z_odata)
-    compress_deinit(state->z_send, state->z_odata);
+    compress_abort(state->z_send, state->z_odata);
 #endif
   xfree (state->ibuf);
   xfree (state->obuf);
@@ -2070,7 +2074,7 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
     if (state->z_recv && state->z_idata)
     {
-      decompress_deinit(state->z_recv, state->z_idata);
+      decompress_abort(state->z_recv, state->z_idata);
       state->z_idata = NULL;
     }
     state->z_recv = 0;
@@ -2326,8 +2330,9 @@ static void z_send_init(STATE *state, BINKD_CONFIG *config, char **extra)
   int rc;
 
   if (state->z_send && state->z_odata)
-  { compress_deinit(state->z_send, state->z_odata);
+  { compress_abort(state->z_send, state->z_odata);
     state->z_odata = NULL;
+    state->z_oleft = 0;
   }
   state->z_send = 0;
   *extra = "";
@@ -2449,8 +2454,8 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 	Log (2, "sending %s from %li", argv[0], offset);
 	z_send_init(state, config, &extra);
 	msg_sendf (state, M_FILE, "%s %li %lu %li%s", state->out.netname,
-		   (long) state->out.size, (unsigned long) state->out.time, offset,
-                   extra);
+		   (long) state->out.size, (unsigned long) state->out.time,
+		   offset, extra);
 	rc = 1;
       }
     }
@@ -2844,7 +2849,7 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
             if (state->z_idata)
             {
               Log (1, "Warning: extra compressed data ignored");
-              decompress_deinit(state->z_recv, state->z_idata);
+              decompress_abort(state->z_recv, state->z_idata);
               state->z_idata = NULL;
             }
           }
