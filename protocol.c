@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.46  2003/03/31 14:25:36  gul
+ * Segfault under FreeBSD
+ *
  * Revision 2.45  2003/03/25 14:08:30  gul
  * Do not save empty partial files
  *
@@ -1245,7 +1248,7 @@ static int start_file_recv (STATE *state, char *args, int sz)
       if ((mask = mask_test (state->in.netname, skipmask)) != NULL)
       {
 	Log (1, "skipping %s (destructive, %li byte(s), skipmask %s)",
-	     state->in.netname, state->in.size, mask);
+	     state->in.netname, (long) state->in.size, mask);
 	msg_sendf (state, M_GOT, "%s %li %li",
 		   state->in.netname,
 		   (long) state->in.size,
@@ -1256,7 +1259,7 @@ static int start_file_recv (STATE *state, char *args, int sz)
 		    state->in.time, state->inbound, realname))
       {
 	Log (2, "already have %s (%s, %li byte(s))",
-	     state->in.netname, realname, state->in.size);
+	     state->in.netname, realname, (long) state->in.size);
 	msg_sendf (state, M_GOT, "%s %li %li",
 		   state->in.netname,
 		   (long) state->in.size,
@@ -1560,7 +1563,7 @@ static int GOT (STATE *state, char *args, int sz)
              Log (7, "Set ND_addr to %u:%u/%u.%u",
                   state->ND_addr.z, state->ND_addr.net, state->ND_addr.node, state->ND_addr.p);
 	  Log (2, "sent: %s (%li, %.2f CPS, %s)", state->sent_fls[n].path,
-	       state->sent_fls[n].size,
+	       (long) state->sent_fls[n].size,
 	       (double) (state->sent_fls[n].size) /
 	       (time (0) == state->sent_fls[n].start ?
 		1 : (time (0) - state->sent_fls[n].start)), szAddr);
