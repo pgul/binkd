@@ -3,6 +3,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.2  2001/02/15 10:38:12  gul
+ * fix #include pathes
+ *
  * Revision 2.1  2001/01/16 03:57:06  gul
  * Added HAVE_SYS_IOCTL_H
  *
@@ -27,8 +30,8 @@
 #endif
 #include <sys/types.h>
 
-#include "tools.h"
-#include "daemonize.h"
+#include "../tools.h"
+#include "../daemonize.h"
 
 /*									*/
 /* Daemonize binkd if we know how to do it				*/
