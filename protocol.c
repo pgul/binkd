@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.78  2003/06/24 13:46:32  stas
+ * Fix max value of type time_t
+ *
  * Revision 2.77  2003/06/24 08:08:46  stas
  * Bugfix: do not transmit negative value of file time in binkp command-frames and check file time in received frames
  *
@@ -1613,7 +1616,7 @@ static int start_file_recv (STATE *state, char *args, int sz)
           Log ( 1, "File time too big! (M_FILE \"%s %s %s %s\")", argv[0], argv[1], argv[0], argv[2], argv[3] );
         else if(state->in.time<0){
           Log ( 1, "Illegal file time: too big and negative! (M_FILE \"%s %s %s %s\")", argv[0], argv[1], argv[0], argv[2], argv[3] );
-          state->in.time=(time_t)((-1)>>1); /* max positive value */
+          state->in.time=(time_t)((((unsigned long)(-1))>>1)); /* max positive value */
         }
       }else if(state->in.time<0){
         if(argv[2][0]=='-')
@@ -1796,7 +1799,7 @@ static int GET (STATE *state, char *args, int sz)
         Log ( 1, "File time too big! (M_GET \"%s %s %s %s\")", argv[0], argv[1], argv[0], argv[2], argv[3] );
       else if(ftime<0){
         Log ( 1, "Illegal file time: too big and negative! (M_GET \"%s %s %s %s\")", argv[0], argv[1], argv[0], argv[2], argv[3] );
-        ftime=(time_t)((-1)>>1); /* max positive value */
+        ftime=(time_t)((((unsigned long)(-1))>>1)); /* max positive value */
       }
     }else if(ftime<0){
       if(argv[2][0]=='-')
@@ -1911,7 +1914,7 @@ static int SKIP (STATE *state, char *args, int sz)
     ftime = atol (argv[2]);
     if(ftime<0){
       if(errno==ERANGE){
-        ftime=(time_t)((-1)>>1); /* max positive value */
+        ftime=(time_t)((((unsigned long)(-1))>>1)); /* max positive value */
       }
     }else{
       ftime=0;
@@ -1968,7 +1971,7 @@ static int GOT (STATE *state, char *args, int sz)
     ftime = atol (argv[2]);
     if(ftime<0){
       if(errno==ERANGE){
-        ftime=(time_t)((-1)>>1); /* max positive value */
+        ftime=(time_t)((((unsigned long)(-1))>>1)); /* max positive value */
       }
     }else{
       ftime=0;
