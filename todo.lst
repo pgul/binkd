@@ -5,3 +5,5 @@
 - different passwords for remote akas
 - don't give mail for unsecure aka of secure link when send-if-pwd
 - do not kill attaches (save and ignore) if drive missing (unmounted)
+- no incoming calls under BeOS (file locking problem)
+- no syslog support under BeOS
