@@ -1,3 +1,7 @@
+2004/02/07 16:06:40 1.0a-373 hbrew
+Config.h,2.396,2.397 binkd.c,2.87,2.88 common.h,2.11,2.12 confopt.h,2.3,2.4 exitproc.c,2.38,2.39 tools.c,2.61,2.62
+Macros: RTLDLL-->RTLSTATIC, BINKDW9X-->BINKD9X
+
 2004/02/07 16:06:09 1.0a-372 hbrew
 breaksig.c,2.22,2.23 win9x.c,2.26,2.27 win9x.h,2.6,2.7
 Macros: RTLDLL-->RTLSTATIC, BINKDW9X-->BINKD9X
