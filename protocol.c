@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.35  2003/03/02 17:51:37  gul
+ * Close received file before send M_GOT
+ *
  * Revision 2.34  2003/03/02 14:30:02  gul
  * Drop unsecure AKA with bad source IP address, no drop session
  *
@@ -1151,14 +1154,11 @@ static int start_file_recv (STATE *state, char *args, int sz)
       Log (1, "receiving of %s interrupted", state->in.netname);
       TF_ZERO (&state->in);
     }
-    if ((state->ND_flag == YES_ND) && state->in_complete.f)
+    if ((state->ND_flag == YES_ND) && state->in_complete.netname[0])
     { /* rename complete received file to its true form */
       char realname[MAXPATHLEN + 1];
       char szAddr[FTN_ADDR_SZ + 1];
 
-      if (fclose(state->in_complete.f))
-        Log (1, "Cannot fclose(%s): %s!",
-             state->in_complete.netname, strerror (errno));
       if (inb_done (state->in_complete.netname, state->in_complete.size,
 	            state->in_complete.time, state->fa, state->nallfa,
 		    state->inbound, realname) == 0)
@@ -1544,12 +1544,11 @@ static int EOB (STATE *state, char *buf, int sz)
     Log (1, "receiving of %s interrupted", state->in.netname);
     TF_ZERO (&state->in);
   }
-  if ((state->ND_flag == YES_ND) && state->in_complete.f)
+  if ((state->ND_flag == YES_ND) && state->in_complete.netname[0])
   { /* rename complete received file to its true form */
     char realname[MAXPATHLEN + 1];
     char szAddr[FTN_ADDR_SZ + 1];
 
-    fclose (state->in_complete.f);
     if (inb_done (state->in_complete.netname, state->in_complete.size,
                   state->in_complete.time, state->fa, state->nallfa,
 	          state->inbound, realname) == 0)
@@ -1667,6 +1666,14 @@ static int recv_block (STATE *state)
 	  char szAddr[FTN_ADDR_SZ + 1];
 	  char realname[MAXPATHLEN + 1];
 
+	  if (fclose (state->in.f))
+	  {
+	    Log (1, "Cannot fclose(%s): %s!",
+	         state->in.netname, strerror (errno));
+	    state->in.f = NULL;
+	    return 0;
+	  }
+	  state->in.f = NULL;
 	  if (state->ND_flag == YES_ND)
 	  {
 	    Log (5, "File %s complete received, waiting for renaming",
@@ -1675,7 +1682,6 @@ static int recv_block (STATE *state)
 	  }
 	  else
 	  {
-	    fclose (state->in.f);
 	    if (inb_done (state->in.netname, state->in.size,
 		          state->in.time, state->fa, state->nallfa,
 		          state->inbound, realname) == 0)
