@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2003/03/31 22:47:22  gul
+ * remove workaround for msvc localtime() bug
+ *
  * Revision 2.6  2003/03/31 20:28:24  gul
  * safe_localtime() and safe_gmtime() functions
  *
@@ -200,7 +203,7 @@ char **mkargv (int argc, char **argv);
 char *makeinboundcase (char *s);
 
 /*
- * Thread-safe localtime & gmtime functions with MSVC timezone bug workaround
+ * Thread-safe localtime & gmtime functions
  */
 struct tm *safe_localtime(time_t *t, struct tm *tm);
 struct tm *safe_gmtime(time_t *t, struct tm *tm);

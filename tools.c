@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.21  2003/03/31 22:47:22  gul
+ * remove workaround for msvc localtime() bug
+ *
  * Revision 2.20  2003/03/31 21:48:59  gul
  * Avoid infinite recursion
  *
@@ -295,40 +298,6 @@ int create_sem_file (char *name)
 MUTEXSEM LSem = 0;
 #endif
 
-#ifdef VISUALCPP
-#include <windows.h>
-struct tm *safe_localtime(time_t *t, struct tm *tm)
-{
-  SYSTEMTIME st;
-  GetLocalTime(&st);
-  tm->tm_year = st.wYear - 1900;
-  tm->tm_mon  = st.wMonth - 1;
-  tm->tm_wday = st.wDayOfWeek;
-  tm->tm_mday = st.wDay;
-  tm->tm_hour = st.wHour;
-  tm->tm_min  = st.wMinute;
-  tm->tm_sec  = st.wSecond;
-  tm->tm_isdst = 0;
-  return tm;
-}
-
-struct tm *safe_gmtime(time_t *t, struct tm *tm)
-{
-  SYSTEMTIME st;
-  GetSystemTime(&st);
-  tm->tm_year = st.wYear - 1900;
-  tm->tm_mon  = st.wMonth - 1;
-  tm->tm_wday = st.wDayOfWeek;
-  tm->tm_mday = st.wDay;
-  tm->tm_hour = st.wHour;
-  tm->tm_min  = st.wMinute;
-  tm->tm_sec  = st.wSecond;
-  tm->tm_isdst = 0;
-  return tm;
-}
-
-#else
-
 struct tm *safe_localtime(time_t *t, struct tm *tm)
 {
   threadsafe(memcpy(tm, localtime(t), sizeof(*tm)));
@@ -340,7 +309,6 @@ struct tm *safe_gmtime(time_t *t, struct tm *tm)
   threadsafe(memcpy(tm, gmtime(t), sizeof(*tm)));
   return tm;
 }
-#endif
 
 void Log (int lev, char *s,...)
 {
