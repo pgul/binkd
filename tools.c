@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.32  2003/08/12 09:35:48  gul
+ * Cosmetics
+ *
  * Revision 2.31  2003/08/12 09:23:00  val
  * migrate from pmatch() to pmatch_ncase()
  *
@@ -907,12 +910,13 @@ int istic (char *s)
 
 int isarcmail (char *s)
 {
-  /* *.su? *.mo? *.tu? *.we? *.th? *.fr? *.sa? */
-  return (pmatch_ncase("*.s[UuAa]?", s) ||
-          pmatch_ncase("*.t[UuHh]?", s) ||
+  return (pmatch_ncase("*.su?", s) ||
           pmatch_ncase("*.mo?", s) ||
+          pmatch_ncase("*.tu?", s) ||
           pmatch_ncase("*.we?", s) ||
-          pmatch_ncase("*.fr?", s));
+          pmatch_ncase("*.th?", s) ||
+          pmatch_ncase("*.fr?", s) ||
+          pmatch_ncase("*.sa?", s));
 }
 
 /*
