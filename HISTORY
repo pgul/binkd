@@ -1,3 +1,7 @@
+2003/12/15 02:03:58 1.0a-309 gul
+protocol.c,2.143,2.144 todo.lst,2.41,2.42
+NZ option for M_GET command - request uncompressed file
+
 2003/12/10 13:12:15 1.0a-308 gul
 compress.c,2.2,2.3 protocol.c,2.142,2.143
 Minor fix in decompression deinit
