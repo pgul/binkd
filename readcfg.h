@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2003/03/01 18:52:49  gul
+ * use time_t for mtime
+ *
  * Revision 2.6  2003/03/01 15:00:17  gul
  * Join skipmask and overwrite into common maskchain
  *
@@ -130,7 +133,7 @@ extern int aso;
 extern struct conflist_type 
   { char *path;
     struct conflist_type *next;
-    unsigned long mtime;
+    time_t mtime;
   } *config_list;
 extern struct maskchain
   {
