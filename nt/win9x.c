@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.25  2003/10/06 17:53:15  stas
+ * (Prevent compiler warning.) Remove type convertion at CreateWin9xThread() call
+ *
  * Revision 2.24  2003/09/11 13:04:14  hbrew
  * Undo 'move binkd9x deinit to exitfunc()' patch
  *
@@ -122,7 +125,7 @@
 #define ENDSESSION_LOGOFF    0x80000000
 #endif
 
-PHANDLER_ROUTINE phandler;
+PHANDLER_ROUTINE phandler;  /* BOOL CALLBACK *phandler(DWORD); */
 HWND mainHWND = NULL;
 WNDCLASS wc;
 
@@ -331,7 +334,7 @@ int win9x_process(int argc, char **argv)
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
   atexit(win9xAtExit);
-  
+
   return binkd_main(__argc, __argv, environ);
 }
 
