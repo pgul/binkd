@@ -6,93 +6,75 @@ use macro instead number; remove unused comparision
 perlhooks.c,2.33,2.34
 missing OS/2 code for PERLDL improvements added
 
-2003/10/24 09:41:13 1.0a-275
- val
+2003/10/24 09:41:13 1.0a-275 val
 zlibdl.h,2.15,2.16
 ZLIBDL fix to restore linking with MSVC (bzlib2 still crashes)
 
-2003/10/24 09:40:16 1.0a-274
- val
+2003/10/24 09:40:16 1.0a-274 val
 perlhooks.c,2.32,2.33
 PERLDL support for both Perl 5.6 and 5.8 versions
 
-2003/10/24 09:38:44 1.0a-273
- val
+2003/10/24 09:38:44 1.0a-273 val
 protocol.c,2.135,2.136
 fix warning
 
-2003/10/24 00:39:23 1.0a-272
- gul
+2003/10/24 00:39:23 1.0a-272 gul
 readcfg.c,2.57,2.58
 Remove C++ style comments
 
-2003/10/24 00:38:56 1.0a-271
- gul
+2003/10/24 00:38:56 1.0a-271 gul
 breaksig.c,2.21,2.22
 Remove C++ style comments
 
-2003/10/24 00:16:12 1.0a-270
- gul
+2003/10/24 00:16:12 1.0a-270 gul
 zlibdl.h,2.14,2.15
 Fix MSVC bzlib2 ZLIBDL compilation
 
-2003/10/23 19:45:36 1.0a-269
- gul
+2003/10/23 19:45:36 1.0a-269 gul
 zlibdl.h,2.13,2.14
 Fix win32 zlibdl compilation
 
-2003/10/23 19:36:27 1.0a-268
- gul
+2003/10/23 19:36:27 1.0a-268 gul
 zlibdl.h,2.12,2.13
 Fix warning
 
-2003/10/22 17:24:55 1.0a-267
- stas
+2003/10/22 17:24:55 1.0a-267 stas
 Config.h,2.285,2.286 perlhooks.c,2.31,2.32
 Remove obsolete defines
 
-2003/10/21 21:17:22 1.0a-266
- stas
+2003/10/21 21:17:22 1.0a-266 stas
 tray.c,2.2,2.3
 Log message 'Icon for systray is loaded from <file>'
 
-2003/10/20 23:27:10 1.0a-265
- gul
+2003/10/20 23:27:10 1.0a-265 gul
 binkd.c,2.70,2.71
 format output
 
-2003/10/20 22:17:59 1.0a-264
- gul
+2003/10/20 22:17:59 1.0a-264 gul
 binkd.c,2.69,2.70 !README.FIX,2.35,2.36 todo.lst,2.40,2.41
 Print optional compiled-in extensions by -vv command-line switch
 
-2003/10/20 21:44:55 1.0a-263
- gul
+2003/10/20 21:44:55 1.0a-263 gul
 protocol.c,2.134,2.135
 Inhibit incorrect error message
 
-2003/10/20 21:24:12 1.0a-262
- gul
+2003/10/20 21:24:12 1.0a-262 gul
 protocol.c,2.133,2.134
 Compression bugfix
 
-2003/10/20 21:04:49 1.0a-261
- gul
+2003/10/20 21:04:49 1.0a-261 gul
 zlibdl.c,2.11,2.12
 Previous patch break OS/2 compilation. Fixed.
 
-2003/10/20 20:57:16 1.0a-260
- gul
+2003/10/20 20:57:16 1.0a-260 gul
 zlibdl.c,2.10,2.11
 Dynamic load bzlib.dll built as C++
 
-2003/10/20 18:44:33 1.0a-259
- gul
+2003/10/20 18:44:33 1.0a-259 gul
 zlibdl.h,2.11,2.12
 Declare DLL functions as WINAPI
 
-2003/10/20 15:23:59 1.0a-258
- gul
+2003/10/20 15:23:59 1.0a-258 gul
 Config.h,2.275,2.276
 Split MYVER for future WINVER set
 
