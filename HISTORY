@@ -1,3 +1,8 @@
+2004/10/29 14:16:37 1.0a-416 gul
+inbound.c,2.33,2.34
+Fixed bug with check required free space if off_t is signed long
+and getfree() returns ULONG_MAX.
+
 2004/10/26 20:37:05 1.0a-415 gul
 binkd.cfg,2.44,2.45 readcfg.c,2.76,2.77
 Set time intervals in human-readable form (12h instead of 43200 etc.)
