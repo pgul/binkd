@@ -14,6 +14,13 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2003/08/18 07:29:09  val
+ * multiple changes:
+ * - perl error handling made via fork/thread
+ * - on_log() perl hook
+ * - perl: msg_send(), on_send(), on_recv()
+ * - unless using threads define log buffer via xalloc()
+ *
  * Revision 2.8  2003/08/13 08:20:45  val
  * try to avoid mixing Log() output and Perl errors in stderr
  *
@@ -412,7 +419,7 @@ typedef enum {
   PERL_ON_START, PERL_ON_EXIT, PERL_ON_CALL, PERL_ON_ERROR,
   PERL_ON_HANDSHAKE, PERL_AFTER_HANDSHAKE, PERL_AFTER_SESSION, 
   PERL_BEFORE_RECV, PERL_AFTER_RECV, PERL_BEFORE_SEND, PERL_AFTER_SENT,
-  PERL_ON_LOG
+  PERL_ON_LOG, PERL_ON_SEND, PERL_ON_RECV
 } perl_subs;
 /* if 0, perl is disabled; if non-0, some subs are enabled */
 int perl_ok = 0;
@@ -429,7 +436,9 @@ char *perl_subnames[] = {
   "after_recv",
   "before_send",
   "after_sent",
-  "on_log"
+  "on_log",
+  "on_send",
+  "on_recv"
 };
 /* if set, queue is managed from perl: sorting, etc (binkd logic is off) */
 int perl_manages_queue = 0;
@@ -505,43 +514,117 @@ struct perl_const { char *name; int value; } perl_consts[] = {
 /* =========================== err handling ========================== */
 
 /* since multi-thread handlers don't work anyway, use single copy ;) */
-static int perl_olderr, perl_errpipe[2];
-FILE *perl_OLDERR = NULL;
+struct s_perlerr {
+  int olderr;
+  int errpipe[2];
+  int pid;
+} perlerr = { 0, {0,0}, 0 };
 
-/* set up perl errors handler, redirect stderr to pipe */
-/* !!! DON'T CALL FROM THREADS !!! */
-static void handle_perlerr(int *olderr, int *errpipe) {
-  fflush(stderr);
-  *olderr = dup(fileno(stderr));
-  perl_OLDERR = fdopen(*olderr, "w");
-#if defined(UNIX) || defined(__OS2__)
-  pipe(errpipe);
-#elif defined(_MSC_VER)
-  _pipe(errpipe, 0, 64);
-#endif
-  dup2(errpipe[1], fileno(stderr));
-}
+#if defined(__OS2__) || defined(_MSC_VER)
+/* thread that reads from pipe */
+static void err_thread(void *arg) {
+  FILE *R;
+  char buf[256];
 
-/* restore perl errors handler, read pipe to var and restore stderr */
-/* !!! DON'T CALL FROM THREADS !!! */
-static void restore_perlerr(int *olderr, int *errpipe) {
-char buf[256];
-FILE *R;
-  fflush(perl_OLDERR); perl_OLDERR = NULL;
-  close(errpipe[1]);
-  dup2(*olderr, fileno(stderr));
-  R = fdopen(errpipe[0], "r");
+  R = fdopen(*((int*)arg), "r");
+  if (R == NULL) return;
   buf[0] = 0;
-  while ( fgets(buf, 256, R) ) {
+  while ( fgets(buf, sizeof(buf), R) ) {
     int n = strlen(buf);
     if (n > 0 && buf[n-1] == '\n') {
       if (n > 1 && buf[n-2] == '\r') buf[--n] = 0;
       buf[--n] = 0;
     }
-    /* while (n && buf[n] == ' ') buf[n--] = 0; */
     if (n > 0) Log(LL_ERR, "Perl error: %s", buf);
   }
   fclose(R);
+  fflush(stderr);
+}
+#endif
+
+/* set up perl errors handler, redirect stderr to pipe */
+static void handle_perlerr2(struct s_perlerr *e, int thread_safe) {
+#ifdef HAVE_FORK
+int pid, try = 0;
+#endif
+  e->pid = 0;
+#if defined(HAVE_FORK)
+  pipe(e->errpipe);
+  close(e->errpipe[1]);
+  while (try < 10) {
+    pid = fork();
+    /* parent */
+    if (pid > 0) {
+      e->olderr = dup(fileno(stderr));
+      dup2(e->errpipe[1], fileno(stderr));
+      close(e->errpipe[0]);
+      e->pid = pid;
+    }
+    /* child */
+    else if (pid == 0) {
+      FILE *R;
+      char buf[256];
+
+      R = fdopen(e->errpipe[0], "r");
+      buf[0] = 0;
+      while ( fgets(buf, sizeof(buf), R) ) {
+        int n = strlen(buf);
+        if (n > 0 && buf[n-1] == '\n') {
+          if (n > 1 && buf[n-2] == '\r') buf[--n] = 0;
+          buf[--n] = 0;
+        }
+        if (n > 0) Log(LL_ERR, "Perl error: %s", buf);
+      }
+      fclose(R);
+      fflush(stderr);
+      exit(0);
+    }
+    /* error */
+    else if (errno != EINTR) {
+      close(e->errpipe[0]);
+      Log(LL_ERR, "handle_perlerr(): can't fork (%s)", strerror(errno));
+      return;
+    }
+    try++;
+  }
+#elif defined(HAVE_THREADS)
+   if (!thread_safe) return;
+# ifdef _MSC_VER
+   _pipe(e->errpipe, 0, 64);
+# else
+   pipe(e->errpipe);
+# endif
+   e->olderr = dup(fileno(stderr));
+   dup2(e->errpipe[1], fileno(stderr));
+   close(e->errpipe[1]);
+   e->pid = BEGINTHREAD(&err_thread, STACKSIZE, &(e->errpipe[0]));
+   if (e->pid <= 0) {
+     close(e->errpipe[0]);
+     Log(LL_ERR, "handle_perlerr(): can't begin thread (%s)", strerror(errno));
+     e->pid = 0;
+   }
+#else
+# error "Don't know how to hanlde Perl errors in this case"
+#endif
+}
+#define handle_perlerr(arg) handle_perlerr2(arg, 0)
+
+/* restore perl errors handler, read pipe to var and restore stderr */
+static void restore_perlerr(struct s_perlerr *e) {
+  if (e->pid) {
+    dup2(e->olderr, fileno(stderr));
+    close(e->olderr);
+#if defined(HAVE_FORK)
+    waitpid(e->pid, &e->pid, 0);
+#elif defined(HAVE_THREADS)
+# ifdef __OS2__
+    DosWaitThread((PTID)&(e->pid), DCWW_WAIT);
+# elif defined(_MSC_VER)
+    /* what to do here? */
+# endif
+#endif
+  }
+  e->pid = 0;
 }
 
 /* handle multi-line perl eval error message */
@@ -549,7 +632,7 @@ static void sub_err(int sub) {
 STRLEN len;
 char *s, *p;
   p = SvPV(ERRSV, len);
-  if (len) { s = xalloc(len+1); strnzcpy(s, p, len); }
+  if (len) { s = xalloc(len+1); strnzcpy(s, p, len+1); }
     else s = "(empty error message)";
   if ( strchr(s, '\n') == NULL )
     Log(LL_ERR, "Perl %s error: %s", perl_subnames[sub], s);
@@ -684,6 +767,35 @@ char *s, *p;
   free(B);
   XSRETURN_IV(N - m);
 }
+/* puts a message to msg-queue */
+extern void msg_send2 (STATE *state, t_msg m, char *s1, char *s2);
+#ifdef _MSC_VER
+  EXTERN_C void perl_msg_send(pTHXo_ CV* cv)
+#else
+  static XS(perl_msg_send)
+#endif
+{
+  dXSARGS;
+  SV *sv;
+  STATE *state;
+  t_msg m;
+  char *str;
+  STRLEN n_a;
+
+  if (items != 2) {
+    Log(LL_ERR, "wrong params number to msg_send (needs 2, exist %d)", items);
+    XSRETURN_EMPTY;
+  }
+  sv = perl_get_sv("__state", FALSE);
+  if (!sv) { Log(LL_ERR, "can't find $__state pointer"); XSRETURN_EMPTY; }
+  state = (STATE*)SvIV(sv);
+  if (!state) { Log(LL_ERR, "$__state pointer is NULL"); XSRETURN_EMPTY; }
+  m = (t_msg)SvIV(ST(0));
+  str = (char *)SvPV(ST(1), n_a); if (n_a == 0) str = "";
+  msg_send2(state, m, str, NULL);
+  XSRETURN_EMPTY;
+}
+
 /* xs_init */
 #ifdef _MSC_VER
 EXTERN_C void xs_init (pTHXo)
@@ -708,6 +820,7 @@ static void xs_init(void)
   newXS("Log", perl_Log, file);
   newXS("aeq", perl_aeq, file);
   newXS("arm", perl_arm, file);
+  newXS("msg_send", perl_msg_send, file);
 }
 
 /* =========================== sys ========================== */
@@ -758,9 +871,9 @@ int perl_init(char *perlfile) {
   /* init perl */
   perl = perl_alloc();
   perl_construct(perl);
-  handle_perlerr(&perl_olderr, perl_errpipe);
+  handle_perlerr2(&perlerr, 1);
   rc = perl_parse(perl, xs_init, i, perlargs, NULL);
-  restore_perlerr(&perl_olderr, perl_errpipe);
+  restore_perlerr(&perlerr);
   Log(LL_DBG, "perl_init(): parse rc=%d", rc);
   /* can't parse */
   if (rc) {
@@ -777,9 +890,9 @@ int perl_init(char *perlfile) {
   perl_setup();
   /* run main program body */
   Log(LL_DBG, "perl_init(): running body");
-  handle_perlerr(&perl_olderr, perl_errpipe);
+  handle_perlerr2(&perlerr, 1);
   perl_run(perl);
-  restore_perlerr(&perl_olderr, perl_errpipe);
+  restore_perlerr(&perlerr);
   /* scan for present hooks */
   for (i = 0; i < sizeof(perl_subnames)/sizeof(perl_subnames[0]); i++) {
     if (perl_get_cv(perl_subnames[i], NULL)) perl_ok |= (1 << i);
@@ -1150,7 +1263,7 @@ static FTNQ *refresh_queue(STATE *state, FTNQ *queue) {
     q = xalloc( sizeof(FTNQ) ); FQ_ZERO(q);
     if (!q0) q0 = q;
       else { qp->next = q; q->prev = qp; }
-    strnzcpy(q->path, s, min(len, MAXPATHLEN));
+    strnzcpy(q->path, s, min(len+1, MAXPATHLEN));
     svp = hv_fetch(hv, "size", 4, 0);
     if (!svp || !SvOK(*svp)) q->size = 0;
       else q->size = SvIV(*svp);
@@ -1188,7 +1301,7 @@ void perl_on_start(void) {
   if (perl_ok & (1 << PERL_ON_START)) {
      Log(LL_DBG, "perl_on_start(), perl=%p", Perl_get_context());
 #ifndef HAVE_THREADS
-     handle_perlerr(&perl_olderr, perl_errpipe);
+     handle_perlerr(&perlerr);
 #endif
      { dSP;
        ENTER;
@@ -1202,7 +1315,7 @@ void perl_on_start(void) {
        LEAVE;
      }
 #ifndef HAVE_THREADS
-     restore_perlerr(&perl_olderr, perl_errpipe);
+     restore_perlerr(&perlerr);
 #endif
      if (SvTRUE(ERRSV)) sub_err(PERL_ON_START);
 /*     {
@@ -1222,7 +1335,7 @@ void perl_on_exit(void) {
 #endif
      Log(LL_DBG, "perl_on_exit(), perl=%p", Perl_get_context());
 #ifndef HAVE_THREADS
-     handle_perlerr(&perl_olderr, perl_errpipe);
+     handle_perlerr(&perlerr);
 #endif
      { dSP;
        ENTER;
@@ -1236,12 +1349,9 @@ void perl_on_exit(void) {
        LEAVE;
      }
 #ifndef HAVE_THREADS
-     restore_perlerr(&perl_olderr, perl_errpipe);
+     restore_perlerr(&perlerr);
 #endif
-     if (SvTRUE(ERRSV))
-     {
-       Log(LL_ERR, "Perl on_exit() error: %s", SvPV(ERRSV, n_a));
-     }
+     if (SvTRUE(ERRSV)) sub_err(PERL_ON_EXIT);
      Log(LL_DBG, "perl_on_exit() end");
   }
 }
@@ -1260,7 +1370,7 @@ int perl_on_call(FTN_NODE *node) {
       ftnaddress_to_str(buf, &(node->fa));
       VK_ADD_str(sv, "addr", buf);
 #ifndef HAVE_THREADS
-      handle_perlerr(&perl_olderr, perl_errpipe);
+      handle_perlerr(&perlerr);
 #endif
       ENTER;
       SAVETMPS;
@@ -1274,13 +1384,9 @@ int perl_on_call(FTN_NODE *node) {
       FREETMPS;
       LEAVE;
 #ifndef HAVE_THREADS
-      restore_perlerr(&perl_olderr, perl_errpipe);
+      restore_perlerr(&perlerr);
 #endif
-      if (SvTRUE(ERRSV)) {
-/*        Log(LL_ERR, "Perl %s eval error: %s", 
-            perl_subnames[PERL_ON_CALL], SvPV(ERRSV, len));*/
-          sub_err(PERL_ON_CALL);
-      }
+      if (SvTRUE(ERRSV)) sub_err(PERL_ON_CALL);
     }
     Log(LL_DBG, "perl_on_call() end");
     return rc;
@@ -1304,7 +1410,7 @@ int perl_on_error(FTN_ADDR *addr, const char *error, const int where) {
       VK_ADD_str (sv, "error", error);
       VK_ADD_intz(sv, "where", where);
 #ifndef HAVE_THREADS
-      handle_perlerr(&perl_olderr, perl_errpipe);
+      handle_perlerr(&perlerr);
 #endif
       ENTER;
       SAVETMPS;
@@ -1318,12 +1424,9 @@ int perl_on_error(FTN_ADDR *addr, const char *error, const int where) {
       FREETMPS;
       LEAVE;
 #ifndef HAVE_THREADS
-      restore_perlerr(&perl_olderr, perl_errpipe);
+      restore_perlerr(&perlerr);
 #endif
-      if (SvTRUE(ERRSV)) {
-        Log(LL_ERR, "Perl %s eval error: %s", 
-            perl_subnames[PERL_ON_ERROR], SvPV(ERRSV, len));
-      }
+      if (SvTRUE(ERRSV)) sub_err(PERL_ON_ERROR);
     }
     Log(LL_DBG, "perl_on_error() end");
     return rc;
@@ -1340,6 +1443,7 @@ char *perl_on_handshake(STATE *state) {
   AV *he, *me;
   SV *svret, **svp;
 
+  if (Perl_get_context()) { VK_ADD_intz(svret, "__state", (long)state); }
   if (perl_ok & (1 << PERL_ON_HANDSHAKE)) {
     Log(LL_DBG, "perl_on_handshake(), perl=%p", Perl_get_context());
     if (!Perl_get_context()) return NULL;
@@ -1358,7 +1462,7 @@ char *perl_on_handshake(STATE *state) {
       }
       setup_session(state, 1);
 #ifndef HAVE_THREADS
-      handle_perlerr(&perl_olderr, perl_errpipe);
+      handle_perlerr(&perlerr);
 #endif
       ENTER;
       SAVETMPS;
@@ -1372,11 +1476,10 @@ char *perl_on_handshake(STATE *state) {
       FREETMPS;
       LEAVE;
 #ifndef HAVE_THREADS
-      restore_perlerr(&perl_olderr, perl_errpipe);
+      restore_perlerr(&perlerr);
 #endif
       if (SvTRUE(ERRSV)) {
-        Log(LL_ERR, "Perl %s eval error: %s", 
-            perl_subnames[PERL_ON_HANDSHAKE], SvPV(ERRSV, len));
+        sub_err(PERL_ON_HANDSHAKE);
         if (prc) free(prc);
         prc = NULL;
       }
@@ -1415,7 +1518,7 @@ char *perl_after_handshake(STATE *state) {
       if (state->perl_set_lvl < 2) setup_session(state, 2);
       if (perl_wants_queue) setup_queue(state, state->q);
 #ifndef HAVE_THREADS
-      handle_perlerr(&perl_olderr, perl_errpipe);
+      handle_perlerr(&perlerr);
 #endif
       ENTER;
       SAVETMPS;
@@ -1429,11 +1532,10 @@ char *perl_after_handshake(STATE *state) {
       FREETMPS;
       LEAVE;
 #ifndef HAVE_THREADS
-      restore_perlerr(&perl_olderr, perl_errpipe);
+      restore_perlerr(&perlerr);
 #endif
       if (SvTRUE(ERRSV)) {
-        Log(LL_ERR, "Perl %s eval error: %s", 
-            perl_subnames[PERL_AFTER_HANDSHAKE], SvPV(ERRSV, len));
+        sub_err(PERL_AFTER_HANDSHAKE);
         if (prc) free(prc);
         prc = NULL;
       }
@@ -1450,6 +1552,7 @@ void perl_after_session(STATE *state, char *status) {
   SV *sv;
   STRLEN len;
 
+  if (Perl_get_context()) { VK_ADD_intz(sv, "__state", 0); }
   if (perl_ok & (1 << PERL_AFTER_SESSION)) {
     Log(LL_DBG, "perl_after_session(), perl=%p", Perl_get_context());
     if (!Perl_get_context()) return;
@@ -1457,7 +1560,7 @@ void perl_after_session(STATE *state, char *status) {
       if (state->perl_set_lvl < 3) setup_session(state, 3);
       VK_ADD_intz(sv, "rc", (STRICMP(status, "OK") == 0));
 #ifndef HAVE_THREADS
-      handle_perlerr(&perl_olderr, perl_errpipe);
+      handle_perlerr(&perlerr);
 #endif
       ENTER;
       SAVETMPS;
@@ -1469,12 +1572,9 @@ void perl_after_session(STATE *state, char *status) {
       FREETMPS;
       LEAVE;
 #ifndef HAVE_THREADS
-      restore_perlerr(&perl_olderr, perl_errpipe);
+      restore_perlerr(&perlerr);
 #endif
-      if (SvTRUE(ERRSV)) {
-        Log(LL_ERR, "Perl %s eval error: %s", 
-            perl_subnames[PERL_AFTER_SESSION], SvPV(ERRSV, len));
-      }
+      if (SvTRUE(ERRSV)) sub_err(PERL_AFTER_SESSION);
     }
     Log(LL_DBG, "perl_after_session() end");
   }
@@ -1497,7 +1597,7 @@ int perl_before_recv(STATE *state, off_t offs) {
       VK_ADD_intz(sv, "time", state->in.time);
       VK_ADD_intz(sv, "offs", offs);
 #ifndef HAVE_THREADS
-      handle_perlerr(&perl_olderr, perl_errpipe);
+      handle_perlerr(&perlerr);
 #endif
       ENTER;
       SAVETMPS;
@@ -1511,11 +1611,10 @@ int perl_before_recv(STATE *state, off_t offs) {
       FREETMPS;
       LEAVE;
 #ifndef HAVE_THREADS
-      restore_perlerr(&perl_olderr, perl_errpipe);
+      restore_perlerr(&perlerr);
 #endif
       if (SvTRUE(ERRSV)) {
-        Log(LL_ERR, "Perl %s eval error: %s", 
-            perl_subnames[PERL_BEFORE_RECV], SvPV(ERRSV, len));
+        sub_err(PERL_BEFORE_RECV);
         rc = 0;
       }
       else if (perl_manages_queue) state->q = refresh_queue(state, state->q);
@@ -1548,7 +1647,7 @@ int perl_after_recv(STATE *state, char *netname, off_t size, time_t time,
       VK_ADD_str (sv, "tmpfile", tmp_name);
       VK_ADD_str (sv, "file", real_name); if (sv) { SvREADONLY_off(sv); }
 #ifndef HAVE_THREADS
-      handle_perlerr(&perl_olderr, perl_errpipe);
+      handle_perlerr(&perlerr);
 #endif
       ENTER;
       SAVETMPS;
@@ -1562,11 +1661,10 @@ int perl_after_recv(STATE *state, char *netname, off_t size, time_t time,
       FREETMPS;
       LEAVE;
 #ifndef HAVE_THREADS
-      restore_perlerr(&perl_olderr, perl_errpipe);
+      restore_perlerr(&perlerr);
 #endif
       if (SvTRUE(ERRSV)) {
-        Log(LL_ERR, "Perl %s eval error: %s", 
-            perl_subnames[PERL_AFTER_RECV], SvPV(ERRSV, len));
+        sub_err(PERL_AFTER_RECV);
         rc = 0;
       }
       /* update real_name */
@@ -1607,7 +1705,7 @@ int perl_before_send(STATE *state) {
       VK_ADD_intz(sv, "size", state->out.size);
       VK_ADD_intz(sv, "time", state->out.time);
 #ifndef HAVE_THREADS
-      handle_perlerr(&perl_olderr, perl_errpipe);
+      handle_perlerr(&perlerr);
 #endif
       ENTER;
       SAVETMPS;
@@ -1621,11 +1719,10 @@ int perl_before_send(STATE *state) {
       FREETMPS;
       LEAVE;
 #ifndef HAVE_THREADS
-      restore_perlerr(&perl_olderr, perl_errpipe);
+      restore_perlerr(&perlerr);
 #endif
       if (SvTRUE(ERRSV)) {
-        Log(LL_ERR, "Perl %s eval error: %s", 
-            perl_subnames[PERL_BEFORE_SEND], SvPV(ERRSV, len));
+        sub_err(PERL_BEFORE_SEND);
         rc = 0;
       }
       else {
@@ -1667,7 +1764,7 @@ int perl_after_sent(STATE *state, int n) {
       buf[0] = state->sent_fls[n].action; buf[1] = 0;
       VK_ADD_str (sv, "action", buf); if (sv) { SvREADONLY_off(sv); }
 #ifndef HAVE_THREADS
-      handle_perlerr(&perl_olderr, perl_errpipe);
+      handle_perlerr(&perlerr);
 #endif
       ENTER;
       SAVETMPS;
@@ -1681,11 +1778,10 @@ int perl_after_sent(STATE *state, int n) {
       FREETMPS;
       LEAVE;
 #ifndef HAVE_THREADS
-      restore_perlerr(&perl_olderr, perl_errpipe);
+      restore_perlerr(&perlerr);
 #endif
       if (SvTRUE(ERRSV)) {
-        Log(LL_ERR, "Perl %s eval error: %s", 
-            perl_subnames[PERL_AFTER_SENT], SvPV(ERRSV, len));
+        sub_err(PERL_AFTER_SENT);
         rc = 0;
       }
       else {
@@ -1706,4 +1802,134 @@ int perl_after_sent(STATE *state, int n) {
 }
 
 /* when writing string to log */
-void perl_on_log(char *s) {}
+int perl_on_log(char *s, int bufsize, int *lev) {
+  int    rc = 1;
+  STRLEN len;
+  SV     *svret, *sv, *svchk;
+
+  if (!perl || !Perl_get_context()) return 1;
+  if (perl_ok & (1 << PERL_ON_LOG)) {
+    /* check: not to call while on_log() is running */
+    svchk = perl_get_sv("__in_log", FALSE);
+    if (svchk && SvIV(svchk) == 1) return 1;
+    VK_ADD_intz(svchk, "__in_log", 1);
+    if (!svchk) return 1; /* can't guarantee there won't be recursion */
+    /* end of check */
+    Log(LL_DBG2, "perl_on_log(), perl=%p", Perl_get_context());
+    { dSP;
+      VK_ADD_intz(sv, "lvl", *lev); if (sv) { SvREADONLY_off(sv); }
+      VK_ADD_str (sv, "_", s); if (sv) { SvREADONLY_off(sv); }
+#ifndef HAVE_THREADS
+      handle_perlerr(&perlerr);
+#endif
+      ENTER;
+      SAVETMPS;
+      PUSHMARK(SP);
+      PUTBACK;
+      perl_call_pv(perl_subnames[PERL_ON_LOG], G_EVAL|G_SCALAR);
+      SPAGAIN;
+      svret=POPs;
+      if (SvOK(svret)) rc = SvIV(svret); else rc = 0;
+      PUTBACK;
+      FREETMPS;
+      LEAVE;
+#ifndef HAVE_THREADS
+      restore_perlerr(&perlerr);
+#endif
+      if (SvTRUE(ERRSV)) {
+        sub_err(PERL_ON_LOG);
+        rc = 1;
+      }
+      else if (rc && sv) {
+        char *p = SvPV(sv, len);
+        if (!p || len == 0 || *p == 0) rc = 0; 
+        else {
+          rc = 1;
+          strnzcpy(s, p, min(len+1, bufsize));
+          sv = perl_get_sv("lvl", FALSE); if (sv) *lev = SvIV(sv);
+        }
+      }
+      else rc = 1;
+    }
+    Log(LL_DBG2, "perl_on_log() end");
+    sv_setiv(svchk, 0); /* check: now we can restore */
+    return rc;
+  }
+  return 1;
+}
+
+int perl_on_send(STATE *state, t_msg *m, char **s1, char **s2) {
+  int    rc = 1;
+  STRLEN len;
+  SV     *svret, *sv, *svchk;
+
+  if (perl_ok & (1 << PERL_ON_SEND)) {
+    Log(LL_DBG2, "perl_on_send(), perl=%p", Perl_get_context());
+    { dSP;
+      VK_ADD_intz(sv, "type", *m);
+      VK_ADD_str (sv, "s1", *s1);
+      VK_ADD_str (sv, "s2", *s2);
+#ifndef HAVE_THREADS
+      handle_perlerr(&perlerr);
+#endif
+      ENTER;
+      SAVETMPS;
+      PUSHMARK(SP);
+      PUTBACK;
+      perl_call_pv(perl_subnames[PERL_ON_SEND], G_EVAL|G_SCALAR);
+      SPAGAIN;
+      svret=POPs;
+      /*if (SvOK(svret)) rc = SvIV(svret); else rc = 0;*/
+      PUTBACK;
+      FREETMPS;
+      LEAVE;
+#ifndef HAVE_THREADS
+      restore_perlerr(&perlerr);
+#endif
+      if (SvTRUE(ERRSV)) {
+        sub_err(PERL_ON_SEND);
+      }
+    }
+    Log(LL_DBG2, "perl_on_send() end");
+    return rc;
+  }
+  return 1;
+}
+
+int perl_on_recv(STATE *state, char *s, int size) { 
+  int    rc = 1;
+  STRLEN len;
+  SV     *svret, *sv, *svchk;
+
+  if (perl_ok & (1 << PERL_ON_RECV)) {
+    Log(LL_DBG2, "perl_on_recv(), perl=%p", Perl_get_context());
+    { dSP;
+      if ( (sv = perl_get_sv("s", TRUE)) ) {
+        sv_setpvn(sv, s, size); SvREADONLY_on(sv);
+      }
+#ifndef HAVE_THREADS
+      handle_perlerr(&perlerr);
+#endif
+      ENTER;
+      SAVETMPS;
+      PUSHMARK(SP);
+      PUTBACK;
+      perl_call_pv(perl_subnames[PERL_ON_RECV], G_EVAL|G_SCALAR);
+      SPAGAIN;
+      svret=POPs;
+      /*if (SvOK(svret)) rc = SvIV(svret); else rc = 0;*/
+      PUTBACK;
+      FREETMPS;
+      LEAVE;
+#ifndef HAVE_THREADS
+      restore_perlerr(&perlerr);
+#endif
+      if (SvTRUE(ERRSV)) {
+        sub_err(PERL_ON_RECV);
+      }
+    }
+    Log(LL_DBG2, "perl_on_recv() end");
+    return rc;
+  }
+  return 1;
+}

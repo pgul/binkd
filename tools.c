@@ -15,6 +15,13 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.41  2003/08/18 07:29:09  val
+ * multiple changes:
+ * - perl error handling made via fork/thread
+ * - on_log() perl hook
+ * - perl: msg_send(), on_send(), on_recv()
+ * - unless using threads define log buffer via xalloc()
+ *
  * Revision 2.40  2003/08/17 10:38:55  gul
  * Return semaphoring for log and binlog
  *
@@ -447,28 +454,28 @@ void Log (int lev, char *s,...)
   static int first_time = 1;
   static const char *month[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
                                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+#ifndef HAVE_THREADS
+  static char *buf;
+#else
   static char buf[1024];
+#endif
   int ok = 1;
   va_list ap;
-#ifdef HAVE_THREADS
-  static int locktid=-1;
-  int locked = 0;
 
-  /* lock, possible reenter from perl via onlog() */
-  if (varsem) {
-    LockSem(&varsem);
-    if (locktid != (int) PID()) {
-      LockSem(&lsem);
-      locktid = (int) PID();
-      locked = 1;
-    }
-    ReleaseSem(&varsem);
-  }
+  if (first_time == 1) {
+#ifndef HAVE_THREADS
+    buf = xalloc(1024);
 #endif
+    first_time = 2;
+  }
   /* make string in buffer */
   va_start(ap, s);
   vsnprintf(buf, sizeof(buf), s, ap);
   va_end(ap);
+  /* do perl hooks */
+#ifdef WITH_PERL
+  if (!perl_on_log(buf, sizeof(buf), &lev)) ok = 0;
+#endif
   /* match against nolog */
   if ( mask_test(buf, nolog) != NULL ) ok = 0;
   /* log output */
@@ -479,11 +486,6 @@ void Log (int lev, char *s,...)
   time_t t;
   static const char *marks = "!?+-";
   char ch = (0 <= lev && lev < (int) strlen (marks)) ? marks[lev] : ' ';
-#ifdef WITH_PERL
-  FILE *my_stderr = perl_OLDERR ? perl_OLDERR : stderr;
-#else
-# define my_stderr stderr
-#endif
   t = safe_time();
   safe_localtime (&t, &tm);
 
@@ -493,7 +495,7 @@ void Log (int lev, char *s,...)
 #endif
      )
   {
-    fprintf (my_stderr, "%30.30s\r%c %02d:%02d [%u] %s%s", " ", ch,
+    fprintf (stderr, "%30.30s\r%c %02d:%02d [%u] %s%s", " ", ch,
          tm.tm_hour, tm.tm_min, (unsigned) PID (), buf, (lev >= 0) ? "\n" : "");
     if (lev < 0)
     {
@@ -526,7 +528,7 @@ void Log (int lev, char *s,...)
       first_time = 0;
     }
     else
-      fprintf (my_stderr, "Cannot open %s: %s!\n", logpath, strerror (errno));
+      fprintf (stderr, "Cannot open %s: %s!\n", logpath, strerror (errno));
   }
 #ifdef WIN32
 #ifdef BINKDW9X
@@ -587,10 +589,6 @@ void Log (int lev, char *s,...)
 /*
   assert (_heapchk () == _HEAPOK || _heapchk () == _HEAPEMPTY);
 */
-#endif
-
-#ifndef WITH_PERL
-# undef my_stderr
 #endif
 }
 

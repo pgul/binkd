@@ -53,7 +53,7 @@ Hooks Calling Scheme
                                     |
                                  on_exit()
 
-to be expected: on_log() - before writing a string to log
+               on_log() - before writing a string to log
 
 Common Data Structures
 
@@ -95,13 +95,15 @@ These utility functions are available for Perl program:
 
   1. Log([$level, ]$str) - writes a $str to binkd log with $level (def - 3)
   2. aeq($a1, $a2[, ..., $aN]) - returns 1 if first arg matches any of the rest
+                                 e.g.: if (aeq('463/68.1', @he)) {}
   3. arm(\@arr, $a1[, ..., $aN]) - deletes addresses $a1..$aN from @arr
+                                   e.g.: arm(\@me, '550/180.1', '550/180.2')
 
-  For specifying an address you can use short notation, all omitted fields
-  (but for point) are taken from the main addr, point is 0 if omitted.
+  For specifying an address you can omit zone and domain (both are taken from 
+  the main aka in this case) and point (set to 0 if not specified).
 
-  So, if main aka is 2:550/180@fidonet, you can write "/0" for 2:550/0@fidonet
-  and "463/68" for 2:463/68@fidonet
+  So, if main aka is 2:550/180@fidonet, you can write "550/0" for 
+  2:550/0.0@fidonet and "463/68" for 2:463/68.0@fidonet
 
   Functions to be expected: hm... any suggestions? ;-)
 
@@ -234,6 +236,13 @@ Hooks Description
                     $start - unixtime when the file sending began,
                     $action - what to do with file ('d'elete, 't'runcate, '')
     - return non-zero if you've changed $action and want this behaviour
+
+12) on_log()
+    - called when a message is about to be logged
+    - defined vars: $_   - message to be logged
+                    $lvl - log level of message
+    - return non-zero if you want to update $_ and/or $lvl, otherwise message
+      and level are both unchanged
 
 If a hook sub is not present, it won't be called. If an error occurs while
 running sub, the sub won't be disabled (so, error can occur again).

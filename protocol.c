@@ -15,6 +15,13 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.99  2003/08/18 07:29:09  val
+ * multiple changes:
+ * - perl error handling made via fork/thread
+ * - on_log() perl hook
+ * - perl: msg_send(), on_send(), on_recv()
+ * - unless using threads define log buffer via xalloc()
+ *
  * Revision 2.98  2003/08/17 08:12:05  gul
  * Fix typo
  *
@@ -541,13 +548,18 @@ static void mkhdr (char *s, unsigned u)
  * Puts a message to the output msg. queue. These msgs will be send
  * right after the current data block.
  */
-static void msg_send2 (STATE *state, t_msg m, char *s1, char *s2)
+#ifndef WITH_PERL
+static 
+#endif
+       void msg_send2 (STATE *state, t_msg m, char *s1, char *s2)
 {
   if (!s1)
     s1 = "";
   if (!s2)
     s2 = "";
-
+#ifdef WITH_PERL
+  if (!perl_on_send(state, &m, &s1, &s2)) return;
+#endif
   state->msgs = xrealloc (state->msgs, sizeof (BMSG) * (state->n_msgs + 1));
   state->msgs[state->n_msgs].t = m;
   /* We will check for sz correctness (sz <= 0x7fff) later, when sending
@@ -2201,6 +2213,9 @@ static int recv_block (STATE *state)
 
 	++state->msgs_in_batch;
 
+#ifdef WITH_PERL
+        perl_on_recv(state, state->ibuf, state->isize);
+#endif
 	if (state->isize == 0)
 	  Log (1, "zero length command from remote (must be at least 1)");
 	else if ((unsigned) (state->ibuf[0]) > M_MAX)

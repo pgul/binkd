@@ -14,6 +14,13 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/08/18 07:29:09  val
+ * multiple changes:
+ * - perl error handling made via fork/thread
+ * - on_log() perl hook
+ * - perl: msg_send(), on_send(), on_recv()
+ * - unless using threads define log buffer via xalloc()
+ *
  * Revision 2.2  2003/08/13 08:20:45  val
  * try to avoid mixing Log() output and Perl errors in stderr
  *
@@ -35,8 +42,6 @@ extern char *perl_subnames[]; /* names for perl subs */
 
 extern int perl_manages_queue; /* queue is managed from perl: sorting, etc */
 extern int perl_wants_queue;   /* export queue to perl subs */
-
-extern FILE *perl_OLDERR;      /* saved stderr */
 
 int perl_init(char *); /* init root perl, parse hooks file, return success */
 void perl_setup(void); /* set config vars to root perl */
@@ -62,6 +67,9 @@ int perl_after_recv(STATE *, char *netname, off_t size, time_t time,
 int perl_before_send(STATE *);       /* before sending file */
 int perl_after_sent(STATE *, int);   /* after file has been sent */
 
-void perl_on_log(char *);            /* when writing string to log */
+int perl_on_log(char *, int, int *); /* when writing string to log */
+
+int perl_on_send(STATE *, t_msg *, char **, char **); /* on msg_send2 */
+int perl_on_recv(STATE *, char *, int);               /* when recv a block */
 
 #endif
