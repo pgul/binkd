@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.46  2003/07/16 15:50:44  stas
+ * Fix: restore "Minimise to tray"
+ *
  * Revision 2.45  2003/07/16 15:42:53  stas
  * Fix: restore -T option
  *
@@ -629,10 +632,8 @@ int main (int argc, char *argv[], char *envp[])
     if (service(argc, argv, envp) && service_flag!=w32_run_as_service) {
       Log(0, "Windows NT service error");
     }
-/*  if (tray_flag)
-    {
-     _beginthread(wndthread, 0, NULL);
-    }*/
+  if (tray_flag)
+     do_tray_flag();
 #endif
 
   /* No command line options: run both client and server */

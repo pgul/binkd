@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2003/07/16 15:50:44  stas
+ * Fix: restore "Minimise to tray"
+ *
  * Revision 2.8  2003/07/16 15:42:53  stas
  * Fix: restore -T option
  *
@@ -793,8 +796,6 @@ int tell_start_ntservice(void)
     switch( GetLastError() ){
     case ERROR_FAILED_SERVICE_CONTROLLER_CONNECT:  /*1063*/
        res=1;   /* Program running not an as service */
-       if (tray_flag)
-         _beginthread(wndthread, 0, NULL);
        break;
     case ERROR_SERVICE_ALREADY_RUNNING:
        Log(-1,"Error %u: Double call of StartServiceCtrlDispatcher()",ERROR_SERVICE_ALREADY_RUNNING);
@@ -808,3 +809,6 @@ int tell_start_ntservice(void)
   }
   return res;
 }
+
+void do_tray_flag(void)
+{ _beginthread(wndthread, 0, NULL); }
