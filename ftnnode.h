@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/02/22 15:53:46  gul
+ * Bugfix with locking array of nodes in multithread version
+ *
  * Revision 2.2  2003/02/22 11:45:41  gul
  * Do not resolve hosts if proxy or socks5 using
  *
@@ -84,14 +87,21 @@ struct _FTN_NODE
 void nodes_init ();
 
 /*
+ * Lock and release pNod array
+ */
+void locknodesem ();
+void releasenodesem ();
+
+/*
  * Return up/downlink info by fidoaddress. 0 == node not found
  */
 FTN_NODE *get_node_info (FTN_ADDR *fa);
 
 /*
- * Compares too nodes. 0 == don't match
+ * Find up/downlink info by fidoaddress and write info into node var.
+ * Return pointer to node structure or NULL if node not found.
  */
-int node_cmp (FTN_NODE *a, FTN_NODE *b);
+FTN_NODE *get_node (FTN_ADDR *fa, FTN_NODE *node);
 
 /*
  * Add a new node, or edit old settings for a node

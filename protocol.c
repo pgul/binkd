@@ -15,8 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.24  2003/02/22 15:53:46  gul
+ * Bugfix with locking array of nodes in multithread version
+ *
  * Revision 2.23  2003/02/22 12:56:00  gul
- * Do not give unsecure mail to secure link when send-if-pwd
+ * Do not give unsecure mail to secuse link when send-if-pwd
  *
  * Revision 2.22  2003/02/22 12:12:34  gul
  * Cleanup sources
@@ -768,7 +771,7 @@ static int ADR (STATE *state, char *s, int sz)
   int i, j, main_AKA_ok = 0;
   char *w;
   FTN_ADDR fa;
-  FTN_NODE *n;
+  FTN_NODE n;
   char szFTNAddr[FTN_ADDR_SZ + 1];
 
   s[sz] = 0;
@@ -792,7 +795,7 @@ static int ADR (STATE *state, char *s, int sz)
 
     ftnaddress_to_str (szFTNAddr, &fa);
 
-    if (state->to == 0 && (n = get_node_info (&fa)) != 0 && n->restrictIP)
+    if (state->to == 0 && get_node(&fa, &n) && n.restrictIP)
     { int i, ipok = 0, rc;
       struct hostent *hp;
       struct in_addr defaddr;
@@ -808,11 +811,11 @@ static int ADR (STATE *state, char *s, int sz)
       }
 
       for (i = 1; ipok == 0 && (rc = get_host_and_port
-		  (i, host, &port, n->hosts, &n->fa)) != -1; ++i)
+		  (i, host, &port, n.hosts, &n.fa)) != -1; ++i)
       {
 	if (rc == 0)
 	{
-	  Log (1, "%s: %i: error parsing host list", n->hosts, i);
+	  Log (1, "%s: %i: error parsing host list", n.hosts, i);
 	  continue;
 	}
 	if (!isdigit (host[0]) ||
@@ -879,16 +882,16 @@ static int ADR (STATE *state, char *s, int sz)
       memcpy (state->fa + state->nallfa - 1, &fa, sizeof (FTN_ADDR));
     }
 
-    if (state->expected_pwd[0] && (n = get_node_info (&fa)) != 0)
+    if (state->expected_pwd[0] && get_node(&fa, &n) != 0)
     {
       state->listed_flag = 1;
       if (!strcmp (state->expected_pwd, "-"))
       {
-	memcpy (state->expected_pwd, n->pwd, sizeof (state->expected_pwd));
-	state->MD_flag=n->MD_flag;
+	memcpy (state->expected_pwd, n.pwd, sizeof (state->expected_pwd));
+	state->MD_flag=n.MD_flag;
       }
-      else if (n->pwd && strcmp(n->pwd, "-") &&
-               strcmp (state->expected_pwd, n->pwd))
+      else if (n.pwd && strcmp(n.pwd, "-") &&
+               strcmp(state->expected_pwd, n.pwd))
       {
 	Log (1, "inconsistent pwd settings for this node");
 	state->expected_pwd[0] = 0;
@@ -939,10 +942,15 @@ static int ADR (STATE *state, char *s, int sz)
 
 static char *select_inbound (FTN_ADDR *fa, int secure_flag)
 {
-  FTN_NODE *node = get_node_info (fa);
+  FTN_NODE *node;
+  char *p;
 
-  return ((node && node->ibox) ? node->ibox :
+  locknodesem();
+  node = get_node_info(fa);
+  p = ((node && node->ibox) ? node->ibox :
 	  (secure_flag == P_SECURE ? inbound : inbound_nonsecure));
+  releasenodesem();
+  return p;
 }
 
 static void complete_login (STATE *state)

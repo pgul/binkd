@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/02/22 15:53:45  gul
+ * Bugfix with locking array of nodes in multithread version
+ *
  * Revision 2.4  2003/02/22 14:30:18  gul
  * Make nNod var static
  *
@@ -65,10 +68,20 @@ void nodes_init ()
   InitSem (&LSem);
 }
 
+void locknodesem ()
+{
+  LockSem (&LSem);
+}
+
+void releasenodesem ()
+{
+  ReleaseSem (&LSem);
+}
+
 /*
  * Compares too nodes. 0 == don't match
  */
-int node_cmp (FTN_NODE *a, FTN_NODE *b)
+static int node_cmp (FTN_NODE *a, FTN_NODE *b)
 {
   return ftnaddress_cmp (&a->fa, &b->fa);
 }
@@ -76,81 +89,10 @@ int node_cmp (FTN_NODE *a, FTN_NODE *b)
 /*
  * Sorts pNod array. Must NOT be called if LSem is locked!
  */
-void sort_nodes ()
+static void sort_nodes ()
 {
-  LockSem (&LSem);
   qsort (pNod, nNod, sizeof (FTN_NODE), (int (*) (const void *, const void *)) node_cmp);
   nNodSorted = 1;
-  ReleaseSem (&LSem);
-}
-
-FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on)
-{
-  struct hostent *he;
-  FTN_NODE n, *np;
-  char host[MAXHOSTNAMELEN + 1];       /* current host/port */
-  unsigned short port;
-  int i;
-
-  strcpy(n.fa.domain, "defnode");
-  n.fa.z=n.fa.net=n.fa.node=n.fa.p=0;
-  np = (FTN_NODE *) bsearch (&n, pNod, nNod, sizeof (FTN_NODE),
-                 (int (*) (const void *, const void *)) node_cmp);
-
-  if (!np) /* we don't have defnode info */
-    return on;
-
-  for (i=1; get_host_and_port(i, host, &port, np->hosts, fa)==1; i++)
-  {
-    lockhostsem();
-    he=gethostbyname(host);
-    releasehostsem();
-    if (!he) continue;
-    sprintf (host+strlen(host), ":%d", port);
-    i=0;
-    break;
-  }
-  if (i)
-    strcpy(host, "-");
-  if (on)
-  { /* on contains only passwd */
-    on->hosts=xstrdup(host);
-    on->NR_flag=np->NR_flag;
-    on->ND_flag=np->ND_flag;
-    on->MD_flag=np->MD_flag;
-    on->ND_flag=np->ND_flag;
-    on->restrictIP=np->restrictIP;
-    return on;
-  }
-
-  if(!add_node(fa, host, NULL, np->obox_flvr, np->obox, np->ibox, 
-       np->NR_flag, np->ND_flag, np->crypt_flag, np->MD_flag, np->restrictIP))
-    return NULL;
-  sort_nodes ();
-  memcpy (&n.fa, fa, sizeof (FTN_ADDR));
-  return (FTN_NODE *) bsearch (&n, pNod, nNod, sizeof (FTN_NODE),
-                      (int (*) (const void *, const void *)) node_cmp);
-}
-/*
- * Return up/downlink info by fidoaddress. 0 == node not found
- */
-FTN_NODE *get_node_info (FTN_ADDR *fa)
-{
-  FTN_NODE n, *np;
-
-  if (!nNodSorted)
-    sort_nodes ();
-  LockSem (&LSem);
-  memcpy (&n.fa, fa, sizeof (FTN_ADDR));
-  np = (FTN_NODE *) bsearch (&n, pNod, nNod, sizeof (FTN_NODE),
-			   (int (*) (const void *, const void *)) node_cmp);
-  if ((!np || !np->hosts) && havedefnode)
-    np=get_defnode_info(fa, np);
-  else if (np && !np->hosts)
-    /* node exists only in passwords and defnode is not defined */
-    np->hosts = xstrdup("-");
-  ReleaseSem (&LSem);
-  return np;
 }
 
 /*
@@ -158,13 +100,13 @@ FTN_NODE *get_node_info (FTN_ADDR *fa)
  *
  * 1 -- ok, 0 -- error;
  */
-int add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
+static int add_node_nolock(FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
 	      char *obox, char *ibox, int NR_flag, int ND_flag,
 	      int crypt_flag, int MD_flag, int restrictIP)
 {
   int cn;
 
-  LockSem (&LSem);
+  locknodesem();
   for (cn = 0; cn < nNod; ++cn)
   {
     if (!ftnaddress_cmp (&pNod[cn].fa, fa))
@@ -233,8 +175,106 @@ int add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
     pNod[cn].ibox = xstrdup (ibox);
   }
 
-  ReleaseSem (&LSem);
+  releasenodesem();
   return 1;
+}
+
+int add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
+	      char *obox, char *ibox, int NR_flag, int ND_flag,
+	      int crypt_flag, int MD_flag, int restrictIP)
+{
+  int res;
+  locknodesem();
+  res = add_node_nolock(fa, hosts, pwd, obox_flvr, obox, ibox, NR_flag, ND_flag,
+                        crypt_flag, MD_flag, restrictIP);
+  releasenodesem();
+  return res;
+}
+
+static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on)
+{
+  struct hostent *he;
+  FTN_NODE n, *np;
+  char host[MAXHOSTNAMELEN + 1];       /* current host/port */
+  unsigned short port;
+  int i;
+
+  strcpy(n.fa.domain, "defnode");
+  n.fa.z=n.fa.net=n.fa.node=n.fa.p=0;
+  np = (FTN_NODE *) bsearch (&n, pNod, nNod, sizeof (FTN_NODE),
+                 (int (*) (const void *, const void *)) node_cmp);
+
+  if (!np) /* we don't have defnode info */
+    return on;
+
+  for (i=1; get_host_and_port(i, host, &port, np->hosts, fa)==1; i++)
+  {
+    lockhostsem();
+    he=gethostbyname(host);
+    releasehostsem();
+    if (!he) continue;
+    sprintf (host+strlen(host), ":%d", port);
+    i=0;
+    break;
+  }
+  if (i)
+    strcpy(host, "-");
+  if (on)
+  { /* on contains only passwd */
+    on->hosts=xstrdup(host);
+    on->NR_flag=np->NR_flag;
+    on->ND_flag=np->ND_flag;
+    on->MD_flag=np->MD_flag;
+    on->ND_flag=np->ND_flag;
+    on->restrictIP=np->restrictIP;
+    return on;
+  }
+
+  if(!add_node_nolock(fa, host, NULL, np->obox_flvr, np->obox, np->ibox, 
+       np->NR_flag, np->ND_flag, np->crypt_flag, np->MD_flag, np->restrictIP))
+    return NULL;
+  sort_nodes ();
+  memcpy (&n.fa, fa, sizeof (FTN_ADDR));
+  return (FTN_NODE *) bsearch (&n, pNod, nNod, sizeof (FTN_NODE),
+                      (int (*) (const void *, const void *)) node_cmp);
+}
+/*
+ * Return up/downlink info by fidoaddress. 0 == node not found
+ */
+FTN_NODE *get_node_info (FTN_ADDR *fa)
+{
+  FTN_NODE n, *np;
+
+  if (!nNodSorted)
+    sort_nodes ();
+  memcpy (&n.fa, fa, sizeof (FTN_ADDR));
+  np = (FTN_NODE *) bsearch (&n, pNod, nNod, sizeof (FTN_NODE),
+			   (int (*) (const void *, const void *)) node_cmp);
+  if ((!np || !np->hosts) && havedefnode)
+    np=get_defnode_info(fa, np);
+  else if (np && !np->hosts)
+    /* node exists only in passwords and defnode is not defined */
+    np->hosts = xstrdup("-");
+  return np;
+}
+
+/*
+ * Find up/downlink info by fidoaddress and write info into node var.
+ * Return pointer to node structure or NULL if node not found.
+ */
+FTN_NODE *get_node (FTN_ADDR *fa, FTN_NODE *node)
+{
+  FTN_NODE *n;
+
+  locknodesem();
+  if ((n = get_node_info(fa)) == NULL)
+  {
+    releasenodesem();
+    return NULL;
+  }
+  memcpy(node, n, sizeof(*node));
+  releasenodesem();
+  return node;
 }
 
 /*
@@ -244,7 +284,7 @@ int foreach_node (int (*func) (FTN_NODE *, void *), void *arg)
 {
   int i, rc = 0;
 
-  LockSem (&LSem);
+  locknodesem();
   for (i = 0; i < nNod; ++i)
   {
     if (!pNod[i].hosts)
@@ -254,7 +294,7 @@ int foreach_node (int (*func) (FTN_NODE *, void *), void *arg)
     if (rc != 0)
       break;
   }
-  ReleaseSem (&LSem);
+  releasenodesem();
   return rc;
 }
 
@@ -296,9 +336,11 @@ int poll_node (char *s)
     exp_ftnaddress (&target);
     ftnaddress_to_str (buf, &target);
     Log (4, "creating a poll for %s (`%c' flavour)", buf, POLL_NODE_FLAVOUR);
+    locknodesem();
     if (!get_node_info (&target))
-      if (!add_node (&target, "*", 0, '-', 0, 0, 0, 0, 0, 0, 0))
+      if (!add_node_nolock (&target, "*", 0, '-', 0, 0, 0, 0, 0, 0, 0))
 	Log (1, "%s: add_node() failed", buf);
+    releasenodesem();
     return create_poll (&target, POLL_NODE_FLAVOUR);
   }
 }
