@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.147  2003/08/25 07:42:19  gul
+ * Add OS/2 EMX multithread version
+ *
  * Revision 2.146  2003/08/25 06:11:08  gul
  * Auto increase patchlevel, set 0.9.6a-133
  * Fix compilation with HAVE_FORK
@@ -697,7 +700,7 @@
 #define vsnprintf _vsnprintf
 #endif
 
-#if defined(__WATCOMC__) /* expand list if necessary */
+#if defined(__WATCOMC__) || defined(__EMX__) /* expand list if necessary */
 #define BEGINTHREAD(a, b, c)   _beginthread(a, NULL, b, c)
 #else
 #define BEGINTHREAD _beginthread
