@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.134  2003/08/22 09:37:41  val
+ * Auto increase patchlevel, set 0.9.6a-121
+ * missing function import for PERLDL: sv_setpvn()
+ *
  * Revision 2.133  2003/08/21 15:41:06  gul
  * Auto increase patchlevel, set 0.9.6a-120
  * Change building commandline for service under win32
@@ -578,7 +582,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-120"
+#define MYVER "0.9.6a-121"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
