@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2003/03/05 13:21:50  gul
+ * Fix warnings
+ *
  * Revision 2.10  2003/03/01 18:29:52  gul
  * Change size_t to off_t for file sizes and offsets
  *
@@ -288,7 +291,7 @@ FILE *inb_fopen (char *netname, off_t size, time_t time, FTN_ADDR *from,
     freespace2 = getfree(inbound);
     if (freespace > freespace2) freespace = freespace2;
     if (req_free >= 0 &&
-	freespace < (size - sb.st_size + 1023) / 1024 + req_free)
+	freespace < (unsigned long)(size - sb.st_size + 1023) / 1024 + req_free)
     {
       Log (1, "no enough free space in %s (%luK, req-d %luK)",
 	   (freespace == freespace2) ? inbound : temp_inbound,

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.20  2003/03/05 13:21:50  gul
+ * Fix warnings
+ *
  * Revision 2.19  2003/03/04 07:27:11  gul
  * Put OS to log on start
  *
@@ -241,16 +244,17 @@ void usage (void)
 	  "  -h       print this help\n"
 	  "\n"
 	  "Copyright (c) 1996-2003 Dima Maloff and others.\n"
-	  "\n"
-    "This program is free software; you can redistribute it and/or modify\n"
-    "it under the terms of the GNU General Public License as published by\n"
-	  "the Free Software Foundation. See COPYING.\n"
-	  "\n"
-	  "Report bugs to 2:463/68 or binkd-bugs@happy.kiev.ua.\n"
 #if defined(WIN32) && !defined(BINKDW9X)
 	  ,s?s:"", s?s+3:""
 #endif
 	  );
+
+  puts ("\n"
+    "This program is free software; you can redistribute it and/or modify\n"
+    "it under the terms of the GNU General Public License as published by\n"
+	  "the Free Software Foundation. See COPYING.\n"
+	  "\n"
+	  "Report bugs to 2:463/68 or binkd-bugs@happy.kiev.ua.");
   exit (1);
 }
 

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/03/05 13:21:50  gul
+ * Fix warnings
+ *
  * Revision 2.9  2003/03/01 20:16:27  gul
  * OS/2 IBM C support
  *
@@ -279,7 +282,7 @@ static char to32(int N)
     if ((N >= 0) && (N <=9)) return '0'+N;
     if ((N > 9) && (N < 32)) return 'A'+ N - 10;
     return 'Z'; /* fake return */
-};
+}
 
 static struct {
     char * ext;
@@ -527,14 +530,14 @@ static FTNQ *q_add_dir (FTNQ *q, char *dir, FTN_ADDR *fa1)
         size_t nlen = strlen(s = de->d_name);
 
 	for (; *s && isgraph(*s) != 0; s++);
-	if (s - de->d_name != nlen)
+	if ((size_t)(s - de->d_name) != nlen)
 	  continue;
 
         memcpy (&fa2, fa1, sizeof(FTN_ADDR));
 
         if (sscanf(s = de->d_name, "%u.%u.%u.%u.%3s%n",
 	         &fa2.z, &fa2.net, &fa2.node, &fa2.p, ext, &matched) != 5 ||
-	    matched != nlen || strlen(ext) != 3)
+	    (size_t)matched != nlen || strlen(ext) != 3)
 	  continue;
 
         if ((fa1->z != -1 && fa1->z != fa2.z) ||
@@ -592,9 +595,9 @@ static FTNQ *q_add_dir (FTNQ *q, char *dir, FTN_ADDR *fa1)
 	memcpy (&fa2, fa1, sizeof (FTN_ADDR));
 
 	if (fa1->node != -1 && fa1->p != 0)
-	  sscanf (s, "%8x", &fa2.p);   /* We now in /xxxxyyyy.pnt */
+	  sscanf (s, "%8x", (unsigned *)&fa2.p);   /* We now in /xxxxyyyy.pnt */
 	else
-	  sscanf (s, "%4x%4x", &fa2.net, &fa2.node);
+	  sscanf (s, "%4x%4x", (unsigned *)&fa2.net, (unsigned *)&fa2.node);
 
 	/* add the file if wildcard (f1) match the address (fa2) */
 	if (fa1->node != -1 && fa1->p != -1 && ftnaddress_cmp (fa1, &fa2))

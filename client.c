@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2003/03/05 13:21:50  gul
+ * Fix warnings
+ *
  * Revision 2.15  2003/03/05 11:40:12  gul
  * Fix win32 compilation
  *
@@ -319,7 +322,7 @@ static int call0 (FTN_NODE *node)
       if ((se = getservbyname(sport, "tcp")) == NULL)
       {
 	Log(2, "Port %s not found, try default %d", sp, proxy[0] ? 3128 : 1080);
-	sin.sin_port = htons(proxy[0] ? 3128u : 1080u);
+	sin.sin_port = htons((unsigned short)(proxy[0] ? 3128 : 1080));
       } else
 	sin.sin_port = se->s_port;
       releasehostsem();

@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/03/05 13:21:51  gul
+ * Fix warnings
+ *
  * Revision 2.3  2002/02/22 00:18:34  gul
  * Run by-file events with the same command-line once after session
  *
@@ -126,7 +129,7 @@ struct _STATE
 
   int ND_flag;                  /* State of binkp when in ND mode */
   int MD_flag;                  /* State of binkp when in MD mode */
-  char *MD_challenge;           /* Received CRAM challenge data   */
+  unsigned char *MD_challenge;  /* Received CRAM challenge data   */
   int waiting_for_GOT;          /* File sent, waiting for M_GOT in ND-mode */
   int send_eof;			/* Need to send zero-length data block */
   char *ND_status;              /* ND status file name */

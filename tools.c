@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2003/03/05 13:21:51  gul
+ * Fix warnings
+ *
  * Revision 2.13  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -530,7 +533,7 @@ char *strnzcpy (char *dst, const char *src, size_t len)
 
 char *strnzcat (char *dst, const char *src, size_t len)
 {
-  int x = strlen (dst);
+  size_t x = strlen (dst);
 
   if (len <= x) return dst;
   return strnzcpy (dst + x, src, len - x);
@@ -622,12 +625,11 @@ int touch (char *file, time_t t)
  * Returned value must be free()'d. Ignores case.
  * size parameter can be used only if "s" was created by malloc()
  */
-char *ed (char *s, char *a, char *b, unsigned int *size)
+char *ed (char *s, char *a, char *b, size_t *size)
 {
-   int i, j, sr;
-   unsigned int sz;
-   int len_a=a?strlen(a):0;
-   int len_b=b?strlen(b):0;
+   size_t i, j, sr, sz;
+   size_t len_a=a?strlen(a):0;
+   size_t len_b=b?strlen(b):0;
    char *r=s;
    
    if ((!len_a) || (!s)) return r;

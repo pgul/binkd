@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/03/05 13:21:51  gul
+ * Fix warnings
+ *
  * Revision 2.4  2003/03/01 20:16:27  gul
  * OS/2 IBM C support
  *
@@ -156,7 +159,7 @@ int touch (char *file, time_t t);
  * Replaces all entries of a in s for b, returns edited line.
  * Returned value must be free()'d. Ignores case.
  */
-char *ed (char *src, char *a, char *b, unsigned int *size);
+char *ed (char *src, char *a, char *b, size_t *size);
 
 /*
  * Remove/trucate a file, log this

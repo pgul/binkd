@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/03/05 13:21:50  gul
+ * Fix warnings
+ *
  * Revision 2.9  2003/03/01 18:16:04  gul
  * Use HAVE_SYS_TIME_H macro
  *
@@ -111,7 +114,7 @@ int h_connect(int so, char *host)
 #endif
 	int i;
 	struct hostent he, *hp;
-	unsigned char buf[8192], *pbuf;
+	char buf[8192], *pbuf;
 	char *sp, *sauth, **cp, *alist[2];
 	struct in_addr defaddr;
 	unsigned port;
@@ -318,7 +321,7 @@ int h_connect(int so, char *host)
 				buf[0]=4;
 				buf[1]=1;
 				lockhostsem();
-				Log (4, port == oport ? "trying %s..." : "trying %s:%u...",
+				Log (4, port == (unsigned short)oport ? "trying %s..." : "trying %s:%u...",
 				     inet_ntoa(*((struct in_addr *)*cp)), port);
 				releasehostsem();
 				buf[2]=(unsigned char)((port>>8)&0xFF);

@@ -26,6 +26,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.1  2003/03/05 13:21:50  gul
+ * Fix warnings
+ *
  * Revision 2.0  2001/01/10 12:12:37  gul
  * Binkd is under CVS again
  *
@@ -183,15 +186,14 @@ void FDLogStat (STATE *state)
 	} std;
 
 	FILE *fp;
+	time_t t;
 
 	if (!state->fa || ((state->to && !fdouthist[0]) || (!state->to && !fdinhist[0])))
             return; /* nothing to do */
 
-	std.TimeStart = state->start_time + tzoff;
-
-	time (&std.TimeEnd);
-	std.TimeEnd += tzoff;
-
+	time (&t);
+	std.TimeStart = (u32)(state->start_time + tzoff);
+	std.TimeEnd = (u32)(t + tzoff);
 	std.Zone = state->fa->z;
 	std.Net = state->fa->net;
 	std.Node = state->fa->node;

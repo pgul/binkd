@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/03/05 13:21:51  gul
+ * Fix warnings
+ *
  * Revision 2.5  2003/02/23 12:49:00  gul
  * Added *A* and *A@ macros
  *
@@ -232,7 +235,7 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa,
   char adr[FTN_ADDR_SZ + 2];
   int i;
   unsigned int l;
-  unsigned int sw=1024;
+  size_t sw=1024;
   int use_fn=0;
 
   for(i=0;fn[i];i++)
@@ -251,8 +254,8 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa,
   if(!i)
   {
     struct sockaddr_in sin;
-    i=sizeof(struct sockaddr_in);
-    if((!st) || (getpeername (st->s, (struct sockaddr *) &sin, &i) == -1))
+    size_t si=sizeof(struct sockaddr_in);
+    if((!st) || (getpeername (st->s, (struct sockaddr *) &sin, &si) == -1))
       strcpy(ipaddr, "-");
     else  /* We don't like inet_ntoa ;-) */
     {

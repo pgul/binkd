@@ -27,6 +27,9 @@ documentation and/or software.
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/03/05 13:21:50  gul
+ * Fix warnings
+ *
  * Revision 2.3  2003/03/02 08:08:49  gul
  * Added CVS ID and Revision
  *
@@ -414,7 +417,7 @@ MDcaddr_t         digest;              /* caller digest to be filled in */
 }
 /* ---------------------------------------------------------- */
 extern int ext_rand;
-static void getrand(char *res, int len, STATE *rnd)
+static void getrand(unsigned char *res, int len, STATE *rnd)
 {
   MDcaddr_t digest;
   struct {
@@ -433,12 +436,12 @@ static void getrand(char *res, int len, STATE *rnd)
   memcpy(res, digest, len);
 }
 
-char *MD_getChallenge(char *str, STATE *rnd)
+unsigned char *MD_getChallenge(char *str, STATE *rnd)
 {
-  char *res=NULL;
+  unsigned char *res=NULL;
   int i;
   if(!str) {
-    res=(char*)xalloc(MD_CHALLENGE_LEN+1);
+    res=(unsigned char*)xalloc(MD_CHALLENGE_LEN+1);
     res[0]=MD_CHALLENGE_LEN;
     for(i=1;i<(MD_CHALLENGE_LEN+1);i+=MD5_DIGEST_LEN) 
     {
@@ -455,7 +458,7 @@ char *MD_getChallenge(char *str, STATE *rnd)
     if(!sp[0]) return NULL;
     for(i=0;isxdigit((int)sp[i]);i++) if(i>=128) break;
     i/=2;
-    res=(char*)xalloc(i+1);
+    res=(unsigned char*)xalloc(i+1);
     res[0]=(char)i;
     for(i=0;isxdigit((int)sp[i]) && (i<128);i++) {
       unsigned char c=tolower(sp[i]);

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.41  2003/03/05 13:21:51  gul
+ * Fix warnings
+ *
  * Revision 2.40  2003/03/04 13:46:27  gul
  * Small bugfix in binkp protocol logic
  *
@@ -341,10 +344,10 @@ FTNQ *process_rcvdlist (STATE *state, FTNQ *q)
 }
 
 /* Fills s[0] and s[1] with binkp frame header using value of u */
-static void mkhdr (unsigned char *s, unsigned u)
+static void mkhdr (char *s, unsigned u)
 {
-  s[0] = (unsigned char) (u >> 8);
-  s[1] = (unsigned char) u;
+  s[0] = (char) (u >> 8);
+  s[1] = (char) u;
 }
 
 /*
@@ -849,9 +852,10 @@ static int ADR (STATE *state, char *s, int sz)
       char host[MAXHOSTNAMELEN + 1];       /* current host/port */
       unsigned short port;
       struct sockaddr_in sin;
+      size_t si;
 
-      i=sizeof(struct sockaddr_in);
-      if (getpeername (state->s, (struct sockaddr *) &sin, &i) == -1)
+      si=sizeof(struct sockaddr_in);
+      if (getpeername (state->s, (struct sockaddr *) &sin, &si) == -1)
       { Log (1, "Can't getpeername(): %s", TCPERR());
         ipok = 2;
       }
@@ -2001,7 +2005,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
   fd_set r, w;
   int no;
   struct sockaddr_in peer_name;
-  int peer_name_len = sizeof (peer_name);
+  size_t peer_name_len = sizeof (peer_name);
   char host[MAXHOSTNAMELEN + 1];
 
   if (!init_protocol (&state, socket, to))
