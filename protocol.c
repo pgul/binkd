@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67.2.10  2003/08/24 01:34:11  hbrew
+ * Update for previous patch
+ *
  * Revision 2.67.2.9  2003/08/24 00:35:46  hbrew
  * Cosmetic change for previous patch
  *
@@ -2412,6 +2415,9 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
         if (!no)
           break;
       }
+#if defined(WIN32) /* workaround winsock bug - give up CPU */
+      else { t_out = 0; }
+#endif
     }
   }
 
