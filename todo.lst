@@ -12,6 +12,8 @@
 - aftersession
 - "empty queue" flag (exit if "-p")
 - exit immediately after session in "-p" mode
+- force rescan by signal (SIGUSR1)
+- check netname (not realname) on "exec" and "flag"
 - tzoff - ? Now used only for binlog
 - do not send files with hidden attribute from filebox
 - do not send r/o file from filebox with infinite session
