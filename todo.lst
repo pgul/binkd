@@ -1,6 +1,4 @@
 - nolog "call to*" "*:unknown host" "some annoing message"
-- set root-domain for every domain
-- crc32 check
 - perl hooks:
   - recvfile
   - sendfile
@@ -10,6 +8,8 @@
   - log
   - start, atexit
   - outcall (i.e. only if more then N Kb mail)
+- rexx hooks
+- set root-domain for every domain
 - shared aka
 - reread config "on fly" in multithread versions
 - do not kill attaches (save and ignore) if drive missing (unmounted)
@@ -17,5 +17,7 @@
 - no syslog support under BeOS
 - MB-mode (FSP-1011)
 - charsets support, unicode
-- present aka
+- present aka, hide aka
 - 3 passwords in passwd-file - "incoming,pkt,outgoing"
+- separate child status to signal and retcode
+- aftersession
