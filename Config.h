@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.104  2003/08/14 07:39:36  val
+ * migrate from vfprintf() to vsnprintf() in Log(), new keyword `nolog'
+ *
  * Revision 2.103  2003/08/13 11:59:23  gul
  * Auto increase patchlevel, set 0.9.6a-91
  * Undo my prev patch, sorry ;)
@@ -505,6 +508,11 @@
 #define stat  _stat
 #define fstat _fstat
 #define sleep(sec) _sleep((sec)*1000ul)
+#define snprintf  _snprintf
+#define vsnprintf _vsnprintf
+#endif
+
+#if defined(WIN32) && defined(_MSC_VER)
 #define snprintf  _snprintf
 #define vsnprintf _vsnprintf
 #endif

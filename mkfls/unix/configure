@@ -532,7 +532,7 @@ fi
 
 
 
-for ac_prog in gawk mawk nawk awk
+for ac_prog in mawk gawk nawk awk
 do
 # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -1076,7 +1076,7 @@ done
 
 
 
-for ac_func in snprintf vsyslog waitpid statvfs statfs uname
+for ac_func in vsnprintf vsyslog waitpid statvfs statfs uname
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
 echo "configure:1083: checking for $ac_func" >&5
@@ -1493,12 +1493,12 @@ else
 #line 1494 "configure"
 #include "confdefs.h"
 #include <stdio.h>
-int main()
+main()
 {
   FILE *f=fopen("conftestval", "w");
-  if (!f) return(1);
+  if (!f) exit(1);
   fprintf(f, "%d\n", sizeof(short));
-  return(0);
+  exit(0);
 }
 EOF
 if { (eval echo configure:1505: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
@@ -1532,12 +1532,12 @@ else
 #line 1533 "configure"
 #include "confdefs.h"
 #include <stdio.h>
-int main()
+main()
 {
   FILE *f=fopen("conftestval", "w");
-  if (!f) return(1);
+  if (!f) exit(1);
   fprintf(f, "%d\n", sizeof(int));
-  return(0);
+  exit(0);
 }
 EOF
 if { (eval echo configure:1544: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
@@ -1571,12 +1571,12 @@ else
 #line 1572 "configure"
 #include "confdefs.h"
 #include <stdio.h>
-int main()
+main()
 {
   FILE *f=fopen("conftestval", "w");
-  if (!f) return(1);
+  if (!f) exit(1);
   fprintf(f, "%d\n", sizeof(long));
-  return(0);
+  exit(0);
 }
 EOF
 if { (eval echo configure:1583: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
@@ -2072,6 +2072,11 @@ esac
 
 case $ac_cv_func_getopt in
  no) OPT_SRC="$OPT_SRC getopt.c"
+     ;;
+esac
+
+case $ac_cv_func_vsnprintf in
+ no) OPT_SRC="$OPT_SRC snprintf.c"
      ;;
 esac
 

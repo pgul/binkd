@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.34  2003/08/14 07:39:36  val
+ * migrate from vfprintf() to vsnprintf() in Log(), new keyword `nolog'
+ *
  * Revision 2.33  2003/08/13 08:20:45  val
  * try to avoid mixing Log() output and Perl errors in stderr
  *
@@ -196,6 +199,10 @@
 #include "sem.h"
 #ifdef WITH_PERL
 #include "perlhooks.h"
+#endif
+/* use function in snprintf.c */
+#ifndef HAVE_VSNPRINTF
+int vsnprintf (char *str, size_t count, const char *fmt, va_list args);
 #endif
 
 /*
@@ -434,9 +441,30 @@ void Log (int lev, char *s,...)
   static int first_time = 1;
   static const char *month[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
                                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-  time_t t;
-  struct tm tm;
+  static char *buf;
+  int ok = 1;
   va_list ap;
+
+  if (first_time == 1)
+  {
+    first_time = 2;
+    InitSem (&LSem);
+    buf = xalloc(1024);
+  }
+  else if (lev == -1001) { free(buf); return; }
+
+  /* make string in buffer */
+  va_start(ap, s);
+  vsnprintf(buf, 1024, s, ap);
+  va_end(ap);
+  /* match against nolog */
+  if ( mask_test(buf, nolog) != NULL ) ok = 0;
+  /* log output */
+  if (ok) 
+{ /* if (ok) */
+
+  struct tm tm;
+  time_t t;
   static const char *marks = "!?+-";
   char ch = (0 <= lev && lev < (int) strlen (marks)) ? marks[lev] : ' ';
 #ifdef WITH_PERL
@@ -444,13 +472,6 @@ void Log (int lev, char *s,...)
 #else
 # define my_stderr stderr
 #endif
-
-  if (first_time == 1)
-  {
-    first_time = 2;
-    InitSem (&LSem);
-  }
-
   t = safe_time();
   safe_localtime (&t, &tm);
 
@@ -463,9 +484,7 @@ void Log (int lev, char *s,...)
     LockSem (&LSem);
     fprintf (my_stderr, "%30.30s\r%c %02d:%02d [%u] ", " ", ch,
              tm.tm_hour, tm.tm_min, (unsigned) PID ());
-    va_start (ap, s);
-    vfprintf (my_stderr, s, ap);
-    va_end (ap);
+    fputs(buf, my_stderr);
     if (lev >= 0)
       fputc ('\n', my_stderr);
     ReleaseSem (&LSem);
@@ -493,10 +512,8 @@ void Log (int lev, char *s,...)
       fprintf (logfile, "%c %02d %s %02d:%02d:%02d [%u] ", ch,
              tm.tm_mday, month[tm.tm_mon], tm.tm_hour, tm.tm_min, tm.tm_sec,
              (unsigned) PID ());
-      va_start (ap, s);
-      vfprintf (logfile, s, ap);
-      va_end (ap);
-      fputc ('\n', logfile);
+      fputs(buf, logfile);
+      fputc('\n', logfile);
       fclose (logfile);
     }
     else
@@ -510,11 +527,7 @@ void Log (int lev, char *s,...)
   if((lev<1)&&(isService))
 #endif
   {
-    char tmp[256];
-    va_start (ap, s);
-    vsprintf (tmp, s, ap);
-    va_end (ap);
-    MessageBox(NULL, tmp, MYNAME, MB_OK|MB_ICONSTOP|0x00200000L|MB_SYSTEMMODAL|MB_SETFOREGROUND);
+    MessageBox(NULL, buf, MYNAME, MB_OK|MB_ICONSTOP|0x00200000L|MB_SYSTEMMODAL|MB_SETFOREGROUND);
   }
 #endif
 
@@ -550,6 +563,7 @@ void Log (int lev, char *s,...)
 
   }
 #endif
+} /* if (ok) */
 
   if (lev == 0)
     exit (1);

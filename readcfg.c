@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.37  2003/08/14 07:39:36  val
+ * migrate from vfprintf() to vsnprintf() in Log(), new keyword `nolog'
+ *
  * Revision 2.36  2003/08/12 09:31:46  val
  * don't strlower() mask in flag/exec since we now use pmatch_ncase()
  *
@@ -264,6 +267,7 @@ char perl_script[MAXPATHLEN + 1] = "";
 char perl_dll[MAXPATHLEN + 1] = "";
 int perl_strict = 0;
 #endif
+struct maskchain *nolog = NULL;
 
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
 
@@ -400,6 +404,8 @@ KEYWORD keywords[] =
   {"perl-dll", read_string, perl_dll, 'f', 0},
   {"perl-strict", read_bool, &perl_strict, 0, 0},
 #endif
+
+  {"nolog", read_mask, &nolog, 0, 0},
   {NULL, NULL, NULL, 0, 0}
 };
 
@@ -1025,6 +1031,7 @@ static void read_rfrule (KEYWORD *key, char *s)
 static void mask_add(char *mask, struct maskchain **chain)
 {
   struct maskchain *ps;
+  int len = strlen(mask);
 
   if (*chain == NULL)
   {
@@ -1038,15 +1045,18 @@ static void mask_add(char *mask, struct maskchain **chain)
     ps = ps->next;
   }
   ps->next = NULL;
-  ps->mask = xstrdup(mask);
+  if (*mask == '"' && mask[len-1] == '"') {
+    ps->mask = xstrdup(mask+1); ps->mask[len-2] = 0;
+  }
+  else ps->mask = xstrdup(mask);
 }
 
-char *mask_test(char *netname, struct maskchain *chain)
+char *mask_test(char *s, struct maskchain *chain)
 {
   struct maskchain *ps;
 
   for (ps = chain; ps; ps = ps->next)
-    if (pmatch_ncase(ps->mask, netname))
+    if (pmatch_ncase(ps->mask, s))
       return ps->mask;
   return NULL;
 }

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.17  2003/08/14 07:39:36  val
+ * migrate from vfprintf() to vsnprintf() in Log(), new keyword `nolog'
+ *
  * Revision 2.16  2003/08/11 08:33:16  val
  * better error handling in perl hooks
  *
@@ -174,11 +177,13 @@ extern struct conflist_type
     struct conflist_type *next;
     time_t mtime;
   } *config_list;
+/* val: use for overwrite and nolog */
 extern struct maskchain
   {
     struct maskchain *next;
     char *mask;
   } *overwrite;
+extern struct maskchain *nolog;
 /* val: struct for skipmask */
 extern struct skipchain
   {
@@ -196,7 +201,7 @@ void readcfg (char *path);
 
 int  get_host_and_port (int n, char *host, unsigned short *port, char *src, FTN_ADDR *fa);
 
-char *mask_test(char *filename, struct maskchain *chain);
+char *mask_test(char *s, struct maskchain *chain);
 
 /* Linked list for shared akas header */
 extern SHARED_CHAIN *shares;
