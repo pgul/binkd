@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.62  2003/07/11 15:06:44  gul
+ * Auto increase patchlevel, set 0.9.6a-51
+ * Fix building with libc5
+ *
  * Revision 2.61  2003/07/08 06:48:05  gul
  * Auto increase patchlevel, set 0.9.6a-50
  * cosmetics
@@ -257,7 +261,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-50"
+#define MYVER "0.9.6a-51"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
