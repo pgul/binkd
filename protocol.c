@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.69  2003/06/08 13:40:07  gul
+ * Avoid warning
+ *
  * Revision 2.68  2003/06/07 08:46:25  gul
  * New feature added: shared aka
  *
@@ -638,7 +641,7 @@ static int send_block (STATE *state)
          *  3. pkt destination is shared address
          *  change destination address to main aka.
          */
-        if ((ftell(state->out.f)==sz) && (sz >= 60) /* size of pkt header + 2 bytes */
+        if ((ftell(state->out.f)==(long)sz) && (sz >= 60) /* size of pkt header + 2 bytes */
             && ispkt(state->out.netname))
         {/* This is the first block. Is this 2+ packet?
           * (Currently supports this type packets only)
