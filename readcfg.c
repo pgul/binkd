@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.45  2003/08/25 05:39:26  stas
+ * Bugfix: "readcfg.c:938: `fa\' undeclared" compilation error
+ *
  * Revision 2.44  2003/08/24 19:42:08  gul
  * Get FTN-domain from matched zone in exp_ftnaddress()
  *
@@ -935,7 +938,7 @@ static int read_aka_list (KEYWORD *key, int wordcount, char **words)
       //if (work_config.pDomains.first == NULL)
       if (!pDomains)
         return ConfigError("at least one domain must be defined first");
-      strcpy (a->domain, get_matched_domain(fa.z, pAddr, nAddr));
+      strcpy (a->domain, get_matched_domain(a->z, pAddr, nAddr));
     }
     ++nAddr;
   }
