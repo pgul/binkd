@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.26  2003/03/31 19:53:08  gul
+ * Close socket before exit
+ *
  * Revision 2.25  2003/03/31 19:35:16  gul
  * Clean semaphores usage
  *
@@ -559,8 +562,6 @@ int main (int argc, char *argv[], char *envp[])
 #if defined(UNIX) || defined(AMIGA) || (defined(OS2) && defined(HAVE_FORK))
   if (setjmp (jb))
   {
-    Log (5, "Closing socket # %i", sockfd);
-    soclose (sockfd);
 binkdrestart:
     exitfunc();
     print_args (tmp, sizeof (tmp), saved_argc - 1, saved_argv + 1);

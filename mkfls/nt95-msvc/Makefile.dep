@@ -101,6 +101,7 @@ exitproc.o: \
 	"sem.h" \
 	"sys.h" \
 	"tools.h" \
+	"server.h" \
 	"nt\wsock.h"
 
 ftnaddr.o: \

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2003/03/31 19:53:08  gul
+ * Close socket before exit
+ *
  * Revision 2.11  2003/03/31 19:35:16  gul
  * Clean semaphores usage
  *
@@ -70,6 +73,7 @@
 #include "readcfg.h"
 #include "binlog.h"
 #include "sem.h"
+#include "server.h"
 
 int binkd_exit;
 
@@ -103,7 +107,7 @@ void exitfunc (void)
   { int i;
     i=pidcmgr, pidcmgr=0; /* prevent abort when cmgr exits */
     kill (i, SIGTERM);
-    sleep (1);
+    /* sleep (1); */
   }
 #elif HAVE_THREADS
   /* exit all threads */
@@ -126,13 +130,18 @@ void exitfunc (void)
 	break;
   }
 #endif
+  if (sockfd != INVALID_SOCKET)
+  { Log (5, "Closing socket # %i", sockfd);
+    soclose (sockfd);
+    sockfd = INVALID_SOCKET;
+  }
   bsy_remove_all ();
   sock_deinit ();
   BinLogDeInit ();
   nodes_deinit ();
   CleanSem (&hostsem);
   CleanSem (&varsem);
-  if (LSem) CleanSem (&LSem);
+  CleanSem (&LSem);
   CleanEventSem (&eothread);
   CleanEventSem (&exitcmgr);
 #ifdef OS2

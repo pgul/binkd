@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.20  2003/03/31 19:53:08  gul
+ * Close socket before exit
+ *
  * Revision 2.19  2003/03/26 13:53:28  gul
  * Fix OS/2 compilation
  *
@@ -150,7 +153,7 @@ static void chld (int signo)
 
 #endif
 
-SOCKET sockfd = (SOCKET)-1;
+SOCKET sockfd = INVALID_SOCKET;
 
 void serv (void *arg)
 {
@@ -159,6 +162,7 @@ void serv (void *arg)
 #ifdef HAVE_FORK
   pidcmgr = 0;
   soclose(sockfd);
+  sockfd = INVALID_SOCKET;
 #endif
   protocol (h, 0, NULL);
   Log (5, "downing server...");
@@ -193,7 +197,6 @@ int checkcfg (void)
     }
     else if ((time_t)pc->mtime != sb.st_mtime)
     {
-      soclose (sockfd);
 #if defined(HAVE_FORK)
       Log (2, "%s changed! Restart binkd...", pc->path);
       longjmp(jb, 1);

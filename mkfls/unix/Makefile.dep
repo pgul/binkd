@@ -47,7 +47,7 @@ binlog.o: binlog.c Config.h binlog.h sys.h readcfg.h iphdr.h ftnaddr.h \
   ftndom.h ftnnode.h prothlp.h ftnq.h protoco2.h assert.h tools.h getw.h \
   sem.h
 exitproc.o: exitproc.c Config.h sys.h common.h iphdr.h bsy.h ftnaddr.h \
-  tools.h getw.h readcfg.h ftndom.h ftnnode.h binlog.h sem.h
+  tools.h getw.h readcfg.h ftndom.h ftnnode.h binlog.h sem.h server.h
 getw.o: getw.c getw.h
 xalloc.o: xalloc.c tools.h getw.h
 crypt.o: crypt.c crypt.h
