@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.115  2003/08/17 08:12:07  gul
+ * Auto increase patchlevel, set 0.9.6a-102
+ * Fix typo
+ *
  * Revision 2.114  2003/08/16 09:47:27  gul
  * Auto increase patchlevel, set 0.9.6a-101
  * Autodetect tzoff if not specified
@@ -490,7 +494,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-101"
+#define MYVER "0.9.6a-102"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
