@@ -533,5 +533,8 @@ NT/95:  ctrl-c problems fixed
 	New config option "nolog" - inhibit specified log messages
 	(val khokhlov <val@vk.kiev.ua>).
 
+	New config options "present-aka" and "hide-aka)
+	(val khokhlov <val@vk.kiev.ua>).
+
 	Reload config "on fly" (Roman Trunov <stream@proxyma.ru>).
 
