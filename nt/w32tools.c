@@ -15,6 +15,16 @@
 /*  the License, or (at your option) any later version. See COPYING.  */
 /*--------------------------------------------------------------------*/
 
+/*
+ * $Id$
+ *
+ * Revision history:
+ * $Log$
+ * Revision 2.5  2003/08/04 12:23:40  gul
+ * Add CVS tags
+ *
+ */
+
 #include <stdlib.h>
 #include <windows.h>
 #include "../Config.h"
