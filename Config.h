@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.126  2003/08/19 10:16:13  gul
+ * Auto increase patchlevel, set 0.9.6a-113
+ * Rename trunc() -> trunc_file() due to conflict under OS/2 EMX
+ *
  * Revision 2.125  2003/08/19 10:13:17  gul
  * Auto increase patchlevel, set 0.9.6a-112
  * Change Log() semaphoring
@@ -544,7 +548,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-112"
+#define MYVER "0.9.6a-113"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
