@@ -1,3 +1,8 @@
+2003/10/20 20:57:16 1.0a-260
+ gul
+zlibdl.c,2.10,2.11
+Dynamic load bzlib.dll built as C++
+
 2003/10/20 18:44:33 1.0a-259
  gul
 zlibdl.h,2.11,2.12
