@@ -1,3 +1,7 @@
+2004/11/05 07:31:01 1.0a-423 stas
+ftndom.c,2.6,2.7
+Checks for NULL pointer in get_matched_domain()
+
 2004/11/04 10:55:20 1.0a-422 stream
 ftndom.c,2.5,2.6
 Bugfix to previous bugfix.
