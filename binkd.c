@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.27  2003/03/31 21:48:59  gul
+ * Avoid infinite recursion
+ *
  * Revision 2.26  2003/03/31 19:53:08  gul
  * Close socket before exit
  *
@@ -319,6 +322,14 @@ int main (int argc, char *argv[], char *envp[])
   saved_argv = mkargv (argc, argv);
   saved_argc = argc;
 
+  InitSem (&hostsem);
+  InitSem (&varsem);
+  InitEventSem (&eothread);
+  InitEventSem (&exitcmgr);
+#ifdef OS2
+  InitSem (&fhsem);
+#endif
+
   for (i = 1; i < argc; ++i)
   {
     if (argv[i][0] == '-')
@@ -493,13 +504,6 @@ int main (int argc, char *argv[], char *envp[])
 
 #ifdef HAVE_FORK
   signal (SIGCHLD, chld);
-#endif
-  InitSem (&hostsem);
-  InitSem (&varsem);
-  InitEventSem (&eothread);
-  InitEventSem (&exitcmgr);
-#ifdef OS2
-  InitSem (&fhsem);
 #endif
 
   for (i = 1; i < argc; ++i)

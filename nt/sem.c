@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.5  2003/03/31 21:49:01  gul
+ * Avoid infinite recursion
+ *
  * Revision 2.4  2003/03/31 19:56:11  gul
  * minor fix in close semaphores functions
  *
@@ -112,9 +115,13 @@ int _CleanSem(void *vpSem) {
 /*--------------------------------------------------------------------*/
 
 int _LockSem(void *vpSem) {
-   
+   unsigned long errcode;
+
+   if (BsySem == 0) return (-1);
    if (WaitForSingleObject(BsySem,INFINITE) == WAIT_FAILED) {
-       Log(0,"Sem.c: WaitForSingleObject failed. Error code : %lx",GetLastError());
+       errcode = GetLastError();
+       _CleanSem(vpSem);
+       Log(0, "Sem.c: WaitForSingleObject failed. Error code : %lx", errcode);
        return (-1);
    }
    return(0);
