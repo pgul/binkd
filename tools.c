@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.37  2003/08/14 12:56:29  gul
+ * Make Log() thread-safe
+ *
  * Revision 2.36  2003/08/14 11:43:19  val
  * free allocated log buffer in exitfunc()
  *
@@ -439,7 +442,7 @@ void Log (int lev, char *s,...)
   static int first_time = 1;
   static const char *month[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
                                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-  static char *buf;
+  char buf[1024];
   int ok = 1;
   va_list ap;
 
@@ -447,13 +450,11 @@ void Log (int lev, char *s,...)
   {
     first_time = 2;
     InitSem (&LSem);
-    buf = xalloc(1024);
   }
-  else if (lev == 0xfade) { free(buf); return; }
 
   /* make string in buffer */
   va_start(ap, s);
-  vsnprintf(buf, 1024, s, ap);
+  vsnprintf(buf, sizeof(buf), s, ap);
   va_end(ap);
   /* match against nolog */
   if ( mask_test(buf, nolog) != NULL ) ok = 0;

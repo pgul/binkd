@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.18  2003/08/14 12:56:29  gul
+ * Make Log() thread-safe
+ *
  * Revision 2.17  2003/08/14 11:43:19  val
  * free allocated log buffer in exitfunc()
  *
@@ -181,5 +184,4 @@ Log(7, "exitproc(): pid=%d, cmgr=%d, smgr=%d, inetd=%d", getpid(), pidCmgr, pids
   CleanSem (&fhsem);
 #endif
   ReleaseErrorList();
-  Log(0xfade, NULL);
 }
