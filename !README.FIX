@@ -478,3 +478,4 @@ NT/95:  ctrl-c problems fixed
 
 	getfree() bug if free space >4G fixed.
 
+	NTLM proxy authotization (Dima Afanasiev <da@4u.net>).
