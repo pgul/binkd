@@ -70,6 +70,8 @@ xpmatch(pattern, string, ncase)
 			c = *p;
 			if (c != CTLESC && c != '?' && c != '*' && c != '[') {
 				while (*q != c) {
+				        if (ncase && toupper(*q) == toupper(c))
+                                                break;
 					if (*q == '\0')
 						return 0;
 					q++;
