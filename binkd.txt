@@ -92,4 +92,4 @@ REPORTING BUGS
 
 
 
-                            4 Apr 2003                   BINKD(8)
+                           15 Jun 2004                   BINKD(8)
