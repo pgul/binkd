@@ -1,3 +1,8 @@
+2003/10/24 09:41:13 1.0a-275
+ val
+zlibdl.h,2.15,2.16
+ZLIBDL fix to restore linking with MSVC (bzlib2 still crashes)
+
 2003/10/24 09:40:16 1.0a-274
  val
 perlhooks.c,2.32,2.33
