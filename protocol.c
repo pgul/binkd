@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.62  2003/05/22 06:39:41  gul
+ * Send CRYPT option only in crypt-mode sessions on answer
+ *
  * Revision 2.61  2003/05/17 15:37:48  gul
  * Improve logging
  *
@@ -1083,14 +1086,6 @@ static int ADR (STATE *state, char *s, int sz)
       state->ND_flag = secure_ND;
     else
       state->ND_flag = unsecure_ND;
-
-    if (state->NR_flag == WANT_NR ||
-        (state->crypt_flag & WE_CRYPT) ||
-        (state->ND_flag & WE_ND))
-      msg_sendf (state, M_NUL, "OPT%s%s%s",
-                 state->NR_flag == WANT_NR ? " NR" : "",
-                 (state->ND_flag & WE_ND) ? " ND" : "",
-                 (state->crypt_flag & WE_CRYPT) ? " CRYPT" : "");
   }
 
   if (state->to)
@@ -1181,11 +1176,15 @@ static int PWD (STATE *state, char *pwd, int sz)
 {
   int bad_pwd=STRNICMP(pwd, "CRAM-", 5);
   int no_password=!strcmp (state->expected_pwd, "-");
+
+  if (state->to)
+  { Log (1, "unexpected password from the remote on outgoing call: `%s'", pwd);
+    return 1;
+  }
   if ((no_password)&&(bad_pwd))
   {
     do_prescan (state);
     state->state = P_NONSECURE;
-    msg_send2 (state, M_OK, "non-secure", 0);
     if (strcmp (pwd, "-"))
       Log (1, "unexpected password from the remote: `%s'", pwd);
   }
@@ -1225,7 +1224,6 @@ static int PWD (STATE *state, char *pwd, int sz)
       {
         state->state = P_NONSECURE;
         do_prescan (state);
-        msg_send2 (state, M_OK, "non-secure", 0);
         if(bad_pwd) 
           Log (1, "unexpected password digest from the remote");
       }
@@ -1233,10 +1231,25 @@ static int PWD (STATE *state, char *pwd, int sz)
       {
 	state->state = P_SECURE;
         do_prescan (state);
-	msg_send2 (state, M_OK, "secure", 0);
       }
     }
   }
+
+  if (state->state != P_SECURE)
+    state->crypt_flag = NO_CRYPT;
+  else if (state->crypt_flag == (THEY_CRYPT | WE_CRYPT) && !state->MD_flag)
+  { state->crypt_flag = NO_CRYPT;
+    Log (4, "Crypt allowed only with MD5 authorization");
+  }
+
+  if (state->NR_flag == WANT_NR ||
+      (state->crypt_flag == (WE_CRYPT | THEY_CRYPT)) ||
+      (state->ND_flag & WE_ND))
+    msg_sendf (state, M_NUL, "OPT%s%s%s",
+               state->NR_flag == WANT_NR ? " NR" : "",
+               (state->ND_flag & WE_ND) ? " ND" : "",
+               (state->crypt_flag == (WE_CRYPT | THEY_CRYPT)) ? " CRYPT" : "");
+  msg_send2 (state, M_OK, state->state==P_SECURE ? "secure" : "non-secure", 0);
   complete_login (state);
   return 1;
 }
@@ -1247,7 +1260,7 @@ static int OK (STATE *state, char *buf, int sz)
   state->state = !strcmp (state->to->pwd, "-") ? P_NONSECURE : P_SECURE;
   if (state->state == P_SECURE && strcmp(buf, "non-secure") == 0)
   {
-    state->crypt_flag=NO_CRYPT;
+    state->crypt_flag=NO_CRYPT; /* some development binkd versions send OPT CRYPT with unsecure session */
     Log (1, "Warning: remote set UNSECURE session");
   }
   complete_login (state);
