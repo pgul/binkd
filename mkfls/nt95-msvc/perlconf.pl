@@ -1,3 +1,5 @@
+# $Id$
+
 $file = $ARGV[0] || die;
 
 use Config;
