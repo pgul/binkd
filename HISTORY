@@ -1,3 +1,7 @@
+2003/10/14 18:34:42 1.0a-241 stas
+service.c,2.36,2.37
+Fix MS Visual C build
+
 2003/10/14 14:37:49 1.0a-240 gul
 protocol.c,2.130,2.131
 Fix typo
