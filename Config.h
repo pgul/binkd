@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.89  2003/07/30 11:01:39  val
+ * Auto increase patchlevel, set 0.9.6a-77
+ * perl-dll keyword can be used even when PERLDL is not defined (does nothing)
+ *
  * Revision 2.88  2003/07/28 10:24:07  val
  * Auto increase patchlevel, set 0.9.6a-76
  * Perl DLL dynamic load for Win32, config keyword perl-dll, nmake PERLDL=1
@@ -387,7 +391,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-76"
+#define MYVER "0.9.6a-77"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
