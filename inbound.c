@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.26  2003/12/05 23:39:36  gul
+ * Bugfix on inb_done() with ND-mode
+ *
  * Revision 2.25  2003/10/30 10:57:46  gul
  * Change inb_done arguments, optimize a bit
  *
@@ -212,7 +215,7 @@ static int to_be_deleted (char *tmp_name, char *netname, BINKD_CONFIG *config)
  * Searches for the ``file'' in the inbound and returns it's tmp name in s.
  * S must have MAXPATHLEN chars. Returns 0 on error, 1=found, 2=created.
  */
-static int find_tmp_name (char *s, STATE *state, BINKD_CONFIG *config)
+static int find_tmp_name (char *s, TFILE *file, STATE *state, BINKD_CONFIG *config)
 {
   char buf[MAXPATHLEN + 80];
   DIR *dp;
@@ -258,13 +261,13 @@ static int find_tmp_name (char *s, STATE *state, BINKD_CONFIG *config)
       for (i = 0; i < 4; ++i)
 	w[i] = getwordx (buf, i + 1, GWX_NOESC);
 
-      if (!strcmp (w[0], state->in.netname) && parse_ftnaddress (w[3], &fa, config->pDomains.first))
+      if (!strcmp (w[0], file->netname) && parse_ftnaddress (w[3], &fa, config->pDomains.first))
       {
 	for (i = 0; i < state->nallfa; i++)
 	  if (!ftnaddress_cmp (&fa, state->fa + i))
 	    break;
-	if (state->in.size == (off_t) atol (w[1]) &&
-	    (state->in.time & ~1) == (atol (w[2]) & ~1) &&
+	if (file->size == (off_t) atol (w[1]) &&
+	    (file->time & ~1) == (atol (w[2]) & ~1) &&
 	    i < state->nallfa)
 	{ /* non-destructive skip file from busy aka */
 	  if (i >= state->nfa)
@@ -302,7 +305,7 @@ static int find_tmp_name (char *s, STATE *state, BINKD_CONFIG *config)
   if (!found)
   {
     Log (5, "file not found, trying to create a tmpname");
-    if (creat_tmp_name (s, &(state->in), state->fa, inbound))
+    if (creat_tmp_name (s, file, state->fa, inbound))
       found = 2;
     else
       return 0;
@@ -319,7 +322,7 @@ FILE *inb_fopen (STATE *state, BINKD_CONFIG *config)
   struct stat sb;
   FILE *f;
 
-  if (!find_tmp_name (buf, state, config))
+  if (!find_tmp_name (buf, &(state->in), state, config))
     return 0;
 
 fopen_again:
@@ -375,7 +378,7 @@ int inb_reject (STATE *state, BINKD_CONFIG *config)
 {
   char tmp_name[MAXPATHLEN + 1];
 
-  if (find_tmp_name (tmp_name, state, config) != 1)
+  if (find_tmp_name (tmp_name, &state->in, state, config) != 1)
   {
     Log (1, "missing tmp file for %s!", state->in.netname);
     return 0;
@@ -477,7 +480,7 @@ int inb_done (TFILE *file, char *real_name, STATE *state, BINKD_CONFIG *config)
   *real_name = 0;
   netname = file->netname;
 
-  if (find_tmp_name (tmp_name, state, config) != 1)
+  if (find_tmp_name (tmp_name, file, state, config) != 1)
   {
     Log (1, "missing tmp file for %s!", netname);
     return 0;
