@@ -529,18 +529,18 @@ NT/95:  ctrl-c problems fixed
 
 	Perl hooks (val khokhlov <val@vk.kiev.ua>).
 
-        Bugfix: do not transmit negative value of file time in binkp commands
-        and check file time in received frames (Stas Degteff <g@ural.org>)
+	Bugfix: do not transmit negative value of file time in binkp commands
+	and check file time in received frames (Stas Degteff <g@ural.org>).
 
 	New config option "nolog" - inhibit specified log messages
 	(val khokhlov <val@vk.kiev.ua>).
 
-	New config options "present-aka" and "hide-aka")
+	New config options "present-aka" and "hide-aka"
 	(val khokhlov <val@vk.kiev.ua>).
 
 	Reload config "on the fly" (Roman Trunov <stream@proxyma.ru>).
 
-	Ifcico/qico passwords file format support (Stas Degteff <g@ural.org>)
+	Ifcico/qico passwords file format support (Stas Degteff <g@ural.org>).
 
 	Compression (zlib, bz2) support. New config keywords
 	zallow, zdeny, zaccept (val khokhlov, Pavel Gulchouck).
@@ -557,11 +557,12 @@ NT/95:  ctrl-c problems fixed
 
 	New option -S specifies service name (NT, w9x).
 
-	NT service name restrictions is removed, a slash (/), backslash (\),
-        comma and space may be used in the NT service name.
+	New option -t operates with NT and w9x service (start, stop,
+	query status, install, uninstall).
 
-	New option -t operates with NT and w9x service (start, stop, query
-        status, install, uninstall).
+	Icons and binary descriptions for 32 bit windows versions
+	(Icon autor: Tany Bobrova <pushinda@grumbler.org>).
 
-        Icons and binary descriptions for 32 bit windows versions.
-        (Icon autor: Tany Bobrova <pushinda@grumbler.org>.)
+	'skipmask' is replaced with 'skip', which allows more skipping
+	features and has another format (val khokhlov <val@vk.kiev.ua>).
+
