@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.41  2003/08/19 18:01:08  stream
+ * Fix unix compilation
+ *
  * Revision 2.40  2003/08/18 17:19:13  stream
  * Partially implemented new configuration parser logic (required for config reload)
  *
@@ -337,7 +340,7 @@ static void add_address(SHARED_CHAIN * chain, FTN_ADDR_CHAIN * aka);
 
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
 
-static void read_syslog_facility (KEYWORD *, char *);
+static int read_syslog_facility (KEYWORD *key, int wordcount, char **words);
 
 #endif
 
@@ -1139,7 +1142,7 @@ static int read_syslog_facility (KEYWORD *key, int wordcount, char **words)
   if (isArgCount(1, wordcount))
     return 0;
 
-  for (i = 0; facilitynames[i].c_name; ++i))
+  for (i = 0; facilitynames[i].c_name; ++i)
     if (!strcmp (facilitynames[i].c_name, words[0]))
     {
       *target = facilitynames[i].c_val;
