@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.87  2004/01/08 12:48:16  val
+ * add missing 'break' for -d option case
+ *
  * Revision 2.86  2004/01/07 21:40:46  stas
  * Options -i and -u is marked deprecated for win32
  *
@@ -661,6 +664,7 @@ char *parseargs (int argc, char *argv[])
 
 	    case 'd': /* dump cfg */
 	      ++dumpcfg_flag;
+	      break;
 
 #ifdef BINKD_DAEMONIZE
 	    case 'D': /* run as unix daemon */
