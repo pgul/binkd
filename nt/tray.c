@@ -142,6 +142,12 @@ sleep(1); /* Workaround: somewhere (unknown) code is not thread-safe.
           Log(12,"Icon for systray is loaded from %s", BINKD_ICON_FILE);
     }
     if (!hi)
+    { HMODULE hModule;
+      if( (hModule = GetModuleHandle(NULL)) )
+        loaded_icon = hi = LoadImage( hModule, MAKEINTRESOURCE(0), IMAGE_ICON,
+                                      0, 0, LR_LOADTRANSPARENT);
+    }
+    if (!hi)
     {
         hi = LoadIcon(NULL, IDI_INFORMATION);
     }
