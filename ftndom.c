@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2004/11/04 08:55:10  stream
+ * Bugfix to previous bugfix.
+ * Also log warning if we have to guess default domain name from main AKA
+ * or first domain.
+ *
  * Revision 2.5  2004/11/04 06:21:58  stas
  * BUGFIX: segfault if 1st address is 4D
  *
@@ -66,22 +71,24 @@ FTN_DOMAIN *get_domain_info (char *domain_name, FTN_DOMAIN *pDomains)
 char *get_matched_domain (int zone, FTN_ADDR *pAddr, int nAddr, FTN_DOMAIN *pDomains)
 {
   FTN_DOMAIN *curr;
-  char *p = NULL;
+  char *p;
   int n;
 
   /* Is it default zone for a domain? */
   for (curr = pDomains; curr; curr = curr->next)
     if (!curr->alias4 && curr->z[0] == zone)
-    {
-      p = curr->name;
-      break;
-    }
-  if (p) return p;
+      return curr->name;
+ 
   /* Do we have an AKA with this zone? */
   for (n = 0; n < nAddr; n++)
     if (zone == pAddr[n].z)
       return pAddr[n].domain;
-  if(pAddr[0].domain)   /* If parse second address then return domain of the 1st address */
-    return pAddr[0].domain;
-  return pDomains->name; /* If parse first address then return first domain */
+
+  /* No defined domain, try to guess defaults */
+  if (nAddr)
+    p = pAddr[0].domain;   /* If we have nodes defined, use main AKA */
+  else
+    p = pDomains->name;    /* Use first domain (at least one always defined at this point) */
+  Log(1, "Cannot find domain for zone %d, assuming '%s'", zone, p);
+  return p;
 }
