@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.25  2003/10/06 17:01:34  stas
+ * Fix "we're running as a service" test
+ *
  * Revision 2.24  2003/10/06 16:54:51  stas
  * (Prevent warnings.) Prepare to implement full service control
  *
@@ -808,12 +811,20 @@ int isService()
   if (_isService != -1)
     return _isService;
 
-  if (!IsNT() || !AllocConsole()) {
+  if (!IsNT())
+  {
     _isService = 0;
-  }else{
+  }
+  else if (!AllocConsole())
+  {
+    _isService = 0;
+  }
+  else
+  {
     FreeConsole();
     _isService = 1;
   }
+
   return _isService;
 }
 
