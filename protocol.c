@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.129  2003/10/12 12:58:40  gul
+ * No changes ;)
+ *
  * Revision 2.128  2003/10/07 17:57:09  gul
  * Some small changes in close threads function.
  * Inhibit errors "socket operation on non-socket" on break.
@@ -682,10 +685,7 @@ static void mkhdr (char *s, unsigned u)
  * Puts a message to the output msg. queue. These msgs will be send
  * right after the current data block.
  */
-#ifndef WITH_PERL
-static
-#endif
-       void msg_send2 (STATE *state, t_msg m, char *s1, char *s2)
+void msg_send2 (STATE *state, t_msg m, char *s1, char *s2)
 {
   if (!s1)
     s1 = "";
