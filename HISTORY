@@ -1,3 +1,7 @@
+2004/10/18 13:29:35 1.0a-407 gul
+md5b.c,2.8,2.9
+Bugfix in MD_getChallenge(), thanks to Victor Levenets <aq@takas.lt>
+
 2004/10/15 13:24:16 1.0a-406 stas
 TCPErr.c,2.14,2.15
 binkd/win32/win95: Add "W32 API error" string into system error messages
