@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.7  2003/06/13 03:07:16  hbrew
+ * Fix win9x-service crash (add NULL to new argv array)
+ *
  * Revision 2.6  2003/06/12 00:50:09  hbrew
  * Fix MSVC compilation and logging.
  *
@@ -150,11 +153,13 @@ void win9x_service_args(int argc, char **argv, char **envp)
                 if (!c_argv_bool[i])
                         c_argc++;
 
-        c_argv = (char **)malloc(c_argc*sizeof(char *));
+        c_argv = (char **)malloc((c_argc+1)*sizeof(char *));
 
         for (i=0, j=0; i<argc; i++)
                 if (!c_argv_bool[i])
                         c_argv[j++] = __argv[i];
+
+        c_argv[c_argc] = NULL;
 }
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
