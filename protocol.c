@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.96  2003/08/15 08:48:50  gul
+ * Compilation error fixed
+ *
  * Revision 2.95  2003/08/14 14:19:37  gul
  * Drop remote AKA with another password on outgoing sessions
  *
@@ -1163,7 +1166,7 @@ static int ADR (STATE *state, char *s, int sz)
   /* set expected pasword on outgoing session
    * for drop remote AKAs with another passwords */
   if (state->to)
-    memcpy (state->expected_pwd, to->pwd, sizeof (state->expected_pwd));
+    memcpy (state->expected_pwd, state->to->pwd, sizeof (state->expected_pwd));
 
   for (i = 1; (w = getwordx (s, i, 0)) != 0; ++i)
   {
