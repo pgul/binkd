@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.82  2003/06/26 13:22:24  gul
+ * *** empty log message ***
+ *
  * Revision 2.81  2003/06/26 13:21:32  gul
  * More clean status process in no-NR mode
  *
@@ -2580,11 +2583,6 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
 	  if (state.flo.f ||
 	      (q = select_next_file (state.q, state.fa, state.nfa)) != 0)
 	  {
-	    if (q && (q->type=='s') && (state.NR_flag & WE_NR) == 0)
-	    { /* FIXME! Clean status only on M_GOT for this file,
-	       * not on every M_GOT in no-NR mode. */
-	      Log(1, "WARNING: status present and no NR mode!");
-	    }
 	    if (start_file_transfer (&state, q))
 	      break;
 	  }
