@@ -517,3 +517,10 @@ NT/95:  ctrl-c problems fixed
 	NR- and ND-modes can be asymmetric now, options -nr and -nd
 	sets mode only for receiving files from this node.
 
+0.9.6
+-----
+	Memory leak in event processing (Roman Trunov).
+
+	Bugfixes in NT service exit (Stas Degteff).
+
+	Some minor bugfixes.
