@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/02/28 08:53:38  gul
+ * Fixed proxy usage
+ *
  * Revision 2.1  2003/02/22 11:45:41  gul
  * Do not resolve hosts if proxy or socks5 using
  *
@@ -53,4 +56,4 @@ int find_port (char *s);
  *  * Find the host IP address list by a domain name or IP address string.
  *   * Returns NULL on error.
  *    */
-struct hostent *find_host(char *host, struct hostent *he, char **alist);
+struct hostent *find_host(char *host, struct hostent *he, char **alist, struct in_addr *defaddr);

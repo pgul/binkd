@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/02/28 08:53:38  gul
+ * Fixed proxy usage
+ *
  * Revision 2.2  2003/02/22 12:12:33  gul
  * Cleanup sources
  *
@@ -148,13 +151,12 @@ int find_port (char *s)
  * Find the host IP address list by a domain name or IP address string.
  * Returns NULL on error.
  */
-struct hostent *find_host(char *host, struct hostent *he, char **alist)
+struct hostent *find_host(char *host, struct hostent *he, char **alist, struct in_addr *defaddr)
 {
-  struct in_addr defaddr;
   struct hostent *hp;
 
   if (!isdigit(host[0]) ||
-      (defaddr.s_addr = inet_addr (host)) == INADDR_NONE)
+      (defaddr->s_addr = inet_addr (host)) == INADDR_NONE)
   {
     /* If not a raw ip address, try nameserver */
     Log (5, "resolving `%s'...", host);
@@ -179,7 +181,7 @@ struct hostent *find_host(char *host, struct hostent *he, char **alist)
   hp->h_addrtype = AF_INET;
   hp->h_length = sizeof (struct in_addr);
   hp->h_addr_list = alist;
-  hp->h_addr_list[0] = (char *) &defaddr;
+  hp->h_addr_list[0] = (char *) defaddr;
   hp->h_addr_list[1] = (char *) 0;
   return hp;
 }

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2003/02/28 08:53:38  gul
+ * Fixed proxy usage
+ *
  * Revision 2.8  2003/02/27 20:34:37  gul
  * Fix proxy usage
  *
@@ -243,6 +246,7 @@ static int call0 (FTN_NODE *node)
   char **cp;
   char szDestAddr[FTN_ADDR_SZ + 1];
   char *alist[2];
+  struct in_addr defaddr;
   int i, rc;
   char host[MAXHOSTNAMELEN + 1];       /* current host/port */
   unsigned short port;
@@ -283,7 +287,7 @@ static int call0 (FTN_NODE *node)
     else
       sin.sin_port = htons(atoi(sport));
     /* resolve proxy host */
-    if ((hp = find_host(host, &he, alist)) == NULL)
+    if ((hp = find_host(host, &he, alist, &defaddr)) == NULL)
     {
       Log(1, "%s host %s not found", proxy[0] ? "Proxy" : "Socks", host);
       return 0;
@@ -304,7 +308,7 @@ static int call0 (FTN_NODE *node)
     if (!proxy[0] && !socks[0]) /* don't resolve if proxy or socks specified */
 #endif
     {
-      if ((hp = find_host(host, &he, alist)) == NULL)
+      if ((hp = find_host(host, &he, alist, &defaddr)) == NULL)
       {
         bad_try(&node->fa, "Cannot gethostbyname");
         continue;
