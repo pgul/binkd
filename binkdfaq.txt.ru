@@ -499,13 +499,18 @@ kill -HUP `cat /var/run/binkd.pid`
 
     Существует множество Perl'овых скриптов, к примеру вот:
 
-       binkdstat версия 0.1 beta4 от 6.01.2002
-       Генератор статистики для binkd
-       (c) Dmitry Sergienko, 2:464/910@fidonet, trooper@unity.net 14.08.2000
+    binkdstat версия 0.1 beta4 от 6.01.2002
+    Генератор статистики для binkd
+    (c) Dmitry Sergienko, 2:464/910@fidonet, trooper@unity.net 14.08.2000
     http://www.unity.net/~trooper/fido/binkdstat
+
     Несколько разных генераторов лежат у Nick Soveiko:
     http://www.doe.carleton.ca/~nsoveiko/fido/binkd/statistics_generators/
 
+    Также существует программа BndStat:
+    BNDST101.ZIP   34812 14-Aug-01 (AREA:AFTNMISC)
+    BndStat 1.01. With sources. BinkD statistics generator. Compiled for all
+    platforms. Included win32 binaries. (C) Dmitry Rusov, 2:5090/94
 
 ----------------------------------------------------------------------------
 
@@ -684,7 +689,9 @@ domain fidonet.net alias-for fidonet
 
     Тут две ошибки, основная исправлена перед ответвлением binkd 0.9.5-stable:
 
-    1. Дело в том, что в run-time библиотеке MS Visual C (в отличие от
+    1. Дело в том, что в паре мест в коде binkd не было сделано сохранение
+значения кода ошибки, но это не проявлялось нигде кроме как в win-версии.
+Ошибка проявлялась потому, что в run-time библиотеке MS Visual C (в отличие от
 большинства) нарушается стандарт. Ошибка в том, что errno и h_errno в MSVC RTL
 являются макросами, раскрывающимся в системные вызовы, и все они сходятся в
 вызов GetLastError(). А значение, возвращаемое этой системной функцией,
@@ -696,13 +703,18 @@ domain fidonet.net alias-for fidonet
 
     2.
     Ошибка в Winsock - select() всегда возвращает успешный код для non-blocked
-socket. Влияние ее (и других обнаруженных в winsock ошибок) устранено:
+socket. Влияние ее (и других обнаруженных в winsock ошибок) частично устранено:
     2003/06/06 16:27:44  gul
     * Workaround winsock bug - giveup CPU when sending file
     2003/08/11 08:41:55  gul
     * workaround winsock bug (patch by Alexander Reznikov)
     2003/08/24 00:29:31  hbrew
     * win9x-select-workaround fix, thanks to Pavel Gulchouck)
+
+    Eсть ещё эффект при высоких уровнях протоколирования (в лог пишется куча
+сообщений 'data transfer would block', отладочная информация по результатам
+работы select()). Hо на работу в обычном режиме это не влияет. Устранить это
+можно, но Павел не стал усложнять код.
 
 
 ----------------------------------------------------------------------------
@@ -711,7 +723,7 @@ socket. Влияние ее (и других обнаруженных в winsock ошибок) устранено:
     Argus (Radius) и binkd: ошибка Argus "Aborting due to carrier loss"
 
     Сессия между binkd и Radius (или Argus - это несущественно) обрывается
-с непонятной диагностикой "Aborting due to carrier loss" при включенном 
+с непонятной диагностикой "Aborting due to carrier loss" при включенном
 в Radius шифровании трафика.
 
     Лог со стороны Radius:
