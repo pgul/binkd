@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.35  2003/10/28 13:09:53  gul
+ * Fix NT service semaphore usage in exitfunc()
+ *
  * Revision 2.34  2003/10/18 06:45:23  stas
  * Fix a semaphore usage in exitfunc()
  *
@@ -201,6 +204,7 @@ void exitfunc (void)
     LockSem(&exitsem);
     if(exitfunc_called_flag)
     { /* prevent double call exitfunc() at NT service stop sequence */
+      ReleaseSem(&exitsem);
       Log(10, "exitfunc() repeated call, return from exitfunc()");
       return;
     }
