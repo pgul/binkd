@@ -1,3 +1,7 @@
+2004/01/03 13:17:00 1.0a-330 stas
+binkd.c,2.75,2.76
+Remove the obsoleted rerun variable
+
 2004/01/02 23:20:19 1.0a-329 stas
 w32tools.c,2.10,2.11 w32tools.h,2.6,2.7
 GetMainWindow(): function retrieves the window handle used by the main window of application
