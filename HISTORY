@@ -1,3 +1,7 @@
+2004/11/19 17:58:51 1.0a-434 gul
+perlhooks.c,2.49,2.50
+Add dynamic load function used by new errors handler
+
 2004/11/19 16:59:45 1.0a-433 gul
 perlhooks.c,2.48,2.49
 Typo in new perl errors handler
