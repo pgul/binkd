@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.24  2003/06/10 07:43:35  gul
+ * sdelete() - reliable delete file (wait for lock)
+ *
  * Revision 2.23  2003/06/10 07:28:25  gul
  * Fix patch about commandline parsing
  *
@@ -802,6 +805,30 @@ int trunc (char *path)
     return 0;
   }
 }
+
+#ifndef UNIX
+/*
+ * reliable remove a file (wait for lock), log this
+ */
+int sdelete (char *path)
+{
+  int i, rc;
+
+  for (i=0; i<5; i++) {
+    if ((rc = unlink (path)) == 0) {
+      Log (5, "unlinked `%s'", path);
+      return 0;
+    }
+    else if (errno == EPERM || errno == EACCES || errno == EAGAIN)
+      sleep (1);
+    else
+      break;
+  }
+  Log (1, "error unlinking `%s': %s", path, strerror (errno));
+
+  return rc;
+}
+#endif
 
 /*
  * Get the string with OS name/version

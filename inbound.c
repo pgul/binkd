@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2003/06/10 07:43:35  gul
+ * sdelete() - reliable delete file (wait for lock)
+ *
  * Revision 2.12  2003/03/10 10:39:23  gul
  * New include file common.h
  *
@@ -102,7 +105,7 @@ static void remove_hr (char *path)
   strcpy (strrchr (path, '.'), ".hr");
   if (rc == 0)
   {
-    delete (path);
+    sdelete (path);
   }
 }
 
@@ -426,7 +429,7 @@ int inb_done (char *netname, off_t size, time_t time,
 
   /* Replacing .dt with .hr and removing temp. file */
   strcpy (strrchr (tmp_name, '.'), ".hr");
-  delete (tmp_name);
+  sdelete (tmp_name);
   return 1;
 }
 
