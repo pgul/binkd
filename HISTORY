@@ -1,3 +1,8 @@
+2004/02/29 10:51:54 1.0a-376 gul
+readcfg.c,2.66,2.67
+Bugfix in print_node_info
+(patch from Victor Levenets).
+
 2004/02/29 10:51:17 1.0a-375 gul
 srif.c,2.15,2.16
 Fixed *A@ macro on event calls
