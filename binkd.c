@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.43  2003/07/07 10:39:24  gul
+ * getopt() usage fix
+ *
  * Revision 2.42  2003/07/07 10:13:49  gul
  * Use getopt() for commandline parse
  *
@@ -376,12 +379,13 @@ int tray_flag = 0;                     /* minimize to tray */
 char *parseargs (int argc, char *argv[])
 {
   char *cfgfile=NULL;
-  int i, rerun = 0;
+  int i, curind, rerun = 0;
   struct polls *psP;
 
   /* rerun will be removed when reconfig-on-fly feature will be added */
   if (getenv("BINKD_RERUN")) rerun = 1;
 
+  curind = 1;
   while ((i = getopt(argc, argv,
 		"CchmP:pqrsv-"
 #ifdef BINKD_DAEMONIZE
@@ -405,17 +409,17 @@ char *parseargs (int argc, char *argv[])
 	  {
 	    case '-':
 	      /* GNU-style options */
-	      if (!strcmp (argv[optind], "--help"))
+	      if (!strcmp (argv[curind], "--help"))
 		usage ();
 	      else
 /* getopt() don't support GNU-style options
 #if defined (BINKDW9X)
-	      if (!strcmp (argv[optind], Win9xStartService))
+	      if (!strcmp (argv[curind], Win9xStartService))
 	        service_flag = w32_run_as_service;
 	      else
 #endif
 */
-		Log (0, "%s: --%s: unknown command line switch", extract_filename(argv[0]), argv[optind]);
+		Log (0, "%s: %s: unknown command line switch", extract_filename(argv[0]), argv[curind]);
 	      break;
 #if defined (BINKDW9X)
 	    case 'Z':
@@ -532,9 +536,10 @@ char *parseargs (int argc, char *argv[])
 	      usage();
 
 	    default:  /* unknown parameter/option */
-	      Log (0, "%s: %s: unknown command line switch", extract_filename(argv[0]), argv[optind]);
+	      Log (0, "%s: %s: unknown command line switch", extract_filename(argv[0]), argv[curind]);
 
 	  }
+	curind = optind;
   }
   if (optind<argc)
     cfgfile = argv[optind++];
