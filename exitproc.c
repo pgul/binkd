@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/03/06 18:30:28  gul
+ * A bit optimize
+ *
  * Revision 2.4  2003/03/05 11:43:56  gul
  * Fix win32 compilation
  *
@@ -58,10 +61,13 @@ int binkd_exit;
 #ifdef HAVE_THREADS
 
 static fd_set sockets;
+static SOCKET max_socket;
 
 int add_socket(SOCKET sockfd)
 {
   FD_SET (sockfd, &sockets);
+  if (sockfd > max_socket)
+    max_socket = sockfd;
   return 0;
 }
 
@@ -84,16 +90,17 @@ void exitfunc (void)
   }
 #elif HAVE_THREADS
   /* exit all threads */
-  { int i, h;
+  { int i;
+    SOCKET h;
     /* wait for threads exit */
     binkd_exit = 1;
     for (i=0; i<5; i++)
       if (n_servers || n_clients || (pidcmgr && server_flag))
       {
 	/* close active sockets */
-	for (h=0; h<sizeof(sockets)*8; h++)
+	for (h=0; h < max_socket; h++)
 	  if (FD_ISSET(h, &sockets))
-	    soclose(h);
+	    soclose (h);
 	sleep (1);
       }
       else
