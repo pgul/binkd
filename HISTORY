@@ -1,3 +1,8 @@
+2003/08/25 22:09:32 0.9.6a-138 gul
+protocol.c,2.106,2.107
+Flush file buffer after receive data frame,
+drop session if extra bytes received.
+
 2003/08/25 21:25:36 0.9.6a-137 gul
 inbound.c,2.17,2.18
 Remove partial if received part more then total size
