@@ -7,6 +7,7 @@ LFLAGS=
 BASELIBS=-lsocket
 NTLM_SRC=ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c
 BASESRCS=binkd.c readcfg.c tools.c ftnaddr.c ftnq.c client.c server.c protocol.c bsy.c inbound.c breaksig.c branch.c os2/gettid.c os2/sem.c  ftndom.c ftnnode.c os2/getfree.c srif.c pmatch.c readflo.c prothlp.c iptools.c run.c binlog.c exitproc.c getw.c xalloc.c setpttl.c https.c md5b.c crypt.c ${NTLM_SRC}
+TARGET=binkd2e.exe
 
 ifdef DEBUG
 CFLAGS+=-g
@@ -51,20 +52,20 @@ SRCS=$(BASESRCS) $(PERLSRC)
 
 OBJS=${SRCS:.c=.o}
 
-all: binkd.exe
+all: $(TARGET)
 
 .c.o:
 	@echo Compiling $*.c...
 	@$(CC) -c $(CFLAGS) -o $*.o $*.c
 
-binkd.exe: $(OBJS)
+$(TARGET): $(OBJS)
 	@echo Linking $@...
 	@$(CC) -o $@ $(LFLAGS) $(OBJS) $(LIBS)
 
 install: all clean
 
 clean:
-	-del /n *.RES *.obj *.o os2\*.o *.map *~ *.bak *.b *.ini *.err core >nul 2> nul
+	-del /n *.RES *.obj *.o os2\*.o ntlm\*.o *.map *~ *.bak *.b *.ini *.err core >nul 2> nul
 
 depend	Makefile.dep:
 	@echo Build Makefile.dep...
