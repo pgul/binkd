@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/03/26 13:53:28  gul
+ * Fix OS/2 compilation
+ *
  * Revision 2.9  2003/03/11 09:21:30  gul
  * Fixed OS/2 Watcom compilation
  *
@@ -65,10 +68,20 @@
 #ifdef HAVE_IO_H
   #include <io.h>
 #endif
+#ifdef HAVE_DOS_H
+  #include <dos.h>
+#endif
 
 #if defined(__WATCOMC__) && !defined(__IBMC__)
-  #define __IBMC__ 0
-  #define __IBMCPP__ 0
+  #include <utils.h>
+  #ifdef __UTILS_32H /* toolkit 4.x or less */
+    #pragma library("so32dll.lib")
+    #pragma library("tcp32dll.lib")
+  #else /* using toolkit 5.x */
+    #define HAVE_ARPA_INET_H
+    #define __IBMC__ 0
+    #define __IBMCPP__ 0
+  #endif
 #endif
 
 #if defined(WIN32)
@@ -84,9 +97,6 @@
 #endif
 
 #ifdef HAVE_THREADS
-  #ifdef HAVE_DOS_H
-    #include <dos.h>
-  #endif
   #include <process.h>
   #if defined(OS2)
     int gettid (void);

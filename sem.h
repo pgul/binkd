@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/03/26 13:53:28  gul
+ * Fix OS/2 compilation
+ *
  * Revision 2.5  2003/03/11 11:42:23  gul
  * Use event semaphores for exit threads
  *
@@ -51,11 +54,6 @@ typedef HANDLE MUTEXSEM;
 typedef HANDLE EVENTSEM;
 
 #elif defined(OS2)
-
-#if defined(__WATCOMC__) && !defined(__IBMC__)
-#define __IBMC__ 0
-#define __IBMCPP__ 0
-#endif
 
 #define INCL_DOS
 #include <os2.h>

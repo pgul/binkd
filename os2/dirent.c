@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.3  2003/03/26 13:53:28  gul
+ * Fix OS/2 compilation
+ *
  * Revision 2.2  2003/03/11 09:21:30  gul
  * Fixed OS/2 Watcom compilation
  *
@@ -29,7 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "sys.h"
+#include "../sys.h"
 
 #include <os2def.h>
 #include <bsedos.h>
@@ -38,7 +41,7 @@
 
 #define SEARCH_ATTR (FILE_HIDDEN|FILE_SYSTEM|FILE_DIRECTORY)
 
-DIR * _Optlink opendir(const char * dirname)
+DIR * opendir(const char * dirname)
 {
    char * name;
    int len;
@@ -79,7 +82,7 @@ DIR * _Optlink opendir(const char * dirname)
    return dir;
 }
 
-void _Optlink rewinddir(DIR * dir)
+void rewinddir(DIR * dir)
 {
    ULONG nfiles;
 
@@ -92,7 +95,7 @@ void _Optlink rewinddir(DIR * dir)
    }
 }
 
-struct dirent * _Optlink readdir(DIR * dir)
+struct dirent * readdir(DIR * dir)
 {
    ULONG nfiles;
    FILEFINDBUF3 *ff;
@@ -113,7 +116,7 @@ struct dirent * _Optlink readdir(DIR * dir)
    return ((struct dirent *)&ff->achName[0]);
 }
 
-int _Optlink closedir(DIR * dir)
+int closedir(DIR * dir)
 {
    if( dir==NULL ) {
      errno = EBADF;

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2003/03/26 13:53:28  gul
+ * Fix OS/2 compilation
+ *
  * Revision 2.7  2003/03/11 09:21:30  gul
  * Fixed OS/2 Watcom compilation
  *
@@ -53,11 +56,12 @@
 #define _iphdrs_h
 
 #include <sys/types.h>
-#include "sys.h"                            /* Get system i/o headers */
 
 #ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
+
+#include "sys.h"                            /* Get system i/o headers */
 
 #ifdef IBMTCPIP
   #include <errno.h>
@@ -70,9 +74,6 @@
   #include <types.h>
   #include <utils.h>
   #include <unistd.h>
-  #ifndef __UTILS_32H /* using toolkit 5.x */
-    #define HAVE_ARPA_INET_H
-  #endif
   #include <sys/select.h>
 #endif
 

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19  2003/03/26 13:53:28  gul
+ * Fix OS/2 compilation
+ *
  * Revision 2.18  2003/03/11 11:42:23  gul
  * Use event semaphores for exit threads
  *
@@ -122,6 +125,7 @@
 #endif
 
 #include "Config.h"
+#include "sys.h"
 #include "iphdr.h"
 #include "common.h"
 #include "iptools.h"
@@ -129,7 +133,6 @@
 #include "readcfg.h"
 #include "protocol.h"
 #include "server.h"
-#include "sys.h"
 #include "assert.h"
 #include "setpttl.h"
 #include "sem.h"
