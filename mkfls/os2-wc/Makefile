@@ -42,7 +42,7 @@ LIBS      += z.lib
 !endif
 !endif
 
-!ifeq BZLIB1 1
+!ifeq BZLIB2 1
 CFLAGS    += -DWITH_BZLIB2
 COMPRESS  = 1
 !ifeq ZLIBDL 1
