@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.51  2003/09/21 17:34:27  gul
+ * Change perl stderr handling for thread vertions,
+ * some small changes.
+ *
  * Revision 2.50  2003/08/26 22:18:48  gul
  * Fix compilation under w32-mingw and os2-emx
  *
@@ -534,7 +538,7 @@ void Log (int lev, char *s,...)
      )
   {
     LockSem(&lsem);
-    fprintf (stderr, "%30.30s\r%c %02d:%02d [%u] %s%s", " ", ch,
+    fprintf (my_stderr, "%30.30s\r%c %02d:%02d [%u] %s%s", " ", ch,
          tm.tm_hour, tm.tm_min, (unsigned) PID (), buf, (lev >= 0) ? "\n" : "");
     ReleaseSem(&lsem);
     if (lev < 0)
@@ -561,7 +565,7 @@ void Log (int lev, char *s,...)
       first_time = 0;
     }
     else
-      fprintf (stderr, "Cannot open %s: %s!\n", current_logpath, strerror (errno));
+      fprintf (my_stderr, "Cannot open %s: %s!\n", current_logpath, strerror (errno));
     ReleaseSem(&lsem);
   }
 #ifdef WIN32

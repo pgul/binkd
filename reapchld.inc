@@ -6,6 +6,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/09/21 17:34:27  gul
+ * Change perl stderr handling for thread vertions,
+ * some small changes.
+ *
  * Revision 2.2  2003/08/18 09:41:01  gul
  * Little cleanup in handle perl errors
  *
@@ -35,7 +39,9 @@
     }
 #ifdef CHILDCOUNT
 #ifdef WITH_PERL
-    if (pid != perl_errpid)
+    if (pid == perl_errpid)
+      perl_errpid = 0;
+    else
 #endif
       CHILDCOUNT--;
 #endif

@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.45  2003/09/21 17:34:26  gul
+ * Change perl stderr handling for thread vertions,
+ * some small changes.
+ *
  * Revision 2.44  2003/09/05 06:49:06  val
  * Perl support restored after config reloading patch
  *
@@ -293,7 +297,7 @@ static int do_client(BINKD_CONFIG *config, int *pq_empty)
     *pq_empty = !q_not_empty (config);
     if (config->printq)
     {
-      q_list (stderr, SCAN_LISTED, config);
+      q_list (my_stderr, SCAN_LISTED, config);
       Log (-1, "idle\r");
     }
   }
