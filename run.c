@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/04/07 18:22:16  gul
+ * Wait for external process under win32 bugfix
+ *
  * Revision 2.3  2003/04/06 08:01:32  gul
  * Close handles after CreateProcess()
  *
@@ -87,24 +90,16 @@ int run (char *cmd)
   }
   strcat(cs, sp);
   if (!CreateProcess(NULL, cs, NULL, NULL, 0, dw, NULL, NULL, &si, &pi))
-    Log (1, "Error in CreateProcess()=%d", GetLastError());
+    Log (1, "Error in CreateProcess()=%ld", (long)GetLastError());
   else if (sp==cmd)
-    for(;;)
-    { /* WaitForSingleObject() does not wait for process under Windows95 */
-      dw = WaitForSingleObject(pi.hProcess, 1000);
-      if (dw != WAIT_OBJECT_0 && dw != WAIT_TIMEOUT) Sleep(100);
-      if (!GetExitCodeProcess(pi.hProcess, &dw))
-      {
-        Log (1, "Error in GetExitCodeProcess()=%d", GetLastError());
-        break;
-      }
-      else if (dw!=STILL_ACTIVE)
-      {
-        rc = (int)dw;
-        Log (3, "rc=%i", rc);
-        break;
-      }
-    }
+  {
+    if (WaitForSingleObject(pi.hProcess, INFINITE) != WAIT_OBJECT_0)
+      Log (1, "Error in WaitForSingleObject()=%ld", (long)GetLastError());
+    else if (!GetExitCodeProcess(pi.hProcess, &dw))
+      Log (1, "Error in GetExitCodeProcess()=%ld", (long)GetLastError());
+    else
+      Log (3, "rc=%i", rc = (int)dw);
+  }
   free(cs);
   CloseHandle(pi.hProcess);
   CloseHandle(pi.hThread);
