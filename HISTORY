@@ -1,3 +1,7 @@
+2004/01/02 17:31:33 1.0a-322 stas
+getfree.c,2.8,2.9
+Fix the minfree token usage and fix getfree() on Win >w95
+
 2004/01/02 06:05:33 1.0a-321 stas
 getfree.c,2.7,2.8
 Fix warning (type convertion)
