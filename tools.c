@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.50  2003/08/26 22:18:48  gul
+ * Fix compilation under w32-mingw and os2-emx
+ *
  * Revision 2.49  2003/08/26 21:01:10  gul
  * Fix compilation under unix
  *
@@ -233,6 +236,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
 #include <syslog.h>

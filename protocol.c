@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.110  2003/08/26 22:18:48  gul
+ * Fix compilation under w32-mingw and os2-emx
+ *
  * Revision 2.109  2003/08/26 21:01:10  gul
  * Fix compilation under unix
  *
@@ -413,6 +416,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>

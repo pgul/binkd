@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.3  2003/08/26 22:18:49  gul
+ * Fix compilation under w32-mingw and os2-emx
+ *
  * Revision 2.2  2003/08/05 05:36:14  hbrew
  * 'static const char rcsid[]' removed
  *
@@ -50,7 +53,8 @@
 /*                        Local include files                         */
 /*--------------------------------------------------------------------*/
 
-#include "..\tools.h"
+#include "../readcfg.h"
+#include "../tools.h"
 
 /*--------------------------------------------------------------------*/
 /*                         Global definitions                         */

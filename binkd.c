@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.60  2003/08/26 22:18:47  gul
+ * Fix compilation under w32-mingw and os2-emx
+ *
  * Revision 2.59  2003/08/26 21:01:09  gul
  * Fix compilation under unix
  *
@@ -252,6 +255,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#ifdef HAVE_FORK
+#include <signal.h>
+#endif
 
 #include "readcfg.h"
 #include "common.h"
@@ -306,7 +312,9 @@ MUTEXSEM fhsem = 0;
 int pidcmgr = 0;		       /* pid for clientmgr */
 int pidCmgr = 0;		       /* real pid for clientmgr (not 0) */
 int pidsmgr = 0;		       /* pid for server */
+#if defined(UNIX) || defined(OS2) || defined(AMIGA)
 static SOCKET inetd_socket = 0;
+#endif
 
 char *configpath = NULL;               /* Config file name */
 

@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.5  2003/08/26 22:18:49  gul
+ * Fix compilation under w32-mingw and os2-emx
+ *
  * Revision 2.4  2003/03/31 22:11:34  gul
  * Fixed semaphores usage
  *
@@ -47,6 +50,7 @@
  *
  */
 
+#include "../readcfg.h"
 #include "../sys.h"
 #include "../tools.h"
 
