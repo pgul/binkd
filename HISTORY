@@ -1,3 +1,7 @@
+2003/10/18 09:45:55 1.0a-245 stas
+exitproc.c,2.33,2.34
+Fix a semaphore usage in exitfunc()
+
 2003/10/18 09:45:25 1.0a-244 stas
 service.c,2.37,2.38 service.h,2.10,2.11
 Fix a semaphore usage in exitfunc()
