@@ -13,7 +13,10 @@
 /*
  * $Id$
  *
- * $Log $
+ * $Log$
+ * Revision 2.9  2003/09/25 09:01:28  gul
+ * Fix CVS macro again
+ *
  *
  */
 
