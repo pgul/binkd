@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30.2.4  2003/08/27 12:00:46  stas
+ * Fix binkd9x build
+ *
  * Revision 2.30.2.3  2003/08/27 10:22:28  stas
  * Make binkd 0.9.5 command line compatible with binkd 0.9.6
  *
@@ -368,7 +371,7 @@ int main (int argc, char *argv[], char *envp[])
 	      /* GNU-style options */
 	      if (!strcmp (s + 1, "help"))
 	      {
-#ifdef WIN32
+#if defined(WIN32) && !defined (BINKDW9X)
               if (!isService)
 #endif
 		usage ();
@@ -436,7 +439,7 @@ int main (int argc, char *argv[], char *envp[])
 	      break;
 #endif
 	    case 'h':
-#ifdef WIN32
+#if defined(WIN32) && !defined(BINKDW9X)
               if (isService)
                  break;
 #endif
@@ -444,7 +447,7 @@ int main (int argc, char *argv[], char *envp[])
 	    default:
 	      Log (0, "%s: -%c: unknown command line switch", extract_filename(argv[0]), *s);
 	    case '\0':
-#ifdef WIN32
+#if defined(WIN32) && !defined (BINKDW9X)
               if (isService)
                  break;
 #endif
