@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.29  2003/03/01 15:00:16  gul
+ * Join skipmask and overwrite into common maskchain
+ *
  * Revision 2.28  2003/02/28 19:52:24  gul
  * Small optimize
  *
@@ -190,12 +193,6 @@ extern int no_MD5;
 
 static char *scommand[] = {"NUL", "ADR", "PWD", "FILE", "OK", "EOB",
                            "GOT", "ERR", "BSY", "GET", "SKIP"};
-
-static struct skiprule
-  {
-    struct skiprule *next;
-    char *mask;
-  } *skipmask = NULL;
 
 /*
  * Fills <<state>> with initial values, allocates buffers, etc.
@@ -1105,38 +1102,6 @@ static int OK (STATE *state, char *buf, int sz)
   return 1;
 }
 
-void skipmask_add(char *mask)
-{
-  struct skiprule *ps;
-
-  if (skipmask == NULL)
-  {
-    skipmask = xalloc(sizeof(*skipmask));
-    ps = skipmask;
-  }
-  else
-  {
-    for (ps = skipmask; ps->next; ps = ps->next);
-    ps->next = xalloc(sizeof(*ps));
-    ps = ps->next;
-  }
-  ps->next = NULL;
-  ps->mask = xstrdup(mask);
-}
-
-static int skip_test(char *netname, char *mask)
-{
-  struct skiprule *ps;
-
-  for (ps = skipmask; ps; ps = ps->next)
-    if (pmatch(ps->mask, netname))
-    {
-      strcpy(mask, ps->mask);
-      return 1;
-    }
-  return 0;
-}
-
 /*
  * Handles M_FILE msg from the remote
  * M_FILE args: "%s %li %li %li", filename, size, time, offset
@@ -1214,12 +1179,12 @@ static int start_file_recv (STATE *state, char *args, int sz)
 
     if (state->in.f == 0)
     {
-      char realname[MAXPATHLEN + 1];
+      char realname[MAXPATHLEN + 1], *mask;
 
-      if (skip_test (state->in.netname, realname))
+      if ((mask = mask_test (state->in.netname, skipmask)) != NULL)
       {
 	Log (1, "skipping %s (destructive, %li byte(s), skipmask %s)",
-	     state->in.netname, state->in.size, realname);
+	     state->in.netname, state->in.size, mask);
 	msg_sendf (state, M_GOT, "%s %li %li",
 		   state->in.netname,
 		   (long) state->in.size,

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19  2003/03/01 15:00:17  gul
+ * Join skipmask and overwrite into common maskchain
+ *
  * Revision 2.18  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -208,6 +211,7 @@ int syslog_facility = -1;
 int tries = 0;
 int hold = 0;
 int hold_skipped = 60 * 60;
+struct maskchain *skipmask = NULL, *overwrite = NULL;
 
 int nAddr = 0;
 FTN_ADDR *pAddr = 0;
@@ -234,11 +238,8 @@ static void read_string (KEYWORD *, char *);
 static void read_bool (KEYWORD *, char *);
 static void read_flag_exec_info (KEYWORD *, char *);
 static void read_rfrule (KEYWORD *, char *);
-static void read_skipmask (KEYWORD *key, char *s);
+static void read_mask (KEYWORD *key, char *s);
 static void read_inboundcase (KEYWORD *, char *);
-static void read_overwrite (KEYWORD *key, char *s);
-void skipmask_add(char *mask);
-void overwrite_add(char *mask);
 
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
 
@@ -311,10 +312,10 @@ KEYWORD keywords[] =
   {"brakebox", read_string, bfilebox, 'd', 0},
   {"deletebox", read_bool, &deleteablebox, 0, 0},
 #endif
-  {"skipmask", read_skipmask, NULL, 0, 0},
+  {"skipmask", read_mask, &skipmask, 0, 0},
   {"inboundcase", read_inboundcase, &inboundcase, 0, 0},
   {"deletedirs", read_bool, &deletedirs, 0, 0},
-  {"overwrite", read_overwrite, NULL, 0, 0},
+  {"overwrite", read_mask, &overwrite, 0, 0},
 #ifdef AMIGADOS_4D_OUTBOUND
   {"aso", read_bool, &aso, 0, 0},
 #endif
@@ -893,24 +894,42 @@ static void read_rfrule (KEYWORD *key, char *s)
     Log (0, "%s: %i: the syntax is incorrect", path, line);
 }
 
-static void read_skipmask (KEYWORD *key, char *s)
+static void mask_add(char *mask, struct maskchain **chain)
 {
-  char *w;
-  int i;
+  struct maskchain *ps;
 
-  for (i=2; (w = getword (s, i)) != NULL; i++)
-    skipmask_add (w);
-  if (i == 2)
-    Log (0, "%s: %i: the syntax is incorrect", path, line);
+  if (*chain == NULL)
+  {
+    *chain = xalloc(sizeof(**chain));
+    ps = *chain;
+  }
+  else
+  {
+    for (ps = *chain; ps->next; ps = ps->next);
+    ps->next = xalloc(sizeof(*ps));
+    ps = ps->next;
+  }
+  ps->next = NULL;
+  ps->mask = xstrdup(mask);
 }
 
-static void read_overwrite (KEYWORD *key, char *s)
+char *mask_test(char *netname, struct maskchain *chain)
+{
+  struct maskchain *ps;
+
+  for (ps = chain; ps; ps = ps->next)
+    if (pmatch(ps->mask, netname))
+      return ps->mask;
+  return NULL;
+}
+
+static void read_mask (KEYWORD *key, char *s)
 {
   char *w;
   int i;
 
   for (i=2; (w = getword (s, i)) != NULL; i++)
-    overwrite_add (w);
+    mask_add (w, (struct maskchain **) (key->var));
   if (i == 2)
     Log (0, "%s: %i: the syntax is incorrect", path, line);
 }

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2003/03/01 15:00:16  gul
+ * Join skipmask and overwrite into common maskchain
+ *
  * Revision 2.8  2003/02/27 15:37:19  gul
  * Bugfix in disk free space check
  *
@@ -78,12 +81,6 @@
 #include "tools.h"
 #include "protocol.h"
 #include "readdir.h"
-
-static struct overwriterule
-{
-  struct overwriterule *next;
-  char *mask;
-} *overwrite = NULL;
 
 /* Removes both xxxxx.hr and it's xxxxx.dt */
 static void remove_hr (char *path)
@@ -324,35 +321,6 @@ int inb_reject (char *netname, size_t size,
   }
 }
 
-void overwrite_add(char *mask)
-{
-  struct overwriterule *ps;
-
-  if (overwrite == NULL)
-  {
-    overwrite = xalloc(sizeof(*overwrite));
-    ps = overwrite;
-  }
-  else
-  {
-    for (ps = overwrite; ps->next; ps = ps->next);
-    ps->next = xalloc(sizeof(*ps));
-    ps = ps->next;
-  }
-  ps->next = NULL;
-  ps->mask = xstrdup(mask);
-}
-
-static int overwrite_test(char *netname)
-{
-  struct overwriterule *ps;
-
-  for (ps = overwrite; ps; ps = ps->next)
-    if (pmatch(ps->mask, netname))
-      return 1;
-  return 0;
-}
-
 /*
  * File is complete, rename it to it's realname. 1=ok, 0=failed.
  * Sets realname[MAXPATHLEN]
@@ -379,7 +347,7 @@ int inb_done (char *netname, size_t size, time_t time,
   free (u);
   strwipe (s);
 
-  if (overwrite_test(netname) && !ispkt(netname) && !isarcmail(netname))
+  if (mask_test(netname, overwrite) && !ispkt(netname) && !isarcmail(netname))
   {
     for(i=0; ; i++)
     {

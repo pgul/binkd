@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/03/01 15:00:17  gul
+ * Join skipmask and overwrite into common maskchain
+ *
  * Revision 2.5  2003/02/22 21:32:46  gul
  * Amiga Style Outbound support
  *
@@ -129,6 +132,11 @@ extern struct conflist_type
     struct conflist_type *next;
     unsigned long mtime;
   } *config_list;
+extern struct maskchain
+  {
+    struct maskchain *next;
+    char *mask;
+  } *skipmask, *overwrite;
 
 /*
  * Parses and reads the path as a config
@@ -136,5 +144,7 @@ extern struct conflist_type
 void readcfg (char *path);
 
 int  get_host_and_port (int n, char *host, unsigned short *port, char *src, FTN_ADDR *fa);
+
+char *mask_test(char *filename, struct maskchain *chain);
 
 #endif
