@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.52  2003/07/07 08:33:27  val
+ * Auto increase patchlevel, set 0.9.6a-41
+ * `perl-hooks' config keyword to specify perl script
+ *
  * Revision 2.51  2003/07/06 10:34:29  gul
  * Auto increase patchlevel, set 0.9.6a-40
  * Migrate workaround of 100% CPU load with winsock from stable branch
@@ -211,7 +215,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-40"
+#define MYVER "0.9.6a-41"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
