@@ -1,3 +1,7 @@
+2004/09/02 12:32:00 1.0a-396 val
+protocol.c,2.156,2.157
+release CPU when limiting bandwidth on Win32
+
 2004/09/02 12:00:59 1.0a-395 val
 readcfg.c,2.68,2.69
 fix warnings
