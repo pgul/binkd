@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.24  2003/10/06 16:54:51  stas
+ * (Prevent warnings.) Prepare to implement full service control
+ *
  * Revision 2.23  2003/10/06 16:47:28  stas
  * Use enumeration in parameter and return values of service_main()
  *
@@ -422,6 +425,7 @@ static enum service_main_retcodes service_main(enum service_main_types type)
       rc=service_main_ret_failstart;
     }
     break;
+  case service_main_stop:      /* stop */
   case service_main_uninstall: /* stop & uninstall. */
     if(!shan) break;
     /* try to stop the service  */
@@ -439,14 +443,18 @@ static enum service_main_retcodes service_main(enum service_main_types type)
       }
       putchar('\n');
       if(sstat.dwCurrentState!=SERVICE_STOPPED)
+      {
         Log(1, "Unable to stop service!");
+        rc=service_main_ret_failstop;
+      }
     }
-    if(!DeleteService(shan))
+    if(( type==service_main_uninstall) && !DeleteService(shan) )
     {
       Log(1, "Error in DeleteService()=%s", tcperr(GetLastError()) );
       rc=service_main_ret_faildelete;
     }
     break;
+    default:
   }
 
   if(shan) CloseServiceHandle(shan);
