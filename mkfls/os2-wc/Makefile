@@ -10,12 +10,12 @@ PP         = wpp386 -D_Optlink=
 AFLAGS  = /Mx -t -z
 ASM     = ml /c /Zm
 LFLAGS  = /bm /k1024k
-CFLAGS  = -DOS2 -DHAVE_THREADS -DHAVE_IO_H -DHAVE_SYS_TIME_H -DHAVE_SYS_IOCTL_H -DHAVE_SNPRINTF -Dsnprintf=_bprintf -Dvsnprintf=_vbprintf -DIBMTCPIP -DVOID_SLEEP -DHTTPS -DNTLM -DAMIGADOS_4D_OUTBOUND /w4 /ox /bm # -DWATCOMC_CLOSEDIR_BUG
+CFLAGS  = -DOS2 -DHAVE_THREADS -DHAVE_IO_H -DHAVE_SYS_TIME_H -DHAVE_SYS_IOCTL_H -DHAVE_SNPRINTF -Dsnprintf=_bprintf -Dvsnprintf=_vbprintf -DIBMTCPIP -DVOID_SLEEP -DHTTPS -DNTLM -DAMIGADOS_4D_OUTBOUND /w4 /ox /bm
 LINK    = wcl386
 NTLM_SRC=ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c
 NTLM_OBJS=    des_enc.obj    helpers.obj    ecb_enc.obj    md4_dgst.obj    set_key.obj
-SRCS=binkd.c   readcfg.c   tools.c   ftnaddr.c   ftnq.c   client.c   server.c   protocol.c   bsy.c   os2\gettid.c os2\tcperr.c inbound.c   os2\sem.c breaksig.c   branch.c   ftndom.c   ftnnode.c   getfree.c   srif.c   pmatch.c   readflo.c   prothlp.c   iptools.c   run.c   binlog.c   exitproc.c   getw.c   xalloc.c   setpttl.c   https.c   md5b.c   crypt.c   $(NTLM_SRC)
-OBJS=binkd.obj readcfg.obj tools.obj ftnaddr.obj ftnq.obj client.obj server.obj protocol.obj bsy.obj gettid.obj   tcperr.obj   inbound.obj sem.obj   breaksig.obj branch.obj ftndom.obj ftnnode.obj getfree.obj srif.obj pmatch.obj readflo.obj prothlp.obj iptools.obj run.obj binlog.obj exitproc.obj getw.obj xalloc.obj setpttl.obj https.obj md5b.obj crypt.obj $(NTLM_OBJS)
+SRCS=binkd.c   readcfg.c   tools.c   ftnaddr.c   ftnq.c   client.c   server.c   protocol.c   bsy.c   os2\gettid.c os2\tcperr.c inbound.c   os2\sem.c breaksig.c   branch.c   ftndom.c   ftnnode.c   getfree.c   srif.c   pmatch.c   readflo.c   prothlp.c   iptools.c   run.c   binlog.c   exitproc.c   getw.c   xalloc.c   setpttl.c   https.c   md5b.c   crypt.c  os2\dirent.c   $(NTLM_SRC)
+OBJS=binkd.obj readcfg.obj tools.obj ftnaddr.obj ftnq.obj client.obj server.obj protocol.obj bsy.obj gettid.obj   tcperr.obj   inbound.obj sem.obj   breaksig.obj branch.obj ftndom.obj ftnnode.obj getfree.obj srif.obj pmatch.obj readflo.obj prothlp.obj iptools.obj run.obj binlog.obj exitproc.obj getw.obj xalloc.obj setpttl.obj https.obj md5b.obj crypt.obj dirent.obj $(NTLM_OBJS)
 
 .c.obj:
 	$(CC) $(CFLAGS) $*.c
@@ -49,6 +49,7 @@ https.obj:    https.c         .AUTODEPEND
 md5.obj:      md5.c           .AUTODEPEND
 crypt.obj:    crypt.c         .AUTODEPEND
 tcperr.obj:   os2\tcperr.c    .AUTODEPEND
+dirent.obj:   os2\dirent.c    .AUTODEPEND
 des_enc.obj:  ntlm\des_enc.c  .AUTODEPEND
 helpers.obj:  ntlm\helpers.c  .AUTODEPEND
 ecb_enc.obj:  ntlm\ecb_enc.c  .AUTODEPEND
@@ -63,6 +64,8 @@ sem.obj: os2\sem.c
 	$(CC) $(CFLAGS) os2\sem.c
 getfree.obj: os2\getfree.c
 	$(CC) $(CFLAGS) os2\getfree.c
+dirent.obj: os2\dirent.c
+	$(CC) $(CFLAGS) os2\dirent.c
 
 des_enc.obj:  ntlm\des_enc.c
 	$(CC) $(CFLAGS) ntlm\des_enc.c

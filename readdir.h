@@ -16,6 +16,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/03/10 11:40:09  gul
+ * Use self opendir/readdir/closedir functions for watcom
+ *
  * Revision 2.2  2003/03/01 20:16:27  gul
  * OS/2 IBM C support
  *
@@ -32,7 +35,9 @@
 #ifndef _readdir_h
 #define _readdir_h
 
-#if defined(__WATCOMC__) || defined(VISUALCPP) || defined(__IBMC__)
+#if defined(__WATCOMC__)
+#include <sys/utime.h>
+#elif defined(VISUALCPP) || defined(__IBMC__)
 #include <direct.h>
 #include <sys/utime.h>
 #elif defined(__MINGW32__)
@@ -47,14 +52,8 @@
 #include "NT/dirwin32.h"
 #endif
 
-#if defined(__IBMC__)
+#if defined(__IBMC__) || defined(__WATCOMC__)
 #include "os2/dirent.h"
-#endif
-
-#if defined(WATCOMC_CLOSEDIR_BUG)
-#define INCL_DOS
-#include <os2.h>
-#define closedir(d) (DosFindClose(*(HDIR *)((d)->d_dta)-2), closedir(d))
 #endif
 
 #endif

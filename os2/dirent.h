@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.3  2003/03/10 11:40:10  gul
+ * Use self opendir/readdir/closedir functions for watcom
+ *
  * Revision 2.2  2003/03/01 20:31:59  gul
  * dos2unix EOL
  *
@@ -47,6 +50,11 @@ DIR            * _Optlink   opendir(const char * __dirname);
 struct dirent  * _Optlink   readdir(DIR * __dir);
 int              _Optlink  closedir(DIR * __dir);
 void             _Optlink rewinddir(DIR * __dir);
+
+#if defined(__WATCOMC__)
+extern int	mkdir( const char *__path );
+extern int	rmdir( const char *__path );
+#endif
 
 #ifdef __cplusplus
 }
