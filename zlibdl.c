@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2003/10/20 17:57:13  gul
+ * Dynamic load bzlib.dll built as C++
+ *
  * Revision 2.10  2003/10/19 22:02:38  gul
  * OS/2 ZLIBDL fix
  *
@@ -54,6 +57,11 @@
 
 #if defined(WIN32)
 #define LOADFUNC(name)	if (loaded && (dl_##name = (void *)GetProcAddress(hl, #name)) == NULL) loaded = 0;
+#define LOADFUNC2(name, size) \
+    if (loaded && \
+        (dl_##name = (void *)GetProcAddress(hl, #name)) == NULL && \
+        (dl_##name = (void *)GetProcAddress(hl, #name "@" #size)) == NULL) \
+	    loaded = 0;
 #elif defined(OS2)
 #define LOADFUNC(name) if (loaded && (DosQueryProcAddr(hl, 0, #name, (PFN*)(&dl_##name)) != 0 || dl_##name == NULL)) loaded = 0;
 #endif
@@ -112,12 +120,12 @@ int bzlib2_init(const char *dll_name) {
   if (DosLoadModule(buf, sizeof(buf), dll_name, &hl))
 #endif
   { int loaded = 1;
-    LOADFUNC(BZ2_bzCompressInit);
-    LOADFUNC(BZ2_bzCompress);
-    LOADFUNC(BZ2_bzCompressEnd);
-    LOADFUNC(BZ2_bzDecompressInit);
-    LOADFUNC(BZ2_bzDecompress);
-    LOADFUNC(BZ2_bzDecompressEnd);
+    LOADFUNC2(BZ2_bzCompressInit, 16);
+    LOADFUNC2(BZ2_bzCompress, 8);
+    LOADFUNC2(BZ2_bzCompressEnd, 4);
+    LOADFUNC2(BZ2_bzDecompressInit, 12);
+    LOADFUNC2(BZ2_bzDecompress, 4);
+    LOADFUNC2(BZ2_bzDecompressEnd, 4);
     if (loaded) bzlib2_loaded = 1;
   }
   return bzlib2_loaded;
