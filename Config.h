@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.55  2003/07/07 08:42:06  val
+ * Auto increase patchlevel, set 0.9.6a-44
+ * check real length of SvPV() when importing queue element from perl
+ *
  * Revision 2.54  2003/07/07 08:38:20  val
  * Auto increase patchlevel, set 0.9.6a-43
  * safe pkthdr-reading function (to byte order and struct alignment)
@@ -223,7 +227,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-43"
+#define MYVER "0.9.6a-44"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
