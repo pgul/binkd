@@ -244,7 +244,7 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
       case 'd':
       case 'i':
 	if (cflags == DP_C_SHORT)
-	  value = va_arg (args, short int);
+	  value = (short int) va_arg (args, /*short*/ int); /* gcc warning */
 	else if (cflags == DP_C_LONG)
 	  value = va_arg (args, long int);
 	else
@@ -254,7 +254,7 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
       case 'o':
 	flags |= DP_F_UNSIGNED;
 	if (cflags == DP_C_SHORT)
-	  value = va_arg (args, unsigned short int);
+	  value = (unsigned short int) va_arg (args, unsigned /*short*/ int);
 	else if (cflags == DP_C_LONG)
 	  value = va_arg (args, unsigned long int);
 	else
@@ -264,7 +264,7 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
       case 'u':
 	flags |= DP_F_UNSIGNED;
 	if (cflags == DP_C_SHORT)
-	  value = va_arg (args, unsigned short int);
+	  value = (unsigned short int) va_arg (args, unsigned /*short*/ int);
 	else if (cflags == DP_C_LONG)
 	  value = va_arg (args, unsigned long int);
 	else
@@ -276,7 +276,7 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
       case 'x':
 	flags |= DP_F_UNSIGNED;
 	if (cflags == DP_C_SHORT)
-	  value = va_arg (args, unsigned short int);
+	  value = (unsigned short int) va_arg (args, unsigned /*short*/ int);
 	else if (cflags == DP_C_LONG)
 	  value = va_arg (args, unsigned long int);
 	else
