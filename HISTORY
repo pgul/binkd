@@ -1,3 +1,7 @@
+2003/09/18 10:18:23 0.9.6a-181 val
+perlhooks.c,2.23,2.24
+fix to assure dll has been loaded before calling perl funcs
+
 2003/09/17 10:05:18 0.9.6a-180 val
 protocol.c,2.121,2.122
 Cosmetics and comment on #define VAL_STYLE
