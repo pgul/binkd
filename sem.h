@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2003/08/16 06:21:12  gul
+ * Log() semaphoring removed
+ *
  * Revision 2.8  2003/05/04 08:45:30  gul
  * Lock semaphores more safely for resolve and IP-addr print
  *
@@ -149,7 +152,6 @@ extern MUTEXSEM resolvsem;
 extern MUTEXSEM varsem;
 extern EVENTSEM eothread;
 extern EVENTSEM exitcmgr;
-extern EVENTSEM LSem;
 #define lockhostsem()		LockSem(&hostsem)
 #define releasehostsem()	ReleaseSem(&hostsem)
 #define lockresolvsem()		LockSem(&resolvsem)

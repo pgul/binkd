@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.38  2003/08/16 06:21:13  gul
+ * Log() semaphoring removed
+ *
  * Revision 2.37  2003/08/14 12:56:29  gul
  * Make Log() thread-safe
  *
@@ -433,10 +436,6 @@ time_t safe_time(void)
 }
 #endif
 
-#if defined(HAVE_THREADS) || defined(AMIGA)
-MUTEXSEM LSem = 0;
-#endif
-
 void Log (int lev, char *s,...)
 {
   static int first_time = 1;
@@ -445,12 +444,6 @@ void Log (int lev, char *s,...)
   char buf[1024];
   int ok = 1;
   va_list ap;
-
-  if (first_time == 1)
-  {
-    first_time = 2;
-    InitSem (&LSem);
-  }
 
   /* make string in buffer */
   va_start(ap, s);
@@ -480,13 +473,8 @@ void Log (int lev, char *s,...)
 #endif
      )
   {
-    LockSem (&LSem);
-    fprintf (my_stderr, "%30.30s\r%c %02d:%02d [%u] ", " ", ch,
-             tm.tm_hour, tm.tm_min, (unsigned) PID ());
-    fputs(buf, my_stderr);
-    if (lev >= 0)
-      fputc ('\n', my_stderr);
-    ReleaseSem (&LSem);
+    fprintf (my_stderr, "%30.30s\r%c %02d:%02d [%u] %s%s", " ", ch,
+         tm.tm_hour, tm.tm_min, (unsigned) PID (), buf, (lev >= 0) ? "\n" : "");
     if (lev < 0)
       return;
   }
@@ -496,28 +484,21 @@ void Log (int lev, char *s,...)
     FILE *logfile = 0;
     int i;
 
-    LockSem (&LSem);
     for (i = 0; logfile == 0 && i < 10; ++i)
     {
       logfile = fopen (logpath, "a");
     }
     if (logfile)
     {
-      if (first_time)
-      {
-	fputc ('\n', logfile);
-	first_time = 0;
-      }
-      fprintf (logfile, "%c %02d %s %02d:%02d:%02d [%u] ", ch,
+      fprintf (logfile, "%s%c %02d %s %02d:%02d:%02d [%u] %s\n",
+             first_time ? "\n" : "", ch,
              tm.tm_mday, month[tm.tm_mon], tm.tm_hour, tm.tm_min, tm.tm_sec,
-             (unsigned) PID ());
-      fputs(buf, logfile);
-      fputc('\n', logfile);
+             (unsigned) PID (), buf);
       fclose (logfile);
+      first_time = 0;
     }
     else
-      fprintf (stderr, "Cannot open %s: %s!\n", logpath, strerror (errno));
-    ReleaseSem (&LSem);
+      fprintf (my_stderr, "Cannot open %s: %s!\n", logpath, strerror (errno));
   }
 #ifdef WIN32
 #ifdef BINKDW9X
