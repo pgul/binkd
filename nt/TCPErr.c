@@ -10,7 +10,7 @@
 /*                             FIDONet 2:5020/79                      */
 /*                                                                    */
 /*  This program is  free software;  you can  redistribute it and/or  */
-/*  modify it  under  the terms of the GNU General Public License as  */ 
+/*  modify it  under  the terms of the GNU General Public License as  */
 /*  published  by the  Free Software Foundation; either version 2 of  */
 /*  the License, or (at your option) any later version. See COPYING.  */
 /*--------------------------------------------------------------------*/
@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.5  2003/05/23 17:54:08  stas
+ * Display default text at unknown win32 error
+ *
  * Revision 2.4  2003/05/23 09:11:13  stas
  * Improve diagnostic: print Win32API error message on unknown error
  *
@@ -173,7 +176,7 @@ char *W32APIstrerror(int errnum)
   char stemp[W32API_StrErrorSize];
 
   stemp[0]='\0';
-    FormatMessage( 
+    FormatMessage(
         FORMAT_MESSAGE_FROM_SYSTEM |
         FORMAT_MESSAGE_IGNORE_INSERTS,
         NULL,
@@ -181,7 +184,7 @@ char *W32APIstrerror(int errnum)
         0, /* Default language */
         (LPTSTR) &stemp,
         sizeof(stemp),
-        NULL 
+        NULL
     );
     AnsiToOem(stemp,st);
 
@@ -189,11 +192,16 @@ char *W32APIstrerror(int errnum)
 }
 
 const char *tcperr (void) {
-static char Str[W32API_StrErrorSize+15];
-int err = h_errno - WSABASEERR;
+  static char Str[W32API_StrErrorSize+15];
+  int err = h_errno - WSABASEERR;
+  char *stemp;
 
    if ( (err<0) || (err > (sizeof (sockerrors) / sizeof (char *))) || !sockerrors[err] || !sockerrors[err][0] ) {
-      sprintf(Str,"{%d} %s",h_errno,W32APIstrerror(h_errno));
+     stemp = W32APIstrerror(h_errno);
+     if(stemp[0])
+      sprintf(Str,"{%d} %s",h_errno,stemp);
+     else
+      sprintf(Str,"{%d} unknown Win32 API error",h_errno);
    } else {
       sprintf(Str,"{%d} %s",h_errno,sockerrors[err]);
    }
