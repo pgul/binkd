@@ -21,6 +21,7 @@
 - turn on NR-mode if exists incomplete files from this link (optional?)
 - option -mc - must crypt. Drop session if remote does not support crypt mode
 - xBSO
+- TheBrake long style outbound
 - go to tray under windows
 - compression:
   - configurable dll paths
