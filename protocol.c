@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.76  2003/06/24 06:33:42  gul
+ * Fix for previous patch
+ *
  * Revision 2.75  2003/06/24 06:28:21  gul
  * Check IP for all remote AKAs on outgoing calls
  *
@@ -1123,11 +1126,11 @@ static int ADR (STATE *state, char *s, int sz)
     ftnaddress_to_str (szFTNAddr, &fa);
     pn = get_node(&fa, &n);
 
-    if (pn && n.restrictIP && (state->to == 0
+    if (pn && n.restrictIP
 #ifdef HTTPS
-        || (!proxy[0] && !socks[0])
+        && (state->to == 0 || (!proxy[0] && !socks[0]))
 #endif
-        ))
+        )
     { int i, ipok = 0, rc;
       struct hostent *hp;
       struct in_addr defaddr;
@@ -1294,14 +1297,14 @@ static int ADR (STATE *state, char *s, int sz)
   }
   if (ip_verified < 0)
   { /* strict IP check and no address resolved */
-    Log (1, "Source IP check failed");
-    msg_send2 (state, M_ERR, "Bad source IP", 0);
+    Log (1, "Remote IP check failed");
+    msg_send2 (state, M_ERR, "Bad remote IP", 0);
     return 0;
   }
   else if (ip_verified == 2)
-    Log (4, "Source IP matched");
+    Log (4, "Remote IP matched");
   else if (state->to == 0)
-    Log (5, "Source IP not checked");
+    Log (5, "Remote IP not checked");
 
   if (!state->to)
   {
