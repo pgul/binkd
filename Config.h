@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10.2.8  2003/10/07 08:54:22  hbrew
+ * Auto increase patchlevel, set 0.9.5p2-stable
+ * '\r\n' --> '\n'
+ *
  * Revision 2.10.2.7  2003/09/14 12:20:04  gul
  * Clean use pointers to pNod array
  *
@@ -106,7 +110,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.5p1-stable"
+#define MYVER "0.9.5p2-stable"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
