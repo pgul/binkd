@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.18  2004/08/11 18:31:15  hbrew
+ * zlibdl.h: include <windows.h> for compatibility with zlib 1.2.1
+ *
  * Revision 2.17  2003/10/27 23:23:51  gul
  * Fix static ZLIB/BZLIB linking
  *
@@ -46,6 +49,10 @@
 
 #ifndef _ZLIBDL_H_
 #define _ZLIBDL_H_
+
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 #ifdef ZLIBDL
 #if defined(VISUALCPP)
