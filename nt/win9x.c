@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.18  2003/08/30 16:38:55  gul
+ * Fix compilation warnings
+ *
  * Revision 2.17  2003/08/21 15:40:35  gul
  * Change building commandline for service under win32
  * (patch by Alexander Reznikov)
@@ -91,9 +94,8 @@
 #include <windows.h>
 #include <process.h>
 #include <io.h>
-#include "../Config.h"
+#include "../readcfg.h"
 #include "../tools.h"
-#include "../iphdr.h"
 #include "../common.h"
 #include "win9x.h"
 #include "w32tools.h"
