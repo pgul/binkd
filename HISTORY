@@ -1,3 +1,7 @@
+2003/09/11 11:26:13 0.9.6a-170 val
+perlhooks.c,2.21,2.22
+fix for Perl hooks code after steam's patch for pNodArray
+
 2003/09/09 20:57:45 0.9.6a-169 stream
 exitproc.c,2.26,2.27
 Do not unload config on exit (considered useless and potentially unstable)
