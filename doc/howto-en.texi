@@ -1,0 +1,200 @@
+\input texinfo   @c -*-texinfo-*-
+
+@c %**start of header
+@c $Id$
+@setfilename binkd-howto-en.info
+@set BINKD binkd
+@set VERSION 1.0
+@set DESCR @value{BINKD} @value{VERSION} How-To
+@settitle @value{DESCR}
+@setchapternewpage odd
+@documentlanguage en
+@documentencoding ISO-8859-1
+@documentdescription
+@value{DESCR}
+@end documentdescription
+@c %**end of header
+
+@titlepage
+@title @value{DESCR}
+@subtitle English revision
+@author Stas Degteff  2:5080/102@fidonet, g@grumbler.org
+@page
+@c{empty page to get the page numbering right}
+@end titlepage
+
+@ifnotplaintext
+@ifinfo
+@dircategory Fidonet Software
+@direntry
+* @value{BINKD} How-To: (binkd-howto).               @value{DESCR}
+@end direntry
+@end ifinfo
+@end ifnotplaintext
+
+@iftex
+@parindent=0pt
+@end iftex
+@iftex
+@afourpaper
+@end iftex
+
+@ifinfo
+@node Top, 01, (dir), (dir)
+@end ifinfo
+@ifnotinfo
+@node Top, 01, , (dir)
+@end ifnotinfo
+
+@top @value{DESCR}
+@c Этот документ описывает типичные действия по настройке
+@c @value{BINKD} @value{VERSION}.
+
+@menu
+* 01::                How Can BinkD Work via HTTP-proxy?
+* 02::                How Can BinkD Work via SOCKS-proxy?
+* 03::                How Can I Add BinkD To a Fidonet Box Working With a Modem?
+* 04::                What binkd processes the descriptions an links and file of passwords.
+@end menu
+
+@node 01, 02, Top, Top
+@chapter How Can BinkD Work via HTTP-proxy?
+
+    It is not a rare case when users go out to the internet from their
+corporate LAN exclusively via the proxy server based at the only computer
+connected to the internet. Thus BinkD cannot make a direct connection to
+the remote node and one must use the proxy server.  Proxy servers support
+was included in versions 0.9.3.https, 0.9.4 and the later ones.
+
+    One can use BinkD via a HTTP proxy only if CONNECT host 24554 command is
+allowed in the proxy server or the CONNECT command is allowed for all
+remote ports.  The command is usually used for the secure HTTP protocol (URLs
+of the "HTTPS://..." type), it is also known as S-HTTP. Because of that
+such a proxy is quite often referred as a HTTPS proxy.
+
+    If BinkD reports of an authorization error then the necessary command is
+prohibited in the proxy configuration or it is allowed for the port 443
+only (that is inessential for us).
+
+    Suppose the connected to the Internet computer has the IP address
+192.168.0.1 in its LAN and the proxy server at the computer responds on
+port 3128. Here is the line in BinkD configuration file necessary for
+working via the HTTP proxy.
+
+    1. A proxy server without user authorization (no login and password are
+demanded):
+
+@example
+    proxy 192.168.0.1:3128
+@end example
+
+    2. A proxy server with user authorization (it is necessary to type login
+and password, e.g. login "user", password "password"):
+
+@example
+    proxy 192.168.0.1:3128/user/password
+@end example
+
+    3. Microsoft proxy server with NTLM protocol of user authorization (one
+must be inside a domain).  Suppose login is "user", password is "password",
+the user computer is "host" and the domain name is "ntdomain":
+
+@example
+    proxy 192.168.0.1:3128/user/password/host/ntdomain
+@end example
+
+    If the proxy server administrator has allowed connection only to some
+selected ports (usually to port 443) then BinkD reports "Connection
+rejected by proxy". Here is an example:
+
+@verbatim
+      31 Mar 16:48:43 [59987] BEGIN, binkd/0.9.3/SOCKS/HTTPS -p BINKD.CFG
+      31 Mar 16:48:43 [59987] clientmgr started
+    + 31 Mar 16:48:43 [40423] call to 2:5000/44@fidonet
+      31 Mar 16:48:43 [40423] trying 195.209.235.3, port 24554...
+      31 Mar 16:48:43 [40423] connected to proxy.osu.ru:24554
+      31 Mar 16:48:44 [40423] Connection rejected by proxy (HTTP/1.0 403 Forbidden)
+    ? 31 Mar 16:48:44 [40423] unable to connect: {13} Permission denied
+@end verbatim
+
+    In such a case you may try to use http tunnelling for instance with the
+help of httport (one can take it at http://www.htthost.com/).
+
+
+@node 02, 03, 01, Top
+@chapter How Can BinkD Work via SOCKS-proxy?
+
+    It is not a rare case when users go out to the internet from their
+corporate LAN exclusively via the proxy server based at the only computer
+connected to the internet. Thus BinkD cannot make a direct connection to
+the remote node and one must use the proxy server. Proxy servers support
+was included in version 0.9.4 and the later ones.
+
+    BinkD works with a SOCKS proxy version 4 and 5. The first one does not
+demand an authorization (no login and password), the second one demands it
+as a rule.
+
+    Suppose the connected to the Internet computer has the IP address
+192.168.0.1 in its LAN and the SOCKS server at the computer responds on
+port 1080. Here is the line in BinkD configuration file necessary for
+working via the SOCKS proxy.
+
+    1. A SOCKS server without user authorization (no login and password are
+demanded):
+
+@example
+    socks 192.168.0.1:1080
+@end example
+
+    2. A proxy server with user authorization (it is necessary to type login
+and password, e.g. login "user", password "password"):
+
+@example
+    socks 192.168.0.1:1080/user/password
+@end example
+
+    If the proxy server administrator has allowed connection only to some
+selected ports (usually to port 443) then BinkD reports "Connection
+rejected by proxy". See example in a chapter @xref{01}.
+
+
+@node 03, 04, 02, Top
+@chapter How Can I Add BinkD To a Fidonet Box Working With a Modem?
+
+    1. You must configure your modem mailer and tosser for BSO (binkley-style
+outbound) mode so that all of them including BinkD would have the same
+inbound directories (and also the same outbound directories). If your
+mailer can work with AMA (arcmail-attach) only you have to change your
+mailer.
+
+(This part don't translated, sorry.)
+
+@verbatim
+    t-mail.ctl:
+    Address             2:5080/102.1@fidonet
+    Address             7:1500/102.1@fidonet
+    BinkStyle_Pack_For  All
+    Busy_Flags_Scan     Bink
+    Busy_Flags_Create   Bink
+    BinkOutbound        \ftn\outbound\fidonet
+    Inbound             \ftn\inbound\
+    InboundUnProtected  \ftn\inbound\uncheck\
+    FileBoxes           \ftn\outbound\fboxes\
+    Security            \ftn\t-mail\password.ctl
+
+    binkd.cfg:
+    address             2:5080/102.1@fidonet 7:1500/102.1@fidonet
+    domain fidonet      \\ftn\\outbound\\fidonet 2
+    inbound             \\ftn\\inbound
+    inbound-nonsecure   \\ftn\\inbound\\uncheck
+    filebox             \\ftn\\fboxes
+    passwords           \\ftn\\t-mail\\password.ctl
+@end verbatim
+
+
+@node 04, , 03, Top
+@chapter What binkd processes the descriptions an links and file of passwords.
+
+(This chapter don't translated, sorry.)
+
+@bye
