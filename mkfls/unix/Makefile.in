@@ -73,6 +73,9 @@ realclean: cleanall
 	@echo Compiling $*.c...
 	@$(CC) -c $(CFLAGS) -o $*.o $*.c
 
+binkd.txt: binkd.8
+	@groff -Tascii -mman binkd.8 | perl -npe 's/.\010//g' >binkd.txt
+
 depend Makefile.dep:   Makefile
 	@echo Making depends...
 	@$(CC) -MM $(CFLAGS) $(SRCS) $(SYS) | \
