@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.75  2003/06/24 06:28:21  gul
+ * Check IP for all remote AKAs on outgoing calls
+ *
  * Revision 2.74  2003/06/21 19:35:45  gul
  * Fixed remote ip check
  *
@@ -1120,7 +1123,11 @@ static int ADR (STATE *state, char *s, int sz)
     ftnaddress_to_str (szFTNAddr, &fa);
     pn = get_node(&fa, &n);
 
-    if (state->to == 0 && pn && n.restrictIP)
+    if (pn && n.restrictIP && (state->to == 0
+#ifdef HTTPS
+        || (!proxy[0] && !socks[0])
+#endif
+        ))
     { int i, ipok = 0, rc;
       struct hostent *hp;
       struct in_addr defaddr;
@@ -1187,7 +1194,7 @@ static int ADR (STATE *state, char *s, int sz)
 	  ip_verified = -1;
       } else
       { /* not matched */
-	if (n.pwd && strcmp(n.pwd, "-"))
+	if (n.pwd && strcmp(n.pwd, "-") && state->to == 0)
 	{
 	  Log (1, "addr: %s (not from allowed remote address)", szFTNAddr);
 	  msg_send2 (state, M_ERR, "Bad source IP", 0);
@@ -1293,7 +1300,7 @@ static int ADR (STATE *state, char *s, int sz)
   }
   else if (ip_verified == 2)
     Log (4, "Source IP matched");
-  else
+  else if (state->to == 0)
     Log (5, "Source IP not checked");
 
   if (!state->to)
