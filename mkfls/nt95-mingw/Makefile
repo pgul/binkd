@@ -7,7 +7,7 @@
 #
 
 #PERL_BASE=c:/Perl
-#PERL_LIB=perl56
+#PERL_LIB=perl58
 
 CC=gcc
 
@@ -79,7 +79,7 @@ ifdef PERL
 ifdef PERL_BASE
 PERL_INCL=$(PERL_BASE)/lib/CORE
 else
-PERL_INCL=${shell perl -mConfig -e '$$_ = $$Config::Config{libpth}; s!\\!/!g; print;'}
+PERL_INCL=${shell perl -mConfig -e '$$_ = $$Config::Config{libpth}; s!^\"!!; s!\"$$!!; !s!\\!/!g; print;'}
 endif
 
 CDEFS+= -DWITH_PERL -DNDEBUG -DNO_STRICT -DHAVE_DES_FCRYPT -DPERL_IMPLICIT_CONTEXT -DPERL_IMPLICIT_SYS -DPERL_MSVCRT_READFIX
@@ -94,10 +94,10 @@ BINKDTYPE:=$(BINKDTYPE), perldl
 else
 
 ifndef PERL_LIB
-PERL_LIB=${shell perl -mConfig -e 'print $$Config::Config{libperl};'}
+PERL_LIB=${shell perl -mConfig -e '($$_ = $$Config::Config{libperl}) =~ s!\.lib$$!!i; print;'}
 endif
 
-L_DIRS+= "$(PERL_INCL)"
+L_DIRS+= -L"$(PERL_INCL)"
 LIBS+= -l$(PERL_LIB)
 BINKDNAME:=$(BINKDNAME)-perl
 OUTDIR:=$(OUTDIR)-perl
