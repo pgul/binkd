@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.77  2003/07/18 04:15:08  hbrew
+ * Auto increase patchlevel, set 0.9.6a-66
+ * Fix 'tell_start_ntservice(): {120} ...' error on Win9x
+ *
  * Revision 2.76  2003/07/17 04:32:18  hbrew
  * Auto increase patchlevel, set 0.9.6a-65
  * Fix "No prototype found for 'isdigit'" warning.
@@ -319,7 +323,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-65"
+#define MYVER "0.9.6a-66"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
