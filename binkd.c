@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.51  2003/08/11 08:33:16  val
+ * better error handling in perl hooks
+ *
  * Revision 2.50  2003/08/04 12:17:49  gul
  * Remove extra error message
  *
@@ -735,7 +738,10 @@ int main (int argc, char *argv[], char *envp[])
     Log (0, "cannot install break handlers");
 
 #ifdef WITH_PERL
-  if (*perl_script) perl_init(perl_script);
+  if (*perl_script) {
+    int ok = perl_init(perl_script);
+    if (perl_strict && !ok) Log (0, "error parsing Perl script %s", perl_script);
+  }
 #endif
 
 #ifdef HAVE_FORK

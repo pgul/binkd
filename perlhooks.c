@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2003/08/11 08:33:16  val
+ * better error handling in perl hooks
+ *
  * Revision 2.6  2003/07/28 10:23:33  val
  * Perl DLL dynamic load for Win32, config keyword perl-dll, nmake PERLDL=1
  *
@@ -500,6 +503,7 @@ static int perl_olderr, perl_errpipe[2];
 /* set up perl errors handler, redirect stderr to pipe */
 /* !!! DON'T CALL FROM THREADS !!! */
 static void handle_perlerr(int *olderr, int *errpipe) {
+  fflush(stderr);
   *olderr = dup(fileno(stderr));
 #if defined(UNIX) || defined(__OS2__)
   pipe(errpipe);
@@ -517,6 +521,7 @@ FILE *R;
   close(errpipe[1]);
   dup2(*olderr, fileno(stderr));
   R = fdopen(errpipe[0], "r");
+  fflush(R);
   buf[0] = 0;
   while ( fgets(buf, 256, R) ) {
     int n = strlen(buf);
@@ -524,6 +529,27 @@ FILE *R;
     if (n > 0) Log(LL_ERR, "Perl error: %s", buf);
   }
   fclose(R);
+}
+
+/* handle multi-line perl eval error message */
+static void sub_err(int sub) {
+STRLEN len;
+char *s, *p;
+  p = SvPV(ERRSV, len);
+  if (len) { s = xalloc(len+1); strnzcpy(s, p, len); }
+    else s = "(empty error message)";
+  if ( strchr(s, '\n') == NULL )
+    Log(LL_ERR, "Perl %s error: %s", perl_subnames[sub], s);
+    else {
+      p = s;
+      Log(LL_ERR, "Perl %s error below:", perl_subnames[sub]);
+      while ( *p && (*p != '\n' || *(p+1)) ) {
+        char *r = strchr(p, '\n');
+        if (r) { *r = 0; Log(LL_ERR, "  %s", p); p = r+1; }
+        else { Log(LL_ERR, "  %s", p); break; }
+      }
+    }
+  free(s);
 }
 
 /* =========================== xs ========================== */
@@ -738,7 +764,9 @@ int perl_init(char *perlfile) {
   perl_setup();
   /* run main program body */
   Log(LL_DBG, "perl_init(): running body");
+  handle_perlerr(&perl_olderr, perl_errpipe);
   perl_run(perl);
+  restore_perlerr(&perl_olderr, perl_errpipe);
   /* scan for present hooks */
   for (i = 0; i < sizeof(perl_subnames)/sizeof(perl_subnames[0]); i++) {
     if (perl_get_cv(perl_subnames[i], NULL)) perl_ok |= (1 << i);
@@ -1163,10 +1191,10 @@ void perl_on_start(void) {
 #ifndef HAVE_THREADS
      restore_perlerr(&perl_olderr, perl_errpipe);
 #endif
-     if (SvTRUE(ERRSV))
-     {
+     if (SvTRUE(ERRSV)) sub_err(PERL_ON_START);
+/*     {
        Log(LL_ERR, "Perl on_start() error: %s", SvPV(ERRSV, n_a));
-     }
+     }*/
      Log(LL_DBG, "perl_on_start() end");
   }
 }
@@ -1236,8 +1264,9 @@ int perl_on_call(FTN_NODE *node) {
       restore_perlerr(&perl_olderr, perl_errpipe);
 #endif
       if (SvTRUE(ERRSV)) {
-        Log(LL_ERR, "Perl %s eval error: %s", 
-            perl_subnames[PERL_ON_CALL], SvPV(ERRSV, len));
+/*        Log(LL_ERR, "Perl %s eval error: %s", 
+            perl_subnames[PERL_ON_CALL], SvPV(ERRSV, len));*/
+          sub_err(PERL_ON_CALL);
       }
     }
     Log(LL_DBG, "perl_on_call() end");

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.34  2003/08/11 08:33:16  val
+ * better error handling in perl hooks
+ *
  * Revision 2.33  2003/07/30 11:01:37  val
  * perl-dll keyword can be used even when PERLDL is not defined (does nothing)
  *
@@ -253,6 +256,7 @@ int aso = 0;
 #ifdef WITH_PERL
 char perl_script[MAXPATHLEN + 1] = "";
 char perl_dll[MAXPATHLEN + 1] = "";
+int perl_strict = 0;
 #endif
 
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
@@ -388,6 +392,7 @@ KEYWORD keywords[] =
 #ifdef WITH_PERL
   {"perl-hooks", read_string, perl_script, 'f', 0},
   {"perl-dll", read_string, perl_dll, 'f', 0},
+  {"perl-strict", read_bool, &perl_strict, 0, 0},
 #endif
   {NULL, NULL, NULL, 0, 0}
 };

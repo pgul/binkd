@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2003/08/11 08:33:16  val
+ * better error handling in perl hooks
+ *
  * Revision 2.15  2003/07/30 11:01:37  val
  * perl-dll keyword can be used even when PERLDL is not defined (does nothing)
  *
@@ -164,6 +167,7 @@ extern int aso;
 #ifdef WITH_PERL
 extern char perl_script[MAXPATHLEN + 1];
 extern char perl_dll[MAXPATHLEN + 1];
+extern int perl_strict;
 #endif
 extern struct conflist_type 
   { char *path;
