@@ -14,6 +14,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/05/15 06:51:58  gul
+ * Do not get 'i' and 'u' options from FTN-domain in -P option
+ * (patch from Stanislav Degteff).
+ *
  * Revision 2.3  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -558,17 +562,23 @@ int service(int argc, char **argv, char **envp)
   }
 
   j=checkservice();
-  for(i=len=0;i<argc;i++) 
+  for(i=len=0;i<argc;i++)
   {
     if(argv[i][0]=='-')
     {
       if (j > 0)
-      {
-        if(!sp) sp=strchr(argv[i], j==1?'i':'u');
-        if(strchr(argv[i], j==2?'i':'u'))
-        {
-          Log(-1, "Service already %sinstalled...", j==2?"":"UN");
-          exit(0);
+      { char *sP;
+        sP = strchr(argv[i], 'P');   /* Check for 'i' or 'u' in domain: -P1:2/3.4@fidonet -P9:8/7.6@usernet */
+        if(!sp){
+          sp=strchr(argv[i], j==1?'i':'u');
+          if( (sP && sP>sp) || (i>=2 && argv[i-1][strlen(argv[i-1])-1]=='P') )
+            sp = NULL;
+
+          if( strchr(argv[i], j==2?'i':'u'))
+          {
+            Log(-1, "Service already %sinstalled...", j==2?"":"UN");
+            exit(0);
+          }
         }
       }
       if (strchr(argv[i], 'T'))
