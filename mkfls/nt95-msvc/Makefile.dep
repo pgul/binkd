@@ -18,6 +18,12 @@ $(OUTDIR)\binkd.obj: \
 	"sys.h" \
 	"tools.h" \
 	"getopt.h" \
+!ifdef PERL
+	"perlhooks.h" \
+!endif
+!ifdef ZLIB
+        "zlibdl.h" \
+!endif
 	"nt\service.h" \
 	"nt\win9x.h" \
 	"nt\wsock.h"
@@ -83,6 +89,9 @@ $(OUTDIR)\client.obj: \
 	"setpttl.h" \
 	"sys.h" \
 	"tools.h" \
+!ifdef PERL
+	"perlhooks.h" \
+!endif
 	"nt\wsock.h"
 
 $(OUTDIR)\crypt.obj: \
@@ -103,6 +112,9 @@ $(OUTDIR)\exitproc.obj: \
 	"server.h" \
 	"sys.h" \
 	"tools.h" \
+!ifdef PERL
+	"perlhooks.h" \
+!endif
 	"nt\wsock.h"
 
 $(OUTDIR)\ftnaddr.obj: \
@@ -151,6 +163,9 @@ $(OUTDIR)\ftnq.obj: \
 	"readdir.h" \
 	"sys.h" \
 	"tools.h" \
+!ifdef PERL
+	"perlhooks.h" \
+!endif
 	"nt\dirwin32.h" \
 	"nt\wsock.h"
 
@@ -187,6 +202,9 @@ $(OUTDIR)\inbound.obj: \
 	"readdir.h" \
 	"sys.h" \
 	"tools.h" \
+!ifdef PERL
+	"perlhooks.h" \
+!endif
 	"nt\dirwin32.h" \
 	"nt\wsock.h"
 
@@ -265,6 +283,12 @@ $(OUTDIR)\protocol.obj: \
 	"srif.h" \
 	"sys.h" \
 	"tools.h" \
+!ifdef PERL
+	"perlhooks.h" \
+!endif
+!ifdef ZLIB
+        "zlibdl.h" \
+!endif
 	"nt\wsock.h"
 
 $(OUTDIR)\readcfg.obj: \
@@ -316,6 +340,9 @@ $(OUTDIR)\server.obj: \
 	"setpttl.h" \
 	"sys.h" \
 	"tools.h" \
+!ifdef PERL
+	"perlhooks.h" \
+!endif
 	"nt\wsock.h"
 
 $(OUTDIR)\setpttl.obj: \
@@ -352,12 +379,35 @@ $(OUTDIR)\tools.obj: \
 	"sem.h" \
 	"sys.h" \
 	"tools.h" \
+!ifdef PERL
+	"perlhooks.h" \
+!endif
 	"nt\dirwin32.h" \
 	"nt\wsock.h"
 
 $(OUTDIR)\xalloc.obj: \
 	"getw.h" \
 	"tools.h"
+
+!ifdef PERL
+$(OUTDIR)\perlhooks.obj: \
+	"sys.h" \
+	"readcfg.h" \
+	"tools.h" \
+	"ftnaddr.h" \
+	"ftndom.h" \
+	"ftnnode.h" \
+	"readflo.h" \
+	"prothlp.h" \
+	"protocol.h" \
+	"protoco2.h" \
+	"perlhooks.h"
+!endif
+
+!ifdef ZLIB
+$(OUTDIR)\zlibdl.obj: \
+	"zlibdl.h"
+!endif
 
 $(OUTDIR)\TCPErr.obj: \
 	"sem.h"
