@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.159  2004/09/21 08:32:11  val
+ * bandwidth limiting logic changed from "max for akas" to "min for akas"
+ *
  * Revision 2.158  2004/09/06 10:47:04  val
  * bandwidth limiting code advancements, `listed' session state fix
  *
@@ -1833,13 +1836,19 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 #ifdef BW_LIM
       if (pn && pn->listed) {
         if (pn->bw_send == 0) bw_send_unlim = 1;
-        else if (pn->bw_send < 0 && (unsigned long)(-pn->bw_send) > state->bw_send_rel) 
+        else if (pn->bw_send < 0 
+                 && (!state->bw_send_rel 
+                 || (unsigned long)(-pn->bw_send) < state->bw_send_rel)) 
           state->bw_send_rel = -pn->bw_send;
-        else if (pn->bw_send > 0 && (unsigned long)pn->bw_send > state->bw_send_abs)
+        else if (pn->bw_send > 0
+                 && (!state->bw_send_abs
+                 || (unsigned long)pn->bw_send < state->bw_send_abs))
           state->bw_send_abs = pn->bw_send;
 
         if (pn->bw_recv == 0) bw_recv_unlim = 1;
-        else if (pn->bw_recv > 0 && (unsigned long)pn->bw_recv > bw_recv) bw_recv = pn->bw_recv;
+        else if (pn->bw_recv > 0 
+                 && (!bw_recv || (unsigned long)pn->bw_recv < bw_recv))
+          bw_recv = pn->bw_recv;
       }
 #endif
     }
