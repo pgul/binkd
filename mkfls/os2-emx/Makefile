@@ -10,7 +10,7 @@ BASESRCS=binkd.c readcfg.c tools.c ftnaddr.c ftnq.c client.c server.c protocol.c
 TARGET=binkd2e.exe
 
 ifdef DEBUG
-CFLAGS+=-g
+CFLAGS+=-g -DDEBUG
 LFLAGS+=-g
 else
 CFLAGS+=-O2 -s

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2003/09/05 08:15:24  gul
+ * Make DEBUG-version single-thread
+ *
  * Revision 2.7  2003/08/26 21:01:09  gul
  * Fix compilation under unix
  *
@@ -97,7 +100,7 @@ int branch (register void (*F) (void *), register void *arg, register size_t siz
   else
     arg = 0;
 
-#if defined(HAVE_FORK) && !defined(AMIGA)
+#if defined(HAVE_FORK) && !defined(AMIGA) && !defined(DEBUG)
 again:
   if (!(rc = fork ()))
   {
@@ -118,7 +121,7 @@ again:
   }
 #endif
 
-#ifdef HAVE_THREADS
+#if defined(HAVE_THREADS) && !defined(DEBUG)
   if ((rc = BEGINTHREAD (F, STACKSIZE, arg)) < 0)
   {
     Log (1, "_beginthread: %s", strerror (errno));
@@ -142,7 +145,7 @@ again:
   }
 #endif
 
-#ifdef DOS
+#if defined(DOS) || defined(DEBUG)
   rc = 0;
   F (arg);
 #endif

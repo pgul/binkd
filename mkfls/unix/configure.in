@@ -116,7 +116,7 @@ dnl Optional features
 
 AC_ARG_WITH(debug,
             [  --with-debug            produce debug info (default no)],
-            [CFLAGS="-g $CFLAGS"], [CFLAGS="-O2 $CFLAGS"])
+            [CFLAGS="-g -DDEBUG $CFLAGS"], [CFLAGS="-O2 $CFLAGS"])
 
 AC_ARG_WITH(https,
             [  --with-https            https support (default no)],

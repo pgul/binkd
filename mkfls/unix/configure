@@ -1750,7 +1750,7 @@ rm -f conftest*
 # Check whether --with-debug or --without-debug was given.
 if test "${with_debug+set}" = set; then
   withval="$with_debug"
-  CFLAGS="-g $CFLAGS"
+  CFLAGS="-g -DDEBUG $CFLAGS"
 else
   CFLAGS="-O2 $CFLAGS"
 fi
