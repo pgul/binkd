@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19  2003/01/29 20:53:34  gul
+ * Assume default domain for remote 4D address
+ *
  * Revision 2.18  2003/01/28 16:14:05  gul
  * Bugfix: binkd did not remove lo-files with empty lines
  *
@@ -768,7 +771,7 @@ static int ADR (STATE *state, char *s, int sz)
   s[sz] = 0;
   for (i = 1; (w = getwordx (s, i, 0)) != 0; ++i)
   {
-    if (!parse_ftnaddress (w, &fa) || !is5D (&fa))
+    if (!parse_ftnaddress (w, &fa) || !is4D (&fa))
     {
       char *q = strquote (s, SQ_CNTRL);
 
@@ -780,6 +783,10 @@ static int ADR (STATE *state, char *s, int sz)
     }
 
     free (w);
+
+    if (!fa.domain[0])
+      strcpy (fa.domain, get_def_domain()->name);
+
     ftnaddress_to_str (szFTNAddr, &fa);
 
     if (state->to == 0 && (n = get_node_info (&fa)) != 0 && n->restrictIP)
