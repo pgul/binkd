@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.87  2003/07/06 10:18:55  gul
+ * Increase loglevel for "Watinig for M_GOT" message
+ *
  * Revision 2.86  2003/07/06 08:32:31  gul
  * Decrease logging about link status changes
  *
@@ -566,7 +569,7 @@ static void current_file_was_sent (STATE *state)
   if (state->ND_flag & WE_ND)
   {
     state->waiting_for_GOT = 1;
-    Log(4, "Waiting for M_GOT");
+    Log(5, "Waiting for M_GOT");
   }
 }
 
@@ -1863,7 +1866,7 @@ static int GET (STATE *state, char *args, int sz)
 	{
 	  state->send_eof = 1;
 	  state->waiting_for_GOT = 1;
-	  Log(4, "Waiting for M_GOT");
+	  Log(5, "Waiting for M_GOT");
 	  state->off_req_sent = 0;
 	  return rc;
 	}
