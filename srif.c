@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2003/05/27 16:11:17  gul
+ * Improve logging
+ *
  * Revision 2.7  2003/03/10 17:32:38  gul
  * Use socklen_t
  *
@@ -204,6 +207,7 @@ static FTNQ *parse_response (FTNQ *q, char *rsp, FTN_ADDR *fa)
 	break;
       for (i = 0; i < sizeof (buf) - 1 && !isspace (buf[i]); ++i);
       buf[i] = 0;
+      Log (4, "parse_response: add file `%s' to queue", buf + 1);
       switch (*buf)
 	{
 	  case '=':
@@ -216,9 +220,12 @@ static FTNQ *parse_response (FTNQ *q, char *rsp, FTN_ADDR *fa)
 	    q = q_add_file (q, buf + 1, fa, 'h', 'a', 0);
 	    break;
 	  default:
+	    Log (2, "parse_response: unknown predictor `%c', ignored response file `%s'", *buf, buf + 1);
 	    break;
 	}
     }
+    if (ftell (in) == 0)
+	Log (3, "SRIF response file is empty");
     fclose (in);
   }
   else
