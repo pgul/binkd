@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30  2004/09/02 08:56:20  val
+ * bandwidth limiting config parameter 'limit-rate'
+ *
  * Revision 2.29  2004/01/07 12:23:40  gul
  * Remove zaccept keyword, receiving compressed files possibility
  * is always on now if binkd was compiled with zlib/bzip2 support.
@@ -181,6 +184,16 @@ struct zrule
   enum { ZRULE_ALLOW, ZRULE_DENY } type;
 };
 #endif
+#ifdef BW_LIM
+/* val: struct for limit-rate */
+struct ratechain
+{
+  struct ratechain *next;
+  char *mask;
+  addrtype atype;
+  int rate;
+};
+#endif
 
 struct _BINKD_CONFIG
 {
@@ -242,6 +255,9 @@ struct _BINKD_CONFIG
   DEFINE_LIST(_SHARED_CHAIN) shares; /* Linked list for shared akas header */
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
   DEFINE_LIST(zrule)         zrules;
+#endif
+#ifdef BW_LIM
+  DEFINE_LIST(ratechain)     rates;
 #endif
 
   /*

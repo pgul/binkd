@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.68  2004/09/02 08:56:20  val
+ * bandwidth limiting config parameter 'limit-rate'
+ *
  * Revision 2.67  2004/02/29 08:51:52  gul
  * Bugfix in print_node_info
  * (patch from Victor Levenets).
@@ -432,6 +435,15 @@ static void destroy_zrule(void *p)
 }
 #endif
 
+#ifdef BW_LIM
+static void destroy_rate(void *p)
+{
+  struct ratechain *pp = p;
+
+  xfree(pp->mask);
+}
+#endif
+
 /*#ifdef HTTPS
 static void destroy_proxy(void *p)
 {
@@ -512,6 +524,9 @@ void unlock_config_structure(BINKD_CONFIG *c)
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
     simplelist_free(&c->zrules.linkpoint,      destroy_zrule);
 #endif
+#ifdef BW_LIM
+    simplelist_free(&c->rates.linkpoint,       destroy_rate);
+#endif
 
 /*
 #ifdef HTTPS
@@ -579,6 +594,9 @@ static int read_skip (KEYWORD *key, int wordcount, char **words);
 static int read_check_pkthdr (KEYWORD *key, int wordcount, char **words);
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
 static int read_zrule (KEYWORD *key, int wordcount, char **words);
+#endif
+#ifdef BW_LIM
+static int read_rate (KEYWORD *key, int wordcount, char **words);
 #endif
 
 /* Helper functions for shared akas implementation */
@@ -681,6 +699,10 @@ static KEYWORD keywords[] =
   {"zminsize", read_int, &work_config.zminsize, 0, DONT_CHECK},
   {"zallow", read_zrule, &work_config.zrules, ZRULE_ALLOW, 0},
   {"zdeny", read_zrule, &work_config.zrules, ZRULE_DENY, 0},
+#endif
+
+#ifdef BW_LIM
+  {"limit-rate", read_rate, NULL, 0, 0},
 #endif
 
   {NULL, NULL, NULL, 0, 0}
@@ -1637,6 +1659,59 @@ static int read_check_pkthdr (KEYWORD *key, int wordcount, char **words)
 
   return 1;
 }
+#ifdef BW_LIM
+/* limit-rate [all|listed|unlisted|secure|unsecure] <rate>[kM%]|- <mask>... */
+static int read_rate (KEYWORD *key, int wordcount, char **words)
+{
+  int i, rate = 0, maskonly = 0;
+  char mod = 0, *ss;
+  addrtype at = A_ALL;
+  struct ratechain new_entry;
+
+  UNUSED_ARG(key);
+
+  for (i = 0; i < wordcount; i++)
+  {
+    char *w = words[i];
+
+    if (i == 0 && isalpha(*w))
+    {
+      if ( !(at = parse_addrtype(w)) )
+        return ConfigError("incorrect address type '%s'", w);
+      continue;
+    }
+    if (i < 2 && maskonly == 0)
+    {
+      if (*w == '-' && w[1] == 0) { rate = 0; continue; }
+      if (!isdigit(*w))
+        return ConfigNeedNumber(w);
+      rate = strtoul(w, &ss, 10);
+      if (ss) {
+        switch (*ss) {
+          case 'k': case 'K': rate <<= 10; ss++; break;
+          case 'm': case 'M': rate <<= 20; ss++; break;
+          case '%': rate = -rate; ss++; break;
+        }
+        if (*ss) return ConfigError("incorrect char in rate value '%c'", *ss);
+      }
+      maskonly = 1; /* size detected, only masks are allowed further */
+      continue;
+    }
+    /* Add new entry */
+    new_entry.mask  = xstrdup(w);
+    new_entry.rate  = rate;
+    new_entry.atype = at;
+    simplelist_add(&work_config.rates.linkpoint, &new_entry, sizeof(new_entry));
+
+    maskonly = 2; /* at least one filemask present */
+  }
+
+  if (maskonly != 2)
+    return ConfigError("expecting at least one filemask");
+
+  return 1;
+}
+#endif
 
 static int read_port (KEYWORD *key, int wordcount, char **words)
 {
@@ -1911,6 +1986,20 @@ void debug_readcfg (void)
         {
           printf("\n    %s %s", (p->type == ZRULE_DENY ? "zdeny" : "zallow"), p->mask);
         }
+      }
+    }
+#endif
+#ifdef BW_LIM
+    else if (k->callback == read_rate)
+    {
+      struct ratechain *sk;
+      for (sk = work_config.rates.first; sk; sk = sk->next) {
+        if (sk->rate == 0)
+          printf("\n    %s - \"%s\"", describe_addrtype(sk->atype), sk->mask);
+        else if (sk->rate < 0)
+          printf("\n    %s %d%% \"%s\"", describe_addrtype(sk->atype), -sk->rate, sk->mask);
+        else
+          printf("\n    %s %ld \"%s\"", describe_addrtype(sk->atype), sk->rate, sk->mask);
       }
     }
 #endif

@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.21  2004/09/02 08:56:19  val
+ * bandwidth limiting config parameter 'limit-rate'
+ *
  * Revision 2.20  2004/08/30 08:05:13  val
  * bandwidth limiting code [experimental]
  *
@@ -222,10 +225,12 @@ struct _STATE
 /* define BW_LIM <bytes-per-second> to limit xmit bandwidth to this value */
 /*#define BW_LIM 16384*/
 #ifdef BW_LIM
-  time_t bw_utime;              /* bandwidth limit bps counter update time */
+  unsigned long bw_send, bw_recv;         /* send and receive bandwidth limit, cps */
+  unsigned long bw_send_abs, bw_send_rel; /* min send limits in abs-values and percents */
+  time_t bw_utime;              /* bandwidth limit cps counter update time */
   unsigned long bw_bytes;       /* bytes actually sent after update time */
-  unsigned long bw_bps;         /* avg.bps for last 10 sec */
-  unsigned short bw_bpsN;       /* bps measurements pool size */
+  unsigned long bw_bps;         /* avg.cps for last 10 sec */
+  unsigned short bw_bpsN;       /* cps measurements pool size */
 #endif
 };
 #define STATE_DEFINED 1

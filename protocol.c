@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.156  2004/09/02 08:56:19  val
+ * bandwidth limiting config parameter 'limit-rate'
+ *
  * Revision 2.155  2004/08/30 08:05:14  val
  * bandwidth limiting code [experimental]
  *
@@ -879,8 +882,10 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
       else state->bw_bps = (9*state->bw_bps + bps) / 10;
       Log (7, "send: current bps is %u, avg. bps is %u", bps, state->bw_bps);
     }
-    else if (state->bw_bytes > BW_LIM) return 1; /* */
-    if (state->bw_bps > BW_LIM) return 1; /* !!! val: temp measures !!! */
+    else if (state->bw_send && state->bw_bytes > state->bw_send) 
+      return 1; /* !!! val: temp !!! */
+    if (state->bw_send && state->bw_bps > state->bw_send) 
+      return 1; /* !!! val: temp measures !!! */
 #endif
     Log (7, "sending %i byte(s)", state->oleft);
     n = send (state->s, state->optr, state->oleft, 0);
@@ -2133,6 +2138,44 @@ struct skipchain *skip_test(STATE *state, BINKD_CONFIG *config)
   return NULL;
 }
 
+#ifdef BW_LIM
+static void setup_rate_limit (STATE *state, BINKD_CONFIG *config)
+{
+  struct ratechain *ps;
+  addrtype amask = 0;
+  int rlim = -100;
+
+  amask |= (state->listed_flag) ? A_LST : A_UNLST;
+  amask |= (state->state == P_SECURE) ? A_PROT : A_UNPROT;
+  for (ps = config->rates.first; ps; ps = ps->next)
+  {
+    if ( (ps->atype & amask) && pmatch_ncase(ps->mask, state->out.netname) )
+    {
+      Log (7, "%s matches rate limit mask %s", state->out.netname, ps->mask);
+      rlim = ps->rate;
+      break;
+    }
+  }
+  /* if mask is set to unlim rate, set to unlim */
+  if (rlim == 0) state->bw_send = 0;
+  else {
+    /* if mask set to specific rate, adjust to remote percent rate */
+    if (rlim > 0) 
+      state->bw_send = state->bw_send_rel ? rlim * (state->bw_send_rel / 100) : rlim;
+    /* if mask set to relative rate, adjust node absolute rate by it */
+    else 
+      state->bw_send = state->bw_send_abs ? state->bw_send_abs * (-rlim / 100) : 0;
+  }
+  /* remote demands us to limit our rate, so be it */
+  if (state->bw_recv && state->bw_send > state->bw_recv)
+    state->bw_send = state->bw_recv;
+  if (state->bw_send)
+    Log (3, "rate limit for %s is %d cps", state->out.netname, state->bw_send);
+  else
+    Log (5, "rate for %s is unlimited", state->out.netname);
+}
+#endif
+
 /*
  * Handles M_FILE msg from the remote
  * M_FILE args: "%s %lu %lu %lu", filename, size, time, offset
@@ -2255,6 +2298,7 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
 	return 1;
       }
       /* val: /skip check */
+
       if (inb_test (state->in.netname, state->in.size,
 		    state->in.time, state->inbound, realname))
       {
@@ -3302,6 +3346,10 @@ static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
 #endif
   Log (2, "sending %s as %s (%" PRIuMAX ")",
        state->out.path, state->out.netname, (uintmax_t) state->out.size);
+#ifdef BW_LIM
+  setup_rate_limit(state, config);
+#endif
+
   z_send_init(state, config, &extra);
 
   if (state->NR_flag & WE_NR)
