@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/03/03 23:41:20  gul
+ * Try to resolve problem with active threads while exitproc running
+ *
  * Revision 2.9  2003/03/01 20:16:27  gul
  * OS/2 IBM C support
  *
@@ -127,12 +130,13 @@ void serv (void *arg)
   int h = *(int *) arg;
   extern int pidcmgr;
 
-  pidcmgr = 0;
 #ifdef HAVE_FORK
+  pidcmgr = 0;
   soclose(sockfd);
 #endif
   protocol (h, 0, NULL);
   Log (5, "downing server...");
+  del_socket(h);
   soclose (h);
   free (arg);
   rel_grow_handles (-6);
@@ -272,8 +276,9 @@ accepterr:
     }
     else
     { char host[MAXHOSTNAMELEN + 1];
-      rel_grow_handles (6);
 
+      add_socket(new_sockfd);
+      rel_grow_handles (6);
       ext_rand=rand();
       lockhostsem();
       Log (3, "incoming from %s (%s)",

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2003/03/03 23:41:20  gul
+ * Try to resolve problem with active threads while exitproc running
+ *
  * Revision 2.0  2001/01/10 12:12:37  gul
  * Binkd is under CVS again
  *
@@ -27,6 +30,7 @@
 
 #include <stdlib.h>
 #include <signal.h>
+#include <sys/types.h>
 #include "Config.h"
 #include "sys.h"
 #include "bsy.h"
@@ -37,6 +41,25 @@
 
 extern int pidcmgr;		       /* pid for clientmgr */
 extern int pidsmgr;		       /* pid for server */
+extern int server_flag;
+
+int binkd_exit;
+
+#ifdef HAVE_THREADS
+
+static fd_set sockets;
+
+void add_socket(int sockfd)
+{
+  FD_SET (sockfd, &sockets);
+}
+
+void del_socket(int sockfd)
+{
+  FD_CLR (sockfd, &sockets);
+}
+
+#endif
 
 void exitfunc (void)
 {
@@ -46,6 +69,23 @@ void exitfunc (void)
     i=pidcmgr, pidcmgr=0; /* prevent abort when cmgr exits */
     kill (i, SIGTERM);
     sleep (1);
+  }
+#elif HAVE_THREADS
+  /* exit all threads */
+  { int i, h;
+    /* wait for threads exit */
+    binkd_exit = 1;
+    for (i=0; i<5; i++)
+      if (nservers || nclients || (pidcmgr && server_flag))
+      {
+	/* close active sockets */
+	for (h=0; h<sizeof(sockets)*8; h++)
+	  if (FD_ISSET(h, &sockets))
+	    soclose(h);
+	sleep (1);
+      }
+      else
+	break;
   }
 #endif
   bsy_remove_all ();

@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/03/03 23:41:20  gul
+ * Try to resolve problem with active threads while exitproc running
+ *
  * Revision 2.3  2003/03/01 20:16:27  gul
  * OS/2 IBM C support
  *
@@ -128,6 +131,14 @@ void exitfunc (void);
 void rel_grow_handles(int nh);
 #else
 #define rel_grow_handles(nh)
+#endif
+
+#ifdef HAVE_THREADS
+int add_socket(int sockfd);
+int del_socket(int sockfd);
+#else
+#define add_socket(sockfd)
+#define del_socket(sockfd)
 #endif
 
 #endif

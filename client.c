@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2003/03/03 23:41:20  gul
+ * Try to resolve problem with active threads while exitproc running
+ *
  * Revision 2.12  2003/03/01 20:16:27  gul
  * OS/2 IBM C support
  *
@@ -130,6 +133,7 @@ int n_clients = 0;
 
 static jmp_buf jmpbuf;
 extern int connect_timeout;
+extern int binkd_exit;
 
 static void chld (int signo)
 {
@@ -147,7 +151,12 @@ static void chld (int signo)
 
 void SLEEP (time_t s)
 {
+#ifdef HAVE_THREADS
+  while ((s -= (1 - sleep(1))) > 0)
+    if (binkd_exit) break;
+#else
   while ((s = sleep (s)) > 0);
+#endif
 }
 
 #endif
@@ -189,15 +198,16 @@ void clientmgr (void *arg)
   int q_empty = 1;
 
 #ifdef HAVE_FORK
-  signal (SIGCHLD, chld);
-#endif
-
   pidcmgr = 0;
+  signal (SIGCHLD, chld);
+#elif HAVE_THREADS
+  pidcmgr = PID();
+#endif
 
   setproctitle ("client manager");
   Log (4, "clientmgr started");
 
-  while (1)
+  while (!binkd_exit)
   {
     FTN_NODE *r;
 
@@ -252,7 +262,12 @@ void clientmgr (void *arg)
       SLEEP (call_delay);
     }
   }
+#ifdef HAVE_THREADS
+  pidcmgr = 0;
+  _endthread();
+#else
   exit (0);
+#endif
 }
 
 static int call0 (FTN_NODE *node)
@@ -344,6 +359,7 @@ static int call0 (FTN_NODE *node)
 	Log (1, "socket: %s", TCPERR ());
 	return 0;
       }
+      add_socket(sockfd);
       sin.sin_addr = *((struct in_addr *) * cp);
       lockhostsem();
 #ifdef HTTPS
@@ -407,6 +423,7 @@ badtry:
 #endif
       Log (1, "unable to connect: %s", TCPERR ());
       bad_try (&node->fa, TCPERR ());
+      del_socket(sockfd);
       soclose (sockfd);
       sockfd = INVALID_SOCKET;
     }
@@ -429,6 +446,7 @@ badtry:
         h_connect(sockfd, host) != 0)
     {
       bad_try (&node->fa, TCPERR ());
+      del_socket(sockfd);
       soclose (sockfd);
       sockfd = INVALID_SOCKET;
     }
@@ -448,6 +466,7 @@ badtry:
     return 0;
 
   protocol (sockfd, node, host);
+  del_socket(sockfd);
   soclose (sockfd);
   return 1;
 }
