@@ -1,3 +1,7 @@
+2003/10/07 21:03:22 1.0a-222 stas
+service.c,2.30,2.31
+Fix error with MS VC. Thanks to Serguei Trouchelle <stro@isd.dp.ua>
+
 2003/10/07 20:57:12 1.0a-221 gul
 client.c,2.47,2.48 exitproc.c,2.28,2.29 iptools.c,2.12,2.13 protocol.c,2.127,2.128 server.c,2.33,2.34
 Some small changes in close threads function.
