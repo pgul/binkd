@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.35  2003/10/27 16:16:22  gul
+ * Fix warnings with perl58
+ *
  * Revision 2.34  2003/10/24 14:19:28  val
  * missing OS/2 code for PERLDL improvements added
  *
@@ -335,9 +338,9 @@ PERL_CALLCONV AV*	(*dl_Perl_newAV)(pTHX);
 PERL_CALLCONV SV*	(*dl_Perl_newRV_noinc)(pTHX_ SV *sv);
 PERL_CALLCONV HV*	(*dl_Perl_newHV)(pTHX);
 PERL_CALLCONV SV*	(*dl_Perl_newSVpv)(pTHX_ const char* s, STRLEN len);
-PERL_CALLCONV SV**	(*dl_Perl_hv_store)(pTHX_ HV* tb, const char* key, U32 klen, SV* val, U32 hash);
+PERL_CALLCONV SV**	(*dl_Perl_hv_store)(pTHX_ HV* tb, _Const char* key, U32 klen, SV* val, U32 hash);
 PERL_CALLCONV void	(*dl_Perl_hv_clear)(pTHX_ HV* tb);
-PERL_CALLCONV SV**	(*dl_Perl_hv_fetch)(pTHX_ HV* tb, const char* key, U32 klen, I32 lval);
+PERL_CALLCONV SV**	(*dl_Perl_hv_fetch)(pTHX_ HV* tb, _Const char* key, U32 klen, I32 lval);
 PERL_CALLCONV void	(*dl_Perl_push_scope)(pTHX);
 PERL_CALLCONV void	(*dl_Perl_pop_scope)(pTHX);
 PERL_CALLCONV void	(*dl_Perl_free_tmps)(pTHX);
@@ -426,9 +429,9 @@ VK_MAKE_DFL(SV*, dl_Perl_newRV_noinc, (pTHX_ SV *sv));
 VK_MAKE_DFL(HV*, dl_Perl_newHV, (pTHX));
 VK_MAKE_DFL(SV*, dl_Perl_newSVpv, (pTHX_ _Const char* s, STRLEN len));
 
-VK_MAKE_DFL(SV**, dl_Perl_hv_store, (pTHX_ HV* tb, _Const char* key, U32 klen, SV* val, U32 hash));
+VK_MAKE_DFL(SV**, dl_Perl_hv_store, (pTHX_ HV* tb, _Const char* key, I32 klen, SV* val, U32 hash));
 VK_MAKE_DFL(void, dl_Perl_hv_clear, (pTHX_ HV* tb));
-VK_MAKE_DFL(SV**, dl_Perl_hv_fetch, (pTHX_ HV* tb, _Const char* key, U32 klen, I32 lval));
+VK_MAKE_DFL(SV**, dl_Perl_hv_fetch, (pTHX_ HV* tb, _Const char* key, I32 klen, I32 lval));
 
 VK_MAKE_DFL(void, dl_Perl_push_scope, (pTHX));
 VK_MAKE_DFL(void, dl_Perl_pop_scope, (pTHX));
@@ -2093,7 +2096,7 @@ int perl_on_log(char *s, int bufsize, int *lev) {
         if (!p || len == 0 || *p == 0) rc = 0; 
         else {
           rc = 1;
-          strnzcpy(s, p, min(len+1, bufsize));
+          strnzcpy(s, p, min((int)len+1, bufsize));
           sv = perl_get_sv("lvl", FALSE); if (sv) *lev = SvIV(sv);
         }
       }
