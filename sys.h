@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2003/08/14 08:29:22  gul
+ * Use snprintf() from sprintf.c if no such libc function
+ *
  * Revision 2.12  2003/07/19 06:59:34  hbrew
  * Complex patch:
  * * nt/w32tools.c: Fix warnings
@@ -84,6 +87,9 @@
 #ifdef HAVE_DOS_H
   #include <dos.h>
 #endif
+#ifdef HAVE_STDARG_H
+  #include <stdarg.h>
+#endif
 
 #if defined(__WATCOMC__) && !defined(__IBMC__)
   #include <utils.h>
@@ -147,6 +153,17 @@
 
 #if defined(EBADTYPE) && !defined(ENOTDIR)
   #define ENOTDIR EBADTYPE /* __IBMC__ */
+#endif
+
+#ifndef HAVE_SNPRINTF
+#ifdef HAVE_STDARG_H
+int snprintf (char *str, size_t count, const char *fmt,...);
+#else
+int snprintf (va_alist) va_dcl;
+#endif
+#endif
+#ifndef HAVE_VSNPRINTF
+int vsnprintf (char *str, size_t count, const char *fmt, va_list args);
 #endif
 
 typedef unsigned char u8;

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22  2003/08/14 08:29:22  gul
+ * Use snprintf() from sprintf.c if no such libc function
+ *
  * Revision 2.21  2003/06/20 10:37:02  val
  * Perl hooks for binkd - initial revision
  *
@@ -418,11 +421,7 @@ FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n)
       if (bfilebox[0]) {
         strnzcpy (buf, bfilebox, sizeof (buf));
         strnzcat (buf, PATH_SEPARATOR, sizeof (buf));
-#ifdef HAVE_SNPRINTF
         snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
-#else
-        sprintf(buf + strlen(buf),
-#endif
                 "%s.%u.%u.%u.%u.",
                 node.fa.domain,
                 node.fa.z,
@@ -440,11 +439,7 @@ FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n)
       if (tfilebox[0]) {
         strnzcpy ( buf, tfilebox, sizeof (buf));
         strnzcat ( buf, PATH_SEPARATOR, sizeof (buf));
-#ifdef HAVE_SNPRINTF
         snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
-#else
-        sprintf(buf + strlen(buf),
-#endif
                 "%u.%u.%u.%u",
                 node.fa.z,
                 node.fa.net,
@@ -462,11 +457,7 @@ FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n)
 
         strnzcpy ( buf, tfilebox, sizeof (buf));
         strnzcat ( buf, PATH_SEPARATOR, sizeof (buf));
-#ifdef HAVE_SNPRINTF
         snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
-#else
-        sprintf(buf + strlen(buf),
-#endif
                 "%c%c%c%c%c%c%c%c.%c%c",
                 to32(node.fa.z/32),     to32(node.fa.z%32),
                 to32(node.fa.net/1024), to32((node.fa.net/32)%32), to32(node.fa.net%32),

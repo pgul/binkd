@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.35  2003/08/14 08:29:22  gul
+ * Use snprintf() from sprintf.c if no such libc function
+ *
  * Revision 2.34  2003/08/14 07:39:36  val
  * migrate from vfprintf() to vsnprintf() in Log(), new keyword `nolog'
  *
@@ -200,10 +203,6 @@
 #ifdef WITH_PERL
 #include "perlhooks.h"
 #endif
-/* use function in snprintf.c */
-#ifndef HAVE_VSNPRINTF
-int vsnprintf (char *str, size_t count, const char *fmt, va_list args);
-#endif
 
 /*
  * Lowercase the string
@@ -320,11 +319,7 @@ int create_sem_file (char *name)
   { Log (5, "Can't create %s: %s", name, strerror(errno));
     return 0;
   }
-#ifdef HAVE_SNPRINTF
   snprintf (buf, sizeof (buf), "%u\n", (int) getpid ());
-#else
-  sprintf (buf, "%u\n", (int) getpid ());
-#endif
   if ((i = write(h, buf, strlen(buf))) != (int)strlen(buf))
   { if (i == -1)
       Log (2, "Can't write to %s (handle %d): %s", name, h, strerror(errno));

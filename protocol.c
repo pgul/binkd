@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.94  2003/08/14 08:29:22  gul
+ * Use snprintf() from sprintf.c if no such libc function
+ *
  * Revision 2.93  2003/08/13 11:59:21  gul
  * Undo my prev patch, sorry ;)
  *
@@ -567,11 +570,7 @@ static void msg_sendf (STATE *state, t_msg m, char *s,...)
   va_list ap;
 
   va_start (ap, s);
-#ifdef HAVE_SNPRINTF
   vsnprintf (msg_text, sizeof (msg_text), s, ap);
-#else
-  vsprintf (msg_text, s, ap);
-#endif
   va_end (ap);
   msg_send2 (state, m, msg_text, 0);
 }

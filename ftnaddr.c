@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/08/14 08:29:22  gul
+ * Use snprintf() from sprintf.c if no such libc function
+ *
  * Revision 2.2  2003/02/22 21:32:46  gul
  * Amiga Style Outbound support
  *
@@ -242,12 +245,8 @@ void ftnaddress_to_filename (char *s, FTN_ADDR *fa)
 
 #ifdef AMIGADOS_4D_OUTBOUND
     if (aso)
-#ifdef HAVE_SNPRINTF
-      snprintf(s, MAXPATHLEN,
-#else
-      sprintf(s,
-#endif
-        "%s%s%s%s%u.%u.%u.%u", d->path, PATH_SEPARATOR, d->dir,
+      snprintf(s, MAXPATHLEN, "%s%s%s%s%u.%u.%u.%u",
+         d->path, PATH_SEPARATOR, d->dir,
          PATH_SEPARATOR, fa->z, fa->net, fa->node, fa->p);
     else
 #endif
@@ -258,12 +257,7 @@ void ftnaddress_to_filename (char *s, FTN_ADDR *fa)
       if (fa->p != 0)
 	sprintf (pnt, ".pnt%s%08x", PATH_SEPARATOR, fa->p);
 
-#ifdef HAVE_SNPRINTF
-      snprintf(s, MAXPATHLEN,
-#else
-      sprintf(s,
-#endif
-        "%s%s%s%s%s%04x%04x%s",
+      snprintf(s, MAXPATHLEN, "%s%s%s%s%s%04x%04x%s",
         d->path, PATH_SEPARATOR, d->dir, ext, PATH_SEPARATOR,
         fa->net, fa->node, pnt);
     }
