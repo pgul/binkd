@@ -1,3 +1,7 @@
+2004/08/04 16:15:44 1.0a-386 gul
+sys.h,2.18,2.19
+Define u16 and u32 types more clean
+
 2004/08/04 16:07:05 1.0a-385 gul
 binlog.c,2.10,2.11
 Binlogs writes correctly now independent on bytes order and alignment
