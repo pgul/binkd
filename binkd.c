@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.64  2003/09/21 17:51:08  gul
+ * Fixed PID in logfile for perl stderr handled messages in fork version.
+ *
  * Revision 2.63  2003/09/12 07:37:57  val
  * compression support via zlib (preliminary)
  *
@@ -266,6 +269,7 @@
 #include <ctype.h>
 #ifdef HAVE_FORK
 #include <signal.h>
+#include <sys/wait.h>
 #endif
 
 #include "readcfg.h"
@@ -332,6 +336,9 @@ static SOCKET inetd_socket = 0;
 char *configpath = NULL;               /* Config file name */
 
 #ifdef HAVE_FORK
+
+int mypid;
+
 static void chld (int signo)
 {
 #include "reapchld.inc"
@@ -657,6 +664,7 @@ int main (int argc, char *argv[], char *envp[])
 #if defined(HAVE_FORK)
   char **saved_argv;
 
+  mypid = getpid();
   /* save argv as setproctitle() under some systems will change it */
   saved_argv = mkargv (argc, argv);
 

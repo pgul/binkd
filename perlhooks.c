@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.26  2003/09/21 17:51:08  gul
+ * Fixed PID in logfile for perl stderr handled messages in fork version.
+ *
  * Revision 2.25  2003/09/21 17:34:27  gul
  * Change perl stderr handling for thread vertions,
  * some small changes.
@@ -103,6 +106,10 @@
 #include <string.h>
 #include <time.h>
 #include <fcntl.h>
+
+#ifdef HAVE_FORK
+#include <sys/wait.h>
+#endif
 
 #ifdef OS2
 #ifdef PERLDL

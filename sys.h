@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2003/09/21 17:51:09  gul
+ * Fixed PID in logfile for perl stderr handled messages in fork version.
+ *
  * Revision 2.14  2003/08/18 09:15:39  gul
  * Cosmetics
  *
@@ -134,8 +137,8 @@
   void dos_sleep(int);
   #define sleep(s) dos_sleep(s)
 #else
-  #include <sys/wait.h>
-  #define PID() ((int)getpid())
+  extern int mypid;
+  #define PID() mypid
 #endif
 
 #ifndef F_OK
