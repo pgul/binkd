@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.31  2003/04/06 08:38:47  gul
+ * Log port number for outgoing connections to non-standard port
+ *
  * Revision 2.30  2003/03/31 16:28:09  gul
  * Fix previous patch
  *
@@ -330,7 +333,7 @@ static int call0 (FTN_NODE *node)
   char szDestAddr[FTN_ADDR_SZ + 1];
   struct in_addr defaddr;
   int i, rc;
-  char host[MAXHOSTNAMELEN + 1];       /* current host/port */
+  char host[MAXHOSTNAMELEN + 5 + 1];       /* current host/port */
   unsigned short port;
 
   ftnaddress_to_str (szDestAddr, &node->fa);
@@ -429,8 +432,11 @@ static int call0 (FTN_NODE *node)
       }
       else
 #endif
-	Log (4, port == oport ? "trying %s..." : "trying %s:%u...",
-	     inet_ntoa (sin.sin_addr), (unsigned) port);
+      {
+        strcpy(host, inet_ntoa (sin.sin_addr));
+        if (port != oport) sprintf(host+strlen(host), ":%u", port);
+        Log (4, "trying %s...", host);
+      }
       releasehostsem();
       if (bindaddr[0])
       {
@@ -481,13 +487,15 @@ badtry:
       free_hostent(hp);
 #endif
 #ifdef HTTPS
-    if (sockfd != INVALID_SOCKET && (proxy[0] || socks[0]) &&
-        h_connect(sockfd, host) != 0)
-    {
-      bad_try (&node->fa, TCPERR ());
-      del_socket(sockfd);
-      soclose (sockfd);
-      sockfd = INVALID_SOCKET;
+    if (sockfd != INVALID_SOCKET && (proxy[0] || socks[0])) {
+      if (h_connect(sockfd, host) != 0) {
+        bad_try (&node->fa, TCPERR ());
+        del_socket(sockfd);
+        soclose (sockfd);
+        sockfd = INVALID_SOCKET;
+      }
+      else if (port == oport)
+        *strchr(host, ':') = '\0';
     }
 #endif
   }
