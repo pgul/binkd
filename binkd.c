@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.29  2003/05/04 08:45:30  gul
+ * Lock semaphores more safely for resolve and IP-addr print
+ *
  * Revision 2.28  2003/05/01 09:55:01  gul
  * Remove -crypt option, add global -r option (disable crypt).
  *
@@ -183,6 +186,7 @@
 #ifdef HAVE_THREADS
 #include "sem.h"
 MUTEXSEM hostsem = 0; 
+MUTEXSEM resolvsem = 0; 
 MUTEXSEM varsem = 0; 
 EVENTSEM eothread = 0;
 EVENTSEM exitcmgr = 0;
@@ -328,6 +332,7 @@ int main (int argc, char *argv[], char *envp[])
   saved_argc = argc;
 
   InitSem (&hostsem);
+  InitSem (&resolvsem);
   InitSem (&varsem);
   InitEventSem (&eothread);
   InitEventSem (&exitcmgr);

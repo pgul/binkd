@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2003/05/04 08:45:30  gul
+ * Lock semaphores more safely for resolve and IP-addr print
+ *
  * Revision 2.10  2003/05/01 09:55:01  gul
  * Remove -crypt option, add global -r option (disable crypt).
  *
@@ -226,7 +229,7 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on)
 
   for (i=1; get_host_and_port(i, host, &port, np->hosts, fa)==1; i++)
   {
-    lockhostsem();
+    lockresolvsem();
     he=gethostbyname(host);
     releasehostsem();
     if (!he) continue;

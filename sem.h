@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2003/05/04 08:45:30  gul
+ * Lock semaphores more safely for resolve and IP-addr print
+ *
  * Revision 2.7  2003/03/31 19:35:16  gul
  * Clean semaphores usage
  *
@@ -142,12 +145,15 @@ int _CleanEventSem (void *);
 
 #ifdef HAVE_THREADS
 extern MUTEXSEM hostsem;
+extern MUTEXSEM resolvsem;
 extern MUTEXSEM varsem;
 extern EVENTSEM eothread;
 extern EVENTSEM exitcmgr;
 extern EVENTSEM LSem;
 #define lockhostsem()		LockSem(&hostsem)
 #define releasehostsem()	ReleaseSem(&hostsem)
+#define lockresolvsem()		LockSem(&resolvsem)
+#define releaseresolvsem()	ReleaseSem(&resolvsem)
 #define threadsafe(exp)		LockSem(&varsem); exp; ReleaseSem(&varsem)
 #ifdef OS2
 extern MUTEXSEM fhsem;
@@ -155,6 +161,8 @@ extern MUTEXSEM fhsem;
 #else
 #define lockhostsem()
 #define releasehostsem()
+#define lockresolvsem()
+#define releaseresolvsem()
 #define threadsafe(exp)		exp
 #endif
 

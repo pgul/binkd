@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2003/05/04 08:45:30  gul
+ * Lock semaphores more safely for resolve and IP-addr print
+ *
  * Revision 2.7  2003/03/26 12:59:16  gul
  * Fix previous patch
  *
@@ -74,13 +77,21 @@ const char *get_hostname (struct sockaddr_in *addr, char *host, int len)
   struct sockaddr_in s;
 
   memcpy(&s, addr, sizeof(s));
-  hp = ((backresolv == 0) ? 0 :
-	gethostbyaddr ((char *) &s.sin_addr,
-		       sizeof s.sin_addr,
-		       AF_INET));
-
-  strnzcpy (host, hp ? hp->h_name : inet_ntoa (s.sin_addr), len);
-
+  if (backresolv)
+  {
+    lockresolvsem();
+    hp = gethostbyaddr ((char *) &s.sin_addr, sizeof s.sin_addr, AF_INET);
+    if (hp)
+    {
+      strnzcpy (host, hp->h_name, len);
+      releaseresolvsem();
+      return host;
+    }
+    releaseresolvsem();
+  }
+  lockhostsem();
+  strncpy (host, inet_ntoa (s.sin_addr), len);
+  releasehostsem();
   return host;
 }
 
@@ -179,27 +190,26 @@ int find_port (char *s)
 struct hostent *find_host(char *host, struct hostent *he, struct in_addr *defaddr)
 {
   struct hostent *hp;
-  static struct hostent ht;
-  static char *alist[2];
+  struct hostent ht;
+  char *alist[2];
 
   if (!isdigit(host[0]) ||
       (defaddr->s_addr = inet_addr (host)) == INADDR_NONE)
   {
     /* If not a raw ip address, try nameserver */
     Log (5, "resolving `%s'...", host);
-    lockhostsem();
+    lockresolvsem();
     if ((hp = gethostbyname(host)) == NULL)
     {
       Log(1, "%s: unknown host", host);
-      releasehostsem();
+      releaseresolvsem();
       return NULL;
     }
     hp = copy_hostent(he, hp);
-    releasehostsem();
+    releaseresolvsem();
     return hp;
   }
   /* Raw ip address, fake */
-  lockhostsem();
   hp = &ht;
   hp->h_name = host;
   hp->h_aliases = 0;
@@ -209,6 +219,5 @@ struct hostent *find_host(char *host, struct hostent *he, struct in_addr *defadd
   hp->h_addr_list[0] = (char *) defaddr;
   hp->h_addr_list[1] = (char *) 0;
   hp = copy_hostent(he, hp);
-  releasehostsem();
   return hp;
 }

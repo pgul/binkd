@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.57  2003/05/04 08:45:30  gul
+ * Lock semaphores more safely for resolve and IP-addr print
+ *
  * Revision 2.56  2003/05/03 20:36:45  gul
  * Print diagnostic message to log on failed session
  *
@@ -929,11 +932,11 @@ static int ADR (STATE *state, char *s, int sz)
 	{
 	  /* If not a raw ip address, try nameserver */
 	  Log (5, "resolving `%s'...", host);
-	  lockhostsem();
+	  lockresolvsem();
 	  if ((hp = gethostbyname (host)) == NULL)
 	  {
+	    releaseresolvsem();
 	    Log (1, "%s: unknown host", host);
-	    releasehostsem();
 	    continue;
 	  }
 	  for (cp = hp->h_addr_list; cp && *cp; cp++)
@@ -943,7 +946,7 @@ static int ADR (STATE *state, char *s, int sz)
 	      break;
 	    } else if (ipok == 0)
 	      ipok = -1; /* resolved and not match */
-	  releasehostsem();
+	  releaseresolvsem();
 	}
 	else
 	{
@@ -2077,7 +2080,6 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
     memset(&peer_name, 0, sizeof (peer_name));
   }
 
-  lockhostsem();
   if (to && current_addr)
     state.peer_name = current_addr;
   else
@@ -2086,6 +2088,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
     state.peer_name = host;
   }
   setproctitle ("%c [%s]", to ? 'o' : 'i', state.peer_name);
+  lockhostsem();
   Log (2, "session with %s (%s)",
        state.peer_name,
        inet_ntoa (peer_name.sin_addr));
