@@ -1,3 +1,8 @@
+2003/10/24 00:16:12 1.0a-270
+ gul
+zlibdl.h,2.14,2.15
+Fix MSVC bzlib2 ZLIBDL compilation
+
 2003/10/23 19:45:36 1.0a-269
  gul
 zlibdl.h,2.13,2.14
