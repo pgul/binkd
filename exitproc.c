@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.38  2004/01/03 19:04:20  stas
+ * New functions: public w32Init() and hidden w32exitfunc()
+ *
  * Revision 2.37  2004/01/03 12:17:43  stas
  * Implement full icon support (winNT/2k/XP)
  *
@@ -307,9 +310,6 @@ Log(7, "exitfunc(): pid=%d, cmgr=%d, smgr=%d, inetd=%d", getpid(), pidCmgr, pids
   CleanEventSem (&exitcmgr);
 #ifdef OS2
   CleanSem (&fhsem);
-#endif
-#ifdef WIN32
-  CleanSem (&iconsem);
 #endif
   ReleaseErrorList();
 }

@@ -15,8 +15,8 @@
  * $Id$
  *
  * $Log$
- * Revision 2.80  2004/01/03 18:42:42  stas
- * Now use srvname var in nt/* only
+ * Revision 2.81  2004/01/03 19:04:20  stas
+ * New functions: public w32Init() and hidden w32exitfunc()
  *
  * Revision 2.79  2004/01/03 15:38:50  stas
  * Implement service control option for Windows NT/2k/XP
@@ -727,6 +727,7 @@ int main (int argc, char *argv[], char *envp[])
 #ifdef WIN32
   if (service_flag==w32_installservice && !configpath)
     Log (0, "%s: invalid command line: config name must be specified", extract_filename(argv[0]));
+  w32Init();
 #ifdef BINKDW9X
   {
     int win9x_rc;
@@ -744,7 +745,6 @@ int main (int argc, char *argv[], char *envp[])
     Log (0, "-p and -s cannot be used together");
 
 #if defined(WIN32) && !defined(BINKDW9X)
-  InitSem (&iconsem);
   if (service_flag!=w32_noservice)
     if (service(argc, argv, envp) && service_flag!=w32_run_as_service) {
       Log(0, "Windows NT service error");

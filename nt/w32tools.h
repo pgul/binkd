@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.10  2004/01/03 19:04:20  stas
+ * New functions: public w32Init() and hidden w32exitfunc()
+ *
  * Revision 2.9  2004/01/03 18:14:41  stas
  * Two macroses: IsNTService and Is9xService
  *
@@ -108,5 +111,9 @@ HICON LoadBinkdIcon(void);
 /* Unload the icon
  */
 void UnloadBinkdIcon(void);
+
+/* Startup actions for win32 and win9x versions of binkd
+ */
+void w32Init(void);
 
 #endif

@@ -20,8 +20,8 @@
  *
  * Revision history:
  * $Log$
- * Revision 2.13  2004/01/03 18:39:28  stas
- * Improve service identification
+ * Revision 2.14  2004/01/03 19:04:20  stas
+ * New functions: public w32Init() and hidden w32exitfunc()
  *
  * Revision 2.12  2004/01/03 12:17:44  stas
  * Implement full icon support (winNT/2k/XP)
@@ -366,4 +366,20 @@ void UnloadBinkdIcon(void)
     SendMessage(mwnd, WM_SETICON, ICON_SMALL, (LPARAM)save_icon_small);
   if(save_icon_big)
     SendMessage(mwnd, WM_SETICON, ICON_BIG,   (LPARAM)save_icon_big);
+}
+
+
+/* Cleanup actions for win32 and win9x versions of binkd
+ */
+void w32exitfunc(void)
+{
+  CleanSem (&iconsem);
+}
+
+/* Startup actions for win32 and win9x versions of binkd
+ */
+void w32Init(void)
+{
+  InitSem (&iconsem);
+  atexit(w32exitfunc);
 }
