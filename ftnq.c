@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2003/03/10 12:16:53  gul
+ * Use HAVE_DOS_H macro
+ *
  * Revision 2.11  2003/03/10 10:57:45  gul
  * Extern declarations moved to header files
  *
@@ -324,7 +327,7 @@ static FTNQ *q_scan_box (FTNQ *q, FTN_ADDR *fa, char *boxpath, char flvr, int de
       strnzcat (buf, de->d_name, sizeof (buf));
       if (stat (buf, &sb) == 0 && (sb.st_mode & S_IFDIR) == 0 &&
 	  de->d_name[0] != '.'
-#if defined(OS2) && !defined(__IBMC__)
+#if defined(OS2) && !defined(IBMC) && !defined(__WATCOMC__)
           && (de->d_attr & 0x02) == 0   /* not hidden */
 #endif
 	 )

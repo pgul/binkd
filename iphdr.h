@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/03/10 12:16:53  gul
+ * Use HAVE_DOS_H macro
+ *
  * Revision 2.3  2003/03/01 20:16:27  gul
  * OS/2 IBM C support
  *
@@ -67,7 +70,7 @@
 #define MAXSERVNAME 80                      /* max id len in /etc/services */
 
 #ifdef IBMTCPIP
-  #ifdef __WATCOMC__
+  #if defined(__WATCOMC__) && !defined(__IBMC__)
     #define __IBMC__ 0
     #define __IBMCPP__ 0
   #endif

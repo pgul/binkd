@@ -16,6 +16,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/03/10 12:16:53  gul
+ * Use HAVE_DOS_H macro
+ *
  * Revision 2.3  2003/03/10 11:40:09  gul
  * Use self opendir/readdir/closedir functions for watcom
  *
@@ -37,7 +40,7 @@
 
 #if defined(__WATCOMC__)
 #include <sys/utime.h>
-#elif defined(VISUALCPP) || defined(__IBMC__)
+#elif defined(VISUALCPP) || defined(IBMC)
 #include <direct.h>
 #include <sys/utime.h>
 #elif defined(__MINGW32__)
@@ -52,7 +55,7 @@
 #include "NT/dirwin32.h"
 #endif
 
-#if defined(__IBMC__) || defined(__WATCOMC__)
+#if defined(IBMC) || defined(__WATCOMC__)
 #include "os2/dirent.h"
 #endif
 

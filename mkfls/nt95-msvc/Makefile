@@ -146,7 +146,7 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /D "HTTPS" /D "_DEBUG" /D "WIN32" $(ModeOpt) /D "HAVE_THREADS" /D "HAVE_IO_H" /D "VISUALCPP" /D "AMIGADOS_4D_OUTBOUND" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\$(OutFile).pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /c 
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /D "HTTPS" /D "_DEBUG" /D "WIN32" $(ModeOpt) /D "HAVE_THREADS" /D "HAVE_IO_H" /D "HAVE_DOS_H" /D "VISUALCPP" /D "AMIGADOS_4D_OUTBOUND" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\$(OutFile).pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /c 
 
 .c{$(INTDIR)}.obj:
    $(CPP) @<<

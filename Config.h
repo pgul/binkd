@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2003/03/10 12:16:53  gul
+ * Use HAVE_DOS_H macro
+ *
  * Revision 2.7  2003/03/10 10:39:23  gul
  * New include file common.h
  *
@@ -68,7 +71,7 @@
   #ifndef MAXPATHLEN
     #define MAXPATHLEN PATH_MAX
   #endif
-#elif defined (__IBMC__)
+#elif defined (IBMC)
   #include <stdlib.h>
   #ifndef MAXPATHLEN
     #define MAXPATHLEN _MAX_PATH
@@ -114,7 +117,7 @@
 #ifndef O_BINARY
   #define O_BINARY 0
 #endif
-#if defined(__WATCOMC__) || defined(VISUALCPP) || defined(__MINGW32__) || defined(__IBMC__)
+#if defined(__WATCOMC__) || defined(VISUALCPP) || defined(__MINGW32__) || defined(IBMC)
   #define MKDIR(s) mkdir(s)
 #else
   #define MKDIR(s) mkdir(s, 0755)

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/03/10 12:16:54  gul
+ * Use HAVE_DOS_H macro
+ *
  * Revision 2.3  2003/03/10 08:38:07  gul
  * Make n_servers/n_clients changes thread-safe
  *
@@ -44,7 +47,7 @@ typedef HANDLE MUTEXSEM;
 
 #elif defined(OS2)
 
-#ifdef __WATCOMC__
+#if defined(__WATCOMC__) && !defined(__IBMC__)
 #define __IBMC__ 0
 #define __IBMCPP__ 0
 #endif

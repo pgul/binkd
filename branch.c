@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/03/10 12:16:53  gul
+ * Use HAVE_DOS_H macro
+ *
  * Revision 2.2  2003/03/01 20:16:27  gul
  * OS/2 IBM C support
  *
@@ -46,7 +49,7 @@
 #endif
 
 #ifdef HAVE_THREADS
-#ifndef __IBMC__
+#ifdef HAVE_DOS_H
 #include <dos.h>
 #endif
 #include <process.h>

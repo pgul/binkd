@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.20  2003/03/10 12:16:53  gul
+ * Use HAVE_DOS_H macro
+ *
  * Revision 2.19  2003/03/10 10:39:23  gul
  * New include file common.h
  *
@@ -116,7 +119,7 @@
 #include <signal.h>
 #include <setjmp.h>
 #elif defined(HAVE_THREADS)
-#ifndef __IBMC__
+#ifdef HAVE_DOS_H
 #include <dos.h>
 #endif
 #include <process.h>
