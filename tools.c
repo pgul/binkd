@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.28  2003/07/07 08:38:18  val
+ * safe pkthdr-reading function (to byte order and struct alignment)
+ *
  * Revision 2.27  2003/06/30 22:42:27  hbrew
  * Print only binkd name (without path) in error messages
  *
@@ -1020,4 +1023,47 @@ char *extract_filename(char *s)
 {
   char *tmp = max(max(strrchr(s, '\\'), strrchr(s, '/')), strrchr(s, ':'));
   return tmp? tmp+1: s;
+}
+
+/* OS-safe read pkt header */
+#define READ_BYTE(F, v, c) \
+		c += fread(&v, 1, 1, F);
+#define READ_BYTE2(F, v, c, w1, w2) \
+		c += fread(&w1, 1, 1, F); \
+		c += fread(&w2, 1, 1, F); \
+		v = w1 + w2*0x100;
+#define READ_BYTEn(F, v, c, n) \
+		c += fread(v, 1, n, F);
+int read_pkthdr(FILE *F, PKTHDR *hdr) {
+  int c = 0;
+  unsigned char w1, w2;
+  READ_BYTE2(F, hdr->onode, c, w1, w2);
+  READ_BYTE2(F, hdr->dnode, c, w1, w2);
+  READ_BYTE2(F, hdr->year, c, w1, w2);
+  READ_BYTE2(F, hdr->mon, c, w1, w2);
+  READ_BYTE2(F, hdr->day, c, w1, w2);
+  READ_BYTE2(F, hdr->hour, c, w1, w2);
+  READ_BYTE2(F, hdr->min, c, w1, w2);
+  READ_BYTE2(F, hdr->sec, c, w1, w2);
+  READ_BYTE2(F, hdr->baud, c, w1, w2);
+  READ_BYTE2(F, hdr->pkt_ver, c, w1, w2);
+  READ_BYTE2(F, hdr->onet, c, w1, w2);
+  READ_BYTE2(F, hdr->dnet, c, w1, w2);
+  READ_BYTE (F, hdr->pcode_lo, c);
+  READ_BYTE (F, hdr->rev_hi, c);
+  READ_BYTEn(F, hdr->pwd, c, 8);
+  READ_BYTE2(F, hdr->qmail_ozone, c, w1, w2);
+  READ_BYTE2(F, hdr->qmail_dzone, c, w1, w2);
+  READ_BYTE2(F, hdr->aux_net, c, w1, w2);
+  READ_BYTE (F, hdr->cwv_hi, c);
+  READ_BYTE (F, hdr->cwv_lo, c);
+  READ_BYTE (F, hdr->pcode_hi, c);
+  READ_BYTE (F, hdr->rev_lo, c);
+  READ_BYTE (F, hdr->cw_lo, c);
+  READ_BYTE (F, hdr->cw_hi, c);
+  READ_BYTE2(F, hdr->ozone, c, w1, w2);
+  READ_BYTE2(F, hdr->dzone, c, w1, w2);
+  READ_BYTE2(F, hdr->opoint, c, w1, w2);
+  READ_BYTE2(F, hdr->dpoint, c, w1, w2);
+  return c == (2*19 + 8 + 1*8);
 }

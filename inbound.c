@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2003/07/07 08:38:18  val
+ * safe pkthdr-reading function (to byte order and struct alignment)
+ *
  * Revision 2.15  2003/06/20 10:37:02  val
  * Perl hooks for binkd - initial revision
  *
@@ -348,30 +351,9 @@ int check_pkthdr(int nfa, FTN_ADDR *from, char *netname, char *tmp_name,
                  char *real_name) {
   FTN_NODE *node;
   FILE *PKT;
+  PKTHDR buf;
   int i, check = 0, listed = 0, secure = 0;
   short cz = -1, cn = -1, cf = -1, cp = -1;
-  struct {
-      short onode;
-      short dnode;
-      short year, mon, day, hour, min, sec, baud;
-      short pkt_ver;
-      short onet;
-      short dnet;
-      unsigned char pcode_lo;
-      unsigned char rev_hi;
-      char pwd[8];
-      short qmail_ozone;
-      short qmail_dzone;
-      short aux_net;
-      unsigned char cwv_hi, cwv_lo;
-      unsigned char pcode_hi;
-      unsigned char rev_lo;
-      unsigned char cw_lo, cw_hi;
-      short ozone;
-      short dzone;
-      short opoint;
-      short dpoint;
-  } buf;
   /* ext not defined - no check */
   if (pkthdr_bad == NULL) return 1;
   /* lookup in node records */
@@ -396,7 +378,7 @@ int check_pkthdr(int nfa, FTN_ADDR *from, char *netname, char *tmp_name,
   check = 0;
   if ( (PKT = fopen(tmp_name, "rb")) == NULL )
       Log (1, "can't open file %s: %s, header check failed for %s", tmp_name, strerror (errno), netname);
-  else if (fread(&buf, sizeof(buf), 1, PKT) < 1)
+  else if ( !read_pkthdr(PKT, &buf) )
       Log (1, "file %s read error: %s, header check failed for %s", tmp_name, strerror (errno), netname);
   else if (buf.pkt_ver != 2)
       Log (1, "pkt %s version is %d, expected 2; header check failed", netname, buf.pkt_ver);

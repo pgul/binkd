@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2003/07/07 08:38:18  val
+ * safe pkthdr-reading function (to byte order and struct alignment)
+ *
  * Revision 2.15  2003/07/07 08:34:26  val
  * pmatch() replaced by define to xpmatch()
  *
@@ -80,6 +83,7 @@
 #ifndef _tools_h
 #define _tools_h
 
+#include <stdio.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <sys/types.h>
@@ -255,5 +259,33 @@ long safe_atol(char* str, char** msg);
 
 /* Extract filename from path */
 char *extract_filename(char *s);
+
+/* PKT header */
+typedef struct _PKTHDR PKTHDR;
+struct _PKTHDR {
+    short onode;
+    short dnode;
+    short year, mon, day, hour, min, sec, baud;
+    short pkt_ver;
+    short onet;
+    short dnet;
+    unsigned char pcode_lo;
+    unsigned char rev_hi;
+    char pwd[8];
+    short qmail_ozone;
+    short qmail_dzone;
+    short aux_net;
+    unsigned char cwv_hi, cwv_lo;
+    unsigned char pcode_hi;
+    unsigned char rev_lo;
+    unsigned char cw_lo, cw_hi;
+    short ozone;
+    short dzone;
+    short opoint;
+    short dpoint;
+};
+/* OS-safe read pkt header */
+int read_pkthdr(FILE *F, PKTHDR *hdr);
+
 
 #endif
