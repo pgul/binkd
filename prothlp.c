@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/03/01 18:29:52  gul
+ * Change size_t to off_t for file sizes and offsets
+ *
  * Revision 2.1  2003/02/22 21:32:46  gul
  * Amiga Style Outbound support
  *
@@ -45,7 +48,7 @@
 #include "srif.h"
 #include "assert.h"
 
-int tfile_cmp (TFILE *a, char *netname, size_t size, time_t time)
+int tfile_cmp (TFILE *a, char *netname, off_t size, time_t time)
 {
   int rc = strcmp (a->netname, netname);
 

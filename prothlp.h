@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/03/01 18:29:52  gul
+ * Change size_t to off_t for file sizes and offsets
+ *
  * Revision 2.1  2002/02/22 00:18:34  gul
  * Run by-file events with the same command-line once after session
  *
@@ -40,7 +43,7 @@ struct _TFILE
   char action;				    /* 'd'elete, 't'runcate, '\0' -- * *
 					     * none */
   char type;
-  size_t size;
+  off_t size;
   time_t start;				    /* The transfer started at... */
   time_t time;				    /* Filetime */
   FILE *f;
@@ -48,7 +51,7 @@ struct _TFILE
 
 #define TF_ZERO(a) (memset(a, 0, sizeof(*a)))
 
-int tfile_cmp (TFILE *a, char *netname, size_t size, time_t time);
+int tfile_cmp (TFILE *a, char *netname, off_t size, time_t time);
 
 /* Files to kill _after_ session */
 typedef struct _KILLLIST KILLLIST;

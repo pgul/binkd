@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.32  2003/03/01 18:29:52  gul
+ * Change size_t to off_t for file sizes and offsets
+ *
  * Revision 2.31  2003/03/01 18:16:04  gul
  * Use HAVE_SYS_TIME_H macro
  *
@@ -485,7 +488,7 @@ static int send_block (STATE *state)
 
       if (state->out.f)
       {
-	sz = min ((size_t) oblksize, state->out.size - ftell (state->out.f));
+	sz = min ((off_t) oblksize, state->out.size - ftell (state->out.f));
 	if (percents && state->out.size > 0)
 	{
 	  printf ("%-20.20s %3.0f%%\r", state->out.netname,
@@ -567,7 +570,7 @@ static int remove_from_spool (STATE *state, char *flopath,
 {
   char buf[MAXPATHLEN + 1], *w = 0;
   FILE *flo = 0;
-  size_t offset = 0, curr_offset;
+  off_t offset = 0, curr_offset;
   int i;
   int seek_flag = 0;		       /* Seek _state->flo.f_ to */
 
@@ -1119,7 +1122,7 @@ static int start_file_recv (STATE *state, char *args, int sz)
 {
   const int argc = 4;
   char *argv[4];
-  size_t offset;
+  off_t offset;
 
   if (parse_msg_args (argc, argv, args, "M_FILE", state))
   {
@@ -1173,7 +1176,7 @@ static int start_file_recv (STATE *state, char *args, int sz)
       state->in.size = atol (argv[1]);
       state->in.time = atol (argv[2]);
     }
-    offset = (size_t) atol (argv[3]);
+    offset = (off_t) atol (argv[3]);
     if (!strcmp (argv[3], "-1"))
     {
       off_req = 1;
@@ -1235,7 +1238,7 @@ static int start_file_recv (STATE *state, char *args, int sz)
       }
     }
 
-    if (off_req || offset != (size_t) ftell (state->in.f))
+    if (off_req || offset != (off_t) ftell (state->in.f))
     {
       Log (2, "have %li byte(s) of %s",
 	   (long) ftell (state->in.f), state->in.netname);
@@ -1311,7 +1314,7 @@ static int GET (STATE *state, char *args, int sz)
   const int argc = 4;
   char *argv[4];
   int i, rc = 0;
-  size_t offset;
+  off_t offset;
 
   if (parse_msg_args (argc, argv, args, "M_GET", state))
   {
@@ -1358,7 +1361,7 @@ static int GET (STATE *state, char *args, int sz)
 	  ND_set_status("", &state->out_addr, state);
 	TF_ZERO(&state->out);
       }
-      else if ((offset = atol (argv[3])) > (size_t)state->out.size ||
+      else if ((offset = atol (argv[3])) > state->out.size ||
                fseek (state->out.f, offset, SEEK_SET) == -1)
       {
 	Log (1, "GET: error seeking %s to %li: %s",
@@ -1645,7 +1648,7 @@ static int recv_block (STATE *state)
 		  100.0 * ftell (state->in.f) / (float) state->in.size);
 	  fflush (stdout);
 	}
-	if ((size_t) ftell (state->in.f) == state->in.size)
+	if ((off_t) ftell (state->in.f) == state->in.size)
 	{
 	  char szAddr[FTN_ADDR_SZ + 1];
 	  char realname[MAXPATHLEN + 1];
@@ -1688,7 +1691,7 @@ static int recv_block (STATE *state)
 		     (long) state->in.time);
 	  TF_ZERO (&state->in);
 	}
-	else if ((size_t) ftell (state->in.f) > state->in.size)
+	else if ((off_t) ftell (state->in.f) > state->in.size)
 	{
 	  Log (1, "rcvd %li extra bytes!", (long) ftell (state->in.f) - state->in.size);
 	}

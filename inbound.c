@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/03/01 18:29:52  gul
+ * Change size_t to off_t for file sizes and offsets
+ *
  * Revision 2.9  2003/03/01 15:00:16  gul
  * Join skipmask and overwrite into common maskchain
  *
@@ -96,7 +99,7 @@ static void remove_hr (char *path)
   }
 }
 
-static int creat_tmp_name (char *s, char *file, size_t size,
+static int creat_tmp_name (char *s, char *file, off_t size,
 			    time_t time, FTN_ADDR *from, char *inbound)
 {
   FILE *f;
@@ -160,7 +163,7 @@ static int to_be_deleted (char *tmp_name, char *netname)
  * Searches for the ``file'' in the inbound and returns it's tmp name in s.
  * S must have MAXPATHLEN chars. Returns 0 on error, 1=found, 2=created.
  */
-int find_tmp_name (char *s, char *file, size_t size,
+int find_tmp_name (char *s, char *file, off_t size,
 		    time_t time, FTN_ADDR *from, int nfa, char *inbound)
 {
   char buf[MAXPATHLEN + 80];
@@ -211,7 +214,7 @@ int find_tmp_name (char *s, char *file, size_t size,
 	for (i = 0; i < nfa; i++)
 	  if (!ftnaddress_cmp (&fa, from + i))
 	    break;
-	if (size == (size_t) atol (w[1]) &&
+	if (size == (off_t) atol (w[1]) &&
 	    (time & ~1) == (atol (w[2]) & ~1) &&
 	    i < nfa)
 	{
@@ -254,7 +257,7 @@ int find_tmp_name (char *s, char *file, size_t size,
   return found;
 }
 
-FILE *inb_fopen (char *netname, size_t size, time_t time, FTN_ADDR *from,
+FILE *inb_fopen (char *netname, off_t size, time_t time, FTN_ADDR *from,
                  int nfa, char *inbound, int secure_flag)
 {
   char buf[MAXPATHLEN + 1];
@@ -301,7 +304,7 @@ FILE *inb_fopen (char *netname, size_t size, time_t time, FTN_ADDR *from,
   return f;
 }
 
-int inb_reject (char *netname, size_t size,
+int inb_reject (char *netname, off_t size,
 		 time_t time, FTN_ADDR *from, int nfa, char *inbound)
 {
   char tmp_name[MAXPATHLEN + 1];
@@ -325,7 +328,7 @@ int inb_reject (char *netname, size_t size,
  * File is complete, rename it to it's realname. 1=ok, 0=failed.
  * Sets realname[MAXPATHLEN]
  */
-int inb_done (char *netname, size_t size, time_t time,
+int inb_done (char *netname, off_t size, time_t time,
 	      FTN_ADDR *from, int nfa, char *inbound, char *real_name)
 {
   char tmp_name[MAXPATHLEN + 1];
@@ -424,7 +427,7 @@ int inb_done (char *netname, size_t size, time_t time,
  * Checks if the file already exists in our inbound. !0=ok, 0=failed.
  * Sets realname[MAXPATHLEN]
  */
-int inb_test (char *filename, size_t size, time_t t,
+int inb_test (char *filename, off_t size, time_t t,
 	       char *inbound, char fp[])
 {
   char *s, *u;
@@ -437,6 +440,6 @@ int inb_test (char *filename, size_t size, time_t t,
   free (u);
   strwipe (s);
 
-  return stat (fp, &sb) == 0 && (size_t) sb.st_size == size &&
+  return stat (fp, &sb) == 0 && sb.st_size == size &&
     (sb.st_mtime & ~1) == (t & ~1);
 }
