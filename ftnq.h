@@ -14,6 +14,9 @@
 /* $Id$
  *
  * $Log$
+ * Revision 2.3  2003/03/01 18:04:30  gul
+ * Remove redundrant include <sys/time.h>
+ *
  * Revision 2.2  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -42,10 +45,6 @@
  */
 #ifndef _ftnq_h
 #define _ftnq_h
-
-#if !defined(WIN32)
-#include <sys/time.h>
-#endif
 
 #include <stdio.h>
 #include "Config.h"
