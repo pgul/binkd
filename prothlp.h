@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/06/26 13:21:32  gul
+ * More clean status process in no-NR mode
+ *
  * Revision 2.2  2003/03/01 18:29:52  gul
  * Change size_t to off_t for file sizes and offsets
  *
@@ -47,6 +50,7 @@ struct _TFILE
   time_t start;				    /* The transfer started at... */
   time_t time;				    /* Filetime */
   FILE *f;
+  FTN_ADDR fa;
 };
 
 #define TF_ZERO(a) (memset(a, 0, sizeof(*a)))
