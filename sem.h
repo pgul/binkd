@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/02/22 19:20:25  gul
+ * Fix type in previous patch
+ *
  * Revision 2.1  2003/02/22 12:12:34  gul
  * Cleanup sources
  *
@@ -106,7 +109,7 @@ int _ReleaseSem (void *);
 #ifdef HAVE_THREADS
 extern MUTEXSEM hostsem;
 #define lockhostsem()		LockSem(&hostsem)
-#define releasehostsem()	Release(&hostsem)
+#define releasehostsem()	ReleaseSem(&hostsem)
 #ifdef OS2
 extern MUTEXSEM fhsem;
 #endif
