@@ -109,20 +109,6 @@ AC_MSG_RESULT(cross-compiling. No assumptions made)
 )
 
 dnl -------------------------------------------------------------------------
-dnl Check for built-in setproctitle()
-
-AC_MSG_CHECKING(for built-in setproctitle)
-AC_TRY_LINK([
-#include <sys/types.h>
-#include <libutil.h>
-], [
-  setproctitle("test");
-], AC_DEFINE(HAVE_SETPROCTITLE) AC_MSG_RESULT(yes),
-AC_MSG_RESULT(no),
-AC_MSG_RESULT(cross-compiling. No assumptions made)
-)
-
-dnl -------------------------------------------------------------------------
 dnl Optional features
 
 AC_ARG_WITH(debug,
