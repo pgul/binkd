@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.160  2004/10/01 09:55:06  gul
+ * Fixed memory leak
+ * (Reported by Victor Levenets <aq@takas.lt>)
+ *
  * Revision 2.159  2004/09/21 08:32:11  val
  * bandwidth limiting logic changed from "max for akas" to "min for akas"
  *
@@ -2763,24 +2767,22 @@ static int GOT (STATE *state, char *args, int sz, BINKD_CONFIG *config)
   char *status = NULL;
   time_t ftime=0;
   off_t  fsize=0;
+  char *errmesg = NULL;
 
   UNUSED_ARG(sz);
 
-  if ((state->NR_flag & WE_NR) && !(state->ND_flag & WE_ND))
-    ND_set_status("", &state->ND_addr, state, config);
-  else
-    status = strdup(args);
   if (parse_msg_args (argc, argv, args, "M_GOT", state))
   {
+    if ((state->NR_flag & WE_NR) && !(state->ND_flag & WE_ND))
+      ND_set_status("", &state->ND_addr, state, config);
+    else
+      status = strdup(args);
+    fsize = (off_t) strtoumax (argv[1], NULL, 10);
+    errno = 0;
+    ftime = safe_atol (argv[2], &errmesg);
+    if (errmesg)
     {
-      char *errmesg = NULL;
-      fsize = (off_t) strtoumax (argv[1], NULL, 10);
-      errno = 0;
-      ftime = safe_atol (argv[2], &errmesg);
-      if (errmesg)
-      {
-        Log ( 1, "File time parsing error: %s! (M_GOT \"%s %s %s\")", errmesg, argv[0], argv[1], argv[0], argv[2] );
-      }
+      Log ( 1, "File time parsing error: %s! (M_GOT \"%s %s %s\")", errmesg, argv[0], argv[1], argv[0], argv[2] );
     }
     if (!tfile_cmp (&state->out, argv[0], fsize, ftime))
     {
@@ -2847,6 +2849,7 @@ static int GOT (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 	}
       }
     }
+    if (status) free(status);
     return rc;
   }
   else
