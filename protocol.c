@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.65  2003/06/02 17:29:28  gul
+ * Bugfix in asymmetric ND-mode
+ *
  * Revision 2.64  2003/05/30 17:15:22  gul
  * Asymmetric ND-mode, new protocol option NDA
  *
@@ -1168,7 +1171,9 @@ static void complete_login (STATE *state)
     Log (2, "pwd protected session (%s)",
          (state->MD_flag == 1) ? "MD5" : "plain text");
   if (state->ND_flag & WE_ND)
+  { state->NR_flag |= WE_NR;
     Log (3, "we are in ND mode");
+  }
   if (state->ND_flag & THEY_ND)
     Log (3, "remote is in ND mode");
   else if (state->NR_flag == WE_NR)
