@@ -14,6 +14,9 @@ the Free Software Foundation; either version 2 of the License, or
 ******************************************************************************/
 #include <windows.h>
 
+/* thread what initiate exit of service */
+extern int init_exit_service_thread;
+
 /* exit(0) after (SigHandler()==FALSE) call
   (Wrapper for SigHandlerExit() to prevent mingw compiler warnings)
 */

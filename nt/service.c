@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.29  2003/10/06 18:59:58  stas
+ * Prevent double calls of ReportStatusToSCMgr(SERVICE_STOPPED,...) and double restart service
+ *
  * Revision 2.28  2003/10/06 17:42:27  stas
  * (Prevent compiler warning.) Remove type convertion at SetConsoleCtrlHandler() call
  *
@@ -127,6 +130,7 @@
 #include "../tools.h"
 #include "../common.h"
 #include "../iphdr.h"
+#include "../sys.h"
 #include "service.h"
 #include "w32tools.h"
 #include "brw32sig.h"
@@ -153,6 +157,8 @@ static char **serv_envp=NULL;
 static enum service_main_retcodes service_main(enum service_main_types type);
 extern int checkcfg_flag;
 int _isService=-1;
+int init_exit_service_thread = 0;
+
 
 static BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
                          DWORD dwWin32ExitCode,
@@ -197,7 +203,7 @@ static void WINAPI ServiceCtrl(DWORD dwCtrlCode)
 void atServiceExit(void)
 {
   char *sp;
-
+  Log(10,"atServiceExit()");
   if(serv_argv)
   {
     sp=serv_argv[0];
@@ -212,9 +218,14 @@ void atServiceExit(void)
     free(sp);
     serv_envp=NULL;
   }
-  ReportStatusToSCMgr(SERVICE_STOPPED, dwErr, 3000);
-  if((checkcfg_flag==2)&&(res_checkservice>0))
-    service_main(service_main_start);
+
+  if( !init_exit_service_thread || (init_exit_service_thread == PID()) ){ /* service control allowed only from one thread only */
+    Log(10,"ReportStatusToSCMgr(SERVICE_STOPPED, %li, 3000) call",dwErr);
+    ReportStatusToSCMgr(SERVICE_STOPPED, dwErr, 3000);
+
+    if((checkcfg_flag==2)&&(res_checkservice>0))
+      service_main(service_main_start);
+  }
 }
 
 int binkd_main(int argc, char **argv, char **envp);
@@ -291,7 +302,7 @@ static void ServiceStart()
     break;
   }
   if(hk) RegCloseKey(hk);
-  atServiceExit();
+/*  atServiceExit(); */
 }
 
 static void WINAPI ServiceMain(DWORD argc,LPSTR* args)

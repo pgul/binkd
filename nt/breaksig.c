@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.14  2003/10/06 18:59:58  stas
+ * Prevent double calls of ReportStatusToSCMgr(SERVICE_STOPPED,...) and double restart service
+ *
  * Revision 2.13  2003/10/06 17:53:15  stas
  * (Prevent compiler warning.) Remove type convertion at CreateWin9xThread() call
  *
@@ -122,10 +125,11 @@ extern int pid_file_created;    /* we've created the pid_file */
 /*--------------------------------------------------------------------*/
 #ifndef BINKDW9X
 extern int isService;
+extern int init_exit_service_thread;
 #endif
 
 static BOOL CALLBACK SigHandler(DWORD SigType) {
-   Log(8, "SigHandler(%lu)", SigType);
+   Log(10, "SigHandler(%lu)", SigType);
    switch (SigType) {
       case CTRL_C_EVENT:
       case CTRL_BREAK_EVENT:
@@ -163,9 +167,12 @@ static BOOL CALLBACK SigHandler(DWORD SigType) {
 /*--------------------------------------------------------------------*/
 
 static BOOL CALLBACK SigHandlerExit(DWORD SigType) {
-   Log(8, "SigHandlerExit(%lu)", SigType);
+   Log(10, "SigHandlerExit(%lu)", SigType);
    if (SigHandler(SigType)==FALSE)
    {
+#ifndef BINKD9X
+     init_exit_service_thread = PID();
+#endif
      exit(0);
    }
 
