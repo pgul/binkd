@@ -116,5 +116,33 @@ AC_MSG_RESULT(cross-compiling. No assumptions made)
 )
 
 dnl -------------------------------------------------------------------------
+dnl Optional features
+
+AC_ARG_WITH(https,
+            [  --with-https            https support (default no)],
+            do_https=yes, do_https=no)
+
+AC_ARG_WITH(ntlm,
+            [  --with-ntlm             NTLM authorization support (default no)],
+            do_ntlm=yes, do_ntlm=no)
+
+case x$do_https in
+  xyes)
+   AC_DEFINE(HTTPS)
+   HTTPS_SRC=https.c
+   ;;
+esac
+
+case x$do_ntlm in
+  xyes)
+   AC_DEFINE(NTLM)
+   AC_DEFINE(HTTPS)
+   HTTPS_SRC="https.c ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c"
+   ;;
+esac
+
+extrasub=s%@HTTPS_SRC@%$HTTPS_SRC%g
+
+dnl -------------------------------------------------------------------------
 
 AC_OUTPUT(Makefile)
