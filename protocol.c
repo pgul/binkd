@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.43  2003/03/10 17:32:37  gul
+ * Use socklen_t
+ *
  * Revision 2.42  2003/03/10 10:39:23  gul
  * New include file common.h
  *
@@ -853,9 +856,9 @@ static int ADR (STATE *state, char *s, int sz)
       char host[MAXHOSTNAMELEN + 1];       /* current host/port */
       unsigned short port;
       struct sockaddr_in sin;
-      size_t si;
+      socklen_t si;
 
-      si=sizeof(struct sockaddr_in);
+      si = sizeof (struct sockaddr_in);
       if (getpeername (state->s, (struct sockaddr *) &sin, &si) == -1)
       { Log (1, "Can't getpeername(): %s", TCPERR());
         ipok = 2;
@@ -2005,7 +2008,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
   fd_set r, w;
   int no;
   struct sockaddr_in peer_name;
-  size_t peer_name_len = sizeof (peer_name);
+  socklen_t peer_name_len = sizeof (peer_name);
   char host[MAXHOSTNAMELEN + 1];
 
   if (!init_protocol (&state, socket, to))

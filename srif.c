@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2003/03/10 17:32:38  gul
+ * Use socklen_t
+ *
  * Revision 2.6  2003/03/05 13:21:51  gul
  * Fix warnings
  *
@@ -254,7 +257,7 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa,
   if(!i)
   {
     struct sockaddr_in sin;
-    size_t si=sizeof(struct sockaddr_in);
+    socklen_t si = sizeof (struct sockaddr_in);
     if((!st) || (getpeername (st->s, (struct sockaddr *) &sin, &si) == -1))
       strcpy(ipaddr, "-");
     else  /* We don't like inet_ntoa ;-) */
