@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of Nov 14 2003
+        Version of Nov 17 2003
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -736,11 +736,15 @@ and Novell TCP/IP Client for Win 3.11 (see the answer to the question
 ----------------------------------------------------------------------------
 
 
-        22. Different FTN Domains in BinkD
+        22. Different FTN Domains in BinkD And Tosser Without 5D Support
 
     Suppose there are two domains (with different zone numbers though it does
 not matter).  Mail can be successfully sent to the first domain but not to
-the second one.
+the second one. This situation may be produced if the tosser, tracker and other
+your FTN programs do not supports 5D outbound.
+
+    This is typical configuration of the binkd for two FTN domains and 5D
+outbound:
 
     domain fidonet c:\\ftn\\outbound\\fido 2
     domain omeganet c:\\ftn\\outbound\\omega 11
