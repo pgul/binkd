@@ -22,7 +22,7 @@ $(OUTDIR)\binkd.obj: \
 	"perlhooks.h" \
 !endif
 !ifdef ZLIB
-        "zlibdl.h" \
+        "compress.h" \
 !endif
 	"nt\service.h" \
 	"nt\win9x.h" \
@@ -286,9 +286,7 @@ $(OUTDIR)\protocol.obj: \
 !ifdef PERL
 	"perlhooks.h" \
 !endif
-!ifdef ZLIB
-        "zlibdl.h" \
-!endif
+        "compress.h" \
 	"nt\wsock.h"
 
 $(OUTDIR)\readcfg.obj: \
@@ -406,7 +404,9 @@ $(OUTDIR)\perlhooks.obj: \
 
 !ifdef ZLIB
 $(OUTDIR)\zlibdl.obj: \
+	"compress.h"
 	"zlibdl.h"
+	"tools.h"
 !endif
 
 $(OUTDIR)\TCPErr.obj: \

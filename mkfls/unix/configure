@@ -2160,9 +2160,9 @@ rm -f conftest*
 #define WITH_ZLIB 1
 EOF
 
-          if test ".$zlibdl_inc." != ".yes." ; then
-            OPT_SRC="$OPT_SRC zlibdl.c"
-            zlibdl_inc=yes
+          if test ".$compress_inc." != ".yes." ; then
+            OPT_SRC="$OPT_SRC compress.c"
+            compress_inc=yes
           fi
 	else
 	  echo "$ac_t""no" 1>&6
@@ -2243,9 +2243,9 @@ rm -f conftest*
 #define WITH_BZLIB2 1
 EOF
 
-          if test ".$zlibdl_inc." != ".yes." ; then
-            OPT_SRC="$OPT_SRC zlibdl.c"
-            zlibdl_inc=yes
+          if test ".$compress_inc." != ".yes." ; then
+            OPT_SRC="$OPT_SRC compress.c"
+            compress_inc=yes
           fi
 	else
 	  echo "$ac_t""no" 1>&6

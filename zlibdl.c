@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2003/10/19 12:21:47  gul
+ * Stream compression
+ *
  * Revision 2.8  2003/10/06 08:25:28  val
  * turn off optimization for zlibdl.c
  *
@@ -43,112 +46,80 @@
 
 #ifdef OS2
 #define INCL_DOSMODULEMGR
+#include <os2.h>
 #endif
 
-#endif /* ZLIBDL */
-
-#include "zlibdl.h"
-#include "tools.h"
-
-#ifdef ZLIBDL
+#if defined(WIN32)
+#define LOADFUNC(name)	if (loaded && (dl_##name = (void *)GetProcAddress(hl, #name)) == NULL) loaded = 0;
+#elif defined(OS2)
+#define LOADFUNC(name) if (loaded && (DosQueryProcAddr(hl, 0, #name, (PFN*)(&dl_##name)) != 0 || dl_##name == NULL)) loaded = 0;
+#endif
 
 #ifdef WITH_ZLIB
-zlib_compress_func *dl_compress = NULL;
-zlib_uncompress_func *dl_uncompress = NULL;
+int zlib_loaded;
+
+int (*dl_deflateInit_)();
+int (*dl_deflate)();
+int (*dl_deflateEnd)();
+int (*dl_inflateInit_)();
+int (*dl_inflate)();
+int (*dl_inflateEnd)();
 
 /* loading function */
 int zlib_init(const char *dll_name) {
 #if defined(WIN32)
   HINSTANCE hl = LoadLibrary(dll_name);
-  if (hl) {
-    dl_compress = (void*)GetProcAddress(hl, "compress2");
-    dl_uncompress = (void*)GetProcAddress(hl, "uncompress");
-  }
+  if (hl)
 #elif defined(OS2)
   char buf[256];
   HMODULE hl;
-  if (DosLoadModule(buf, sizeof(buf), dll_name, &hl)) {
-    DosQueryProcAddr(hl, 0, "compress2", (PFN*)(&dl_compress));
-    DosQueryProcAddr(hl, 0, "uncompress", (PFN*)(&dl_uncompress));
-  }
+  if (DosLoadModule(buf, sizeof(buf), dll_name, &hl))
 #endif
-  return dl_compress && dl_uncompress ? 1 : 0;
+  { int loaded = 1;
+    LOADFUNC(deflateInit_);
+    LOADFUNC(deflate);
+    LOADFUNC(deflateEnd);
+    LOADFUNC(inflateInit_);
+    LOADFUNC(inflate);
+    LOADFUNC(inflateEnd);
+    if (loaded) zlib_loaded = 1;
+  }
+  return zlib_loaded;
 }
-#endif /* WITH_ZLIB */
+#endif
 
 #ifdef WITH_BZLIB2
-bzlib_compress_func *dl_bzCompress = NULL;
-bzlib_decompress_func *dl_bzDecompress = NULL;
+int bzlib2_loaded;
+
+int (*dl_BZ2_bzCompressInit)();
+int (*dl_BZ2_bzCompress)();
+int (*dl_BZ2_bzCompressEnd)();
+int (*dl_BZ2_bzDecompressInit)();
+int (*dl_BZ2_bzDecompress)();
+int (*dl_BZ2_bzDecompressEnd)();
 
 /* loading function */
 int bzlib2_init(const char *dll_name) {
 #if defined(WIN32)
   HINSTANCE hl = LoadLibrary(dll_name);
-  if (hl) {
-    dl_bzCompress = (void*)GetProcAddress(hl, "BZ2_bzBuffToBuffCompress");
-    dl_bzDecompress = (void*)GetProcAddress(hl, "BZ2_bzBuffToBuffDecompress");
-  }
+  if (hl)
 #elif defined(OS2)
   char buf[256];
   HMODULE hl;
-  if (DosLoadModule(buf, sizeof(buf), dll_name, &hl)) {
-    DosQueryProcAddr(hl, 0, "BZ2_bzBuffToBuffCompress", (PFN*)(&dl_bzCompress));
-    DosQueryProcAddr(hl, 0, "BZ2_bzBuffToBuffDecompress", (PFN*)(&dl_bzDecompress));
+  if (DosLoadModule(buf, sizeof(buf), dll_name, &hl))
+#endif
+  { int loaded = 1;
+    LOADFUNC(BZ2_bzCompressInit);
+    LOADFUNC(BZ2_bzCompress);
+    LOADFUNC(BZ2_bzCompressEnd);
+    LOADFUNC(BZ2_bzDecompressInit);
+    LOADFUNC(BZ2_bzDecompress);
+    LOADFUNC(BZ2_bzDecompressEnd);
+    if (loaded) bzlib2_loaded = 1;
   }
-#endif
-  return dl_bzCompress && dl_bzDecompress ? 1 : 0;
+  return bzlib2_loaded;
 }
-#endif /* WITH_BZLIB */
+#endif
 
-#endif /* ZLIBDL */
+#endif
 
-int do_compress(int type, char *dst, int *dst_len, char *src, int src_len, 
-                int lvl) {
-  int rc;
-  switch (type) {
-#ifdef WITH_BZLIB2
-    case 2: {
-      unsigned int d = *dst_len;
-      rc = BZ2_bzBuffToBuffCompress(dst, &d, src, src_len, 1, 0, 0);
-      *dst_len = (int)d;
-      return rc;
-    }
-#endif
-#ifdef WITH_ZLIB
-    case 1: {
-      uLongf d = *dst_len;
-      rc = compress2(dst, &d, src, src_len, lvl ? lvl : Z_DEFAULT_COMPRESSION);
-      *dst_len = (int)d;
-      return rc;
-    }
-#endif
-    default:
-      Log (1, "Unknown compression method: %d; data lost", type);
-  }
-  return 0;
-}
-
-int do_decompress(int type, char *dst, int *dst_len, char *src, int src_len) {
-  int rc;
-  switch (type) {
-#ifdef WITH_BZLIB2
-    case 2: {
-      unsigned int d = *dst_len;
-      rc = BZ2_bzBuffToBuffDecompress(dst, &d, src, src_len, 0, 0);
-      *dst_len = (int)d;
-      return rc;
-    }
-#endif
-#ifdef WITH_ZLIB
-    case 1: {
-      uLongf d = *dst_len;
-      rc = uncompress(dst, &d, src, src_len);
-      *dst_len = (int)d;
-      return rc;
-    }
-#endif
-    default:
-      Log (1, "Unknown decompression method: %d; data lost", type);
-  }
-  return 0;
-}

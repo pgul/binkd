@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2003/10/19 12:21:47  gul
+ * Stream compression
+ *
  * Revision 2.15  2003/09/25 06:41:43  val
  * fix compilation under win32
  *
@@ -188,10 +191,14 @@ struct _STATE
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
   int z_canrecv, z_cansend;     /* remote supports zlib compression */
   int z_recv, z_send;           /* gzip is on for current file */
-  int z_ocnt, z_icnt;           /* length of actual data */
-  char *z_obuf, *z_ibuf;        /* compression and decompression buffers */
+  int z_oleft;			/* length of actual data */
+  char *z_obuf;			/* compression buffers */
+  off_t z_osize, z_isize;	/* original (uncompressed) size */
+  off_t z_cosize, z_cisize;	/* compressed size */
+  void *z_idata, *z_odata;	/* data for zstream */
 #endif
   int delay_ADR, delay_EOB;     /* delay sending of the command */
+  int extcmd;			/* remote can accept extra params for cmds */
 };
 #define STATE_DEFINED 1
 

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.57  2003/10/19 12:21:47  gul
+ * Stream compression
+ *
  * Revision 2.56  2003/10/11 08:41:46  gul
  * stricmp() -> STRICMP()
  *
@@ -419,11 +422,6 @@ void lock_config_structure(BINKD_CONFIG *c)
     c->nettimeout        = DEF_TIMEOUT;
     c->oblksize          = DEF_BLKSIZE;
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
-# ifndef WITH_BZLIB2
-    c->zblksize          = min(4*DEF_BLKSIZE, MAX_BLKSIZE-64);
-# else
-    c->zblksize          = min(4*DEF_BLKSIZE, MAX_BLKSIZE-1024);
-# endif
     c->zminsize          = 1024;
     c->zaccept           = 0;
     c->zlevel            = 0;
@@ -655,7 +653,6 @@ static KEYWORD keywords[] =
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
   {"zaccept", read_bool, &work_config.zaccept, 0, 0},
   {"zlevel", read_int, &work_config.zlevel, 0, 9},
-  {"zblksize", read_int, &work_config.zblksize, MIN_BLKSIZE, MAX_BLKSIZE-64},
   {"zminsize", read_int, &work_config.zminsize, 0, DONT_CHECK},
   {"zallow", read_zrule, &work_config.zrules, ZRULE_ALLOW, 0},
   {"zdeny", read_zrule, &work_config.zrules, ZRULE_DENY, 0},

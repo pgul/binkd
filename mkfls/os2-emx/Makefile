@@ -49,6 +49,30 @@ LFLAGS+= -Zcrtdll
 endif
 endif
 
+ifdef ZLIB
+COMPRESS=1
+CFLAGS+= -DWITH_ZLIB=1
+ifndef ZLIBDL
+LIBS+= -lz
+endif
+endif
+
+ifdef BZLIB2
+COMPRESS=1
+CFLAGS+= -DWITH_BZLIB2=1
+ifndef ZLIBDL
+LIBS+= -lbz2
+endif
+endif
+
+ifdef COMPRESS
+COMPRESSSRC=compress.c
+endif
+
+ifdef ZLIBDL
+COMPRESSSRC+= zlibdl.c
+endif
+
 LIBS=$(PERLLIBS) $(BASELIBS)
 SRCS=$(BASESRCS) $(PERLSRC)
 

@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30  2003/10/19 12:21:46  gul
+ * Stream compression
+ *
  * Revision 2.29  2003/10/07 15:30:09  gul
  * Fix warnings
  *
@@ -1156,7 +1159,6 @@ void perl_setup(BINKD_CONFIG *cfg) {
   VK_ADD_HASH_str(hv, sv, "pkthdr_badext", cfg->pkthdr_bad);
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
   VK_ADD_HASH_intz(hv, sv, "zaccept", cfg->zaccept);
-  VK_ADD_HASH_intz(hv, sv, "zblksize", cfg->zblksize);
   VK_ADD_HASH_intz(hv, sv, "zminsize", cfg->zminsize);
 #endif
   Log(LL_DBG2, "perl_setup(): %%config done");
