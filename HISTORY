@@ -1,3 +1,7 @@
+2004/01/03 20:10:12 1.0a-338 stas
+tray.c,2.10,2.11
+Fix typo
+
 2004/01/03 17:46:12 1.0a-337 stas
 service.c,2.46,2.47
 Fix: do not load icon into service control window at binkd service starts
