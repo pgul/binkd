@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10.2.14  2003/10/24 17:31:55  stas
+ * Auto increase patchlevel, set 0.9.5p8-stable
+ * Fix pathnames in #include statements
+ *
  * Revision 2.10.2.13  2003/10/19 12:51:44  stream
  * Auto increase patchlevel, set 0.9.5p7-stable
  * Missing return value for q_scan_boxes()
@@ -132,7 +136,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.5p7-stable"
+#define MYVER "0.9.5p8-stable"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
