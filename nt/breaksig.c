@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.22  2003/10/23 21:38:52  gul
+ * Remove C++ style comments
+ *
  * Revision 2.21  2003/10/17 04:20:29  hbrew
  * Fix binkd9x atexit()
  *
@@ -111,10 +114,6 @@
 /*                        Local include files                         */
 /*--------------------------------------------------------------------*/
 
-//#include "..\sys.h"
-//#include "..\iphdr.h"
-//#include "..\bsy.h"
-//#include "..\binlog.h"
 #include "../readcfg.h"
 #include "../common.h"
 #include "../tools.h"

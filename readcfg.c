@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.58  2003/10/23 21:38:51  gul
+ * Remove C++ style comments
+ *
  * Revision 2.57  2003/10/19 12:21:47  gul
  * Stream compression
  *
@@ -486,9 +489,11 @@ void unlock_config_structure(BINKD_CONFIG *c)
     simplelist_free(&c->zrules.linkpoint,      destroy_zrule);
 #endif
 
-//#ifdef HTTPS
-//    simplelist_free(&c->proxylist,   destroy_proxy);
-//#endif
+/*
+#ifdef HTTPS
+    simplelist_free(&c->proxylist,   destroy_proxy);
+#endif
+*/
 
     if (c != &work_config && !binkd_exit)
     {
@@ -1189,7 +1194,7 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
   int   i, j;
   int   NR_flag = NR_USE_OLD, ND_flag = ND_USE_OLD, HC_flag = HC_USE_OLD,
         MD_flag = MD_USE_OLD, restrictIP = RIP_USE_OLD;
-  // int   NP_flag = NP_USE_OLD;
+  /* int   NP_flag = NP_USE_OLD; */
   FTN_ADDR fa;
 
   memset(w, 0, sizeof(w)); /* init by NULL's */
@@ -1228,8 +1233,9 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
         HC_flag = HC_ON;
       else if (STRICMP (tmp, "-nohc") == 0)
         HC_flag = HC_OFF;
-//      else if (STRICMP (tmp, "-noproxy") == 0)
-//        NP_flag = NP_ON;
+/*    else if (STRICMP (tmp, "-noproxy") == 0)
+        NP_flag = NP_ON;
+ */
       else
         return ConfigError("%s: unknown option for `node' keyword", tmp);
     }
