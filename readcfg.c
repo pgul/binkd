@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67  2004/02/29 08:51:52  gul
+ * Bugfix in print_node_info
+ * (patch from Victor Levenets).
+ *
  * Revision 2.66  2004/01/08 12:57:18  val
  * * parse up to 3 comma-separated passwords (in,pkt,out)
  * * use out password for outgoing sessions if it's set
@@ -1763,8 +1767,8 @@ static int print_node_info_1 (FTN_NODE *fn, void *arg)
          fn->ibox ? fn->ibox : "-",
          (fn->NR_flag == NR_ON)  ? " -nr" : "",
          (fn->ND_flag == ND_ON)  ? " -nd" : "",
-         (fn->ND_flag == MD_ON)  ? " -md" : "",
-         (fn->ND_flag == MD_OFF) ? " -nomd" : "",
+         (fn->MD_flag == MD_ON)  ? " -md" : "",
+         (fn->MD_flag == MD_OFF) ? " -nomd" : "",
          (fn->HC_flag == HC_ON)  ? " -hc" : "",
          (fn->HC_flag == HC_OFF) ? " -nohc" : "",
          (fn->NP_flag == NP_ON)  ? " -noproxy" : "",
