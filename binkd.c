@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.84  2004/01/07 10:15:51  gul
+ * Remove redundant preprocessor directive
+ *
  * Revision 2.83  2004/01/07 10:13:26  gul
  * Fix usage output
  *
@@ -521,10 +524,7 @@ const char *optstring = "CchmP:pqrsvd-:?"
 #if !defined (BINKDW9X)
 			"T"
 #endif
-#if defined WIN32
-			"t:"
-#endif
-			"iuS:"
+			"t:iuS:"
 #endif
 			;
 
