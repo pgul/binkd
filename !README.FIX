@@ -475,3 +475,6 @@ NT/95:  ctrl-c problems fixed
 
 	New option skipmask in binkd.cfg - don't receive (destructive skip)
 	files by specified wildcards.
+
+	getfree() bug if free space >4G fixed.
+
