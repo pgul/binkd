@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 1.4  2003/11/04 00:46:22  hbrew
+ * confopt added.
+ *
  * Revision 1.3  2003/10/24 18:18:40  stas
  * use macro instead number; remove unused comparision
  *
@@ -30,9 +33,7 @@
 
 #include <winver.h>
 #include "../Config.h"
-/* !!! Todo: confopt.h
 #include "../confopt.h"
-*/
 
 #define RES_STR(s) _RES_STR(s)
 #define _RES_STR(s) #s
@@ -48,7 +49,7 @@ VS_VERSION_INFO VERSIONINFO
   FILEVERSION MAJOR, MINOR, 0, PATCHLEVEL
   PRODUCTVERSION MAJOR, MINOR, 0, PATCHLEVEL
   FILEFLAGSMASK 0x3f
-/* todo: FILEFLAG VS_FF_PRERELEASE */
+/* todo ???: FILEFLAG VS_FF_PRERELEASE */
 #if defined(DEBUG)
   FILEFLAGS VS_FF_DEBUG
 #else
@@ -62,8 +63,7 @@ BEGIN
     BLOCK "040904B0" /* LANG_ENGLISH/SUBLANG_ENGLISH_US, Unicode CP */
     BEGIN
 /*   Comments: Specifies additional information that should be displayed for diagnostic purposes. */
-/* !!! Todo: Compilation flags (see confopt) */
-      VALUE "Comments", "binkd " MYVER ". binkp protocol ver. " PRTCLVER "." /* " Compilation flags: " _DBNKD "." */ "\0"
+      VALUE "Comments", "binkd " MYVER ". binkp protocol ver. " PRTCLVER ". Compilation flags: " _DBNKD ".\0"
 
 /* ! CompanyName: Specifies the company that produced the file-for example, "Microsoft Corporation" or "Standard Microsystems Corporation, Inc." This string is required. */
       VALUE "CompanyName", "binkd Team\0"

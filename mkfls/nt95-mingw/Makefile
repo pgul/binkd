@@ -278,5 +278,4 @@ include $(DEPS)
 endif
 
 # Dependencies for resourses
-# !!! Todo: add confopt.h
-$(RESOBJS): Config.h
+$(RESOBJS): Config.h confopt.h
