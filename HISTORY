@@ -1,3 +1,7 @@
+2003/08/26 21:18:53 0.9.6a-145 gul
+binkd.c,2.57,2.58
+Process "-?" commandline switch as "-h"
+
 2003/08/26 20:01:28 0.9.6a-144 gul
 perlhooks.c,2.18,2.19
 Correct previous patch
