@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.29  2003/10/07 15:30:09  gul
+ * Fix warnings
+ *
  * Revision 2.28  2003/10/04 00:46:53  hbrew
  * Avoid warning in perl.h
  *
@@ -127,8 +130,9 @@
 
 #ifdef _MSC_VER
 #undef __STDC__
-#include <sys/types.h>
 #endif
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #if defined(__NT__) && !defined(WIN32) /* WIN32 needed for perl-core include files */
 #  define WIN32
@@ -137,9 +141,6 @@
 #ifdef _MSC_VER
 # define NO_XSLOCKS
 #endif
-//#ifdef _MSC_VER
-//# include "win32iop.h"
-//#endif
 #ifndef EXTERN_C
 #  define EXTERN_C extern
 #endif
@@ -238,6 +239,15 @@
 
 #ifdef DEBUG
 #  undef DEBUG
+#endif
+
+#ifdef __MINGW32__
+#undef stat
+#undef fstat
+#undef open
+#undef close
+#undef read
+#undef write
 #endif
 
 #include <EXTERN.h>
@@ -911,7 +921,7 @@ char *s, *p;
   N = av_len(arr) + 1;
   for (j = m = 0; j < N; j++) {
     int found = 0;
-    svp = av_fetch(arr, j, NULL);
+    svp = av_fetch(arr, j, FALSE);
     if (j != m) av_store(arr, m, (*svp));
     if (!svp) { m++; continue; }
     a = (char *)SvPV((*svp), len);
@@ -975,7 +985,7 @@ void boot_OS2__REXX(CV *cv);
 #endif
 
 /* xs_init */
-#ifdef _MSC_VER
+#ifdef WIN32
 EXTERN_C void xs_init (pTHXo)
 #else
 static void xs_init(void)
@@ -1012,7 +1022,6 @@ static char *perlargs[] = {"", NULL, NULL};
 int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
   int rc, i;
   SV *sv;
-  char *cfgfile, *cfgpath=NULL, *patharg=NULL;
 
   Log(LL_DBG, "perl_init(): %s", perlfile);
   /* try to find out the actual path to perl script and set dir to -I */
@@ -1088,7 +1097,7 @@ int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
   restore_perlerr();
   /* scan for present hooks */
   for (i = 0; i < sizeof(perl_subnames)/sizeof(perl_subnames[0]); i++) {
-    if (perl_get_cv(perl_subnames[i], NULL)) perl_ok |= (1 << i);
+    if (perl_get_cv(perl_subnames[i], FALSE)) perl_ok |= (1 << i);
   }
   /* run on_start() */
   perl_on_start();
@@ -1686,7 +1695,7 @@ char *perl_on_handshake(STATE *state, BINKD_CONFIG *cfg) {
         int n = 0, N = av_len(me) + 1;
         if (N > 0) state->pAddr = xalloc(N*sizeof(FTN_ADDR));
         for (i = 0; i < N; i++) {
-          svp = av_fetch(me, i, NULL);
+          svp = av_fetch(me, i, FALSE);
           if (svp == NULL) continue;
           if (!parse_ftnaddress(SvPV(*svp, len), &addr, cfg)) continue;
           exp_ftnaddress(&addr, cfg);
@@ -2029,8 +2038,7 @@ int perl_on_log(char *s, int bufsize, int *lev) {
 
 int perl_on_send(STATE *state, t_msg *m, char **s1, char **s2) {
   int    rc = 1;
-  STRLEN len;
-  SV     *svret, *sv, *svchk;
+  SV     *svret, *sv;
 
   if (perl_ok & (1 << PERL_ON_SEND)) {
     Log(LL_DBG2, "perl_on_send(), perl=%p", Perl_get_context());
@@ -2063,8 +2071,7 @@ int perl_on_send(STATE *state, t_msg *m, char **s1, char **s2) {
 
 int perl_on_recv(STATE *state, char *s, int size) { 
   int    rc = 1;
-  STRLEN len;
-  SV     *svret, *sv, *svchk;
+  SV     *svret, *sv;
 
   if (perl_ok & (1 << PERL_ON_RECV)) {
     Log(LL_DBG2, "perl_on_recv(), perl=%p", Perl_get_context());
