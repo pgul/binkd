@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of Apr 15 2004
+        Version of July 07 2004
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -54,7 +54,7 @@ from Russian by Michael Dukelsky 2:5020/1042.
 
     In Internet:
 
-    Release versions (Pavel Gulchouck 2:463/68):
+    Release versions, log analyzers etc. (Pavel Gulchouck 2:463/68):
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/
     The mirror by Matt Bedynek 1:106/1
     ftp://fido.thunderdome.ws/pub/mirror/binkd/
@@ -65,12 +65,16 @@ from Russian by Michael Dukelsky 2:5020/1042.
        Command examples.
        Login to the cvs server:
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs login
-       Retrieve the latest sources of the current branch:
+       Retrieve the latest sources of the current branch (v.1.0 at the moment):
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co binkd
        Retrieve the latest sources of the binkd 0.9.5-stable branch:
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_5-stable binkd
        Retrieve the sources of the binkd 0.9.6-release:
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_6 binkd
+       Retrieve the sources of the binkd 0.9.7-release:
+       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_7 binkd
+       
+    Anonymous FTP:
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/snapshot (main)
     ftp://ftp.grumbler.org/pub/binkd/current (the mirror is refreshed
                                               at 23:50 UTC+5)
