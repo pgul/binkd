@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19  2004/08/04 13:15:36  gul
+ * Define u16 and u32 types more clean
+ *
  * Revision 2.18  2004/08/04 11:32:29  gul
  * Attemp to support large files (>4G)
  *
@@ -207,8 +210,23 @@ int vsnprintf (char *str, size_t count, const char *fmt, va_list args);
 #endif
 
 typedef unsigned char u8;
-typedef unsigned short u16;
-typedef unsigned long u32;	/* FIXME: long can be 64-bit */
+#if defined(SIZEOF_INT) && SIZEOF_INT!=0
+#if SIZEOF_SHORT==2
+typedef unsigned short int u16;
+#else
+#error Cannot find type for 16-bit integer!
+#endif
+#if SIZEOF_INT==4
+typedef unsigned int u32;
+#elif SIZEOF_LONG==4
+typedef unsigned long int u32;
+#else
+#error Cannot find type for 32-bit integer!
+#endif
+#else /* SIZEOF undefined, use defaults */
+typedef unsigned short int u16;
+typedef unsigned long int u32;
+#endif
 
 #ifndef PRIdMAX
 #define PRIdMAX "ld"
