@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.26  2003/06/25 08:22:14  gul
+ * Change strftime() to printf() to avoid using locale
+ *
  * Revision 2.25  2003/06/25 07:25:00  stas
  * Simple code, continue bugfix to responce negative timestamp
  *
@@ -405,7 +408,8 @@ MUTEXSEM LSem = 0;
 void Log (int lev, char *s,...)
 {
   static int first_time = 1;
-  char timebuf[60];
+  static const char *month[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
   time_t t;
   struct tm tm;
   va_list ap;
@@ -427,9 +431,9 @@ void Log (int lev, char *s,...)
 #endif
      )
   {
-    strftime (timebuf, sizeof (timebuf), "%H:%M", &tm);
     LockSem (&LSem);
-    fprintf (stderr, "%30.30s\r%c %s [%i] ", " ", ch, timebuf, (int) PID ());
+    fprintf (stderr, "%30.30s\r%c %02d:%02d [%u] ", " ", ch,
+             tm.tm_hour, tm.tm_min, (unsigned) PID ());
     va_start (ap, s);
     vfprintf (stderr, s, ap);
     va_end (ap);
@@ -457,8 +461,9 @@ void Log (int lev, char *s,...)
 	fputc ('\n', logfile);
 	first_time = 0;
       }
-      strftime (timebuf, sizeof (timebuf), "%d %b %H:%M:%S", &tm);
-      fprintf (logfile, "%c %s [%i] ", ch, timebuf, (int) PID ());
+      fprintf (logfile, "%c %02d %s %02d:%02d:%02d [%u] ", ch,
+             tm.tm_mday, month[tm.tm_mon], tm.tm_hour, tm.tm_min, tm.tm_sec,
+             (unsigned) PID ());
       va_start (ap, s);
       vfprintf (logfile, s, ap);
       va_end (ap);
