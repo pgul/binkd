@@ -16,6 +16,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/03/12 08:57:54  gul
+ * Fix for MSVC
+ *
  * Revision 2.5  2003/03/11 00:04:26  gul
  * Use patches for compile under MSDOS by MSC 6.0 with IBMTCPIP
  *
@@ -55,7 +58,7 @@
 #endif
 
 #if defined(VISUALCPP)
-#include "NT/dirwin32.h"
+#include "nt/dirwin32.h"
 #endif
 
 #if defined(IBMC) || defined(__WATCOMC__)
