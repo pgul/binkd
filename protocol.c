@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67.2.15  2004/10/01 10:05:09  gul
+ * Fixed memory leak
+ * (Reported by Victor Levenets <aq@takas.lt>)
+ *
  * Revision 2.67.2.14  2003/09/15 21:28:31  gul
  * Fix remote IP check logic
  *
@@ -1742,12 +1746,12 @@ static int GOT (STATE *state, char *args, int sz)
   int n, rc=1;
   char *status = NULL;
 
-  if (state->ND_flag & WE_ND)
-    status = strdup(args);
-  else
-    ND_set_status("", &state->ND_addr, state);
   if (parse_msg_args (argc, argv, args, "M_GOT", state))
   {
+    if (state->ND_flag & WE_ND)
+      status = strdup(args);
+    else
+      ND_set_status("", &state->ND_addr, state);
     if (!tfile_cmp (&state->out, argv[0], atol (argv[1]), atol (argv[2])))
     {
       Log (2, "remote already has %s", state->out.netname);
@@ -1809,6 +1813,7 @@ static int GOT (STATE *state, char *args, int sz)
 	}
       }
     }
+    if (status) free(status);
     return rc;
   }
   else
