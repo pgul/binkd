@@ -1,3 +1,7 @@
+2004/01/09 12:55:35 1.0a-366 gul
+snprintf.c,1.2,1.3
+Avoid gcc 3.x warning
+
 2004/01/08 15:28:21 1.0a-365 val
 ftnq.c,2.30,2.31 protoco2.h,2.17,2.18 protocol.c,2.151,2.152
 * extend struct dirent for dos and win32 in order to get file attribute
