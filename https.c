@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2001/06/19 15:49:13  da
+ * *** empty log message ***
+ *
  * Revision 2.0  2001/01/10 12:12:38  gul
  * Binkd is under CVS again
  *
@@ -29,6 +32,9 @@
 #include "tools.h"
 #include "https.h"
 #include "iptools.h"
+#ifdef NTLM
+#include "ntlm/helpers.h"
+#endif
 
 #ifdef HAVE_THREADS
 #include "sem.h"
@@ -36,31 +42,37 @@ extern MUTEXSEM hostsem;
 #endif
 
 static char b64t[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-static char *enbase64(char *s, char *rc)
+static int enbase64(char *data, int size, char *p)
 {	
-	int i, j, k;
-	if(!s) return NULL;
-	k=strlen(s);
-	j=(k/3);
-	if(k%3) j++;
-	j*=4;
-	memset(rc, '=', j);
-	rc[j]=0;
-	for(i=j=0;i<k;i++) {		
-		int c;
-		rc[j++]=b64t[s[i]>>2];
-		c=(s[i]&0x3)<<4;
-		if((++i)<k) c|=s[i]>>4;
-		rc[j++]=b64t[c];
-		if(i>=k) break;
-		c=(s[i]&0xF)<<2;
-		if((++i)<k) c|=s[i]>>6;
-		rc[j++]=b64t[c];
-		if(i>=k) break;
-		rc[j++]=b64t[s[i]&0x3F];
-	}
-	return rc;
+  int i;
+  int c;
+  unsigned char *q;
+  char *s = p;
+  q = (unsigned char*)data;
+  i=0;
+  for(i = 0; i < size;){
+    c=q[i++];
+    c*=256;
+    if(i < size)
+      c+=q[i];
+    i++;
+    c*=256;
+    if(i < size)
+      c+=q[i];
+    i++;
+    p[0]=b64t[(c&0x00fc0000) >> 18];
+    p[1]=b64t[(c&0x0003f000) >> 12];
+    p[2]=b64t[(c&0x00000fc0) >> 6];
+    p[3]=b64t[(c&0x0000003f) >> 0];
+    if(i > size)
+      p[3]='=';
+    if(i > size+1)
+      p[2]='=';
+    p+=4;
+  }
+  return p - s;
 }
+
 #ifdef WIN32
 #define SetTCPError(x) WSASetLastError(x)
 #define PR_ERROR WSABASEERR+13
@@ -70,13 +82,15 @@ static char *enbase64(char *s, char *rc)
 #endif
 int h_connect(int *so, struct sockaddr_in *name)
 {
+	int ntlm = 0;
+	char *ntlmsp = NULL;
 	int i, err, connected=0;
 	struct sockaddr_in sin;
 #ifdef HAVE_THREADS
 	struct hostent he;
 #endif
 	struct hostent *hp;
-	unsigned char buf[256];
+	unsigned char buf[8192];
 	char *sp;
 
 	if(proxy[0])
@@ -152,36 +166,58 @@ int h_connect(int *so, struct sockaddr_in *name)
 		if(sp) 
 		{
 			char *sp1;
-			if((sp1=strchr(sp, '/'))!=NULL) sp1[0]=':';
-			sp=strdup(sp);
-			if(enbase64(sp, buf)) sp1=strdup(buf);
-			else sp1=NULL;
-			free(sp);
-			sp=sp1;
+#ifdef NTLM
+			if(strchr(sp, '/') != strrchr(sp, '/')) 
+			{
+				ntlm = 1;
+				ntlmsp = sp = strdup(sp);
+			}
+			else
+#endif
+			{
+				if((sp1=strchr(sp, '/'))!=NULL) sp1[0]=':';
+				sp1=malloc(strlen(sp)*4/3 + 4);
+				sp1[enbase64(sp, strlen(sp), sp1)] = 0;
+				sp = sp1;
+			}
 		}
+		memset(buf, 0, sizeof(buf));
 		if(socks[0]) {
 			char *sp1;
 			strcpy(buf, socks);
 			if((sp1=strchr(buf, '/'))!=NULL) sp1[0]=0;
 			if((sp1=strchr(buf, ':'))==NULL) strcat(buf, ":1080");
 			sp1=strdup(buf);
-			i=sprintf(buf, "CONNECT %s HTTP/1.0\r\n", sp1);
+			i=sprintf(buf, "CONNECT %s HTTP/1.%d\r\n", sp1, ntlm);
 			free(sp1);
 		}
 		else
 #ifdef HAVE_THREADS
 		LockSem(&hostsem);
 #endif
-		i=sprintf(buf, "CONNECT %s:%d HTTP/1.0\r\n",
+		i=sprintf(buf, "CONNECT %s:%d HTTP/1.%d\r\n",
 			inet_ntoa(name->sin_addr),
-			ntohs(name->sin_port));
+			ntohs(name->sin_port), ntlm);
 #ifdef HAVE_THREADS
 		ReleaseSem(&hostsem);
 #endif
 		if(sp)
 		{
-			i+=sprintf(buf+i, "Proxy-Authorization: basic %s\r\n", sp);
-			free(sp);
+#ifdef NTLM
+			if (ntlm)
+			{
+				i+=sprintf(buf+i, "Connection: keep-alive\r\n");
+				i+=sprintf(buf+i, "Proxy-Authorization: NTLM ");
+				getNTLM1(sp, buf+i);
+				strcat(buf, "\r\n");
+				i = strlen(buf);
+			}
+			else
+#endif
+			{
+				i+=sprintf(buf+i, "Proxy-Authorization: basic %s\r\n", sp);
+				free(sp);
+			}
 		}
 		buf[i++]='\r';
 		buf[i++]='\n';
@@ -208,6 +244,39 @@ int h_connect(int *so, struct sockaddr_in *name)
 			buf[i+1]=0;
 			if((i+1>=sizeof(buf))||((sp=strstr(buf, "\r\n\r\n"))!=NULL)||((sp=strstr(buf, "\n\n"))!=NULL))
 			{
+#ifdef NTLM
+				if ((ntlm) && ((sp=strstr(buf, "uthenticate: NTLM "))!=NULL))
+				{
+					char *sp1 = strstr(buf, "Content-Length: ");
+					sp = strdup(sp+18);
+					if (sp1)
+					{
+						int j=atoi(sp1+16);
+						for(;j>0; j--)
+						{
+							if(recv(*so, buf+i, 1, 0)<1) break;
+						}
+					}
+					memset(buf, 0, sizeof(buf));
+					i=sprintf(buf, "CONNECT %s:%d HTTP/1.%d\r\nProxy-Authorization: NTLM ",
+						inet_ntoa(name->sin_addr),
+						ntohs(name->sin_port), ntlm);
+					i = getNTLM2(ntlmsp, sp, buf + i);
+					free(sp);
+					if (i) Log(2, "Invalid username/password/host/domain string (%s) %d", ntlmsp, i);
+					free(ntlmsp);
+
+					if(!i)
+					{
+						ntlm = 0;
+						strcat(buf, "\r\n\r\n");
+						send(*so, buf, strlen(buf), 0);
+						i=0;
+						continue;
+					}
+					
+				}
+#endif
 				if((sp=strchr(buf, '\n'))!=NULL)
 				{
 					sp[0]=0;

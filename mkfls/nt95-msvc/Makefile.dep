@@ -384,3 +384,31 @@
 	".\nt\service.h"\
 	".\tools.h"\
 
+
+.\ntlm\helpers.c : \
+	".\ntlm\des.h"\
+	".\ntlm\md4.h"\
+
+
+.\ntlm\des_enc.c : \
+	".\ntlm\des_locl.h"\
+	".\ntlm\des.h"\
+	".\ntlm\ncbc_enc.c"\
+
+
+.\ntlm\ecb_enc.c : \
+	".\ntlm\des_locl.h"\
+	".\ntlm\des.h"\
+	".\ntlm\spr.h"\
+
+
+.\ntlm\md4_dgst.c : \
+	".\ntlm\md4_locl.h"\
+	".\ntlm\md32_common.h"\
+	".\ntlm\md4.h"\
+
+
+.\ntlm\set_key.c : \
+	".\ntlm\des_locl.h"\
+	".\ntlm\des.h"\
+

@@ -26,6 +26,8 @@ NULL=
 NULL=nul
 !ENDIF 
 
+NTLM_FLAGS=-DL_ENDIAN
+
 !IF  "$(CFG)" == "binkd - Win32 Debug"
 
 OUTDIR=.\Debug
@@ -40,6 +42,11 @@ ALL : "$(OUTDIR)\binkd.exe" "$(OUTDIR)\binkd.bsc"
 CLEAN :
 	-@erase "$(INTDIR)\service.obj"
 	-@erase "$(INTDIR)\https.obj"
+	-@erase "$(INTDIR)\helpers.obj"
+	-@erase "$(INTDIR)\ecb_enc.obj"
+	-@erase "$(INTDIR)\des_enc.obj"
+	-@erase "$(INTDIR)\md4_dgst.obj"
+	-@erase "$(INTDIR)\set_key.obj"
 	-@erase "$(INTDIR)\BINKD.OBJ"
 	-@erase "$(INTDIR)\BINKD.SBR"
 	-@erase "$(INTDIR)\binlog.obj"
@@ -171,6 +178,11 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi3
 LINK32_OBJS= \
 	"$(INTDIR)\service.obj" \
 	"$(INTDIR)\https.obj" \
+	"$(INTDIR)\helpers.obj" \
+	"$(INTDIR)\ecb_enc.obj" \
+	"$(INTDIR)\des_enc.obj" \
+	"$(INTDIR)\set_key.obj" \
+	"$(INTDIR)\md4_dgst.obj" \
 	"$(INTDIR)\BINKD.OBJ" \
 	"$(INTDIR)\binlog.obj" \
 	"$(INTDIR)\branch.obj" \
@@ -223,6 +235,11 @@ ALL : "$(OUTDIR)\binkd.exe"
 CLEAN :
 	-@erase "$(INTDIR)\service.obj"
 	-@erase "$(INTDIR)\https.obj"
+	-@erase "$(INTDIR)\helpers.obj"
+	-@erase "$(INTDIR)\ecb_enc.obj"
+	-@erase "$(INTDIR)\des_enc.obj"
+	-@erase "$(INTDIR)\md4_dgst.obj"
+	-@erase "$(INTDIR)\set_key.obj"
 	-@erase "$(INTDIR)\BINKD.OBJ"
 	-@erase "$(INTDIR)\binlog.obj"
 	-@erase "$(INTDIR)\branch.obj"
@@ -286,6 +303,11 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi3
 LINK32_OBJS= \
 	"$(INTDIR)\service.obj" \
 	"$(INTDIR)\https.obj" \
+	"$(INTDIR)\helpers.obj" \
+	"$(INTDIR)\ecb_enc.obj" \
+	"$(INTDIR)\des_enc.obj" \
+	"$(INTDIR)\set_key.obj" \
+	"$(INTDIR)\md4_dgst.obj" \
 	"$(INTDIR)\BINKD.OBJ" \
 	"$(INTDIR)\binlog.obj" \
 	"$(INTDIR)\branch.obj" \
@@ -829,18 +851,20 @@ SOURCE=.\xalloc.c
 
 !ENDIF 
 
+
 SOURCE=.\https.c
 
 !IF  "$(CFG)" == "binkd - Win32 Debug"
 
 
 "$(INTDIR)\https.obj"	"$(INTDIR)\https.SBR" : $(SOURCE) "$(INTDIR)"
-
+	$(CPP) /DNTLM $(CPP_PROJ) $(SOURCE)
 
 !ELSEIF  "$(CFG)" == "binkd - Win32 Release"
 
 
 "$(INTDIR)\https.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) /DNTLM $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -891,6 +915,82 @@ SOURCE=.\nt\service.c
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 !ENDIF 
+
+
+SOURCE=.\ntlm\ecb_enc.c
+
+!IF  "$(CFG)" == "binkd - Win32 Debug"
+
+"$(INTDIR)\ecb_enc.obj"	"$(INTDIR)\ecb_enc.SBR" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(NTLM_FLAGS) $(SOURCE)
+
+!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
+
+"$(INTDIR)\ecb_enc.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(NTLM_FLAGS) $(SOURCE)
+
+!ENDIF 
+
+
+SOURCE=.\ntlm\helpers.c
+
+!IF  "$(CFG)" == "binkd - Win32 Debug"
+
+"$(INTDIR)\helpers.obj"	"$(INTDIR)\helpers.SBR" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(NTLM_FLAGS) $(SOURCE)
+
+!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
+
+"$(INTDIR)\helpers.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(NTLM_FLAGS) $(SOURCE)
+
+!ENDIF 
+
+
+SOURCE=.\ntlm\md4_dgst.c
+
+!IF  "$(CFG)" == "binkd - Win32 Debug"
+
+"$(INTDIR)\md4_dgst.obj"	"$(INTDIR)\md4_dgst.SBR" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(NTLM_FLAGS) $(SOURCE)
+
+!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
+
+"$(INTDIR)\md4_dgst.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(NTLM_FLAGS) $(SOURCE)
+
+!ENDIF 
+
+
+SOURCE=.\ntlm\des_enc.c
+
+!IF  "$(CFG)" == "binkd - Win32 Debug"
+
+"$(INTDIR)\des_enc.obj"	"$(INTDIR)\des_enc.SBR" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(NTLM_FLAGS) $(SOURCE)
+
+!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
+
+"$(INTDIR)\des_enc.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(NTLM_FLAGS) $(SOURCE)
+
+!ENDIF 
+
+
+SOURCE=.\ntlm\set_key.c
+
+!IF  "$(CFG)" == "binkd - Win32 Debug"
+
+"$(INTDIR)\set_key.obj"	"$(INTDIR)\set_key.SBR" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(NTLM_FLAGS) $(SOURCE)
+
+!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
+
+"$(INTDIR)\set_key.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(NTLM_FLAGS) $(SOURCE)
+
+!ENDIF 
+
 
 !ENDIF 
 
