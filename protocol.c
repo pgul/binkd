@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.77  2003/06/24 08:08:46  stas
+ * Bugfix: do not transmit negative value of file time in binkp command-frames and check file time in received frames
+ *
  * Revision 2.76  2003/06/24 06:33:42  gul
  * Fix for previous patch
  *
@@ -1549,7 +1552,7 @@ struct skipchain *skip_test(STATE *state) {
 
 /*
  * Handles M_FILE msg from the remote
- * M_FILE args: "%s %li %li %li", filename, size, time, offset
+ * M_FILE args: "%s %li %lu %li", filename, size, time, offset
  */
 static int start_file_recv (STATE *state, char *args, int sz)
 {
@@ -1605,6 +1608,20 @@ static int start_file_recv (STATE *state, char *args, int sz)
       strnzcpy (state->in.netname, argv[0], MAX_NETNAME);
       state->in.size = atol (argv[1]);
       state->in.time = atol (argv[2]);
+      if(errno==ERANGE){
+        if(state->in.time>0)
+          Log ( 1, "File time too big! (M_FILE \"%s %s %s %s\")", argv[0], argv[1], argv[0], argv[2], argv[3] );
+        else if(state->in.time<0){
+          Log ( 1, "Illegal file time: too big and negative! (M_FILE \"%s %s %s %s\")", argv[0], argv[1], argv[0], argv[2], argv[3] );
+          state->in.time=(time_t)((-1)>>1); /* max positive value */
+        }
+      }else if(state->in.time<0){
+        if(argv[2][0]=='-')
+          Log ( 1, "Illegal file time: negative! (M_FILE \"%s %s %s %s\")", argv[0], argv[1], argv[0], argv[2], argv[3] );
+        else
+          Log ( 1, "Illegal file time: too big! (M_FILE \"%s %s %s %s\")", argv[0], argv[1], argv[0], argv[2], argv[3] );
+        state->in.time=0;
+      }
     }
     offset = (off_t) atol (argv[3]);
     if (!strcmp (argv[3], "-1"))
@@ -1629,10 +1646,10 @@ static int start_file_recv (STATE *state, char *args, int sz)
       if ((rc = perl_before_recv(state, offset)) > 0) {
 	Log (1, "skipping %s (%sdestructive, %li byte(s), by Perl before_recv)",
 	     state->in.netname, rc == SKIP_D ? "" : "non-", state->in.size);
-	msg_sendf (state, (t_msg)(rc == SKIP_D ? M_GOT : M_SKIP), "%s %li %li",
+	msg_sendf (state, (t_msg)(rc == SKIP_D ? M_GOT : M_SKIP), "%s %li %lu",
 		   state->in.netname,
 		   (long) state->in.size,
-		   (long) state->in.time);
+		   (unsigned long) state->in.time);
 	return 1;
       }
 #endif
@@ -1640,10 +1657,10 @@ static int start_file_recv (STATE *state, char *args, int sz)
       if ((mask = skip_test(state)) != NULL) {
 	Log (1, "skipping %s (%sdestructive, %li byte(s), mask %s)",
 	     state->in.netname, mask->destr ? "" : "non-", state->in.size, mask->mask);
-	msg_sendf (state, (t_msg)(mask->destr ? M_GOT : M_SKIP), "%s %li %li",
+	msg_sendf (state, (t_msg)(mask->destr ? M_GOT : M_SKIP), "%s %li %lu",
 		   state->in.netname,
 		   (long) state->in.size,
-		   (long) state->in.time);
+		   (unsigned long) state->in.time);
 	return 1;
       }
       /* val: /skip check */
@@ -1652,10 +1669,10 @@ static int start_file_recv (STATE *state, char *args, int sz)
       {
 	Log (2, "already have %s (%s, %li byte(s))",
 	     state->in.netname, realname, (long) state->in.size);
-	msg_sendf (state, M_GOT, "%s %li %li",
+	msg_sendf (state, M_GOT, "%s %li %lu",
 		   state->in.netname,
 		   (long) state->in.size,
-		   (long) state->in.time);
+		   (unsigned long) state->in.time);
 	return 1;
       }
       else if (!state->skip_all_flag)
@@ -1680,10 +1697,10 @@ static int start_file_recv (STATE *state, char *args, int sz)
       if (state->skip_all_flag)
       {
 	Log (2, "skipping %s (non-destructive)", state->in.netname);
-	msg_sendf (state, M_SKIP, "%s %li %li",
+	msg_sendf (state, M_SKIP, "%s %li %lu",
 		   state->in.netname,
 		   (long) state->in.size,
-		   (long) state->in.time);
+		   (unsigned long) state->in.time);
 	if (state->in.f)
 	  fclose (state->in.f);
 	TF_ZERO (&state->in);
@@ -1695,8 +1712,8 @@ static int start_file_recv (STATE *state, char *args, int sz)
     {
       Log (2, "have %li byte(s) of %s",
 	   (long) ftell (state->in.f), state->in.netname);
-      msg_sendf (state, M_GET, "%s %li %li %li", state->in.netname,
-		 (long) state->in.size, (long) state->in.time,
+      msg_sendf (state, M_GET, "%s %li %lu %li", state->in.netname,
+		 (long) state->in.size, (unsigned long) state->in.time,
 		 (long) ftell (state->in.f));
       ++state->GET_FILE_balance;
       fclose (state->in.f);
@@ -1760,21 +1777,38 @@ static int ND_set_status(char *status, FTN_ADDR *fa, STATE *state)
 
 /*
  * M_GET message from the remote: Resend file from offset
- * M_GET args: "%s %li %li %li", filename, size, time, offset
+ * M_GET args: "%s %li %lu %li", filename, size, time, offset
  */
 static int GET (STATE *state, char *args, int sz)
 {
   const int argc = 4;
   char *argv[4];
   int i, rc = 0;
-  off_t offset;
+  off_t offset, fsize;
+  time_t ftime;
 
   if (parse_msg_args (argc, argv, args, "M_GET", state))
   {
+    fsize = atol (argv[1]);
+    ftime = atol (argv[2]);
+    if(errno==ERANGE){
+      if(ftime>0)
+        Log ( 1, "File time too big! (M_GET \"%s %s %s %s\")", argv[0], argv[1], argv[0], argv[2], argv[3] );
+      else if(ftime<0){
+        Log ( 1, "Illegal file time: too big and negative! (M_GET \"%s %s %s %s\")", argv[0], argv[1], argv[0], argv[2], argv[3] );
+        ftime=(time_t)((-1)>>1); /* max positive value */
+      }
+    }else if(ftime<0){
+      if(argv[2][0]=='-')
+        Log ( 1, "Illegal file time: negative! (M_GET \"%s %s %s %s\")", argv[0], argv[1], argv[0], argv[2], argv[3] );
+      else
+        Log ( 1, "Illegal file time: too big! (M_GET \"%s %s %s %s\")", argv[0], argv[1], argv[0], argv[2], argv[3] );
+      ftime=0;
+    }
     /* Check if the file was already sent */
     for (i = 0; i < state->n_sent_fls; ++i)
     {
-      if (!tfile_cmp (state->sent_fls + i, argv[0], atol (argv[1]), atol (argv[2])))
+      if (!tfile_cmp (state->sent_fls + i, argv[0], fsize, ftime))
       {
 	if (state->out.f)
 	{
@@ -1800,14 +1834,14 @@ static int GET (STATE *state, char *args, int sz)
     }
 
     if ((state->out.f || state->off_req_sent) &&
-         !tfile_cmp (&state->out, argv[0], atol (argv[1]), atol (argv[2])))
+         !tfile_cmp (&state->out, argv[0], fsize, ftime))
     {
       if (!state->out.f)
       { /* response for status */
 	rc = 1;
 	/* to satisfy remote GET_FILE_balance */
-	msg_sendf (state, M_FILE, "%s %li %li %li", state->out.netname,
-	   (long) state->out.size, (long) state->out.time, atol(argv[3]));
+	msg_sendf (state, M_FILE, "%s %li %lu %li", state->out.netname,
+	   (long) state->out.size, (unsigned long) state->out.time, atol(argv[3]));
 	if (atol(argv[3])==(long)state->out.size && (state->ND_flag & WE_ND))
 	{
 	  state->send_eof = 1;
@@ -1835,8 +1869,8 @@ static int GET (STATE *state, char *args, int sz)
       else
       {
 	Log (2, "sending %s from %li", argv[0], offset);
-	msg_sendf (state, M_FILE, "%s %li %li %li", state->out.netname,
-		   (long) state->out.size, (long) state->out.time, offset);
+	msg_sendf (state, M_FILE, "%s %li %lu %li", state->out.netname,
+		   (long) state->out.size, (unsigned long) state->out.time, offset);
 	rc = 1;
       }
     }
@@ -1861,27 +1895,38 @@ static int GET (STATE *state, char *args, int sz)
  * M_SKIP: Remote asks us to skip a file. Only a file currently in
  * transfer will be skipped!
  *
- * M_SKIP args: "%s %li %li", filename, size, time
+ * M_SKIP args: "%s %li %lu", filename, size, time
  */
 static int SKIP (STATE *state, char *args, int sz)
 {
   const int argc = 3;
   char *argv[3];
   int n;
+  time_t ftime;
+  off_t  fsize;
 
   if (parse_msg_args (argc, argv, args, "M_SKIP", state))
   {
+    fsize = atol (argv[1]);
+    ftime = atol (argv[2]);
+    if(ftime<0){
+      if(errno==ERANGE){
+        ftime=(time_t)((-1)>>1); /* max positive value */
+      }
+    }else{
+      ftime=0;
+    }
+
     for (n = 0; n < state->n_sent_fls; ++n)
     {
-      if (!tfile_cmp (state->sent_fls + n, argv[0], atol (argv[1]), atol (argv[2])))
+      if (!tfile_cmp (state->sent_fls + n, argv[0], fsize, ftime))
       {
 	state->r_skipped_flag = 1;
 	Log (2, "%s skipped by remote", state->sent_fls[n].netname);
 	remove_from_sent_files_queue (state, n);
       }
     }
-    if (state->out.f && !tfile_cmp (&state->out, argv[0],
-				    atol (argv[1]), atol (argv[2])))
+    if (state->out.f && !tfile_cmp (&state->out, argv[0], fsize, ftime))
     {
       state->r_skipped_flag = 1;
       fclose (state->out.f);
@@ -1902,7 +1947,7 @@ static int SKIP (STATE *state, char *args, int sz)
 }
 
 /*
- * M_GOT args: "%s %li %li", filename, size, time
+ * M_GOT args: "%s %li %lu", filename, size, time
  */
 static int GOT (STATE *state, char *args, int sz)
 {
@@ -1910,6 +1955,8 @@ static int GOT (STATE *state, char *args, int sz)
   char *argv[3];
   int n, rc=1;
   char *status = NULL;
+  time_t ftime;
+  off_t  fsize;
 
   if (state->ND_flag & WE_ND)
     status = strdup(args);
@@ -1917,7 +1964,17 @@ static int GOT (STATE *state, char *args, int sz)
     ND_set_status("", &state->ND_addr, state);
   if (parse_msg_args (argc, argv, args, "M_GOT", state))
   {
-    if (!tfile_cmp (&state->out, argv[0], atol (argv[1]), atol (argv[2])))
+    fsize = atol (argv[1]);
+    ftime = atol (argv[2]);
+    if(ftime<0){
+      if(errno==ERANGE){
+        ftime=(time_t)((-1)>>1); /* max positive value */
+      }
+    }else{
+      ftime=0;
+    }
+
+    if (!tfile_cmp (&state->out, argv[0], fsize, ftime))
     {
       Log (2, "remote already has %s", state->out.netname);
       if (state->out.f)
@@ -1946,7 +2003,7 @@ static int GOT (STATE *state, char *args, int sz)
     {
       for (n = 0; n < state->n_sent_fls; ++n)
       {
-	if (!tfile_cmp (state->sent_fls + n, argv[0], atol (argv[1]), atol (argv[2])))
+	if (!tfile_cmp (state->sent_fls + n, argv[0], fsize, ftime))
 	{
 	  char szAddr[FTN_ADDR_SZ + 1];
 
@@ -2164,10 +2221,10 @@ static int recv_block (STATE *state)
 	         (safe_time() == state->in.start ?
 		  1 : (safe_time() - state->in.start)), szAddr);
 	  }
-	  msg_sendf (state, M_GOT, "%s %li %li",
+	  msg_sendf (state, M_GOT, "%s %li %lu",
 		     state->in.netname,
 		     (long) state->in.size,
-		     (long) state->in.time);
+		     (unsigned long) state->in.time);
 	  TF_ZERO (&state->in);
 	}
 	else if ((off_t) ftell (state->in.f) > state->in.size)
@@ -2413,15 +2470,15 @@ static int start_file_transfer (STATE *state, FTNQ *file)
 
   if (state->NR_flag & WE_NR)
   {
-    msg_sendf (state, M_FILE, "%s %li %li -1",
+    msg_sendf (state, M_FILE, "%s %li %lu -1",
 	       state->out.netname, (long) state->out.size,
-	       (long) state->out.time);
+	       (unsigned long) state->out.time);
     state->off_req_sent = 1;
   }
   else
-    msg_sendf (state, M_FILE, "%s %li %li 0",
+    msg_sendf (state, M_FILE, "%s %li %lu 0",
 	       state->out.netname, (long) state->out.size,
-	       (long) state->out.time);
+	       (unsigned long) state->out.time);
 
   return 1;
 }
