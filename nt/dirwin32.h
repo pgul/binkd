@@ -14,6 +14,14 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2004/01/08 13:27:49  val
+ * * extend struct dirent for dos and win32 in order to get file attribute
+ * * ignore hidden files in boxes for dos/win32/os2
+ * * if we can differ files from directories w/o stat(), don't call stat()
+ *   when scanning boxes (unix: freebsd)
+ * * if we can't unlink file, don't send it again in the same session
+ * * for dos/win32/os2 try to clear read/only attribute if can't unlink file
+ *
  * Revision 2.3  2003/03/22 08:59:58  gul
  * opendir() return NULL if directori does not exist
  *
@@ -40,6 +48,7 @@
 
 struct dirent {
    char        d_name[_MAX_PATH+1];  /* file's name */
+   unsigned    d_attrib;             /* file's attributes */
 };
 
 typedef struct {

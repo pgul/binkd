@@ -15,6 +15,14 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.152  2004/01/08 13:27:47  val
+ * * extend struct dirent for dos and win32 in order to get file attribute
+ * * ignore hidden files in boxes for dos/win32/os2
+ * * if we can differ files from directories w/o stat(), don't call stat()
+ *   when scanning boxes (unix: freebsd)
+ * * if we can't unlink file, don't send it again in the same session
+ * * for dos/win32/os2 try to clear read/only attribute if can't unlink file
+ *
  * Revision 2.151  2004/01/08 13:03:51  val
  * * new functions for parsing and updating addresses in pkt header (raw, char*)
  * * use these functions in shared aka logic
@@ -711,6 +719,8 @@ static int deinit_protocol (STATE *state, BINKD_CONFIG *config)
     free_killlist (&state->killlist, &state->n_killlist);
   if (state->rcvdlist)
     free_rcvdlist (&state->rcvdlist, &state->n_rcvdlist);
+  for (i = 0; i < state->n_nosendlist; i++)
+    xfree(state->nosendlist[i]);
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
   xfree (state->z_obuf);
   if (state->z_recv && state->z_idata)
@@ -1105,7 +1115,19 @@ static int perform_action (STATE *state, char *path, char action)
 {
   if (action == 'd')
   {
-    delete (path);
+    if (delete(path) != 0) {
+#if defined(WIN32) || defined(OS2) || defined(DOS)
+      /* clear r/o attribute and try again */
+      if (chmod(path, S_IREAD | S_IWRITE) == 0 && delete(path) != 0) {
+#endif
+      /* add to list not to send it again */
+      Log (5, "adding file `%s' to not-to-send list", path);
+      state->nosendlist = xrealloc(state->nosendlist, (state->n_nosendlist+1)*sizeof(state->nosendlist[0]));
+      state->nosendlist[state->n_nosendlist++] = xstrdup(path);
+#if defined(WIN32) || defined(OS2) || defined(DOS)
+      }
+#endif
+    }
   }
   else if (action == 't')
   {
@@ -3094,7 +3116,7 @@ static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
 {
   struct stat sb;
   FILE *f = NULL;
-  int action = -1;
+  int action = -1, i;
   char *extra;
 
   if (state->out.f)
@@ -3113,6 +3135,10 @@ static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
     }
     else
     {
+      /* look for the file in not-to-send list */
+      for (i = 0; i < state->n_nosendlist; i++)
+        if (strcmp(file->path, state->nosendlist[i]) == 0) return 0;
+
       if ((f = fopen (file->path, (file->type == 'l') ? "r+b" : "rb")) == 0 ||
 	  fstat (fileno (f), &sb) == -1)
       {
@@ -3153,6 +3179,16 @@ static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
 
       if ((w = trans_flo_line (state->out.path, config->rf_rules.first)) != 0)
 	Log (5, "%s mapped to %s", state->out.path, w);
+
+      /* look for the file in not-to-send list */
+      for (i = 0; i < state->n_nosendlist; i++)
+        if (strcmp(w ? w : file->path, state->nosendlist[i]) == 0) {
+  	  xfree (w);
+  	  remove_from_spool (state, state->out.flo,
+  			     state->out.path, state->out.action, config);
+          break;
+        }
+      if (i < state->n_nosendlist) continue;
 
       if ((f = fopen (w ? w : state->out.path, "rb")) == 0 ||
 	  fstat (fileno (f), &sb) == -1 ||

@@ -2,6 +2,14 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.18  2004/01/08 13:27:47  val
+ * * extend struct dirent for dos and win32 in order to get file attribute
+ * * ignore hidden files in boxes for dos/win32/os2
+ * * if we can differ files from directories w/o stat(), don't call stat()
+ *   when scanning boxes (unix: freebsd)
+ * * if we can't unlink file, don't send it again in the same session
+ * * for dos/win32/os2 try to clear read/only attribute if can't unlink file
+ *
  * Revision 2.17  2003/10/29 21:08:39  gul
  * Change include-files structure, relax dependences
  *
@@ -158,6 +166,8 @@ struct _STATE
   int n_killlist;               
   RCVDLIST *rcvdlist;           /* List of files rcvd in the curr.batch */
   int n_rcvdlist;       
+  char **nosendlist;            /* List of files not to be sent (can't unlink) */
+  int n_nosendlist;
         
   /* binkp stats */
   int files_sent;               /* Files sent/rcvd during the session */

@@ -15,6 +15,14 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.31  2004/01/08 13:27:46  val
+ * * extend struct dirent for dos and win32 in order to get file attribute
+ * * ignore hidden files in boxes for dos/win32/os2
+ * * if we can differ files from directories w/o stat(), don't call stat()
+ *   when scanning boxes (unix: freebsd)
+ * * if we can't unlink file, don't send it again in the same session
+ * * for dos/win32/os2 try to clear read/only attribute if can't unlink file
+ *
  * Revision 2.30  2003/12/26 21:12:06  gul
  * Change unixtime and file length/offset to unsigned in protocol messages
  *
@@ -388,18 +396,30 @@ static FTNQ *q_scan_box (FTNQ *q, FTN_ADDR *fa, char *boxpath, char flvr, int de
 
   strnzcpy (buf, boxpath, sizeof (buf));
   strnzcat (buf, PATH_SEPARATOR, sizeof (buf));
+#ifdef UNIX
+  if (access(boxpath, 06) != 0) {
+    Log (1, "No access to filebox `%s'", boxpath);
+    return q;
+  }
+#endif
   s = buf + strlen (buf);
   if ((dp = opendir (boxpath)) != NULL)
   {
     while ((de = readdir (dp)) != 0)
     {
+      sb.st_mtime = 0; /* ??? val: don't know how to get it if stat() isn't used */
       strnzcat (buf, de->d_name, sizeof (buf));
-      if (stat (buf, &sb) == 0 && (sb.st_mode & S_IFDIR) == 0 &&
-	  de->d_name[0] != '.'
-#if defined(OS2) && !defined(IBMC) && !defined(__WATCOMC__)
-          && (de->d_attr & 0x02) == 0   /* not hidden */
+      if (de->d_name[0] != '.'
+#if defined(_MSC_VER) || defined(DOS)
+          && (de->d_attrib & 0x1a) == 0 /* not hidden, directory or volume label */
+#elif defined(OS2) && !defined(IBMC) && !defined(__WATCOMC__)
+          && (de->d_attr & 0x1a) == 0   /* not hidden, directory or volume label */
+#elif defined(__FreeBSD__)
+          && (DTTOIF(de->d_type) & S_IFDIR) == 0  /* not directory */
+#else
+          && stat(buf, &sb) == 0 && (sb.st_mode & S_IFDIR) == 0 /* not directory */
 #endif
-	 )
+         )
       {
 	files = xrealloc (files, sizeof (FTNQ) * (n_files + 1));
 	strcpy (files[n_files].path, buf);

@@ -19,11 +19,15 @@ extern "C" {
 #endif
 
 struct dirent {
-   char d_name[13];
+   char     d_attrib;            /* attribute byte for matched file */
+   unsigned d_wr_time;           /* time of last write to file */
+   unsigned d_wr_date;           /* date of last write to file */
+   long     d_size;              /* size of file */
+   char     d_name[13];
 };
 
 typedef struct {
-   char          _d_reserved[30];
+   char          _d_reserved[21]; /* Microsoft reserved - do not change */
    struct dirent _d_dirent;
    char *        dirname;
    char          _d_first;
