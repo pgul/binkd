@@ -21,3 +21,4 @@
 - 3 passwords in passwd-file - "incoming,pkt,outgoing"
 - separate child status to signal and retcode
 - aftersession
+- tzoff - ? Now used only for binlog
