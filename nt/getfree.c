@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.9  2004/01/02 15:31:30  stas
+ * Fix the minfree token usage and fix getfree() on Win >w95
+ *
  * Revision 2.8  2004/01/02 04:05:30  stas
  * Fix warning (type convertion)
  *
@@ -93,7 +96,6 @@ typedef  BOOL (WINAPI* PGFDE)( LPCTSTR, PULARGE_INTEGER,
 
 unsigned long getfree (char *path) {
  { /*  w95OSR2, wNT, ... */
-
   PGFDE pGetDiskFreeSpaceEx;
   ULARGE_INTEGER i64FreeBytesToCaller, i64TotalBytes, i64FreeBytes;
 
@@ -106,7 +108,7 @@ unsigned long getfree (char *path) {
                 (PULARGE_INTEGER)&i64FreeBytesToCaller,
                 (PULARGE_INTEGER)&i64TotalBytes,
                 (PULARGE_INTEGER)&i64FreeBytes)
-      ) return i64FreeBytesToCaller.u.HighPart? 0xFFFFFFFF:i64FreeBytesToCaller.u.LowPart;
+      ) return i64FreeBytesToCaller.u.HighPart? ULONG_MAX:(unsigned long)(i64FreeBytesToCaller.QuadPart>>10 & ULONG_MAX);
   }
  }
 

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.28  2004/01/02 15:31:30  stas
+ * Fix the minfree token usage and fix getfree() on Win >w95
+ *
  * Revision 2.27  2003/12/26 21:12:06  gul
  * Change unixtime and file length/offset to unsigned in protocol messages
  *
@@ -350,9 +353,15 @@ fopen_again:
     unsigned long freespace, freespace2;
     int req_free = ((state->state == P_SECURE) ? config->minfree : config->minfree_nonsecure);
 
-    freespace = getfree(buf);
     freespace2 = getfree(state->inbound);
-    if (freespace > freespace2) freespace = freespace2;
+    if ( config->temp_inbound[0] && 
+         !strncmp(config->temp_inbound,buf,strlen(config->temp_inbound)) )
+    {
+      freespace = getfree(config->temp_inbound);
+      if (freespace > freespace2) freespace = freespace2;
+    }
+    else
+      freespace = freespace2;
     if (sb.st_size > state->in.size)
     {
       Log (1, "Partial size %lu > %lu (file size), delete partial", 
