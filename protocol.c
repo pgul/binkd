@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.143  2003/12/10 11:12:10  gul
+ * Minor fix in decompression deinit
+ *
  * Revision 2.142  2003/12/09 21:58:20  gul
  * Bugfix in resend file in compression mode,
  * new functions compress_abort() and decompress_abort().
@@ -682,7 +685,7 @@ static int deinit_protocol (STATE *state, BINKD_CONFIG *config)
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
   xfree (state->z_obuf);
   if (state->z_recv && state->z_idata)
-    decompress_abort(state->z_recv, state->z_idata);
+    decompress_deinit(state->z_recv, state->z_idata);
   if (state->z_send && state->z_odata)
     compress_abort(state->z_send, state->z_odata);
 #endif
@@ -2074,7 +2077,7 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
     if (state->z_recv && state->z_idata)
     {
-      decompress_abort(state->z_recv, state->z_idata);
+      decompress_deinit(state->z_recv, state->z_idata);
       state->z_idata = NULL;
     }
     state->z_recv = 0;
@@ -2792,6 +2795,8 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
             if (zavail != 0 && fwrite (zbuf, zavail, 1, state->in.f) < 1)
             {
               Log (1, "write error: %s", strerror(errno));
+              decompress_abort(state->z_recv, state->z_idata);
+              state->z_idata = NULL;
               return 0;
             }
             buf += nput;
@@ -2849,7 +2854,7 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
             if (state->z_idata)
             {
               Log (1, "Warning: extra compressed data ignored");
-              decompress_abort(state->z_recv, state->z_idata);
+              decompress_deinit(state->z_recv, state->z_idata);
               state->z_idata = NULL;
             }
           }

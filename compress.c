@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/12/10 11:12:10  gul
+ * Minor fix in decompression deinit
+ *
  * Revision 2.2  2003/12/09 21:58:20  gul
  * Bugfix in resend file in compression mode,
  * new functions compress_abort() and decompress_abort().
@@ -153,7 +156,7 @@ void compress_abort(int type, void *data)
     do {
       i=sizeof(buf);
       j=0;
-    } while (do_compress(type, buf, &i, NULL, &j, 1, data) == 0);
+    } while (do_compress(type, buf, &i, NULL, &j, 1, data) == 0 && i > 0);
     compress_deinit(type, data);
   }
 }
@@ -258,7 +261,7 @@ int decompress_abort(int type, void *data) {
     do {
       i=sizeof(buf);
       j=0;
-    } while (do_decompress(type, buf, &i, NULL, &j, data) == 0);
+    } while (do_decompress(type, buf, &i, NULL, &j, data) == 0 && i > 0);
     return decompress_deinit(type, data);
   }
   return 0;
