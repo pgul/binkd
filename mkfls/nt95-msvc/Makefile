@@ -13,11 +13,11 @@ PERL_VER=56                  # set perl version (56 for 5.6, 58 for 5.8)
 !endif
 
 # define path to zlib sources if using ZLIB=1 without ZLIBDL
-!if defined(ZLIB) && !defined(ZLIBDL)
+!if defined(ZLIB)
 ZLIB_SRC=..\zlib
 !endif
 # define path to bzlib2 sources if using BZLIB2=1 without ZLIBDL
-!if defined(BZLIB2) && !defined(ZLIBDL)
+!if defined(BZLIB2)
 BZLIB2_SRC=..\bzlib2
 !endif
 
@@ -81,16 +81,20 @@ ZLIB_CDEFS= $(ZLIB_CDEFS) -DWITH_ZLIB
 !if defined(BZLIB2)
 ZLIB_CDEFS= $(ZLIB_CDEFS) -DWITH_BZLIB2
 !endif
+!ifdef ZLIB_SRC
+ZLIB_COPT= -I"$(ZLIB_SRC)"
+!endif
+!ifdef BZLIB2_SRC
+ZLIB_COPT= -I"$(BZLIB2_SRC)"
+!endif
 !ifdef ZLIBDL
 ZLIB_CDEFS= $(ZLIB_CDEFS) -DZLIBDL
 ZLIBDL_OBJS = $(OUTDIR)\zlibdl.obj
 !else
 ! if defined(ZLIB)
-ZLIB_COPT= -I"$(ZLIB_SRC)"
 ZLIB_LLIBS= $(ZLIB_LLIBS) $(ZLIB_SRC)\zlib.lib
 ! endif
 ! if defined(BZLIB2)
-ZLIB_COPT= -I"$(BZLIB2_SRC)"
 ZLIB_LLIBS= $(ZLIB_LLIBS) $(BZLIB2_SRC)\libbz2.lib
 ! endif
 !endif
