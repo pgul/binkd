@@ -1,3 +1,8 @@
+2003/12/09 23:58:23 1.0a-307 gul
+compress.c,2.1,2.2 compress.h,2.2,2.3 protocol.c,2.141,2.142
+Bugfix in resend file in compression mode,
+new functions compress_abort() and decompress_abort().
+
 2003/12/06 02:27:29 1.0a-306 gul
 client.c,2.51,2.52
 Coredump on exit cmgr with DEBUGCHILD
