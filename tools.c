@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2001/09/30 13:49:59  gul
+ * Do not put log to socket if run via inetd
+ *
  * Revision 2.1  2001/09/24 10:31:39  gul
  * Build under mingw32
  *
@@ -231,6 +234,11 @@ void Log (int lev, char *s,...)
   extern int syslog_facility;
 
 #endif
+#if defined(UNIX) || defined(OS2) || defined(AMIGA)
+
+  extern int inetd_flag;
+
+#endif
 
   static int first_time = 1;
   char timebuf[60];
@@ -249,7 +257,11 @@ void Log (int lev, char *s,...)
   time (&t);
   tm = localtime (&t);
 
-  if (lev <= conlog)
+  if (lev <= conlog
+#if defined(UNIX) || defined(OS2) || defined(AMIGA)
+      && !inetd_flag
+#endif
+     )
   {
     strftime (timebuf, sizeof (timebuf), "%H:%M", tm);
     LockSem (&LSem);
