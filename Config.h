@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.57  2003/07/07 10:14:22  gul
+ * Auto increase patchlevel, set 0.9.6a-46
+ * Use getopt() for commandline parse
+ *
  * Revision 2.56  2003/07/07 10:13:56  gul
  * Auto increase patchlevel, set 0.9.6a-45
  * Use getopt() for commandline parse
@@ -231,7 +235,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-45"
+#define MYVER "0.9.6a-46"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
