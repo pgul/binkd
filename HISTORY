@@ -1,3 +1,7 @@
+2003/09/07 07:39:18 0.9.6a-162 hbrew
+win9x.c,2.20,2.21
+Memory leak (binkd9x service startup)
+
 2003/09/07 07:37:05 0.9.6a-161 hbrew
 win9x.c,2.19,2.20
 Close process and thread handles after CreateProcess()
