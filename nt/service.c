@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4.2.6  2003/10/15 14:48:10  stas
+ * Fix NT service stop
+ *
  * Revision 2.4.2.5  2003/08/27 12:59:36  stas
  * Update usage(), optimize code
  *
@@ -114,6 +117,7 @@ static void WINAPI ServiceCtrl(DWORD dwCtrlCode)
   case SERVICE_CONTROL_STOP:
     ReportStatusToSCMgr(SERVICE_STOP_PENDING, NO_ERROR, 0);
     SigHandler(CTRL_SHUTDOWN_EVENT);
+    ReportStatusToSCMgr(SERVICE_STOPPED, NO_ERROR, 0);
     return;
   case SERVICE_CONTROL_INTERROGATE:
   default:
