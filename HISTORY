@@ -1,3 +1,7 @@
+2003/12/26 09:51:15 1.0a-312 val
+readcfg.c,2.60,2.61
+up to 3 comma-separated passwords in <passwords> file are parsed
+
 2003/12/24 02:37:28 1.0a-311 gul
 perlhooks.c,2.41,2.42
 Fixed mingw with PERLDL compilation
