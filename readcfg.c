@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2002/11/12 17:41:02  gul
+ * Check for (personal) outbox pointed to (common) outbound
+ *
  * Revision 2.6  2002/07/21 10:35:44  gul
  * overwrite option
  *
@@ -280,6 +283,38 @@ KEYWORD keywords[] =
 
 void readcfg0 (char *_path);
 void debug_readcfg ();
+
+/* Check for (personal) outbox pointed to (common) outbound */
+static int check_outbox(char *obox)
+{
+  FTN_DOMAIN *pd=pDomains;
+#ifndef UNIX
+  char *OBOX, *PATH=NULL;
+  OBOX = strupper(strdup(obox));
+#endif
+  while (pd)
+  {
+    if (pd->path)
+#ifdef UNIX
+      if (obox==strstr(obox, pd->path))
+        return 1;
+#else
+    { PATH = strupper(strdup(pd->path));
+      if (OBOX==strstr(OBOX, PATH))
+      { free(PATH);
+        free(OBOX);
+        return 1;
+      }
+      free(PATH);
+    }
+#endif
+    pd=pd->next;
+  }
+#ifndef UNIX
+ free(OBOX);
+#endif
+ return 0;
+}
 
 /*
  * Parses and reads _path as config.file
@@ -612,6 +647,9 @@ static void read_node_info (KEYWORD *key, char *s)
     Log (0, "%s: %i: %s: incorrect flavour", path, line, w[3]);
   check_dir_path (w[4]);
   check_dir_path (w[5]);
+
+  if (check_outbox(w[4]))
+    Log (0, "Outbox can't be point to outbound! (link %s)", w[0]);
 
   if (!add_node (&fa, w[1], w[2], (char)(w[3] ? w[3][0] : '-'), w[4], w[5],
 		 NR_flag, ND_flag, crypt_flag, MD_flag, restrictIP))
