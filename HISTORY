@@ -1,3 +1,7 @@
+2004/01/02 06:05:33 1.0a-321 stas
+getfree.c,2.7,2.8
+Fix warning (type convertion)
+
 2004/01/01 00:01:35 1.0a-320 stas
 tray.c,2.5,2.6
 Initialise variable
