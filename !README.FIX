@@ -529,3 +529,7 @@ NT/95:  ctrl-c problems fixed
 
         Bugfix: do not transmit negative value of file time in binkp commands
         and check file time in received frames (Stas Degteff <g@ural.org>)
+
+	New config option "nolog" - inhibit specified log messages
+	(val khokhlov <val@vk.kiev.ua>).
+
