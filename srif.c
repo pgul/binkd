@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2001/10/27 07:53:46  gul
+ * Unlink req-file after run freq-processor
+ *
  * Revision 2.0  2001/01/10 12:12:39  gul
  * Binkd is under CVS again
  *
@@ -337,6 +340,7 @@ FTNQ *evt_run (FTNQ *q, char *filename0,
 	  q = parse_response (q, rsp, fa);
 	  delete (srf);
 	  delete (rsp);
+          delete (filename0);
 	}
 	else
 	  Log (1, "mksrifpaths: error");
