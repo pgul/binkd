@@ -1,3 +1,7 @@
+2003/09/21 20:51:11 0.9.6a-186 gul
+binkd.c,2.63,2.64 branch.c,2.8,2.9 client.c,2.45,2.46 perlhooks.c,2.25,2.26 server.c,2.32,2.33 sys.h,2.14,2.15
+Fixed PID in logfile for perl stderr handled messages in fork version.
+
 2003/09/21 20:34:29 0.9.6a-185 gul
 client.c,2.44,2.45 common.h,2.9,2.10 perlhooks.c,2.24,2.25 reapchld.inc,2.2,2.3 tools.c,2.50,2.51
 Change perl stderr handling for thread vertions,
