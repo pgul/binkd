@@ -246,6 +246,7 @@
 	".\srif.h"\
 	".\sys.h"\
 	".\tools.h"\
+	".\crypt.h"\
 	
 
 .\READCFG.C : \
@@ -373,6 +374,11 @@
 	".\iphdr.h"\
 	".\protoco2.h"\
 	".\sys.h"\
+
+
+.\crypt.c : \
+	".\crypt.h"\
+
 
 .\nt\service.c : \
 	".\nt\service.h"\

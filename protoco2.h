@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2001/02/15 11:03:18  gul
+ * Added crypt traffic possibility
+ *
  * Revision 2.0  2001/01/10 12:12:38  gul
  * Binkd is under CVS again
  *
@@ -124,6 +127,9 @@ struct _STATE
   TFILE in_complete;            /* M_GOT sent, need to rename */
   FTN_ADDR ND_addr;             /* Address for current ND status */
   FTN_ADDR out_addr;            /* Currently precessing remote AKA */
+  int crypt_flag;		/* Is session encrypted? */
+  unsigned long keys_out[3];	/* Encription keys for outbound */
+  unsigned long keys_in[3];	/* Encription keys for inbound */
 };
 #define STATE_DEFINED 1
 
@@ -138,15 +144,21 @@ struct _STATE
           && (S)->r_skipped_flag == 0)
 
 /* state.NR_flag: state of binkp when in NR mode */
-#define NO_NR   0
-#define WANT_NR 1
-#define WE_NR   2
-#define THEY_NR 3
+#define NO_NR	0
+#define WANT_NR	1
+#define WE_NR	2
+#define THEY_NR	3
 
 /* state.ND_flag: state of binkp when in ND mode */
-#define NO_ND   0
-#define WE_ND   1
-#define THEY_ND 2
-#define YES_ND  (WE_ND|THEY_ND)
+#define NO_ND	0
+#define WE_ND	1
+#define THEY_ND	2
+#define YES_ND	(WE_ND|THEY_ND)
+
+/* state.crypt_flag: state of binkp when in crypt mode */
+#define NO_CRYPT	0
+#define WE_CRYPT	1
+#define THEY_CRYPT	2
+#define YES_CRYPT	(WE_CRYPT|THEY_CRYPT)
 
 #endif

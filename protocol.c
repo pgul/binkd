@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2001/02/15 11:03:18  gul
+ * Added crypt traffic possibility
+ *
  * Revision 2.0  2001/01/10 12:12:38  gul
  * Binkd is under CVS again
  *
@@ -96,6 +99,7 @@
 #include "binlog.h"
 #include "setpttl.h"
 #include "md5b.h"
+#include "crypt.h"
 
 #ifdef HAVE_THREADS
 #include "sem.h"
@@ -143,6 +147,7 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to)
   state->ND_flag = (to && to->ND_flag == ND_ON) ? WE_ND : NO_ND;
   state->MD_flag = 0;
   state->MD_challenge = NULL;
+  state->crypt_flag = (to && to->crypt_flag == CRYPT_ON) ? WE_CRYPT : NO_CRYPT;
   strcpy (state->expected_pwd, "-");
   state->skip_all_flag = state->r_skipped_flag = 0;
   state->maxflvr = 'h';
@@ -258,6 +263,9 @@ static void msg_send2 (STATE *state, t_msg m, char *s1, char *s2)
   strcpy (state->msgs[state->n_msgs].s + 3, s1);
   strcat (state->msgs[state->n_msgs].s + 3, s2);
   state->msgs[state->n_msgs].sz += 2;
+  if (state->crypt_flag == YES_CRYPT)
+    encrypt(state->msgs[state->n_msgs].s, state->msgs[state->n_msgs].sz,
+            state->keys_out);
 
   ++state->n_msgs;
   ++state->msgs_in_batch;
@@ -425,6 +433,8 @@ static int send_block (STATE *state)
 	current_file_was_sent (state);
       state->optr = state->obuf;
       state->oleft = sz + BLK_HDR_SIZE;
+      if (state->crypt_flag == YES_CRYPT)
+        encrypt(state->optr, state->oleft, state->keys_out);
     }
   }
   return 1;
@@ -641,6 +651,11 @@ static int NUL (STATE *state, char *buf, int sz)
       {
 	state->ND_flag |= THEY_ND;     /* They want ND mode */
         Log(2, "Remote requests ND mode");
+      }
+      if (!strcmp (w, "CRYPT"))
+      {
+	state->crypt_flag |= THEY_CRYPT;  /* They want crypt mode */
+        Log(2, "Remote requests CRYPT mode");
       }
       if (!strncmp(w, "CRAM-", 5) && !no_MD5 &&
           state->to && (state->to->MD_flag>=0))
@@ -880,6 +895,7 @@ static void complete_login (STATE *state)
   WE_NR :
   NO_NR;
   if (state->ND_flag!=YES_ND) state->ND_flag=NO_ND;
+  if (state->crypt_flag!=YES_CRYPT) state->crypt_flag=NO_CRYPT;
   state->inbound = select_inbound (state->fa, state->state);
   if (OK_SEND_FILES (state))
     state->q = q_scan_addrs (0, state->fa, state->nfa);
@@ -891,6 +907,23 @@ static void complete_login (STATE *state)
     Log (3, "session in ND mode");
   else if (state->NR_flag == WE_NR)
     Log (3, "we are in NR mode");
+  if (state->state != P_SECURE)
+    state->crypt_flag = NO_CRYPT;
+  else if (state->crypt_flag == YES_CRYPT)
+  { char *p;
+    Log (3, "session in CRYPT mode");
+    if (state->to)
+    { init_keys(state->keys_out, state->to->pwd);
+      init_keys(state->keys_in,  "-");
+      for (p=state->to->pwd; *p; p++)
+        update_keys(state->keys_in, (int)*p);
+    } else
+    { init_keys(state->keys_in, state->expected_pwd);
+      init_keys(state->keys_out,  "-");
+      for (p=state->expected_pwd; *p; p++)
+        update_keys(state->keys_out, (int)*p);
+    }
+  }
 }
 
 static int PWD (STATE *state, char *pwd, int sz)
@@ -1480,6 +1513,8 @@ static int recv_block (STATE *state)
       return 0;
     }
   }
+  if (state->crypt_flag == YES_CRYPT)
+    decrypt(state->ibuf + state->iread, no, state->keys_in);
   state->iread += no;
   /* assert (state->iread <= sz); */
   if (state->iread == sz)
@@ -1677,13 +1712,11 @@ static void banner (STATE *state)
   }
   msg_send2 (state, M_ADR, szAkas, 0);
 
-  if (state->NR_flag == WANT_NR)
-    msg_send2 (state, M_NUL, (state->ND_flag & WE_ND) ? "OPT NR ND" : "OPT NR", "");
-  else if (!state->to)
-  { /* accept -ND if remote wants */
-    state->ND_flag = WE_ND;
-    msg_send2 (state, M_NUL, "OPT ND", "");
-  }
+  if (state->NR_flag == WANT_NR || !state->to)
+    msg_sendf (state, M_NUL, "OPT%s%s%s",
+               state->NR_flag == WANT_NR ? " NR" : "",
+               ((state->ND_flag & WE_ND) || !state->to) ? " ND" : "",
+               ((state->crypt_flag & WE_CRYPT) || !state->to) ? " CRYPT" : "");
   free (szAkas);
 }
 

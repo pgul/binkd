@@ -108,6 +108,7 @@ CLEAN :
 	-@erase "$(OUTDIR)\binkd.map"
 	-@erase "$(OUTDIR)\binkd.pdb"
 	-@erase "$(INTDIR)\md5b.obj"
+	-@erase "$(INTDIR)\crypt.obj"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
@@ -200,6 +201,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\TOOLS.OBJ" \
 	"$(INTDIR)\WSock.obj" \
 	"$(INTDIR)\md5b.obj" \
+	"$(INTDIR)\crypt.obj" \
 	"$(INTDIR)\xalloc.obj"
 
 "$(OUTDIR)\binkd.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
@@ -256,6 +258,7 @@ CLEAN :
 	-@erase "$(OUTDIR)\binkd.exe"
 	-@erase "$(OUTDIR)\binkd.ilk"
 	-@erase "$(INTDIR)\md5b.obj"
+	-@erase "$(INTDIR)\crypt.obj"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
@@ -313,6 +316,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\TOOLS.OBJ" \
 	"$(INTDIR)\WSock.obj" \
 	"$(INTDIR)\md5b.obj" \
+	"$(INTDIR)\crypt.obj" \
 	"$(INTDIR)\xalloc.obj"
 
 "$(OUTDIR)\binkd.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
@@ -853,6 +857,23 @@ SOURCE=.\md5b.c
 
 
 "$(INTDIR)\md5b.obj" : $(SOURCE) "$(INTDIR)"
+
+
+!ENDIF 
+
+
+SOURCE=.\crypt.c
+
+!IF  "$(CFG)" == "binkd - Win32 Debug"
+
+
+"$(INTDIR)\crypt.obj"	"$(INTDIR)\crypt.SBR" : $(SOURCE) "$(INTDIR)"
+
+
+!ELSEIF  "$(CFG)" == "binkd - Win32 Release"
+
+
+"$(INTDIR)\crypt.obj" : $(SOURCE) "$(INTDIR)"
 
 
 !ENDIF 

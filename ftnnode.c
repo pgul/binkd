@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2001/02/15 11:03:18  gul
+ * Added crypt traffic possibility
+ *
  * Revision 2.0  2001/01/10 12:12:38  gul
  * Binkd is under CVS again
  *
@@ -121,7 +124,8 @@ FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on)
   }
 
   if(!add_node(fa, host, NULL, np->obox_flvr, np->obox, np->ibox, 
-       np->NR_flag, np->ND_flag, np->MD_flag, np->restrictIP)) return NULL;
+       np->NR_flag, np->ND_flag, np->crypt_flag, np->MD_flag, np->restrictIP))
+    return NULL;
   sort_nodes ();
   memcpy (&n.fa, fa, sizeof (FTN_ADDR));
   return (FTN_NODE *) bsearch (&n, pNod, nNod, sizeof (FTN_NODE),
@@ -155,8 +159,8 @@ FTN_NODE *get_node_info (FTN_ADDR *fa)
  * 1 -- ok, 0 -- error;
  */
 int add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
-	      char *obox, char *ibox, int NR_flag, int ND_flag, int MD_flag,
-	      int restrictIP)
+	      char *obox, char *ibox, int NR_flag, int ND_flag,
+	      int crypt_flag, int MD_flag, int restrictIP)
 {
   int cn;
 
@@ -179,6 +183,7 @@ int add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
     pNod[cn].obox_flvr = 'f';
     pNod[cn].NR_flag = NR_OFF;
     pNod[cn].ND_flag = ND_OFF;
+    pNod[cn].crypt_flag = CRYPT_OFF;
     pNod[cn].MD_flag = 0;
     pNod[cn].restrictIP = 0;
 
@@ -195,6 +200,8 @@ int add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
     pNod[cn].NR_flag = NR_flag;
   if (ND_flag != ND_USE_OLD)
     pNod[cn].ND_flag = ND_flag;
+  if (crypt_flag != CRYPT_USE_OLD)
+    pNod[cn].crypt_flag = crypt_flag;
 
   if (hosts && *hosts)
   {
@@ -290,7 +297,7 @@ int poll_node (char *s)
     ftnaddress_to_str (buf, &target);
     Log (4, "creating a poll for %s (`%c' flavour)", buf, POLL_NODE_FLAVOUR);
     if (!get_node_info (&target))
-      if (!add_node (&target, "*", 0, '-', 0, 0, 0, 0, 0, 0))
+      if (!add_node (&target, "*", 0, '-', 0, 0, 0, 0, 0, 0, 0))
 	Log (1, "%s: add_node() failed", buf);
     return create_poll (&target, POLL_NODE_FLAVOUR);
   }

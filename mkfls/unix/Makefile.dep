@@ -1,5 +1,6 @@
 md5b.o: md5b.c tools.h getw.h sys.h md5b.h prothlp.h ftnq.h Config.h \
  ftnaddr.h ftnnode.h iphdr.h readcfg.h ftndom.h protoco2.h
+crypt.o: crypt.c crypt.h 
 https.o: https.c Config.h readcfg.h iphdr.h sys.h ftnaddr.h ftndom.h \
  ftnnode.h tools.h getw.h https.h iptools.h
 binkd.o: binkd.c Config.h sys.h iphdr.h readcfg.h ftnaddr.h ftndom.h \
@@ -23,7 +24,7 @@ server.o: server.c Config.h iphdr.h sys.h iptools.h tools.h getw.h \
 protocol.o: protocol.c Config.h sys.h iphdr.h iptools.h tools.h getw.h \
  readcfg.h ftnaddr.h ftndom.h ftnnode.h ftnq.h bsy.h inbound.h srif.h \
  prothlp.h protoco2.h readflo.h protocol.h assert.h binlog.h setpttl.h \
- md5b.h
+ md5b.h crypt.h
 bsy.o: bsy.c Config.h ftnaddr.h bsy.h tools.h getw.h sem.h sys.h \
  assert.h
 inbound.o: inbound.c Config.h sys.h readcfg.h iphdr.h ftnaddr.h \

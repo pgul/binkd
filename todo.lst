@@ -1,6 +1,7 @@
 - nolog "call to*" "*:unknown host" "some annoing message"
-- crypt traffic
+- crc32 check
 - perl hooks
 - shared aka
 - different passwords for remote akas
 - don't give mail for unsecure aka of secure link when send-if-pwd
+- do not kill attaches (save and ignore) if drive missing (unmounted)

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2001/02/15 11:03:18  gul
+ * Added crypt traffic possibility
+ *
  * Revision 2.0  2001/01/10 12:12:38  gul
  * Binkd is under CVS again
  *
@@ -60,6 +63,7 @@ struct _FTN_NODE
   int NR_flag;
   int ND_flag;
   int MD_flag;
+  int crypt_flag;
   int restrictIP;
 
   time_t hold_until;
@@ -92,8 +96,8 @@ int node_cmp (FTN_NODE *a, FTN_NODE *b);
  * 1 -- ok, 0 -- error;
  */
 int add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
-	      char *obox, char *ibox, int NR_flag, int ND_flag, int MD_flag,
-	      int restrictIP);
+	      char *obox, char *ibox, int NR_flag, int ND_flag,
+	      int crypt_flag, int MD_flag, int restrictIP);
 
 #define NR_ON       1
 #define NR_OFF      0
@@ -102,6 +106,10 @@ int add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
 #define ND_ON       1
 #define ND_OFF      0
 #define ND_USE_OLD -1		       /* Use old value */
+
+#define CRYPT_ON	 1
+#define CRYPT_OFF	 0
+#define CRYPT_USE_OLD	-1		/* Use old value */
 
 /*
  * Iterates through nodes while func() == 0.

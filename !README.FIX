@@ -470,3 +470,5 @@ NT/95:  ctrl-c problems fixed
 	the file and drop session for send it from 0 next session.
 
 	binkd/unix: run as daemon (Alex Semenyaka <alexs@snark.rinet.ru>).
+
+	New option "-crypt" in "node" line - crypt traffic
