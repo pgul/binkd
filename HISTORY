@@ -1,3 +1,7 @@
+2004/01/07 23:42:26 1.0a-357 stas
+w32tools.c,2.16,2.17
+Don't export w32exitfunc()
+
 2004/01/07 23:40:49 1.0a-356 stas
 binkd.c,2.85,2.86
 Options -i and -u is marked deprecated for win32
