@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2003/07/18 13:44:32  stas
+ * Difference NT service internal name and display name
+ *
  * Revision 2.13  2003/07/18 12:35:59  stas
  * Remove old code; add some checks; use new option '--service' for win9x
  *
@@ -83,8 +86,9 @@
 extern enum serviceflags service_flag;
 extern char *configpath;
 
-static char libname[]="ADVAPI32";
+static const char libname[]="ADVAPI32";
 static char *srvname="binkd-service";
+static const char dependencies[] = "Tcpip\0Afd\0"; /* Afd is the winsock handler */
 static char reg_path_prefix[]="SYSTEM\\CurrentControlSet\\Services\\";
 static char reg_path_suffix[]="\\Parameters";
 static SERVICE_STATUS_HANDLE sshan;
@@ -304,9 +308,20 @@ static int service_main(int type)
         CloseServiceHandle(sman);
         return 1;
       }
-      shan=CreateService(sman, srvname, srvname, SERVICE_ALL_ACCESS,
-        srvtype, SERVICE_AUTO_START,
-        SERVICE_ERROR_NORMAL, path, NULL, NULL, NULL, NULL, NULL);
+      shan=CreateService( sman,                 /* SCManager database */
+                          srvname,              /* name of service */
+                          service_name,         /* name to display */
+                          SERVICE_ALL_ACCESS,   /* desired access */
+                          srvtype,              /* service type */
+                          SERVICE_AUTO_START,   /* start type */
+                          SERVICE_ERROR_NORMAL, /* error control type */
+                          path,                 /* service's binary */
+                          NULL,                 /* no load ordering group */
+                          NULL,                 /* no tag identifier */
+                          dependencies,         /* dependencies */
+                          NULL,                 /* user account */
+                          NULL );               /* account password */
+
       if(!shan)
         Log(1, "Error in CreateService()=%s", tcperr(GetLastError()) );
     }
@@ -467,10 +482,10 @@ static void wndthread(void *par)
             setvbuf( stderr, NULL, _IONBF, 0 );
 
             strcpy(buf, srvname);
-            SetConsoleTitle(srvname);
+            SetConsoleTitle(service_name);
             for (i = 0; i < 40; i++)
             {
-                if ((mainWindow = FindWindow(NULL, srvname)) != NULL) break;
+                if ((mainWindow = FindWindow(NULL, service_name)) != NULL) break;
                 Sleep(100);
             }
             if (!mainWindow) return;
@@ -581,7 +596,7 @@ int service(int argc, char **argv, char **envp)
   }
 
 
-  if(service_name) srvname = service_name;  /* Use service name from command line if specified */
+  if(service_name) srvname = get_service_name(service_name);  /* Use service name from command line if specified */
   else service_name = srvname;
 
   if (tray_flag)
