@@ -711,8 +711,9 @@ socket. Влияние ее (и других обнаруженных в winsock ошибок) устранено:
     Argus (Radius) и binkd: ошибка Argus "Aborting due to carrier loss"
 
     Сессия между binkd и Radius (или Argus - это несущественно) обрывается
-с непонятной диагностикой "carriser lost" при включенном в Radius шифровании
-трафика.
+с непонятной диагностикой "Aborting due to carrier loss" при включенном 
+в Radius шифровании трафика.
+
     Лог со стороны Radius:
     30-Aug-2003 22:24:31 Encrypted (2:463/375) session
     30-Aug-2003 22:24:32 Aborting due to carrier loss

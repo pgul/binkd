@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of Sep 09 2003
+        Version of Sep 11 2003
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -33,9 +33,10 @@ from Russian by Michael Dukelsky 2:5020/1042.
     22. Different FTN Domains in BinkD.
     23. How Does "domain ... alias-for ..." In The Configuration File Work?
     24. What Does "send: TCP/IP error (-10000)" Mean and How To Cure It?
-    25. I Have Found a Bug in BinkD!
-    26. I Want To Talk To Developers.
-    27. I Want To Get Information About Changes In BinkD Immediately!
+    25. Argus (Radius) and BinkD: Argus Error "Aborting due to carrier loss"
+    26. I Have Found a Bug in BinkD!
+    27. I Want To Talk To Developers.
+    28. I Want To Get Information About Changes In BinkD Immediately!
 
 
 ----------------------------------------------------------------------------
@@ -756,6 +757,40 @@ socket.  The influence of this and other Winsock bugs is fixed:
     * workaround winsock bug (patch by Alexander Reznikov)
     2003/08/24 00:29:31  hbrew
     * win9x-select-workaround fix, thanks to Pavel Gulchouck)
+
+
+----------------------------------------------------------------------------
+
+
+        Argus (Radius) and BinkD: Argus Error "Aborting due to carrier loss"
+
+    A session between BinkD and Radius (or Argus, it does not matter) is
+aborted "due to carrier loss" when traffic encryption is enabled in Radius.
+
+    Log from the Radius side:
+    30-Aug-2003 22:24:31 Encrypted (2:463/375) session
+    30-Aug-2003 22:24:32 Aborting due to carrier loss
+    30-Aug-2003 22:24:32 Session aborted
+    30-Aug-2003 22:24:32 End
+
+    The reason is that Argus authors implemented an encryption method of
+their own which is not implemented in BinkD. It would be OK but Argus (and
+Radius together with it) does not keep compatibility with BinkP protocol:
+the encryption is enabled unconditionally without checking if the remote
+side supports it. Such a glaring contradiction to the specification is
+inadmissible but alas... The way out is to disable encryption in Argus for
+every link using BinkD.
+
+    The correct mailer behaviour should be as follows:
+    - if encryption is not mandatory then proceed with the nonencrypted
+session;
+    - if encryption is set mandatory in the mailer configuration then it
+should inform the remote of aborting the session, for example in such a way:
+    M_ERR "DES encription required"
+
+    For such a session not to hang from the BinkD side, a workaround was
+implemented starting with version 0.9.5 producing such a log entry:
+    rerror: ENC DES/CBC 559 (Encrypted session not supported)
 
 
 ----------------------------------------------------------------------------
