@@ -10,7 +10,7 @@ AC_PROG_INSTALL
 CFLAGS=
 
 dnl Checks for header files.
-dnl AC_CHECK_HEADERS(inttypes.h unistd.h)
+AC_CHECK_HEADERS(inttypes.h stdint.h unistd.h)
 AC_CHECK_HEADERS(sys/vfs.h sys/statfs.h sys/statvfs.h sys/param.h)
 AC_CHECK_HEADERS(sys/mount.h,,,
 [[#ifdef HAVE_SYS_PARAM_H
@@ -53,9 +53,15 @@ AC_TRY_COMPILE([#include <sys/types.h>
 
 dnl check for intmax_t
 dnl 
-case $ac_cv_header_inttypes_h in
- yes) AC_MSG_CHECKING(for intmax_t)
-      AC_TRY_COMPILE([#include <inttypes.h>], [intmax_t i], AC_DEFINE(HAVE_INTMAX_T) AC_MSG_RESULT(yes), AC_MSG_RESULT(no), AC_MSG_RESULT(cross-compiling. No assumptions made))
+case $ac_cv_header_inttypes_h$ac_cv_header_stdint_h in
+ *yes*) AC_MSG_CHECKING(for intmax_t)
+      AC_TRY_COMPILE([
+#ifdef HAVE_INTTYPES_H
+#  include <inttypes.h>
+#endif
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#endif], [intmax_t i], AC_DEFINE(HAVE_INTMAX_T) AC_MSG_RESULT(yes), AC_MSG_RESULT(no), AC_MSG_RESULT(cross-compiling. No assumptions made))
       ;;
 esac
 
