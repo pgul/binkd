@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2002/03/14 12:26:24  gul
+ * Creating flags bugfix
+ *
  * Revision 2.3  2002/02/22 00:18:34  gul
  * Run by-file events with the same command-line once after session
  *
@@ -93,7 +96,7 @@ int evt_test (EVTQ **eq, char *filename0)
 	if (curr->imm)
 	  create_empty_sem_file (curr->path);
 	else
-	  *eq = evt_queue(*eq, 'f', filename);
+	  *eq = evt_queue(*eq, 'f', curr->path);
       }
       else if (curr->command)
       {
