@@ -30,17 +30,17 @@ binkd.exe: $(OBJS)
 install: all clean
 
 clean:
-	-del /n *.RES >nul
-	-del /n *.obj >nul
-	-del /n *.o   >nul
-	-del /n nt\*.o   >nul
-	-del /n ntlm\*.o >nul
-	-del /n *.map >nul
-	-del /n *.bak >nul
-	-del /n *.b   >nul
-	-del /n *.ini >nul
-	-del /n *.err >nul
-	-del /n core  >nul
+	-del *.RES >nul
+	-del *.obj >nul
+	-del *.o   >nul
+	-del nt\*.o   >nul
+	-del ntlm\*.o >nul
+	-del *.map >nul
+	-del *.bak >nul
+	-del *.b   >nul
+	-del *.ini >nul
+	-del *.err >nul
+	-del core  >nul
 	-rm -f *.RES *.obj *.o  nt/*.o ntlm/*.o *.map *.bak *.b *.ini *.err core
 
 depend	Makefile.dep:
