@@ -57,8 +57,9 @@
 
     Релизы, анализаторы логов и пр. (Pavel Gulchouck 2:463/68):
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/
-    Зеркало (Matt Bedynek 1:106/1):
-    ftp://fido.thunderdome.ws/pub/mirror/binkd/
+    Зеркала 
+    ftp://fido.thunderdome.ws/pub/mirror/binkd/  (Matt Bedynek 1:106/1):
+    ftp://cheetah.itpark.com.ua/pub/fido/binkd
 
     Бэты:
     Публичный CVS
