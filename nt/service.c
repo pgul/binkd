@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.52  2004/01/24 01:07:01  hbrew
+ * Fix warning
+ *
  * Revision 2.51  2004/01/04 16:55:00  stas
  * Move declarations of the 'binkd_main' into one place (nt/w32tools.h)
  *
@@ -562,7 +565,7 @@ static int query_service(DWORD servicestatus)
 static int store_data_into_registry(char **argv,char **envp)
 { int len, rc=0;
   char sp[MAXPATHLEN+1];
-  BYTE *asp=NULL;
+  char *asp=NULL;
   HKEY hk=0;
 
   strnzcpy(sp, reg_path_prefix,sizeof(sp));
