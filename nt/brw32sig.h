@@ -21,6 +21,3 @@ the Free Software Foundation; either version 2 of the License, or
 /*    For "manual" call only, not for OS signal handlers              */
 /*--------------------------------------------------------------------*/
 BOOL SigHandlerExit(DWORD SigType);
-
-/* Set signal handler */
-int set_break_handlers(void);
