@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/08/12 09:23:00  val
+ * migrate from pmatch() to pmatch_ncase()
+ *
  * Revision 2.9  2003/05/28 14:32:57  gul
  * new function q_add_last_file() - add file to the end of queue
  *
@@ -93,17 +96,14 @@ static EVTQ *evt_queue(EVTQ *eq, char evt_type, char *path)
 /*
  * Tests if filename matches any of EVT_FLAG's patterns.
  */
-int evt_test (EVTQ **eq, char *filename0)
+int evt_test (EVTQ **eq, char *filename)
 {
   EVT_FLAG *curr;
-  char filename[MAXPATHLEN + 1];
   int rc=0;
 
-  strnzcpy (filename, filename0, MAXPATHLEN);
-  strlower (filename);
   for (curr = evt_flags; curr; curr = curr->next)
   {
-    if (pmatch (curr->pattern, filename))
+    if (pmatch_ncase(curr->pattern, filename))
     {
       if (curr->path)
       {
@@ -379,18 +379,15 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa,
  * Runs external programs using S.R.I.F. interface
  * if the name matches one of our "exec"'s
  */
-FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename0,
+FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename,
 	       FTN_ADDR *fa, int nfa,
 	       int prot, int listed, char *peer_name, STATE *st)
 {
   EVT_FLAG *curr;
-  char filename[MAXPATHLEN + 1];
 
-  strnzcpy (filename, filename0, MAXPATHLEN);
-  strlower (filename);
   for (curr = evt_flags; curr; curr = curr->next)
   {
-    if (curr->command && pmatch (curr->pattern, filename))
+    if (curr->command && pmatch_ncase(curr->pattern, filename))
     {
       if (strstr (curr->command, "*S") || strstr (curr->command, "*s"))
       {
@@ -401,10 +398,10 @@ FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename0,
 	  {
 	    char *w = ed (curr->command, "*S", srf, NULL);
 
-	    if (srif_fill (srf, fa, nfa, filename0, rsp, prot, listed, peer_name))
+	    if (srif_fill (srf, fa, nfa, filename, rsp, prot, listed, peer_name))
 	    {
-	      if (!run_args (NULL, w, filename0, fa, nfa, prot, listed, peer_name, st, 1))
-	        delete(filename0);
+	      if (!run_args (NULL, w, filename, fa, nfa, prot, listed, peer_name, st, 1))
+	        delete(filename);
 	    }
 	    else
 	      Log (1, "srif_fill: error");
@@ -418,7 +415,7 @@ FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename0,
 	}
       }
       else
-	*eq = run_args(*eq, curr->command, filename0, fa, nfa, prot, listed, peer_name, st, curr->imm);
+	*eq = run_args(*eq, curr->command, filename, fa, nfa, prot, listed, peer_name, st, curr->imm);
     }
   }
   return q;

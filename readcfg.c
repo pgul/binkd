@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.35  2003/08/12 09:23:00  val
+ * migrate from pmatch() to pmatch_ncase()
+ *
  * Revision 2.34  2003/08/11 08:33:16  val
  * better error handling in perl hooks
  *
@@ -1040,7 +1043,7 @@ char *mask_test(char *netname, struct maskchain *chain)
   struct maskchain *ps;
 
   for (ps = chain; ps; ps = ps->next)
-    if (pmatch(ps->mask, netname))
+    if (pmatch_ncase(ps->mask, netname))
       return ps->mask;
   return NULL;
 }

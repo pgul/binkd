@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.31  2003/08/12 09:23:00  val
+ * migrate from pmatch() to pmatch_ncase()
+ *
  * Revision 2.30  2003/07/16 15:08:49  stas
  * Fix NT services to use getopt(). Improve logging for service
  *
@@ -889,29 +892,27 @@ char *get_os_string (void)
  */
 int ispkt (char *s)
 {
-  return pmatch ("*.[Pp][Kk][Tt]", s);
+  return pmatch_ncase("*.pkt", s);
 }
 
 int isreq (char *s)
 {
-  return pmatch ("*.[Rr][Ee][Qq]", s);
+  return pmatch_ncase("*.req", s);
 }
 
 int istic (char *s)
 {
-  return pmatch ("*.?[Ii][Cc]", s);
+  return pmatch_ncase("*.?ic", s);
 }
 
 int isarcmail (char *s)
 {
   /* *.su? *.mo? *.tu? *.we? *.th? *.fr? *.sa? */
-  return (pmatch ("*.[Ss][Uu]?", s) ||
-	  pmatch ("*.[Mm][Oo]?", s) ||
-	  pmatch ("*.[Tt][Uu]?", s) ||
-	  pmatch ("*.[Ww][Ee]?", s) ||
-	  pmatch ("*.[Tt][Hh]?", s) ||
-	  pmatch ("*.[Ff][Rr]?", s) ||
-	  pmatch ("*.[Ss][Aa]?", s));
+  return (pmatch_ncase("*.s[UuAa]?", s) ||
+          pmatch_ncase("*.t[UuHh]?", s) ||
+          pmatch_ncase("*.mo?", s) ||
+          pmatch_ncase("*.we?", s) ||
+          pmatch_ncase("*.fr?", s));
 }
 
 /*
