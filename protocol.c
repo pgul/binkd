@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2002/10/22 20:29:46  gul
+ * Do not send zero-length data packet as EOF
+ * Prevent incorrect "remote already has ..." message
+ *
  * Revision 2.14  2002/05/11 10:28:11  gul
  * fix spelling
  *
@@ -469,7 +473,7 @@ static int send_block (STATE *state)
 	  return 0;
 	}
       }
-      else if (state->out.f)
+      if (state->out.f && (sz == 0 || state->out.size == ftell(state->out.f)))
 	/* The current file have been sent */
 	current_file_was_sent (state);
       state->optr = state->obuf;
