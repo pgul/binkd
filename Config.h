@@ -50,6 +50,9 @@
 
 /* Enviromant variables */
 #define BINKD_LOGPATH_ENVIRON "BINKD_LOG"
+/* Icon file: you places this file into binkd directory and 
+   binkd loads it for tray icon */
+#define BINKD_ICON_FILE "binkd.ico"
 
 /* Please, no spaces here! */
 #define PRTCLNAME "binkp"

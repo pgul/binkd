@@ -76,29 +76,17 @@ void wndthread(void *par)
     WNDCLASS rc;
     char *cn = "testclass";
     char buf[256];
-    char bn[20];
     ATOM wa;
     HWND wnd;
-    HICON hi=NULL,loaded_icon=NULL, save_icon_big, save_icon_small;
+    HICON hi=NULL;
     HANDLE in, out;
     int i;
 
-    i = GetConsoleTitle(buf, sizeof(buf));
-    if (i < 0) i = 0;
-    buf[i] = 0;
-    sprintf(bn, "%x", (unsigned int)GetCurrentThreadId());
-    for (i = 0; i < 40; i++)
-    {
-        SetConsoleTitle(bn);
-        if (((mainWindow = FindWindow(NULL, bn)) != NULL) || (isService()>0)) break;
-        Sleep(100);
-    }
-    SetConsoleTitle(buf);
-    if ((!IsWindow(mainWindow)) || (!mainWindow))
+    if( IsNT() && isService() )
     {
         if (!AllocConsole())
         {
-            Log(-1, "unable to find main window... (%s)", bn);
+            Log(-1, "unable to allocate console");
             return;
         }
         else
@@ -115,43 +103,12 @@ void wndthread(void *par)
             setvbuf( stdout, NULL, _IONBF, 0 );
             setvbuf( stderr, NULL, _IONBF, 0 );
 
-            strcpy(buf, service_name);
-            SetConsoleTitle(service_name);
-            for (i = 0; i < 40; i++)
-            {
-                if ((mainWindow = FindWindow(NULL, service_name)) != NULL) break;
-                Sleep(100);
-            }
-            if (!mainWindow) return;
         }
     }
+    mainWindow = GetMainWindow();
+    hi = LoadBinkdIcon();
 
-    /* Save icon of window */
-    save_icon_small = (HICON)SendMessage(mainWindow, WM_GETICON, ICON_SMALL, 0);
-    save_icon_big = (HICON)SendMessage(mainWindow, WM_GETICON, ICON_BIG, 0);
-
-    /* Load icon from file */
-    loaded_icon = hi = LoadImage( NULL, BINKD_ICON_FILE, IMAGE_ICON, 0, 0,
-                                  LR_LOADFROMFILE | LR_LOADTRANSPARENT );
-    if(loaded_icon)
-      Log(12,"Icon for systray is loaded from %s", BINKD_ICON_FILE);
-
-    /* Load icon from resource */
-    if (!hi)
-    { HMODULE hModule;
-      if( (hModule = GetModuleHandle(NULL)) )
-        loaded_icon = hi = LoadImage( hModule, MAKEINTRESOURCE(0), IMAGE_ICON,
-                                      0, 0, LR_LOADTRANSPARENT);
-    }
-    /* Load standard icon "?" */
-    if (!hi)
-    {
-        hi = LoadIcon(NULL, IDI_INFORMATION);
-    }
-
-    /* Set icon of window */
-    SendMessage(mainWindow, WM_SETICON, ICON_SMALL, (LPARAM)hi);
-    SendMessage(mainWindow, WM_SETICON, ICON_BIG,   (LPARAM)hi);
+    if (isService) SetConsoleTitle(service_name);
 
     memset(&rc, 0, sizeof(rc));
     rc.lpszClassName = cn;
@@ -225,15 +182,5 @@ void wndthread(void *par)
                 ShowWindow(mainWindow, SW_HIDE);
             }
     	}
-    }
-
-    /* Restore icon of window (This is needed for w9x? Check please...) */
-    SendMessage(mainWindow, WM_SETICON, ICON_SMALL, (LPARAM)save_icon_small);
-    SendMessage(mainWindow, WM_SETICON, ICON_BIG,   (LPARAM)save_icon_big);
-
-    /* Release loaded icon */
-    if(loaded_icon) if(DestroyIcon(loaded_icon)==FALSE)
-    {
-      Log(1,"Error in DestroyIcon(): %s", w32err(GetLastError()));
     }
 }

@@ -20,6 +20,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.12  2004/01/03 12:17:44  stas
+ * Implement full icon support (winNT/2k/XP)
+ *
  * Revision 2.11  2004/01/02 21:20:17  stas
  * GetMainWindow(): function retrieves the window handle used by the main window of application
  *
@@ -278,26 +281,85 @@ HWND GetMainWindow(void)
   }
   else /* Windows NT and Windows 9x: searching for window is needed */
   {
-    if(!isService())
-    { DWORD i;
-      char buf[160], bn[21];
+    DWORD i;
+    char buf[160], bn[21];
 
-      i = GetConsoleTitle(buf, sizeof(buf)); /* don't detect code page, may be need? */
-      buf[i] = 0;
-      snprintf( bn, sizeof(bn), "%lx", (unsigned long)GetCurrentThreadId() );
-      SetConsoleTitle(bn);
-      wh = FindWindow(NULL, bn);
-      SetConsoleTitle(buf);
-    }
-    else
-    {
-      if(service_name)
-      {
-         SetConsoleTitle(service_name);
-         wh = FindWindow(NULL, service_name);
-      }
-    }
+    i = GetConsoleTitle(buf, sizeof(buf)); /* don't detect code page, may be need? */
+    buf[i] = 0;
+    snprintf( bn, sizeof(bn), "%lx", (unsigned long)GetCurrentThreadId() );
+    SetConsoleTitle(bn);
+    wh = FindWindow(NULL, bn);
+    SetConsoleTitle(buf);
   }
 
+  if(!IsWindow(wh)) wh=NULL;  /* detached or NT service */
+
   return wh;
+}
+
+static HICON save_icon_big=NULL, save_icon_small=NULL;
+static HWND mwnd;
+MUTEXSEM iconsem;
+
+/* Load the icon
+ */
+HICON LoadBinkdIcon(void)
+{
+  static HICON hi=NULL;
+
+  LockSem(&iconsem);
+
+  if(hi)
+  {
+    ReleaseSem(&iconsem);
+    return hi;
+  }
+
+  if (!(mwnd=GetMainWindow()))
+  {
+    ReleaseSem(&iconsem);
+    return NULL;
+  }
+
+  /* Save icon of window */
+  save_icon_small = (HICON)SendMessage(mwnd, WM_GETICON, ICON_SMALL, 0);
+  save_icon_big = (HICON)SendMessage(mwnd, WM_GETICON, ICON_BIG, 0);
+
+  /* Load icon from file */
+  hi = LoadImage( NULL, BINKD_ICON_FILE, IMAGE_ICON, 0, 0,
+                  LR_SHARED | LR_LOADFROMFILE | LR_LOADTRANSPARENT );
+  if(hi)
+    Log(12,"Icon for systray is loaded from %s", BINKD_ICON_FILE);
+
+  /* Load icon from resource */
+  if (!hi)
+  { HMODULE hModule;
+    if( (hModule = GetModuleHandle(NULL)) )
+      hi = LoadImage( hModule, MAKEINTRESOURCE(0), IMAGE_ICON,
+                      0, 0, LR_SHARED | LR_LOADTRANSPARENT);
+  }
+
+  /* Load standard icon "?" */
+  if (!hi)
+  {
+      hi = LoadIcon(NULL, IDI_INFORMATION);
+  }
+
+  /* Set icon of window */
+  SendMessage(mwnd, WM_SETICON, ICON_SMALL, (LPARAM)hi);
+  SendMessage(mwnd, WM_SETICON, ICON_BIG,   (LPARAM)hi);
+
+  ReleaseSem(&iconsem);
+  return hi;
+}
+
+/* Unload the icon
+ */
+void UnloadBinkdIcon(void)
+{
+  /* Restore icon of window */
+  if(save_icon_small)
+    SendMessage(mwnd, WM_SETICON, ICON_SMALL, (LPARAM)save_icon_small);
+  if(save_icon_big)
+    SendMessage(mwnd, WM_SETICON, ICON_BIG,   (LPARAM)save_icon_big);
 }

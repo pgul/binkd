@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.37  2004/01/03 12:17:43  stas
+ * Implement full icon support (winNT/2k/XP)
+ *
  * Revision 2.36  2003/10/29 21:08:38  gul
  * Change include-files structure, relax dependences
  *
@@ -304,6 +307,9 @@ Log(7, "exitfunc(): pid=%d, cmgr=%d, smgr=%d, inetd=%d", getpid(), pidCmgr, pids
   CleanEventSem (&exitcmgr);
 #ifdef OS2
   CleanSem (&fhsem);
+#endif
+#ifdef WIN32
+  CleanSem (&iconsem);
 #endif
   ReleaseErrorList();
 }

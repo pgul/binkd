@@ -15,9 +15,8 @@
 #ifndef __TRAY_H_
 #define __TRAY_H_
 
-#define BINKD_ICON_FILE "binkd.ico" /* place this file into binkd directory and binkd loads it for tray icon */
-
 /* Function used for "minimize to tray" feature
  */
 void wndthread(void *par);
+
 #endif

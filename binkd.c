@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.77  2004/01/03 12:17:43  stas
+ * Implement full icon support (winNT/2k/XP)
+ *
  * Revision 2.76  2004/01/03 11:16:57  stas
  * Remove the obsoleted rerun variable
  *
@@ -733,12 +736,18 @@ int main (int argc, char *argv[], char *envp[])
     Log (0, "-p and -s cannot be used together");
 
 #if defined(WIN32) && !defined(BINKDW9X)
+  InitSem (&iconsem);
   if (service_flag!=w32_noservice)
     if (service(argc, argv, envp) && service_flag!=w32_run_as_service) {
       Log(0, "Windows NT service error");
     }
   if (tray_flag)
      do_tray_flag();
+  else
+  {
+    atexit(UnloadBinkdIcon);
+    LoadBinkdIcon();
+  }
 #endif
 
   /* No command line options: run both client and server */

@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.8  2004/01/03 12:17:44  stas
+ * Implement full icon support (winNT/2k/XP)
+ *
  * Revision 2.7  2004/01/02 21:20:17  stas
  * GetMainWindow(): function retrieves the window handle used by the main window of application
  *
@@ -33,6 +36,9 @@
  * Add CVS tags
  *
  */
+
+#ifndef __W32TOOLS_H
+#define __W32TOOLS_H
 
 #define AlertWin(text) MessageBox(NULL, text, MYNAME, MB_OK|MB_ICONSTOP|0x00200000L|MB_SYSTEMMODAL|MB_SETFOREGROUND)
 
@@ -88,3 +94,13 @@ int isService();
  * window.
  */
 HWND GetMainWindow(void);
+
+/* Load the icon
+ */
+HICON LoadBinkdIcon(void);
+
+/* Unload the icon
+ */
+void UnloadBinkdIcon(void);
+
+#endif
