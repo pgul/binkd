@@ -296,6 +296,7 @@ if test ".$do_bzlib2" != ".no" ; then
 	  fi
 	  AC_TRY_LINK(
 [
+#include <stdio.h>
 #include <bzlib.h>
 #ifdef __cplusplus
   extern "C"

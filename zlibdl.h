@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/10/03 13:29:57  val
+ * fix for older bzlib2 error (uses FILE but doesn't include stdio.h)
+ *
  * Revision 2.9  2003/09/25 09:01:28  gul
  * Fix CVS macro again
  *
@@ -64,6 +67,7 @@ int zlib_init(const char *dll_name);
 #ifdef WITH_BZLIB2
 
 #ifndef ZLIBDL
+#include <stdio.h>
 #include "bzlib.h"
 #else
 

@@ -2193,6 +2193,7 @@ echo "configure:2171: checking for libbz2" >&5
 #line 2194 "configure"
 #include "confdefs.h"
 
+#include <stdio.h>
 #include <bzlib.h>
 #ifdef __cplusplus
   extern "C"
@@ -2205,7 +2206,7 @@ int main() {
 
 ; return 0; }
 EOF
-if { (eval echo configure:2209: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2210: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   found_bzlib2="$bzlib2_path"
 else
