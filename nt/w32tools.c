@@ -20,6 +20,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.15  2004/01/04 15:51:06  stas
+ * Fix service name convertion: now Service Display Name (parameter of the '-S' command line option) may be content a '\' and '/' characters
+ *
  * Revision 2.14  2004/01/03 19:04:20  stas
  * New functions: public w32Init() and hidden w32exitfunc()
  *
@@ -132,6 +135,8 @@ char *get_service_name(char *display_name)
     for(cp=srv_name; *cp; cp++)
     {
        if(*cp==' ') *cp='_';
+       if(*cp=='/') *cp='-';
+       if(*cp=='\\') *cp='=';
     }
   }
   else
