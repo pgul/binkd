@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.75  2003/07/17 03:08:23  hbrew
+ * Auto increase patchlevel, set 0.9.6a-64
+ * Fix uninstall of binkd9x service
+ *
  * Revision 2.74  2003/07/17 02:53:07  hbrew
  * Auto increase patchlevel, set 0.9.6a-63
  * Fix MSVC warnings & errors
@@ -311,7 +315,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-63"
+#define MYVER "0.9.6a-64"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
