@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.2  2003/03/11 09:21:30  gul
+ * Fixed OS/2 Watcom compilation
+ *
  * Revision 2.1  2003/03/01 20:26:36  gul
  * *** empty log message ***
  *
@@ -25,6 +28,8 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "sys.h"
 
 #include <os2def.h>
 #include <bsedos.h>

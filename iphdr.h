@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2003/03/11 09:21:30  gul
+ * Fixed OS/2 Watcom compilation
+ *
  * Revision 2.6  2003/03/11 00:04:25  gul
  * Use patches for compile under MSDOS by MSC 6.0 with IBMTCPIP
  *
@@ -56,6 +59,23 @@
 #include <sys/param.h>
 #endif
 
+#ifdef IBMTCPIP
+  #include <errno.h>
+  #undef ENAMETOOLONG
+  #undef ENOTEMPTY
+
+  #define BSD_SELECT
+  #define __off_t
+  #define __size_t
+  #include <types.h>
+  #include <utils.h>
+  #include <unistd.h>
+  #ifndef __UTILS_32H /* using toolkit 5.x */
+    #define HAVE_ARPA_INET_H
+  #endif
+  #include <sys/select.h>
+#endif
+
 #if !defined(WIN32)
   #if defined(IBMTCPIPDOS)
     #include <sys/tcptypes.h>
@@ -64,32 +84,10 @@
   #include <netinet/in.h>
   #include <netdb.h>			    /* One of these two should have
 					     * MAXHOSTNAMELEN */
-  #if defined(IBMTCPIP)
-    #include <types.h>
-  #endif
 #endif
 
 #ifdef HAVE_ARPA_INET_H
   #include <arpa/inet.h>
-#endif
-
-#ifndef MAXHOSTNAMELEN
-  #define MAXHOSTNAMELEN 255		    /* max hostname size */
-#endif
-
-#define MAXSERVNAME 80                      /* max id len in /etc/services */
-
-#ifdef IBMTCPIP
-  #if defined(__WATCOMC__) && !defined(__IBMC__)
-    #define __IBMC__ 0
-    #define __IBMCPP__ 0
-  #endif
-  #define BSD_SELECT
-  #include <utils.h>
-  #include <sys/select.h>
-  #ifndef MAXSOCKETS
-    #define MAXSOCKETS 2048
-  #endif
 #endif
 
 #if !defined(WIN32)
@@ -98,18 +96,25 @@
   #include <winsock.h>
 #endif
 
+#ifndef MAXHOSTNAMELEN
+  #define MAXHOSTNAMELEN 255		    /* max hostname size */
+#endif
+
+#define MAXSERVNAME 80                      /* max id len in /etc/services */
+
 #if defined(IBMTCPIP)
 const char *tcperr (void);
 
   #define TCPERR() tcperr()
   #define TCPERRNO (sock_errno())
-  #include <errno.h>
-  #undef ENAMETOOLONG
-  #undef ENOTEMPTY
   #include <nerrno.h>
   #define TCPERR_WOULDBLOCK EWOULDBLOCK
   #define TCPERR_AGAIN EAGAIN
   #define sock_deinit()
+  typedef int socklen_t;
+  #ifndef MAXSOCKETS
+    #define MAXSOCKETS 2048
+  #endif
 #elif defined(IBMTCPIPDOS)
 const char *tcperr (void);
 
@@ -144,6 +149,9 @@ const char *tcperr (void);
   #define sock_init() 0
   #define sock_deinit()
   #define soclose(h) close(h)
+  #ifdef __EMX__
+    typedef int socklen_t;
+  #endif
 #endif
 
 #if !defined(WIN32)

@@ -72,10 +72,8 @@
 
 #ifndef MSDOS
 #if !defined(VMS) || defined(__DECC)
-#ifdef OPENSSL_UNISTD
-# include OPENSSL_UNISTD
-#else
-# include <unistd.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
 #endif
 #include <math.h>
 #endif

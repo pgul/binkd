@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/03/11 09:21:29  gul
+ * Fixed OS/2 Watcom compilation
+ *
  * Revision 2.9  2003/03/11 00:04:25  gul
  * Use patches for compile under MSDOS by MSC 6.0 with IBMTCPIP
  *
@@ -53,16 +56,9 @@
 #define _Config_h
 
 #ifdef __WATCOMC__
-  /* #include <direct.h> */ /* commented out due to bug */
-  #ifndef NAME_MAX
-    #if defined(__OS2__) || defined(__NT__)
-       #define NAME_MAX	255		/* maximum filename for HPFS or NTFS */
-    #else
-       #define NAME_MAX	12		/* 8 chars + '.' +  3 chars */
-    #endif
-  #endif
+  #include <stdlib.h>
   #ifndef MAXPATHLEN
-    #define MAXPATHLEN NAME_MAX
+    #define MAXPATHLEN _MAX_PATH
   #endif
 #elif defined (VISUALCPP)
   #include <direct.h>

@@ -27,6 +27,9 @@ documentation and/or software.
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/03/11 09:21:30  gul
+ * Fixed OS/2 Watcom compilation
+ *
  * Revision 2.5  2003/03/10 10:57:45  gul
  * Extern declarations moved to header files
  *
@@ -45,9 +48,9 @@ documentation and/or software.
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
-#include "tools.h"
 #include "sys.h"
 #include "md5b.h"
+#include "tools.h"
 
 /* Constants for MD5Transform routine.
  */
