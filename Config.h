@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.130  2003/08/20 07:33:40  hbrew
+ * Auto increase patchlevel, set 0.9.6a-117
+ * Addon for 'Avoid double exitfunc() call' patch
+ *
  * Revision 2.129  2003/08/19 19:41:41  gul
  * Auto increase patchlevel, set 0.9.6a-116
  * Fix warnings
@@ -560,7 +564,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-116"
+#define MYVER "0.9.6a-117"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
