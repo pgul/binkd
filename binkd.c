@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30.2.6  2003/08/28 06:29:51  hbrew
+ * Update binkd9x for compability with binkd 0.9.6 commandline; put binkd9x.txt from current
+ *
  * Revision 2.30.2.5  2003/08/27 12:59:35  stas
  * Update usage(), optimize code
  *
@@ -263,7 +266,7 @@ void usage (void)
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
 	  "i"
 #elif defined(BINKDW9X)
-	  "iut"
+	  "iu] [-S name] [-t cmd"
 #elif defined(WIN32)
 	  "T%s] [-S srvn"
 #endif
@@ -284,9 +287,10 @@ void usage (void)
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
 	  "  -i       run from inetd\n"
 #elif defined(BINKDW9X)
-	  "  -i[(service-name)][q]        install Win9x service\n"
-	  "  -u[(service-name|--all)][q]  UNinstall Win9x service\n"
-	  "  -t[start|stop|restart][(service-name|--all)][q]  status|control service(s)\n"
+	  "  -i       install Win9x service\n"
+	  "  -u       uninstall Win9x service\n"
+	  "  -t cmd   (start|stop|restart|status) service(s)\n"
+	  "  -S name  set Win9x service name, all - use all services\n"
 #elif defined(WIN32)
 	  "  -T       minimize to System Tray\n"
 	  "%s"
@@ -329,6 +333,10 @@ int verbose_flag = 0;		       /* Be verbose / print version (-v) */
 int checkcfg_flag = 0;		       /* exit(3) on config change (-C) */
 int no_MD5 = 0;			       /* disable MD5 flag (-m) */
 int no_crypt = 0;		       /* disable CRYPT (-r) */
+
+#ifdef BINKDW9X
+extern const char *Win9xStartService;  /* 'Run as win9x service' option */
+#endif
 
 #ifdef BINKDW9X
 int binkd_main (int argc, char *argv[], char *envp[])
@@ -382,6 +390,11 @@ int main (int argc, char *argv[], char *envp[])
 #endif
 		usage ();
               }
+#if defined (WIN32) && defined (BINKDW9X)
+	      else
+	      if (!strcmp(argv[i], Win9xStartService))
+	        goto BREAK_WHILE;
+#endif
 	      else
 		Log (0, "%s: --%s: unknown command line switch", extract_filename(argv[0]), s + 1);
 	    case 'C':
@@ -395,13 +408,15 @@ int main (int argc, char *argv[], char *envp[])
 	      inetd_flag = 1;
 	      break;
 #endif
-#if defined(WIN32) && !defined (BINKDW9X)
+#if defined (WIN32)
+#if !defined (BINKDW9X)
 	    case 'T':
-	    case 't':
 	      break;
 #endif
-#if defined(WIN32)
 	    case 'S': /* Skip parameter */
+#if defined (BINKDW9X)
+            case 't': /* Skip parameter */
+#endif
 	      if (!s[1]){ ++i; }
 	      goto BREAK_WHILE;
 #endif

@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.4.2.4  2003/08/28 06:29:51  hbrew
+ * Update binkd9x for compability with binkd 0.9.6 commandline; put binkd9x.txt from current
+ *
  * Revision 2.4.2.3  2003/07/07 01:01:13  hbrew
  * Remove unused parameter 'type' from win9x_service_control()
  *
@@ -65,31 +68,41 @@ WNDCLASS wc;
 int s_console = 0;
 FILE stdout_old, stderr_old;
 
-int w9x_service = 0;
+enum serviceflags{
+   w32_noservice=0,
+   w32_installservice=1,
+   w32_uninstallservice=-1,
+   w32_startservice=2,
+   w32_stopservice=-2,
+   w32_restartservice=3,
+   w32_queryservice=4,
+   w32_run_as_service=-4
+ };
+
+enum serviceflags w9x_service = w32_noservice;
+
 int w9x_service_reg = 0;
 int s_quiet = 0;
 char *srvname = NULL;
 DWORD SigType = -1;
 
-char *Win9xWindowClassName = "binkdWin9xHandler";
-char *Win9xRegServ = "Software\\Microsoft\\Windows\\CurrentVersion\\RunServices";
-char *Win9xServPrefix = "binkd9x-service";
-char *Win9xAllSuffix = "--all";
+char *srvparm = NULL;
+
+const char *Win9xWindowClassName = "binkdWin9xHandler";
+const char *Win9xRegServ = "Software\\Microsoft\\Windows\\CurrentVersion\\RunServices";
+const char *Win9xServPrefix = "binkd9x-service";
+const char *Win9xStartService = "--service";
 
 #define WM_BINKD9XCOMMAND  WM_USER+50
-
-int c_argc = 0;
-char **c_argv = NULL;
-int *c_argv_bool = NULL;
-char *s_control = NULL;
 
 extern int checkcfg_flag;
 extern int quiet_flag;
 
 int binkd_main(int argc, char **argv, char **envp);
 int win9x_service_cmdline(int argc, char **argv, char **envp);
-void win9x_service_un_install(int type, int argc, char **argv, char **envp);
+void win9x_service_un_install(int argc, char **argv, char **envp);
 void win9x_service_control(void);
+int win9x_check_name_all(void);
 
 int W32_CheckOS(unsigned long PlatformId); /* see TCPErr.c */
 
@@ -134,106 +147,120 @@ void win9xAtExit(void)
         free(srvname);
         srvname = NULL;
   }
-  if (c_argv)
-        free(c_argv);
-  c_argv = NULL;
-  c_argc = 0;
-  if (s_control)
-        free(s_control);
-  s_control = NULL;
 
   FreeTempConsole();
   if (checkcfg_flag==2)
         win9xExec(GetCommandLine());
 }
 
-void win9x_service_args(int argc, char **argv, char **envp)
+void win9x_extend_service_name(void)
 {
-        int i, j;
+  if (w9x_service != w32_noservice || srvname)
+  {
+    if (!srvname)
+      srvname = strdup(Win9xServPrefix);
+    else if (!win9x_check_name_all())
+    {
+      char *tmp;
+      int len_sn = strlen(srvname);
+      int len_pr = strlen(Win9xServPrefix);
 
-        for (i=0; i<argc; i++)
-                if (!c_argv_bool[i])
-                        c_argc++;
+      if ((strncmp(srvname, Win9xServPrefix, len_pr)==0) &&
+          ((len_sn == len_pr)||(len_sn>(len_pr+1) && srvname[len_pr] == '-')))
+        return;
 
-        c_argv = (char **)malloc((c_argc+1)*sizeof(char *));
-
-        for (i=0, j=0; i<argc; i++)
-                if (!c_argv_bool[i])
-                        c_argv[j++] = __argv[i];
-
-        c_argv[c_argc] = NULL;
+      tmp = (char *)malloc(len_sn+len_pr+2);
+      memcpy(tmp, Win9xServPrefix, len_pr);
+      tmp[len_pr] = '-';
+      memcpy(tmp+len_pr+1, srvname, len_sn);
+      tmp[len_pr+len_sn+1] = 0;
+      free(srvname);
+      srvname = tmp;
+    }
+  }
 }
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-        int r;
-        char *sp, *tmp = NULL;
-        HINSTANCE hl;
+  int r;
+  char *sp, *tmp = NULL;
+  HINSTANCE hl;
 
-        atexit(win9xAtExit);
+  atexit(win9xAtExit);
 
-        c_argv_bool = (int *)malloc(__argc*sizeof(int));
-        memset(c_argv_bool, 0, __argc*sizeof(int));
+  r = win9x_service_cmdline(__argc, __argv, environ);
 
-        r = win9x_service_cmdline(__argc, __argv, environ);
+  if (w9x_service != w32_installservice && srvparm)
+  {
+    free(srvparm); srvparm = NULL;
+  }
 
-        if (r)  win9x_service_args(__argc, __argv, environ);
-        free(c_argv_bool);
+  if (!r)
+    return 1;
 
-        if (r == 0)
-                return binkd_main(__argc, __argv, environ);
+  if (w9x_service == w32_noservice)
+    return binkd_main(__argc, __argv, environ);
+  else
+    win9x_extend_service_name();
 
-        if( W32_CheckOS(VER_PLATFORM_WIN32_WINDOWS) )
-        {
-                if (!s_quiet)  AllocTempConsole();
-                Log((s_quiet?0:-1), "Can't operate witn Windows 9x services: incompatible OS type%s", s_quiet?"":"\n");
-                return 1;
-        }
+  if( W32_CheckOS(VER_PLATFORM_WIN32_WINDOWS) )
+  {
+    if (!s_quiet)  AllocTempConsole();
+    Log((s_quiet?0:-1), "Can't operate witn Windows 9x services: incompatible OS type%s", s_quiet?"":"\n");
+    return 1;
+  }
 
-        if ((r == 'i')||(r == 'u'))
-        {
-                win9x_service_un_install(r, c_argc, c_argv, environ);
-                return 0;
-        }
+  if ((w9x_service == w32_installservice)||(w9x_service == w32_uninstallservice))
+  {
+    win9x_service_un_install(__argc, __argv, environ);
+    if (srvparm)
+    {
+      free(srvparm); srvparm = NULL;
+    }
+    return 0;
+  }
 
-        if (r == 't')
-        {
-                win9x_service_control();
-                return 0;
-        }
+  if (w9x_service == w32_startservice   ||
+      w9x_service == w32_stopservice    ||
+      w9x_service == w32_restartservice ||
+      w9x_service == w32_queryservice)
+  {
+    win9x_service_control();
+    return 0;
+  }
 
 /* Running as Win9x service (r == 1) */
-        for (sp = __argv[0]+strlen(__argv[0])-1;sp>__argv[0];sp--)
-                if ((sp[0] == '\\')||(sp[0] == '/'))
-                {
-                        sp--;
-                        if (sp>__argv[0])
-                        {
-                                tmp = (char *)malloc(sp-__argv[0]+2);
-                                memcpy(tmp, __argv[0], sp-__argv[0]+1);
-                                tmp[sp-__argv[0]+1] = 0;
-                        }
-                        break;
-                }
+  for (sp = __argv[0]+strlen(__argv[0])-1;sp>__argv[0];sp--)
+    if ((sp[0] == '\\')||(sp[0] == '/'))
+    {
+      sp--;
+      if (sp>__argv[0])
+      {
+        tmp = (char *)malloc(sp-__argv[0]+2);
+        memcpy(tmp, __argv[0], sp-__argv[0]+1);
+        tmp[sp-__argv[0]+1] = 0;
+      }
+      break;
+    }
 
-        if (tmp)
-        {
-                SetCurrentDirectory(tmp);
-                free(tmp);
-        }
+  if (tmp)
+  {
+    SetCurrentDirectory(tmp);
+    free(tmp);
+  }
 
-        hl = LoadLibrary("KERNEL32.DLL");
-        if (hl != NULL)
-        {
-                RegisterServiceProcess = (RSPType)GetProcAddress(hl, "RegisterServiceProcess");
-                if (RegisterServiceProcess!=NULL)
-                        if (RegisterServiceProcess(0, RSP_SIMPLE_SERVICE))
-                        	w9x_service_reg = 1;
-                FreeLibrary(hl);
-        }
+  hl = LoadLibrary("KERNEL32.DLL");
+  if (hl != NULL)
+  {
+    RegisterServiceProcess = (RSPType)GetProcAddress(hl, "RegisterServiceProcess");
+    if (RegisterServiceProcess!=NULL)
+      if (RegisterServiceProcess(0, RSP_SIMPLE_SERVICE))
+        w9x_service_reg = 1;
+    FreeLibrary(hl);
+  }
 
-        quiet_flag = 1;
-        return binkd_main(c_argc, c_argv, environ);
+  quiet_flag = 1;
+  return binkd_main(__argc, __argv, environ);
 }
 
 LRESULT CALLBACK MainWin9xWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -339,85 +366,124 @@ int win9x_checkservice(char *srvname)
 
 int win9x_service_cmdline(int argc, char **argv, char **envp)
 {
-  int i, j, type = 0, len = 0;
-  int prefixlen;
+  int i, j, skip, r, len, opt;
+  char *p, *s, *t;
 
-  prefixlen = strlen(Win9xServPrefix);
+  if (argc == 1)
+    return 1;
+
+  len = 1;
+
+  for(i=1; i<argc; i++)
+    len += strlen(argv[i])+1;
+
+  srvparm = t = (char *)malloc(len);
 
   for(i=1; i<argc; i++)
   {
-        if (strlen(argv[i])<2)
-                continue;
+    j = i;
+    p = argv[i];
+    opt = 0;
 
-        if (argv[i][0]=='-')
+    if (p[0] == '-')
+    {
+      if (!strcmp(p, Win9xStartService))
+      {
+        w9x_service = w32_run_as_service;
+        continue;
+      }
+
+      skip = 0;
+      for(++p;*p && !skip;p++)
+      {
+        r = 0;
+        s = NULL;
+        switch(*p)
         {
-                type = argv[i][1];
-                if ((argv[i][1]=='(')&&(strlen(argv[i])>=4)&&(argv[i][strlen(argv[i])-1]=='t')&&(argv[i][strlen(argv[i])-2]==')'))
+        case 'q':
+          s_quiet = 1;
+          break;
+        case 'i':
+          w9x_service = w32_installservice;
+          r = 1;
+          break;
+        case 'u':
+          w9x_service = w32_uninstallservice;
+          r = 1;
+          break;
+        case 'S':
+          if (*(p+1))
+            s = p+1;
+          else
+          {
+            if (++i < argc)
+              s = argv[i];
+            else
+            {
+              Log(0, "Parameter required after '-S' option (service name)\n");
+              return 0;
+            }
+          }
+          if (srvname)
+            free(srvname);
+          srvname = strdup(s);
+          skip = 1;
+          break;
+        case 't':
+          if (*(p+1))
+            s = p+1;
+          else
+          {
+            if (++i < argc)
+              s = argv[i];
+            else
+            {
+              Log(0, "Parameter required after '-t' option (service command)\n");
+              return 0;
+            }
+          }
+          if (!strcmp(s, "start")) { w9x_service = w32_startservice; }
+          else
+            if (!strcmp(s, "stop")) { w9x_service = w32_stopservice; }
+            else
+              if (!strcmp(s, "restart")) { w9x_service = w32_restartservice; }
+              else
+                if (!strcmp(s, "status")) { w9x_service =  w32_queryservice; }
+                else
                 {
-                        char *sp2 = strchr(argv[i], ')');
-
-                        c_argv_bool[i] = 1;
-
-                        len = sp2-(argv[i])-2;
-
-                        srvname = (char *)malloc((len?len:prefixlen)+1);
-                        if (!len)
-                        {
-                                len = prefixlen;
-                                memcpy(srvname, Win9xServPrefix, len);
-                        }
-                        else
-                                memcpy(srvname, argv[i]+2, len);
-
-                        srvname[len]=0;
-                        w9x_service = 1;
-
-                        return 1;
+                  Log(0, "Unknown command '-t %s'\n", s);
+                  return 0;
                 }
-
-                if ((type=='i')||(type=='u')||(type=='t'))
-                {
-                        char *sp1 = strchr(argv[i], '(');
-                        char *sp2 = strchr(argv[i], ')');
-
-                        c_argv_bool[i] = 1;
-
-                        if ((argv[i][strlen(argv[i])-1]=='q')||(argv[i][strlen(argv[i])-1]=='Q'))
-                                s_quiet = 1;
-
-                        if (type == 't')
-                        {
-                                for (j=2; ((unsigned int)j<strlen(argv[i]))&&(argv[i][j]!='(')&&(argv[i][j]!='q')&&(argv[i][j]!='Q'); j++);
-                                if (j>2)
-                                {
-                                        s_control = (char *)malloc(j-1);
-                                        memcpy(s_control, argv[i]+2, j-2);
-                                        s_control[j-2] = 0;
-                                }
-                        }
-
-                        if ((sp1) && (sp2 > (sp1 + 1)))
-                                len = sp2-sp1-1;
-                        if (len)  len++;
-
-                        srvname = (char *)malloc(prefixlen+len+1);
-
-                        memcpy(srvname, Win9xServPrefix, prefixlen);
-                        if (len)
-                        {
-                                srvname[prefixlen] = '-';
-                                memcpy(srvname+prefixlen+1, sp1+1, len-1);
-                        }
-                        srvname[prefixlen+len]=0;
-                        break;
-                }
+          skip = 1;
+          r = 1;
+          break;
         }
+        if (!r)
+        {
+          if (!opt)
+          {
+            opt = 1;
+            *t++ = '-';
+          }
+          *t++ = *p;
+          if (s)
+          {
+            if (i != j)      { *t++ = '\0'; }
+            for (; *s; s++)  { *t++ = *s; }
+          }
+        }
+      }
+      if (opt)
+        *t++ = '\0';
+    }
+    else
+    {
+      for (; *p; p++)  { *t++ = *p; }
+      *t++ = '\0';
+    }
   }
-
-  if (!srvname)
-        return 0;
-
-  return type;
+  *t = '\0';
+  return 1;
 }
 
 int win9x_service_start(char *name)
@@ -449,18 +515,10 @@ int win9x_service_start(char *name)
   return k!=0;
 }
 
-int win9x_check_name_all(void) /* Maniac :) */
+int win9x_check_name_all(void)
 {
-  int prefixlen = strlen(Win9xServPrefix);
-  int suffixlen = strlen(Win9xAllSuffix);
-
-  if (!srvname)  return 0;
-  if (strlen(srvname)!=(unsigned int)(prefixlen+1+suffixlen))  return 0;
-
-  if (strncmp(srvname, Win9xServPrefix, prefixlen)!=0) return 0;
-  if (srvname[prefixlen]!='-') return 0;
-  if (stricmp(srvname+prefixlen+1, Win9xAllSuffix)!=0) return 0;
-  return 1;
+  if (!srvname) return 0;
+  return stricmp(srvname, "all")? 0: 1;
 }
 
 HWND win9x_service_find(char *name)
@@ -468,53 +526,55 @@ HWND win9x_service_find(char *name)
   return FindWindow(name, NULL);
 }
 
-void win9x_service_control_exec(char *tmp, int mode)
+void win9x_service_control_exec(char *tmp, enum serviceflags cmd)
 {
   HWND hwnd;
 
   hwnd = win9x_service_find(tmp);
-  switch (mode)
+  switch (cmd)
   {
-          case 0:
-            if (!s_quiet)  Log(-1, "%s: %s\n", tmp, hwnd?"started":"stopped");
-            break;
-          case 1:
-            if (!hwnd)
-            {
-                if (win9x_service_start(tmp))
-                {
-                        if (!s_quiet)   Log(-1, "%s: started\n", tmp);
-                }
-                else
-                {
-                        if (!s_quiet)  Log(-1, "%s: starting failed!\n", tmp);
-                }
-            }
-            else
-            {
-                if (!s_quiet)  Log(-1, "%s: already started\n", tmp);
-            }
-            break;
-          case 2:
-            if (hwnd) SendMessage(hwnd, WM_BINKD9XCOMMAND, 254, 0);
-            if (!s_quiet)  Log(-1, "%s: %s\n", tmp, hwnd?"stopped":"already stopped");
-            break;
-          case 3:
-            if (hwnd)
-            {
-                SendMessage(hwnd, WM_BINKD9XCOMMAND, 255, 0);
-                if (win9x_service_start(tmp))
-                {
-                        if (!s_quiet)  Log(-1, "%s: restarted\n", tmp);
-                }
-                else
-                {
-                        if (!s_quiet)  Log(-1, "%s: restarting failed!\n", tmp);
-                }
-            }
-            else
-                if (!s_quiet)  Log(-1, "%s: already stopped\n", tmp);
-            break;
+  case w32_queryservice:
+    if (!s_quiet)  Log(-1, "\'%s\': %s\n", tmp, hwnd?"started":"stopped");
+    break;
+  case w32_startservice:
+    if (!hwnd)
+    {
+        if (win9x_service_start(tmp))
+        {
+                if (!s_quiet)   Log(-1, "\'%s\': started\n", tmp);
+        }
+        else
+        {
+                if (!s_quiet)  Log(-1, "\'%s\': starting failed!\n", tmp);
+        }
+    }
+    else
+    {
+        if (!s_quiet)  Log(-1, "\'%s\': already started\n", tmp);
+    }
+    break;
+  case w32_stopservice:
+    if (hwnd) SendMessage(hwnd, WM_BINKD9XCOMMAND, 254, 0);
+    if (!s_quiet)  Log(-1, "\'%s\': %s\n", tmp, hwnd?"stopped":"already stopped");
+    break;
+  case w32_restartservice:
+    if (hwnd)
+    {
+        SendMessage(hwnd, WM_BINKD9XCOMMAND, 255, 0);
+        if (win9x_service_start(tmp))
+        {
+                if (!s_quiet)  Log(-1, "\'%s\': restarted\n", tmp);
+        }
+        else
+        {
+                if (!s_quiet)  Log(-1, "\'%s\': restarting failed!\n", tmp);
+        }
+    }
+    else
+        if (!s_quiet)  Log(-1, "\'%s\': already stopped\n", tmp);
+    break;
+  default:  /* Avoid gcc warnings about non-handled enumeration values */
+    break;
   }
 }
 
@@ -580,51 +640,44 @@ void win9x_free_services_list(binkd_win9x_srvlst *srvlst)
 
 void win9x_service_control(void)
 {
-  int i, mode;
+  int i;
+  char *msg;
   binkd_win9x_srvlst *srvlst;
 
   if (!s_quiet)  AllocTempConsole();
 
-  if (!s_control)
+  switch (w9x_service)
   {
-        mode = 0;
-        if (!s_quiet)  Log(-1, "Status of binkd9x service(s):\n");
+  case w32_queryservice:
+    msg = "Status of binkd9x service(s):\n";
+    break;
+  case w32_startservice:
+    msg = "Starting service(s):\n";
+    break;
+  case w32_stopservice:
+    msg = "Stopping service(s):\n";
+    break;
+  case w32_restartservice:
+    msg = "Restarting service(s):\n";
+    break;
+  default:
+    msg = NULL;
+    break;
   }
-  else
-        if (stricmp(s_control, "start")==0)
-        {
-                mode = 1;
-                if (!s_quiet)  Log(-1, "Starting service(s):\n");
-        }
-        else
-                if (stricmp(s_control, "stop")==0)
-                {
-                        mode = 2;
-                        if (!s_quiet)  Log(-1, "Stopping service(s):\n");
-                }
-                else
-                        if (stricmp(s_control, "restart")==0)
-                        {
-                                mode = 3;
-                                if (!s_quiet)  Log(-1, "Restarting service(s):\n");
-                        }
-                        else
-                        {
-                                Log((s_quiet?0:-1), "Unknown control token %s, only \'start\', \'stop\' and \'restart\' allowed!%s", s_control, s_quiet?"":"\n");
-                                return;
-                        }
+
+  if (!quiet_flag && msg)  Log(-1, msg);
 
   if (win9x_check_name_all())
   {
         srvlst = win9x_get_services_list(1);
 
         for(i=0; i<srvlst->count; i++)
-                win9x_service_control_exec(srvlst->names[i], mode);
+                win9x_service_control_exec(srvlst->names[i], w9x_service);
 
         win9x_free_services_list(srvlst);
   }
   else
-        win9x_service_control_exec(srvname, mode);
+        win9x_service_control_exec(srvname, w9x_service);
 }
 
 void win9x_service_do_uninstall(char *srvname)
@@ -637,14 +690,14 @@ void win9x_service_do_uninstall(char *srvname)
     RegCloseKey(hk);
   }
 
-  if (!s_quiet)  Log(-1, "%s uninstalled...\n", srvname);
-  win9x_service_control_exec(srvname, 2);
+  if (!s_quiet)  Log(-1, "\'%s\' uninstalled...\n", srvname);
+  win9x_service_control_exec(srvname, w32_stopservice);
 }
 
-void win9x_service_un_install(int type, int argc, char **argv, char **envp)
+void win9x_service_un_install(int argc, char **argv, char **envp)
 {
-  int i, j, k, all, len = 0;
-  char *sp, *tmp, *path;
+  int i, j, k, all, q, q1, tmplen1, tmplen2, len = 0;
+  char *sp, *tmp, *path, *p;
   HKEY hk=0;
   binkd_win9x_srvlst *srvlst;
 
@@ -652,26 +705,26 @@ void win9x_service_un_install(int type, int argc, char **argv, char **envp)
 
   all = win9x_check_name_all();
 
-  if (all&&(type != 'u'))
+  if (all&&(w9x_service != w32_uninstallservice))
   {
-        Log((s_quiet?0:-1), "Invalid service name!%s", s_quiet?"":"\n");
-        return;
+    Log((s_quiet?0:-1), "Invalid service name!%s", s_quiet?"":"\n");
+    return;
   }
 
   if (!all)
   {
-        j = win9x_checkservice(srvname);
-        if (type == 'u')
-          j = !j;
+    j = win9x_checkservice(srvname);
+    if (w9x_service == w32_uninstallservice)
+      j = !j;
 
-        if (j)
-        {
-                if (!s_quiet)  Log(-1, "Service already %sinstalled...\n", type=='i'?"":"UN");
-                return;
-        }
+    if (j)
+    {
+      if (!s_quiet)  Log(-1, "Service already %sinstalled...\n", w9x_service==w32_installservice?"":"UN");
+      return;
+    }
   }
 
-  if (type == 'u')
+  if (w9x_service == w32_uninstallservice)
   {
     if (all)
     {
@@ -690,59 +743,76 @@ void win9x_service_un_install(int type, int argc, char **argv, char **envp)
     return;
   }
 
-/* type == 'i' */
+/* service_flag == w32_installservice */
 
   k = 1;
   if (RegOpenKey(HKEY_LOCAL_MACHINE, Win9xRegServ, &hk)!=ERROR_SUCCESS)
-        if (RegCreateKey(HKEY_LOCAL_MACHINE, Win9xRegServ, &hk)!=ERROR_SUCCESS)
-                k = 0;
+    if (RegCreateKey(HKEY_LOCAL_MACHINE, Win9xRegServ, &hk)!=ERROR_SUCCESS)
+      k = 0;
   if (k)
   {
-        len = 0;
-        for (i=1;i<argc;i++)
-                len+=strlen(argv[i])+1;
+    j = GetCurrentDirectory(0, NULL);
+    p = (char *)malloc(j);
+    GetCurrentDirectory(j, p);
 
-        j = GetCurrentDirectory(0, NULL);
-        len+=j;
+    sp = argv[0]+strlen(argv[0])-1;
+    for (;sp>argv[0];sp--)
+      if ((sp[0] == '\\')||(sp[0] == '/'))
+      {
+        sp++;
+        break;
+      }
 
-        sp = argv[0]+strlen(argv[0])-1;
-        for (;sp>argv[0];sp--)
-                if ((sp[0] == '\\')||(sp[0] == '/'))
-                {
-                        sp++;
-                        break;
-                }
-        len+=strlen(sp)+1+strlen(srvname)+4;
+    q = 0;
+    if (strchr(p, ' '))        { q = 1; }
+    else
+      if (strchr(sp, ' '))     { q = 1; }
 
-        path = (char *)malloc(len+1);
-        GetCurrentDirectory(j, path);
-        path[j-1] = '\\';
-        memcpy(path+j, sp, strlen(sp));
-        tmp = path+j+strlen(sp);
-        tmp[0] = ' ';
-        tmp[1] = '-';
-        tmp[2] = '(';
-        memcpy(tmp+3, srvname, strlen(srvname));
-        tmp+=strlen(srvname)+3;
-        tmp[0] = ')';
-        tmp[1] = 't';
-        tmp+=2;
+    tmplen1 = strlen(sp);
+    tmplen2 = strlen(Win9xStartService);
 
-        path[len] = 0;
+    len = j+tmplen1+tmplen2+2; /* {path(without '\0' (j-1))}+'\\'+{filename{argv[0]}}+' '+{--service}+...+'\0' */
 
-        j = 0;
-        for (i=1; i<argc; i++)
+    if (srvparm && *srvparm)
+    {
+      for (tmp = srvparm; *tmp; tmp++)
+      {
+        len++;
+        for(q1 = 0; *tmp; tmp++)
         {
-                tmp[j++] = ' ';
-                memcpy(tmp+j, argv[i], strlen(argv[i]));
-                j+=strlen(argv[i]);
+          len++;
+          if (!q1 && *tmp == ' ')  { q1 = 1; len += 2; }
         }
+      }
+    }
 
+    path = tmp = (char *)malloc(len);
+    if (q) { *tmp++ = '"'; }
+    memcpy(tmp, p, j-1); tmp += j-1;
+    free(p);
+    *tmp++ = '\\';
+    memcpy(tmp, sp, tmplen1); tmp += tmplen1;
+    if (q) { *tmp++ = '"'; }
+    *tmp++ = ' ';
+    memcpy(tmp, Win9xStartService, tmplen2); tmp += tmplen2;
 
-        k = RegSetValueEx(hk, srvname, 0, REG_SZ, path, strlen(path)) == ERROR_SUCCESS;
+    if (srvparm && *srvparm)
+    {
+      for(sp = srvparm; *sp; sp++)
+      {
+        *tmp++ = ' ';
+        if (strchr(sp, ' '))  { *tmp++ = '"'; q = 1; } else { q = 0; }
+        for(;*sp;sp++)        { *tmp++ = *sp; }
+        if (q)                { *tmp++ = '"'; }
+      }
+    }
 
-        free(path);
-        RegCloseKey(hk);
+    *tmp = '\0';
+
+    k = RegSetValueEx(hk, srvname, 0, REG_SZ, path, strlen(path)) == ERROR_SUCCESS;
+
+    free(path);
+    RegCloseKey(hk);
   }
 
   if (!k)
@@ -751,13 +821,13 @@ void win9x_service_un_install(int type, int argc, char **argv, char **envp)
   {
         if (win9x_service_start(srvname))
         {
-                if (!s_quiet)  Log(-1, "%s installed and started...\n", srvname);
+                if (!s_quiet)  Log(-1, "\'%s\' installed and started...\n", srvname);
         }
         else
         {
                 if (!s_quiet)
                 {
-                        Log(-1, "%s installed...\n", srvname);
+                        Log(-1, "\'%s\' installed...\n", srvname);
                         Log(-1, "Unable to start service!\n");
                 }
         }
