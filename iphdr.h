@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/03/10 18:16:10  gul
+ * Define socklen_t for win32
+ *
  * Revision 2.4  2003/03/10 12:16:53  gul
  * Use HAVE_DOS_H macro
  *
@@ -120,6 +123,10 @@ const char *tcperr (void);
   #define sock_init() 0
   #define sock_deinit()
   #define soclose(h) close(h)
+#endif
+
+#if defined(WIN32)
+  typedef int socklen_t;
 #endif
 
 #if !defined(WIN32)
