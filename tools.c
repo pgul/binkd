@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2003/03/31 18:22:12  gul
+ * Use snprintf() instead of sprintf()
+ *
  * Revision 2.15  2003/03/10 10:57:45  gul
  * Extern declarations moved to header files
  *
@@ -250,13 +253,17 @@ int create_empty_sem_file (char *name)
 int create_sem_file (char *name)
 {
   int h, i;
-  char buf[10];
+  char buf[16];
 
   if ((h = open (name, O_RDWR | O_CREAT | O_EXCL, 0666)) == -1)
   { Log (5, "Can't create %s: %s", name, strerror(errno));
     return 0;
   }
+#ifdef HAVE_SNPRINTF
+  snprintf (buf, sizeof (buf), "%u\n", (int) getpid ());
+#else
   sprintf (buf, "%u\n", (int) getpid ());
+#endif
   if ((i = write(h, buf, strlen(buf))) != (int)strlen(buf))
   { if (i == -1)
       Log (2, "Can't write to %s (handle %d): %s", name, h, strerror(errno));
