@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2001/05/23 15:44:09  gul
+ * help-message fixed (-C option)
+ *
  * Revision 2.1  2001/01/16 03:53:23  gul
  * Added -D switch (run as daemon)
  *
@@ -147,7 +150,11 @@ void usage ()
 #if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
 	  "  -D       run as daemon\n"
 #endif
+#if defined(HAVE_FORK)
+	  "  -C       reload on config change\n"
+#else
 	  "  -C       exit(3) on config change\n"
+#endif
 	  "  -c       run client only\n"
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
 	  "  -i       run from inetd\n"
