@@ -11,6 +11,17 @@
  *  (at your option) any later version. See COPYING.
  */
 
+/*
+ * $Id$
+ *
+ * Revision history:
+ * $Log$
+ * Revision 2.2  2002/11/13 07:58:19  gul
+ * Add CVS macros
+ *
+ *
+ */
+
 #ifndef _win9x_h
 #define _win9x_h
 #ifdef BINKDW9X
