@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.73  2004/09/21 08:27:49  val
+ * distinguish nodes, listed in binkd config and passwords file - overwrite defnode parameters (e.g. host) for the later
+ * (hope, it'll fix reported bug with not calling defnode)
+ *
  * Revision 2.72  2004/09/11 14:37:08  gul
  * Fix erroneously applied previous patch
  *
@@ -1150,15 +1154,17 @@ static int passwords (KEYWORD *key, int wordcount, char **words)
       password = strtok(NULL, spaces);
       if (password && parse_ftnaddress (node, &fa, work_config.pDomains.first)) /* Do not process if any garbage found */
       {
+        FTN_NODE *pn;
         char *pkt_pwd, *out_pwd;
         split_passwords(password, &pkt_pwd, &out_pwd);
         exp_ftnaddress (&fa, work_config.pAddr, work_config.nAddr, work_config.pDomains.first);
-        add_node (&fa, NULL, password, pkt_pwd, out_pwd, '-', NULL, NULL,
+        pn = add_node (&fa, NULL, password, pkt_pwd, out_pwd, '-', NULL, NULL,
                   NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, HC_USE_OLD, NP_USE_OLD, 
 #ifdef BW_LIM
                   BW_DEF, BW_DEF,
 #endif
                   &work_config);
+        if (pn) pn->listed = NL_PASSWORDS;
       }
     }
   }
@@ -1267,6 +1273,7 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
   long bw_send = BW_DEF, bw_recv = BW_DEF;
 #endif
   FTN_ADDR fa;
+  FTN_NODE *pn;
 
   memset(w, 0, sizeof(w)); /* init by NULL's */
   i = 0;                   /* index in w[] */
@@ -1348,12 +1355,13 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
   check_dir_path (w[5]);
 
   split_passwords(w[2], &pkt_pwd, &out_pwd);
-  add_node (&fa, w[1], w[2], pkt_pwd, out_pwd, (char)(w[3] ? w[3][0] : '-'), w[4], w[5],
+  pn = add_node (&fa, w[1], w[2], pkt_pwd, out_pwd, (char)(w[3] ? w[3][0] : '-'), w[4], w[5],
             NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, 
 #ifdef BW_LIM
             bw_send, bw_recv,
 #endif
             &work_config);
+  if (pn) pn->listed = NL_NODE;
 
   return 1;
 #undef ARGNUM

@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.34  2004/09/21 08:27:49  val
+ * distinguish nodes, listed in binkd config and passwords file - overwrite defnode parameters (e.g. host) for the later
+ * (hope, it'll fix reported bug with not calling defnode)
+ *
  * Revision 2.33  2004/09/11 13:57:12  gul
  * Remove duplicate line
  *
@@ -289,7 +293,7 @@ static FTN_NODE *add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pk
   return pn;
 }
 
-void add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pwd,
+FTN_NODE *add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pwd,
               char obox_flvr, char *obox, char *ibox, int NR_flag, int ND_flag,
 	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, 
 #ifdef BW_LIM
@@ -306,8 +310,8 @@ void add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pw
                   bw_send, bw_recv,
 #endif
                   config);
-  pn->listed = 1;
   releasenodesem();
+  return pn;
 }
 
 static FTN_NODE *search_for_node(FTN_NODE *np, BINKD_CONFIG *config)
@@ -349,7 +353,7 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
   }
   if (i)
     strcpy(host, "-");
-
+  /* following section will copy defnode parameters to the node record */
   if (on)
   { /* on contains only passwd */
     on->hosts=xstrdup(/*host*/np->hosts);
@@ -386,7 +390,7 @@ static FTN_NODE *get_node_info_nolock (FTN_ADDR *fa, BINKD_CONFIG *config)
     sort_nodes (config);
   memcpy (&n.fa, fa, sizeof (FTN_ADDR));
   np = search_for_node(&n, config);
-  if ((!np || !np->listed) && config->havedefnode)
+  if ((!np || np->listed != NL_NODE) && config->havedefnode)
     np=get_defnode_info(fa, np, config);
   if (np && !np->hosts) /* still no hosts? */
     np->hosts = xstrdup("-");

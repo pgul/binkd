@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.20  2004/09/21 08:27:49  val
+ * distinguish nodes, listed in binkd config and passwords file - overwrite defnode parameters (e.g. host) for the later
+ * (hope, it'll fix reported bug with not calling defnode)
+ *
  * Revision 2.19  2004/09/06 10:47:04  val
  * bandwidth limiting code advancements, `listed' session state fix
  *
@@ -124,13 +128,17 @@ FTN_NODE *get_node_info (FTN_ADDR *fa, BINKD_CONFIG *config);
 /*
  * Add a new node, or edit old settings for a node
  */
-void add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pwd,
+FTN_NODE *add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pwd,
               char obox_flvr, char *obox, char *ibox, int NR_flag, int ND_flag,
 	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, 
 #ifdef BW_LIM
               long bw_send, long bw_recv,
 #endif
               BINKD_CONFIG *config);
+
+#define NL_UNLISTED  0                 /* node is unlisted (dynamically added) */
+#define NL_NODE      1                 /* node is listed in binkd config */
+#define NL_PASSWORDS 2                 /* node is listed in passwords file */
 
 #define NR_ON        1
 #define NR_OFF       0
