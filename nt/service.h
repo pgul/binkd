@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2003/10/29 06:41:24  stas
+ * Remove unused types; small optimizes code
+ *
  * Revision 2.13  2003/10/28 20:20:10  stas
  * Rewrite NT service code, remove obsoleted code and add some checks. Found a thread-not-safety problem.
  *
@@ -63,33 +66,6 @@
 
 #include "../sem.h"
 
-/* service_main types of call */
-enum service_main_types{
-//   service_main_services  = 0, /* Check: we can operate with services */
-//   service_main_testinstalled, /* Check: installed or not */
-   service_main_install      , /* Install service */
-   service_main_uninstall    , /* Uninstall service */
-   service_main_start        , /* Start service */
-   service_main_installstart , /* Install and start service */
-//   service_main_testrunning  , /* Check: service is running */
-   service_main_stop         , /* Stop service */
-   service_main_stop_uninstall /* Stop and uninstall service */
-};
-
-/* service_main return values */
-enum service_main_retcodes{
-   service_main_ret_ok      = 0,
-   service_test_notinstall     , /* Service not installed (OpenService() failed or other) */
-   service_test_fail           , /* Can't check service: QueryServiceStatus() fail */
-   service_test_notrunning     , /* Service not running */
-   service_main_ret_failinstall, /* Service install fail */
-   service_main_ret_failstart  , /* Service start failed */
-   service_main_ret_failstop   , /* Service stop failed */
-   service_main_ret_faildelete , /* Service delete failed */
-   service_main_ret_fail       , /* Can't check service: QueryServiceStatus() fail */
-   service_main_ret_not        , /* Can't operate: OpenSCManagerA() dont exist (incompatible OS) */
-   service_main_ret_failcontrol  /* OpenSCManager failed */
-};
 
 extern char *service_name;
 extern MUTEXSEM exitsem;

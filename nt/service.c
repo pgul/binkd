@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.43  2003/10/29 06:41:24  stas
+ * Remove unused types; small optimizes code
+ *
  * Revision 2.42  2003/10/28 20:20:10  stas
  * Rewrite NT service code, remove obsoleted code and add some checks. Found a thread-not-safety problem.
  *
@@ -505,14 +508,11 @@ static int store_data_into_registry(char **argv,char **envp)
   }
   else
   {
-      rc = -1;
-  }
-  if(hk) RegCloseKey(hk);
-  if(rc)
-  {
+    rc = -1;
     Log(1, "Unable to store data in registry for service '%s'", service_name);
     res_checkservice=(CHKSRV_CANT_INSTALL);
   }
+  if(hk) RegCloseKey(hk);
   xfree(asp);
 
   return rc;
@@ -710,7 +710,7 @@ int service(int argc, char **argv, char **envp)
 
   case w32_installservice:
     if (j==CHKSRV_INSTALLED){
-      Log(-1, "Service %s already installed...", service_name);
+      Log(-1, "Service '%s' already installed...", service_name);
       exit(0);
     }else{
 
