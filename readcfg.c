@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.27  2003/06/07 08:46:25  gul
+ * New feature added: shared aka
+ *
  * Revision 2.26  2003/05/28 09:03:17  gul
  * Typo in prev patch
  *
@@ -193,6 +196,10 @@ char nodeinfo[MAXNODEINFO + 1] = "";
 char inbound[MAXPATHLEN + 1] = ".";
 char inbound_nonsecure[MAXPATHLEN + 1] = "";
 char temp_inbound[MAXPATHLEN + 1] = "";
+
+/* This is header of shared aka list */
+SHARED_CHAIN * shares = 0;
+
 #ifdef MAILBOX
 /* FileBoxes dir */
 char tfilebox[MAXPATHLEN + 1] = "";
@@ -260,6 +267,11 @@ static void read_flag_exec_info (KEYWORD *, char *);
 static void read_rfrule (KEYWORD *, char *);
 static void read_mask (KEYWORD *key, char *s);
 static void read_inboundcase (KEYWORD *, char *);
+
+/* Helper functions for shared akas implementation */
+static void read_shares (KEYWORD *, char *);
+static void add_shares(SHARED_CHAIN * chain);
+static void add_address(SHARED_CHAIN * chain, FTN_ADDR_CHAIN * aka);
 
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
 
@@ -336,6 +348,10 @@ KEYWORD keywords[] =
   {"inboundcase", read_inboundcase, &inboundcase, 0, 0},
   {"deletedirs", read_bool, &deletedirs, 0, 0},
   {"overwrite", read_mask, &overwrite, 0, 0},
+
+  /* shared akas definitions */
+  {"share", read_shares, 0, 0, 0},
+
 #ifdef AMIGADOS_4D_OUTBOUND
   {"aso", read_bool, &aso, 0, 0},
 #endif
@@ -1071,3 +1087,85 @@ void debug_readcfg (void)
   print_node_info (stdout);
   printf ("\n");
 }
+
+/*
+ * Read shared akas info:
+ * share  share_address  node1 [node2 [...]]
+ */
+static void read_shares (KEYWORD *key, char *s)
+{
+  int i;
+  char *w;
+  SHARED_CHAIN *chn;
+  FTN_ADDR_CHAIN *fchn;
+
+  w = getword (s, 2);
+  chn = xalloc(sizeof(SHARED_CHAIN));
+  chn->next = 0;
+  chn->sfa  = 0;
+  if (!parse_ftnaddress(w, &chn->sha))
+  {
+    Log (0, "%s: %i: %s: the address cannot be parsed", path, line, w);
+  }
+  exp_ftnaddress(&chn->sha);
+  free (w);
+
+  /* To scan outgoing mails to shared node
+   * `node share_addr' string is simulated
+   */
+  for (i = 0; keywords[i].key; ++i)
+    if (!STRICMP (keywords[i].key, "node")) break;
+  if (keywords[i].key)
+  {
+    char s[FTN_ADDR_SZ + 1+8];
+    char szFTNAddr[FTN_ADDR_SZ + 1];
+    ftnaddress_to_str (szFTNAddr, &chn->sha);
+    strcpy(s, "node ");
+    strcat(s, szFTNAddr);
+    read_node_info(&keywords[i], s);
+  }
+
+  for (i = 1; (w = getword (s, i + 2)) != 0; ++i)
+  {
+    fchn = xalloc(sizeof(FTN_ADDR_CHAIN));
+    fchn->own  = chn;
+    fchn->next = 0;
+    if (!parse_ftnaddress (w, &fchn->fa))
+    {
+      Log (0, "%s: %i: %s: the address cannot be parsed", path, line, w);
+    }
+    exp_ftnaddress(&fchn->fa);
+    add_address(chn, fchn);
+    free (w);
+  }
+  if (chn->sfa == 0)
+  {
+    Log (0, "%s: %i: need at least one real address", path, line);
+  }
+  add_shares(chn);
+}
+
+static void add_shares(SHARED_CHAIN *chain)
+{
+  if (shares == 0)
+    shares = chain;
+  else
+  {
+    SHARED_CHAIN *sh = shares;
+    while (sh->next) sh = sh->next;
+    sh->next = chain;
+  }
+}
+
+static void add_address(SHARED_CHAIN *chain, FTN_ADDR_CHAIN *aka)
+{
+  if (chain->sfa == 0)
+    chain->sfa = aka;
+  else
+  {
+    FTN_ADDR_CHAIN *fac = chain->sfa;
+    while (fac->next) fac = fac->next;
+    fac->next = aka;
+  }
+}
+

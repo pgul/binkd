@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.20  2003/06/07 08:46:25  gul
+ * New feature added: shared aka
+ *
  * Revision 2.19  2003/05/28 14:32:57  gul
  * new function q_add_last_file() - add file to the end of queue
  *
@@ -707,6 +710,27 @@ FTNQ *q_add_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action
   const int argc=3;
   char *argv[3];
   char str[MAXPATHLEN+1];
+
+  SHARED_CHAIN   * chn;
+  FTN_ADDR_CHAIN * fcn;
+  /* If filename for shared address was scanned,
+   * call this functions for all nodes for this
+   * sharea address (assumed, that recursively
+   * shared aka impossible due to user brains :))
+   * Recursion in shared aka definitions imply
+   * infinite recursion in this function -
+   * please, be careful!
+   */
+  for(chn = shares;chn;chn = chn->next)
+  {
+    if (ftnaddress_cmp(fa1,&chn->sha) == 0)
+    {
+      for(fcn = chn->sfa; fcn; fcn = fcn->next)
+      {
+        q_add_file(q,filename,&fcn->fa,flvr,action,type);
+      }
+    }
+  }
 
   if (q != SCAN_LISTED)
   {

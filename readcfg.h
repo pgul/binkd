@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/06/07 08:46:25  gul
+ * New feature added: shared aka
+ *
  * Revision 2.9  2003/03/10 10:57:45  gul
  * Extern declarations moved to header files
  *
@@ -157,5 +160,8 @@ void readcfg (char *path);
 int  get_host_and_port (int n, char *host, unsigned short *port, char *src, FTN_ADDR *fa);
 
 char *mask_test(char *filename, struct maskchain *chain);
+
+/* Linked list for shared akas header */
+extern SHARED_CHAIN *shares;
 
 #endif

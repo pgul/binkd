@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.68  2003/06/07 08:46:25  gul
+ * New feature added: shared aka
+ *
  * Revision 2.67  2003/06/04 20:59:43  gul
  * bugfix: do not force NR-mode if remote uses binkp/1.0
  *
@@ -627,8 +630,67 @@ static int send_block (STATE *state)
 	  Log (1, "error reading %s: expected %u, read %i",
 	       state->out.path, sz, n);
 	  return 0;
-	}
+        }
+
+        /* Dirty hack :-) - if
+         *  1. this is the first block of the file, and
+         *  2. this is pkt-header, and
+         *  3. pkt destination is shared address
+         *  change destination address to main aka.
+         */
+        if ((ftell(state->out.f)==sz) && (sz >= 60) /* size of pkt header + 2 bytes */
+            && ispkt(state->out.netname))
+        {/* This is the first block. Is this 2+ packet?
+          * (Currently supports this type packets only)
+          */
+
+          unsigned char * pkt = (unsigned char *)(state->obuf + BLK_HDR_SIZE);
+          SHARED_CHAIN * chn;
+          /* The price of portability... */
+#define PKTFIELD(x)       (pkt[(x)] + pkt[(x)+1]*256)
+#define SETFIELD(x,value) { pkt[(x)] = value & 0xFF; pkt[(x)+1] = (value >> 8) & 0xFF; }
+#define ZONEOFFSET   48
+#define NETOFFSET    22
+#define NODEOFFSET    2
+#define POINTOFFSET  52
+          /* Check for 2+ version */
+          if ((PKTFIELD(18) == 2) &&
+              ((PKTFIELD(44) & 0x0001) != 0) &&
+              (pkt[40] == pkt[45]) &&
+              (pkt[41] == pkt[44]))
+          {
+            Log(9, "First block of %s", state->out.path);
+            Log(7, "Dest: %d:%d/%d.%d",
+                PKTFIELD(ZONEOFFSET), PKTFIELD(NETOFFSET),
+                PKTFIELD(NODEOFFSET), PKTFIELD(POINTOFFSET));
+            /* Scan all shared addresses */
+            for(chn = shares;chn;chn = chn->next)
+            {
+              if ((chn->sha.z    == PKTFIELD(ZONEOFFSET )) &&
+                  (chn->sha.net  == PKTFIELD(NETOFFSET  ))  &&
+                  (chn->sha.node == PKTFIELD(NODEOFFSET )) &&
+                  (chn->sha.p    == PKTFIELD(POINTOFFSET)))
+              { /* Found */
+                FTN_ADDR * fa = NULL;
+                if (state->to) fa = &state->to->fa; else
+                  if (state->fa) fa = state->fa;
+                if (fa)
+                { /* Change to main address */
+                  SETFIELD(ZONEOFFSET, fa->z   );
+                  SETFIELD(NETOFFSET,  fa->net );
+                  SETFIELD(NODEOFFSET, fa->node);
+                  SETFIELD(POINTOFFSET,fa->p   );
+                  Log(7, "Change dest to: %d:%d/%d.%d",
+                      PKTFIELD(ZONEOFFSET), PKTFIELD(NETOFFSET),
+                      PKTFIELD(NODEOFFSET), PKTFIELD(POINTOFFSET));
+                }
+                break;
+              }
+            }
+          }
+        }
       }
+
       if (state->out.f && (sz == 0 || state->out.size == ftell(state->out.f)))
 	/* The current file have been sent */
 	current_file_was_sent (state);
@@ -902,6 +964,68 @@ static int BSY (STATE *state, char *buf, int sz)
   return 0;
 }
 
+static char * add_shared_akas(char * s)
+{
+  int i;
+  char * w, *c;
+  SHARED_CHAIN   * chn;
+  FTN_ADDR_CHAIN * fta;
+  FTN_ADDR fa;
+  int count = 0;
+  char * ad = 0;
+  char szFTNAddr[FTN_ADDR_SZ + 1];
+
+  for (i = 1; (w = getwordx (s, i, 0)) != 0; ++i)
+  {
+    if (parse_ftnaddress (w, &fa) && is5D (&fa))
+    {
+      for(chn = shares;chn;chn = chn->next)
+      {
+        if (ftnaddress_cmp(&fa,&chn->sha) == 0)
+        {
+          /* I think, that if shared address was exposed
+           * by remote node, it should be deleted...
+           */
+          ftnaddress_to_str (szFTNAddr,&fa);
+          Log(1,"shared aka `%s' used by node %s",szFTNAddr,s);
+          /* fill this aka by spaces */
+          c = strstr(s,w);
+          if (c)
+          {
+            memset(c,' ', strlen(w));
+            i--;
+          }
+          break;
+        }
+        else
+        {
+          for (fta = chn->sfa;fta;fta = fta->next)
+          {
+          if (ftnaddress_cmp(&fta->fa,&fa) == 0)
+          {
+            if (ad == 0)
+            {
+              ad = xalloc(FTN_ADDR_SZ+1);
+              ad[0] = 0;
+              count = 1;
+              } else {
+                ad = xrealloc(ad,(++count)*(FTN_ADDR_SZ+1));
+              }
+              ftnaddress_to_str (szFTNAddr,&chn->sha);
+              strcat(ad, " ");
+              strcat(ad, szFTNAddr);
+              Log(2,"shared aka %s is added",szFTNAddr);
+              break;
+            }
+          }
+        }
+      }
+    }
+    free (w);
+  }
+  return ad;
+}
+
 static int ADR (STATE *state, char *s, int sz)
 {
   int i, j, main_AKA_ok = 0, ip_verified = 0;
@@ -915,6 +1039,37 @@ static int ADR (STATE *state, char *s, int sz)
   s[sz] = 0;
   secure_NR = unsecure_NR = NO_NR;
   secure_ND = unsecure_ND = NO_ND;
+
+  /* My hack is in using string with shared addresses
+   * instead s
+   */
+  {
+    char *ss, *ad = NULL;
+    if (shares)
+    {
+      ad = add_shared_akas(s);
+      if (ad)
+      {
+        ss = xalloc(strlen(s) + strlen(ad) + 1);
+        strcpy(ss, s);
+        strcat(ss, ad);
+        s = ss;
+        s[sz = sz + strlen(ad)] = 0;
+      }
+    }
+    w = getwordx (s, 1, 0);
+    if (w == 0)
+    {
+      if (ad)
+      {
+        free (s); free (ad);
+      }
+      Log (1, "all akas was removed as shared");
+      return 0;
+    }
+    free (w);
+  }
+
   for (i = 1; (w = getwordx (s, i, 0)) != 0; ++i)
   {
     if (!parse_ftnaddress (w, &fa) || !is4D (&fa))

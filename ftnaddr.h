@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2003/06/07 08:46:25  gul
+ * New feature added: shared aka
+ *
  * Revision 2.0  2001/01/10 12:12:37  gul
  * Binkd is under CVS again
  *
@@ -58,5 +61,27 @@ void ftnaddress_to_domain (char *s, FTN_ADDR *fa);
 		     (fa)->z = (fa)->net = (fa)->node = (fa)->p = -1)
 #define FA_ISNULL(fa) (!((fa)->domain[0]) && (fa)->z == -1 && \
 		       (fa)->net == -1 && (fa)->node == -1 && (fa)->p == -1)
+
+/*
+ * Structures for shared aka
+ * Linked list contains shared aka info.
+ * Each info is linked list in turn, which
+ * contains addresses in main domain and pointer
+ * to header of this list
+ */
+typedef struct _SHARED_CHAIN    SHARED_CHAIN;
+typedef struct _FTN_ADDR_CHAIN  FTN_ADDR_CHAIN;
+
+struct _FTN_ADDR_CHAIN {
+    FTN_ADDR fa;
+    FTN_ADDR_CHAIN * next;
+    SHARED_CHAIN   * own;
+};
+
+struct _SHARED_CHAIN {
+    FTN_ADDR         sha;
+    FTN_ADDR_CHAIN * sfa;
+    SHARED_CHAIN   * next;
+};
 
 #endif
