@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.59  2003/05/15 06:08:46  gul
+ * Crypt bug with asymmetric secure settings
+ *
  * Revision 2.58  2003/05/04 10:29:54  gul
  * Say "OPT ND" on answer only if this option specified in config for this node
  *
@@ -1232,7 +1235,10 @@ static int OK (STATE *state, char *buf, int sz)
   if (!state->to) return 0;
   state->state = !strcmp (state->to->pwd, "-") ? P_NONSECURE : P_SECURE;
   if (state->state == P_SECURE && strcmp(buf, "non-secure") == 0)
+  {
+    state->crypt_flag=NO_CRYPT;
     Log (1, "Warning: remote set UNSECURE session");
+  }
   complete_login (state);
   return 1;
 }
