@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.65  2003/07/13 09:37:53  gul
+ * Auto increase patchlevel, set 0.9.6a-54
+ * Fix daemonize with libc5
+ *
  * Revision 2.64  2003/07/12 18:22:08  gul
  * Auto increase patchlevel, set 0.9.6a-53
  * Fix typo in comment
@@ -269,7 +273,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-53"
+#define MYVER "0.9.6a-54"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
