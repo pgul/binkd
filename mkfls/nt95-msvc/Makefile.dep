@@ -61,6 +61,10 @@
 	
 
 .\BSY.C : \
+	".\readcfg.h"\
+	".\iphdr.h"\
+	".\ftndom.h"\
+	".\ftnnode.h"\
 	".\assert.h"\
 	".\bsy.h"\
 	".\config.h"\

@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2002/05/11 08:37:32  gul
+ * Added token deletedirs
+ *
  * Revision 2.0  2001/01/10 12:12:37  gul
  * Binkd is under CVS again
  *
@@ -25,8 +28,7 @@
 #include <os2.h>
 #endif
 
-#include "Config.h"
-#include "ftnaddr.h"
+#include "readcfg.h"
 #include "bsy.h"
 #include "tools.h"
 #include "sem.h"
@@ -144,7 +146,7 @@ int bsy_test (FTN_ADDR *fa0, bsy_t bt)
 
 void bsy_remove (FTN_ADDR *fa0, bsy_t bt)
 {
-  char buf[MAXPATHLEN + 1];
+  char buf[MAXPATHLEN + 1], *p;
   BSY_ADDR *bsy;
 
   ftnaddress_to_filename (buf, fa0);
@@ -163,6 +165,12 @@ void bsy_remove (FTN_ADDR *fa0, bsy_t bt)
             Log (2, "Can't close %s (handle %d): %s!", buf, bsy->h, strerror(errno));
 #endif
 	delete (buf);
+	/* remove empty point directory */
+	if (deletedirs && fa0->p != 0 && (p = strrchr(buf, *(PATH_SEPARATOR))) != NULL)
+	{
+	  *p = '\0';
+	  rmdir(buf);
+	}
 	FA_ZERO (&bsy->fa);
 	break;
       }
@@ -176,7 +184,7 @@ void bsy_remove (FTN_ADDR *fa0, bsy_t bt)
  */
 void bsy_remove_all ()
 {
-  char buf[MAXPATHLEN + 1];
+  char buf[MAXPATHLEN + 1], *p;
   BSY_ADDR *bsy;
 
   for (bsy = bsy_list; bsy; bsy = bsy->next)
@@ -191,6 +199,13 @@ void bsy_remove_all ()
           Log (2, "Can't close %s (handle %d): %s!", buf, bsy->h, strerror(errno));
 #endif
       delete (buf);
+      /* remove empty point directory */
+      if (deletedirs && bsy->fa.p != 0 && (p = strrchr(buf, *(PATH_SEPARATOR))) != NULL)
+      {
+	*p = '\0';
+	rmdir(buf);
+      }
+
       FA_ZERO (&bsy->fa);
     }
   }

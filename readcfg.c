@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2002/05/11 08:37:32  gul
+ * Added token deletedirs
+ *
  * Revision 2.4  2002/05/06 19:25:39  gul
  * new keyword inboundCase in config
  *
@@ -130,6 +133,7 @@ char tfilebox[MAXPATHLEN + 1] = "";
 char bfilebox[MAXPATHLEN + 1] = "";
 int  deleteablebox = 0;
 #endif
+int  deletedirs = 0;
 char logpath[MAXPATHLEN + 1] = "";
 char binlogpath[MAXPATHLEN + 1] = "";
 char fdinhist[MAXPATHLEN + 1] = "";
@@ -262,6 +266,7 @@ KEYWORD keywords[] =
 #endif
   {"skipmask", read_skipmask, NULL, 0, 0},
   {"inboundcase", read_inboundcase, &inboundcase, 0, 0},
+  {"deletedirs", read_bool, &deletedirs, 0, 0},
   {NULL, NULL, NULL, 0, 0}
 };
 

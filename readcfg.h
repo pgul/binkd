@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2002/05/11 08:37:32  gul
+ * Added token deletedirs
+ *
  * Revision 2.2  2002/05/06 19:25:40  gul
  * new keyword inboundCase in config
  *
@@ -99,6 +102,7 @@ extern int tzoff;
 extern char root_domain[MAXHOSTNAMELEN + 1];
 extern int prescan;
 extern enum inbcasetype { INB_SAVE,INB_UPPER,INB_LOWER,INB_MIXED } inboundcase;
+extern int deletedirs;
 #ifdef MAILBOX
 /* FileBoxes dir */
 extern char tfilebox[MAXPATHLEN + 1];
