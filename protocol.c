@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.28  2003/02/28 19:52:24  gul
+ * Small optimize
+ *
  * Revision 2.27  2003/02/23 16:47:07  gul
  * change restrictIP logic
  *
@@ -820,7 +823,7 @@ static int ADR (STATE *state, char *s, int sz)
         ipok = 2;
       }
 
-      for (i = 1; ipok == 0 && (rc = get_host_and_port
+      for (i = 1; ipok == 0 && n.hosts && (rc = get_host_and_port
 		  (i, host, &port, n.hosts, &n.fa)) != -1; ++i)
       {
 	if (rc == 0)
