@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2003/02/27 18:52:37  gul
+ * bugfix in proxy using
+ *
  * Revision 2.6  2003/02/23 07:20:11  gul
  * Restore lost comment
  *
@@ -238,7 +241,6 @@ static int call0 (FTN_NODE *node)
   char szDestAddr[FTN_ADDR_SZ + 1];
   char *alist[2];
   int i, rc;
-
   char host[MAXHOSTNAMELEN + 1];       /* current host/port */
   unsigned short port;
 
@@ -276,7 +278,7 @@ static int call0 (FTN_NODE *node)
       releasehostsem();
     }
     else
-      sin.sin_port = htons(atoi(sp));
+      sin.sin_port = htons(atoi(sport));
     /* resolve proxy host */
     if ((hp = find_host(host, &he, alist)) == NULL)
     {
