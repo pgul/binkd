@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.78  2003/07/18 07:48:59  hbrew
+ * Auto increase patchlevel, set 0.9.6a-67
+ * binkd9x: Store current dir in registry
+ *
  * Revision 2.77  2003/07/18 04:15:08  hbrew
  * Auto increase patchlevel, set 0.9.6a-66
  * Fix 'tell_start_ntservice(): {120} ...' error on Win9x
@@ -323,7 +327,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-66"
+#define MYVER "0.9.6a-67"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
