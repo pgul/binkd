@@ -1,3 +1,7 @@
+2004/02/07 16:06:09 1.0a-372 hbrew
+breaksig.c,2.22,2.23 win9x.c,2.26,2.27 win9x.h,2.6,2.7
+Macros: RTLDLL-->RTLSTATIC, BINKDW9X-->BINKD9X
+
 2004/01/24 03:07:07 1.0a-371 hbrew
 service.c,2.51,2.52
 Fix warning
