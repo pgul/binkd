@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/05/27 18:58:42  gul
+ * Minor fix in parsing quoted words
+ *
  * Revision 2.4  2003/04/07 18:24:54  gul
  * Move functions declaration to header-file
  *
@@ -34,7 +37,7 @@
 char *getwordx2 (char *src, int n, int flags, char *fldsep, char *fldskip)
 {
   char *dest;
-  char quoted;
+  char quoted = 0;
   int i;
 
   if (!src) return NULL;
@@ -49,14 +52,6 @@ char *getwordx2 (char *src, int n, int flags, char *fldsep, char *fldskip)
       free (dest);
       return NULL;
     }
-
-    if (*src == '\"')
-    {
-      quoted = 1;
-      ++src;
-    }
-    else
-      quoted = 0;
 
     for (i = 0;; ++i, ++src)
     {
@@ -118,14 +113,14 @@ char *getwordx2 (char *src, int n, int flags, char *fldsep, char *fldskip)
       }
       else if (!*src || *src == '\n' || *src == '\r')
 	break;
+      else if (*src == '\"')
+      {
+	quoted = ~quoted;
+	i--;
+      }
       else if ((strchr (fldsep, *src) || ((flags & GWX_HASH) && *src == '#')) &&
 	       !quoted)
 	break;
-      else if (src[0] == '\"' && strchr (fldsep, src[1]) && quoted)
-      {
-	++src;
-	break;
-      }
       else if (*src == '%' && (flags & GWX_SUBST))
       {
 	++src;
