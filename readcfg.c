@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.42  2003/08/19 19:41:39  gul
+ * Fix warnings
+ *
  * Revision 2.41  2003/08/19 18:01:08  stream
  * Fix unix compilation
  *
@@ -1431,7 +1434,7 @@ static void debug_readcfg (void)
   {
     printf("%-24s ", k->key);
     if (k->callback == read_string)
-      printf("\"%s\"", k->var);
+      printf("\"%s\"", (char *)k->var);
     else if (k->callback == read_int || k->callback == read_port)
       printf("%d", *(int *)(k->var));
     else if (k->callback == read_bool)
@@ -1512,8 +1515,9 @@ static void debug_readcfg (void)
     {
       struct skipchain *sk;
       for (sk = skipmask; sk; sk = sk->next)
-        printf("\n    %s %c%d \"%s\"", describe_addrtype(sk->atype),
-               (sk->destr ? '!' : ' '), (sk->size < 0 ? sk->size : sk->size >> 10),
+        printf("\n    %s %c%ld \"%s\"", describe_addrtype(sk->atype),
+               (sk->destr ? '!' : ' '),
+	       (long)(sk->size < 0 ? sk->size : sk->size >> 10),
                sk->mask);
     }
     else if (k->callback == read_mask)
