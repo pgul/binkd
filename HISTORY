@@ -1,3 +1,7 @@
+2004/08/21 20:13:38 1.0a-391 gul
+protoco2.h,2.18,2.19
+Fix total bytes logging
+
 2004/08/11 21:31:22 1.0a-390 hbrew
 zlibdl.h,2.17,2.18
 zlibdl.h: include <windows.h> for compatibility with zlib 1.2.1
