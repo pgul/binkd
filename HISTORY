@@ -1,3 +1,7 @@
+2003/10/11 09:54:58 1.0a-232 stas
+readcfg.c,2.54,2.55
+ifcico/qico passwords file support
+
 2003/10/10 08:30:20 1.0a-231 stas
 service.c,2.34,2.35
 Initialize variable (fix)
