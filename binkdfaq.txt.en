@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of Oct 02 2003
+        Version of Oct 05 2003
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -127,16 +127,18 @@ RFC-1700 (request for comments, issued by IANA).
     The file transfer protocol using two-way TCP connection is developed for
 FTN mailer BinkD. Port 24554 is used on default.
 
-    There are two versions of the protocol: 1.0 and 1.1. They are backwards
+    There are two versions of the protocol: 1.0 and 1.1. They are backward
 compatible.  The main difference of version 1.1 is a possibility of making
 a FREQ during a session.  Besides binkp 1.1 has at present NR option
 (non-reliable mode dealing with a non-reliable channel) and ND option (no
 dupes mode protecting from repeated file transmission), MD5 (password
 hashing), CRYPT (traffic encryption).
 
-    Protocol version 1.1 is supported by BinkD and Internet Rex (version
-2.24 and later), version 1.0 is implemented in Argus (Binkp is implemented
-there with addition of FREQ processing technique of its own).
+    Protocol version 1.0 is supported by BinkD, version 1.0 is implemented 
+in Argus and its clones (Binkp is implemented there with addition of FREQ 
+processing technique of its own and other changes), in MBSE, Internet Rex, 
+BForce and others. In Internet Rex (version 2.24 and later) an incompatible 
+variant of Binkp 1.1 of its own is implemented.
 
     One can find the protocol description in Russian (cp866) here:
 http://binkd.grumbler.org/binkp.txt
@@ -484,7 +486,7 @@ Reloaded?
     Starting with the version 0.9.1 BinkD could feel that its configuration
 file changed. It exited with code 3 if it had been started with option -C.
 Modification time was checked after each ingoing session. Here is the batch
-file for starting BinkD versions 0.9.1-0.9.3 and 0.9.4/w32:
+file for starting BinkD versions 0.9.1-0.9.3 and 0.9.4/w32, 0.9.5/w32:
 
     ====
     :aaa
@@ -686,12 +688,16 @@ he/she has :-). The sources are in the Internet and in the fileecho (see
 
         BinkD Under Windows 3.x
 
-    Sergey Zharsky (zharik@usa.net) ported binkd 0.9.2 for Windows 3.x using
-Trumpet Winsock.
+    Sergey Zharsky (zharik@usa.net) ported BinkD 0.9.2 and BinkD 0.9.5 for 
+Windows 3.x. They work using IP stacks Trumpet Winsock ver. 3.0 revision D 
+and Novell TCP/IP Client for Win 3.11 (see the answer to the question 
+'BinkD Under DOS', the section "The DOS version has the feature...").
 
     The sources and the binaries:
-    http://www.doe.carleton.ca/~nsoveiko/fido/binkd/0.9.2/
+    http://zharik.host.sk/index.php?pages=d&page=d
 
+    0.9.2 only:
+    http://www.doe.carleton.ca/~nsoveiko/fido/binkd/0.9.2/
 
 ----------------------------------------------------------------------------
 
@@ -828,7 +834,7 @@ piece of detailed log (loglevel more than 5).
         I Want To Talk To Developers
 
     Dmitry Malov who is the author of the first BinkD versions does not
-develop it any more now.  Starting with year 2000-2001 the project is
+develop it any more now.  During the years 2000-2003 the project is
 coordinated by Pavel Gulchouck 2:463/68 (Pavel Gulchouck <gul@gul.kiev.ua>).
 He also writes the most part of the code.
 
