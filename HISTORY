@@ -1,3 +1,8 @@
+2004/01/08 14:57:23 1.0a-361 val
+btypes.h,2.3,2.4 ftnnode.c,2.27,2.28 ftnnode.h,2.17,2.18 inbound.c,2.28,2.29 perlhooks.c,2.43,2.44 protocol.c,2.149,2.150 readcfg.c,2.65,2.66
+* parse up to 3 comma-separated passwords (in,pkt,out)
+* use out password for outgoing sessions if it's set
+
 2004/01/08 14:48:18 1.0a-360 val
 binkd.c,2.86,2.87
 add missing 'break' for -d option case
