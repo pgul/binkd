@@ -3,7 +3,7 @@
  *
  *  binkd.c is a part of binkd project
  *
- *  Copyright (C) 1996-2003  Dima Maloff 5047/13 and others
+ *  Copyright (C) 1996-2004  Dima Maloff 5047/13 and others
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30.2.9  2004/11/08 12:05:33  gul
+ * 0.9.8 release
+ *
  * Revision 2.30.2.8  2004/08/03 19:52:56  gul
  * Change SIGCHLD handling, make signal handler more clean,
  * prevent occasional hanging (mutex deadlock) under linux kernel 2.6.
@@ -322,7 +325,7 @@ void usage (void)
 	  "  -m       disable CRAM-MD5 authorization\n"
 	  "  -h       print this help\n"
 	  "\n"
-	  "Copyright (c) 1996-2003 Dima Maloff and others.\n"
+	  "Copyright (c) 1996-2004 Dima Maloff and others.\n"
 #if defined(WIN32) && !defined(BINKDW9X)
 	  ,s?s:"", s?s+3:""
 #endif

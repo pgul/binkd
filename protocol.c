@@ -3,7 +3,7 @@
  *
  *  protocol.c is a part of binkd project
  *
- *  Copyright (C) 1996-2003  Dima Maloff, 5047/13 and others
+ *  Copyright (C) 1996-2004  Dima Maloff, 5047/13 and others
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67.2.18  2004/11/08 12:05:33  gul
+ * 0.9.8 release
+ *
  * Revision 2.67.2.17  2004/10/21 17:02:03  gul
  * Rename trunc() -> trunc_file() due to conflicts under OS/2 EMX and SuSE
  *

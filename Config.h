@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10.2.19  2004/11/08 12:05:32  gul
+ * 0.9.8 release
+ *
  * Revision 2.10.2.18  2004/08/03 19:52:55  gul
  * Change SIGCHLD handling, make signal handler more clean,
  * prevent occasional hanging (mutex deadlock) under linux kernel 2.6.
@@ -149,7 +152,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.8-stable"
+#define MYVER "0.9.8"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 

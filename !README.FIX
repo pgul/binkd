@@ -449,7 +449,7 @@ NT/95:  ctrl-c problems fixed
 	"-nomd" (disable md5 on outgoing calls) in "node" line
 	(Dima Afanasiev <da@4u.net>)
 
-0.9.5
+0.9.5   (Thu Sep 04 2003 18:18:04)
 -----
 	64-bit integer fix (Tobias Ernst 2:2476/418).
 
@@ -517,7 +517,7 @@ NT/95:  ctrl-c problems fixed
 	NR- and ND-modes can be asymmetric now, options -nr and -nd
 	sets mode only for receiving files from this node.
 
-0.9.6
+0.9.6   (Fri Oct 28 06:02:25 EET 2003)
 -----
 	Memory leak in event processing (Roman Trunov).
 
@@ -525,7 +525,15 @@ NT/95:  ctrl-c problems fixed
 
 	Some minor bugfixes.
 
-0.9.7
+0.9.7   (Sun Jun 15 08:22:58 EET 2004)
 -----
 	Fix in client manager (poll nodes queue).
+
+0.9.8   (Mon Nov 08 12:47:00 EET 2004)
+-----
+	Fix signal handling, binkd sometimes hangs under glibc 2.3.
+
+	Fixed memory leak.
+
+	Fixed compilation under SuSe and OS2-emx.
 

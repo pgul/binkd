@@ -11,7 +11,7 @@ non-UNIX:
 UNIXes:
 
 1. Copy all files from mkfls/unix/ to the root of binkd sources:
-	cd /usr/src/binkd-0.9.7
+	cd /usr/src/binkd-0.9.8
 	cp mkfls/unix/* .
 
 2. Run configure:
@@ -35,7 +35,9 @@ MORE INFO
    ftp://happy.kiev.ua/pub/fidosoft/mailer/binkd/
    Mirror sites:
      ftp://fido.thunderdome.ws/pub/mirror/binkd/
-     ftp://ftp.lucky.net/pub/fido/binkd/
+     ftp://cheetah.itpark.ua/pub/fido/binkd/
+     ftp://ftp.alexblues.ru/pub/binkd/
+     ftp://cube.sut.ru/pub/mirror/binkd/
    Documentation: http://www.doe.carleton.ca/~nsoveiko/fido/binkd/man/
                   (c) Nick Soveiko <nsoveiko@doe.carleton.ca>
 
