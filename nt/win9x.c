@@ -16,6 +16,10 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.17  2003/08/21 15:40:35  gul
+ * Change building commandline for service under win32
+ * (patch by Alexander Reznikov)
+ *
  * Revision 2.16  2003/08/20 07:33:38  hbrew
  * Addon for 'Avoid double exitfunc() call' patch
  *
@@ -109,13 +113,13 @@ int w9x_service_reg = 0;
 
 DWORD SigType = -1;
 
-static const char *Win9xWindowClassName = "binkdWin9xHandler";
-static const char *Win9xRegServ = "Software\\Microsoft\\Windows\\CurrentVersion\\RunServices";
+const char *Win9xWindowClassName = "binkdWin9xHandler";
+const char *Win9xRegServ = "Software\\Microsoft\\Windows\\CurrentVersion\\RunServices";
 #define WIN9XREGPARM_PREFIX "Software"
 #define WIN9XREGPARM_SUFFIX "binkd9x"
-static const char *Win9xRegParm = WIN9XREGPARM_PREFIX "\\" WIN9XREGPARM_SUFFIX;
-static const char *Win9xRegParm_Path = "Path";
-static const char *Win9xServPrefix = "binkd9x-service";
+const char *Win9xRegParm = WIN9XREGPARM_PREFIX "\\" WIN9XREGPARM_SUFFIX;
+const char *Win9xRegParm_Path = "Path";
+const char *Win9xServPrefix = "binkd9x-service";
 const char *Win9xStartService = "--service";
 
 #define WM_BINKD9XCOMMAND  WM_USER+50
@@ -459,29 +463,29 @@ int win9x_service_control_exec(char *tmp, enum serviceflags cmd, int qflag)
   switch (cmd)
   {
   case w32_queryservice:
-    if (!qflag)  Log(-1, "%s: %s\n", tmp, hwnd?"started":"stopped");
+    if (!qflag)  Log(-1, "\'%s\': %s\n", tmp, hwnd?"started":"stopped");
     break;
   case w32_startservice:
     if (!hwnd)
     {
       if (win9x_service_start(tmp))
       {
-        if (!qflag)   Log(-1, "%s: started\n", tmp);
+        if (!qflag)   Log(-1, "\'%s\': started\n", tmp);
       }
       else
       {
-        if (!qflag)  Log(-1, "%s: starting failed!\n", tmp);
+        if (!qflag)  Log(-1, "\'%s\': starting failed!\n", tmp);
         rc = 0;
       }
     }
     else
     {
-      if (!qflag)  Log(-1, "%s: already started\n", tmp);
+      if (!qflag)  Log(-1, "\'%s\': already started\n", tmp);
     }
     break;
   case w32_stopservice:
     if (hwnd) SendMessage(hwnd, WM_BINKD9XCOMMAND, CTRL_SERVICESTOP_EVENT, 0);
-    if (!qflag)  Log(-1, "%s: %s\n", tmp, hwnd?"stopped":"already stopped");
+    if (!qflag)  Log(-1, "\'%s\': %s\n", tmp, hwnd?"stopped":"already stopped");
     break;
   case w32_restartservice:
     if (hwnd)
@@ -489,16 +493,16 @@ int win9x_service_control_exec(char *tmp, enum serviceflags cmd, int qflag)
       SendMessage(hwnd, WM_BINKD9XCOMMAND, CTRL_SERVICERESTART_EVENT, 0);
       if (win9x_service_start(tmp))
       {
-        if (!qflag)  Log(-1, "%s: restarted\n", tmp);
+        if (!qflag)  Log(-1, "\'%s\': restarted\n", tmp);
       }
       else
       {
-        if (!qflag)  Log(-1, "%s: restarting failed!\n", tmp);
+        if (!qflag)  Log(-1, "\'%s\': restarting failed!\n", tmp);
         rc = 0;
       }
     }
     else
-      if (!qflag)  Log(-1, "%s: already stopped\n", tmp);
+      if (!qflag)  Log(-1, "\'%s\': already stopped\n", tmp);
     break;
   default:  /* Avoid gcc warnings about non-handled enumeration values */
     rc = 0;
@@ -647,7 +651,7 @@ int win9x_service_do_uninstall(char *srvname, int qflag)
     }
   }
 
-  if (!qflag)  Log(-1, "%s uninstalled...\n", srvname);
+  if (!qflag)  Log(-1, "\'%s\' uninstalled...\n", srvname);
   if (!win9x_service_control_exec(srvname, w32_stopservice, qflag))  rc = 0;
   return rc;
 }
@@ -709,56 +713,53 @@ int win9x_service_un_install(int argc, char **argv)
 
   if (rc)
   {
-    char *sp, *path;
-    int q = 0, tmplen1, tmplen2, len = 2;  /* ' ' + '\0' */
+    char *sp, *path, *asp, *p;
+    int q = 0, q1, tmplen1, tmplen2, len = 1; /* '\0' */
 
-    tmplen1 = strlen(argv[0]);
-    len += tmplen1;                        /* binkd9x path & filename + (' ') */
+    build_service_arguments(&asp, argv, 1);
+
+    for(p=asp, tmplen1=0; *p; p++, tmplen1++)
+      if (*p == ' ')  { q = 1; }
+
+    p++; len += tmplen1+1;                    /* binkd9x path & filename + (' ') */
+    if (q)  { len += 2; }
+
     tmplen2 = strlen(Win9xStartService);
-    len += tmplen2;                        /* Win9xStartService */
+    len += tmplen2;                           /* Win9xStartService */
 
-    if (strchr(argv[0], ' ')!=NULL)
+    for (sp = p; *sp; sp++)
     {
-      q = 1;
-      len += 2;
-    }
-
-    for (i=1; i<argc; i++)
-    {
-      len += strlen(argv[i])+1;
-      if (strchr(argv[i], ' ')!=NULL)
-        len += 2;
+      len++;
+      for(q1 = 0; *sp; sp++)
+      {
+        len++;
+        if (!q1 && *sp == ' ')  { q1 = 1; len += 2; }
+      }
     }
 
     sp = path = (char *)malloc(len);
 
-    if (q)
-      *(sp++) = '"';
-    memcpy(sp, argv[0], tmplen1); sp += tmplen1;
-    if (q)
-      *(sp++) = '"';
+    if (q)  { *(sp++) = '"'; }
+    memcpy(sp, asp, tmplen1); sp += tmplen1;
+    if (q)  { *(sp++) = '"'; }
     *(sp++) = ' ';
     memcpy(sp, Win9xStartService, tmplen2); sp += tmplen2;
 
-    for (i=1; i<argc; i++)
+    for(; *p; p++)
     {
       *(sp++) = ' ';
-      if (strchr(argv[i], ' ')!=NULL)
-      {
-        *(sp++) = '"';
-        j = 1;
-      } else  j = 0;
-      tmplen1 = strlen(argv[i]);
-      memcpy(sp, argv[i], tmplen1); sp += tmplen1;
-      if (j)
-        *(sp++) = '"';
+      if (strchr(p, ' '))  { *(sp++) = '"'; q = 1; } else { q = 0; }
+      for(;*p;p++)         { *(sp++) = *p; }
+      if (q)               { *(sp++) = '"'; }
     }
-    *sp = 0;
+
+    *sp = '\0';
 
     if (RegSetValueEx(hk, service_name, 0, REG_SZ, path, len-1) != ERROR_SUCCESS)
       rc = 0;
 
     free(path);
+    free(asp);
     RegCloseKey(hk);
 
 /* Store current directory */
@@ -793,14 +794,14 @@ int win9x_service_un_install(int argc, char **argv)
   {
     if (win9x_service_start(service_name))
     {
-      if (!quiet_flag)  Log(-1, "%s installed and started...\n", service_name);
+      if (!quiet_flag)  Log(-1, "\'%s\' installed and started...\n", service_name);
     }
     else
     {
       rc = 0;
       if (!quiet_flag)
       {
-        Log(-1, "%s installed...\n", service_name);
+        Log(-1, "\'%s\' installed...\n", service_name);
         Log(-1, "Unable to start service!\n");
       }
     }

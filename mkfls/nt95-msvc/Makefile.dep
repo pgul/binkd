@@ -446,4 +446,5 @@ $(OUTDIR)\set_key.obj: \
 	"ntlm\des_locl.h"
 
 $(OUTDIR)\w32tools.obj: \
+	"getopt.h" \
 	"nt\w32tools.h"

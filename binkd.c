@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.54  2003/08/21 15:40:34  gul
+ * Change building commandline for service under win32
+ * (patch by Alexander Reznikov)
+ *
  * Revision 2.53  2003/08/17 10:38:55  gul
  * Return semaphoring for log and binlog
  *
@@ -411,11 +415,31 @@ enum serviceflags service_flag = w32_noservice;  /* install, uninstall, start, s
 char *service_name = NULL;
 #ifdef BINKDW9X
 extern const char *Win9xStartService;  /* 'Run as win9x service' option */
+#else
+extern char *srvname;
 #endif
 #ifndef BINKDW9X
 int tray_flag = 0;                     /* minimize to tray */
 #endif
 #endif
+
+const char *optstring = "CchmP:pqrsv-:"
+#ifdef BINKD_DAEMONIZE
+			"D"
+#endif
+#if defined(UNIX) || defined(OS2) || defined(AMIGA)
+			"i"
+#endif
+#if defined(WIN32)
+#if !defined (BINKDW9X)
+			"T"
+#endif
+#if defined(BINKDW9X)
+			"t:"
+#endif
+			"iuS:"
+#endif
+			;
 
 /* Parse and check command line parameters. Return config file name or NULL
  * On error prints usage information and exit (see usage() function)
@@ -430,24 +454,7 @@ char *parseargs (int argc, char *argv[])
   if (getenv("BINKD_RERUN")) rerun = 1;
 
   curind = 1;
-  while ((i = getopt(argc, argv,
-		"CchmP:pqrsv-:"
-#ifdef BINKD_DAEMONIZE
-		"D"
-#endif
-#if defined(UNIX) || defined(OS2) || defined(AMIGA)
-		"i"
-#endif
-#if defined(WIN32)
-#if !defined (BINKDW9X)
-		"T"
-#endif
-#if defined(BINKDW9X)
-		"t:"
-#endif
-		"iuS:"
-#endif
-		  )) != -1)
+  while ((i = getopt(argc, argv, optstring)) != -1)
   {
 	switch (i)
 	  {
@@ -638,7 +645,7 @@ int main (int argc, char *argv[], char *envp[])
 #ifdef BINKDW9X
   {
     int win9x_rc;
-    
+
     win9x_rc = win9x_process(argc, argv);
     if (win9x_rc != -1)
       return win9x_rc;
@@ -722,10 +729,13 @@ int main (int argc, char *argv[], char *envp[])
   print_args (tmp, sizeof (tmp), argv + 1);
 #ifdef WIN32
 #ifndef BINKDW9X
-  if (isService)
-#else
-  if (service_flag==w32_run_as_service)
+  if (isService) {
+    service_flag = w32_run_as_service;
+    if (!service_name)
+      service_name = strdup((const char *)srvname);
+  }
 #endif
+  if (service_flag==w32_run_as_service)
     Log (4, "BEGIN service '%s', " MYNAME "/" MYVER "%s%s", service_name, get_os_string(), tmp);
   else
     Log (4, "BEGIN standalone, " MYNAME "/" MYVER "%s%s", get_os_string(), tmp);

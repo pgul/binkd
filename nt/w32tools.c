@@ -20,6 +20,10 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.6  2003/08/21 15:40:34  gul
+ * Change building commandline for service under win32
+ * (patch by Alexander Reznikov)
+ *
  * Revision 2.5  2003/08/04 12:23:40  gul
  * Add CVS tags
  *
@@ -31,10 +35,13 @@
 #include "../common.h"
 #include "../tools.h"
 #include "service.h"
+#ifdef HAVE_GETOPT
+#include <unistd.h>
+#else
+#include "../getopt.h"
+#endif
 
-extern char *configpath;
-extern const char *Win9xStartService;
-
+extern const char *optstring;
 
 /* Windows version test
  * Parameter: Platform ID (VER_PLATFORM_WIN32_NT, VER_PLATFORM_WIN32_WINDOWS
@@ -111,83 +118,90 @@ char *get_service_name(char *display_name)
   return srv_name;
 }
 
+/* build_service_arguments helper */
+int build_service_copystr(char **dst, char *src, int copynul)
+{
+  int len = 0;
+
+  for (; *src; src++)  { *(*dst)++ = *src; len++; }
+  if (copynul)         { *(*dst)++ = '\0'; len++; }
+  return len;
+}
 
 /* Build service arguments list
- * Parameters:  asp - new arguments list
- *              sep - arguments separator char:
- * Set sep to '\0' to build argv, function add two '\0' to indicate end of array.
+ * Parameters:  asp       - new arguments list
+ *              argv      - old arguments list in *argv[] format
+ *              use_argv0 - use argv[0] or GetModuleFileName()
+ * Function add two '\0' to indicate end of array.
  * Return asp size.
  */
-int build_service_arguments(char **asp, char sep)
-{ int len,size;
-  char pathname[MAXPATHLEN];
+int build_service_arguments(char **asp, char *argv[], int use_argv0)
+{
+  char pathname[MAXPATHLEN], *p;
+  DWORD pathlen;
+  int i, curind, oldind, n_opt, n_nul;
+  int argc = 0, len = 0, l = 1;
 
-  if(GetModuleFileName(NULL, pathname, MAXPATHLEN)<1)
+  if (!use_argv0)
   {
-    Log(0, "Error in GetModuleFileName()=%s\n", tcperr(GetLastError()) );
+    if (!(pathlen = GetModuleFileName(NULL, pathname, MAXPATHLEN)))
+      Log(0, "Error in GetModuleFileName()=%s\n", tcperr(GetLastError()) );
+    l += pathlen+1;
+    argc++;
   }
 
-  size = strlen(pathname) + strlen(service_name) + strlen(configpath) +14 +11 +3*11; /* max: 11 options */
-  *asp=(char*)malloc(size);
-  memset(*asp,sep,size-1);
-  size -= 4;
-  (*asp)[size-1]='\0';
-  len = sprintf(*asp, "%s%c-S%c\"%s\"", pathname, sep, sep, service_name);
-  (*asp)[len++]=sep;
-#ifdef BINKDW9X
-    memcpy(*asp+len,Win9xStartService,9);
-    len+=10;
-#else
-  if(tray_flag){
-    memcpy(*asp+len,"-T",2);
-    len+=3;
+  for (i = use_argv0? 0: 1; argv[i]; i++)
+  {
+    l += strlen(argv[i]) + 1;
+    argc++;
   }
-#endif
-  if(len>=size){ Log(0,"build_service_arguments() error: too long parameters list"); }
-  if(server_flag){
-    memcpy(*asp+len,"-s",2);
-    len+=3;
+
+  *asp = p = (char *)malloc(l);
+
+  if (use_argv0)  len += build_service_copystr(&p, argv[0], 1);
+  else            len += build_service_copystr(&p, pathname, 1);
+
+  curind = optind = 1; /* restart getopt */
+  init_getopt();
+  oldind = 0;
+  n_opt = n_nul = 0;
+
+  while((i = getopt(argc, argv, optstring)) != -1)
+  {
+    if (curind != oldind)
+      n_opt = 1;
+
+    if (i != 'i' && i != 'u' && i != 't')
+    {
+      if (n_opt)
+      {
+        *p++ = '-'; len++;
+        n_opt = 0;
+        n_nul = 1;
+      }
+
+      *p++ = i; len++;
+
+      if (optarg)
+      {
+        if (optind != (curind+1))  { *p++ = '\0'; len++; }
+        len += build_service_copystr(&p, optarg, 0);
+      }
+    }
+
+    oldind = curind;
+    curind = optind;
+
+    if (n_nul && curind != oldind)
+    {
+      *p++ = '\0'; len++;
+      n_nul = 0;
+    }
   }
-  if(len>=size){ Log(0,"build_service_arguments() error: too long parameters list"); }
-  if(client_flag){
-    memcpy(*asp+len,"-c",2);
-    len+=3;
-  }
-  if(len>=size){ Log(0,"build_service_arguments() error: too long parameters list"); }
-  if(poll_flag){
-    memcpy(*asp+len,"-p",2);
-    len+=3;
-  }
-  if(len>=size){ Log(0,"build_service_arguments() error: too long parameters list"); }
-  if(quiet_flag){
-    memcpy(*asp+len,"-q",2);
-    len+=3;
-  }
-  if(len>=size){ Log(0,"build_service_arguments() error: too long parameters list"); }
-  if(verbose_flag){
-    memcpy(*asp+len,"-v",2);
-    len+=3;
-  }
-  if(len>=size){ Log(0,"build_service_arguments() error: too long parameters list"); }
-  if(checkcfg_flag){
-    memcpy(*asp+len,"-C",2);
-    len+=3;
-  }
-  if(len>=size){ Log(0,"build_service_arguments() error: too long parameters list"); }
-  if(no_MD5){
-    memcpy(*asp+len,"-m",2);
-    len+=3;
-  }
-  if(len>=size){ Log(0,"build_service_arguments() error: too long parameters list"); }
-  if(no_crypt){
-    memcpy(*asp+len,"-r",2);
-    len+=3;
-  }
-  if(len>=size){ Log(0,"build_service_arguments() error: too long parameters list"); }
-  if(configpath){
-    strcpy(*asp+len,configpath);
-    len+=strlen(configpath)+1;
-  }
-  (*asp)[len]='\0';
+
+  for (; optind<argc; optind++)
+    len += build_service_copystr(&p, argv[optind], 1);
+
+  *p = '\0';
   return ++len;
 }

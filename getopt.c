@@ -56,7 +56,7 @@ void init_getopt(void)
 	optopt = 0;
 }
 
-int getopt(int argc, char **argv, char *opts)
+int getopt(int argc, char **argv, const char *opts)
 {
    register int c;
    register char *cp;

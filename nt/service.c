@@ -14,6 +14,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.17  2003/08/21 15:40:34  gul
+ * Change building commandline for service under win32
+ * (patch by Alexander Reznikov)
+ *
  * Revision 2.16  2003/07/19 06:59:35  hbrew
  * Complex patch:
  * * nt/w32tools.c: Fix warnings
@@ -104,7 +108,7 @@ extern enum serviceflags service_flag;
 extern char *configpath;
 
 static const char libname[]="ADVAPI32";
-static char *srvname="binkd-service";
+char *srvname = "binkd-service";
 static const char *description = "BinkD: Fidonet TCP/IP mailer uses binkp protocol";
 static const char dependencies[] = "Tcpip\0Afd\0"; /* Afd is the winsock handler */
 static char reg_path_prefix[]="SYSTEM\\CurrentControlSet\\Services\\";
@@ -685,7 +689,7 @@ int service(int argc, char **argv, char **envp)
       }
 
       /* build arguments list for service */
-      len = build_service_arguments(&asp,'\0');
+      len = build_service_arguments(&asp, argv, 0);
 
       /* build enviroment */
       if(envp)

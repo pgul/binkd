@@ -16,6 +16,10 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.4  2003/08/21 15:40:35  gul
+ * Change building commandline for service under win32
+ * (patch by Alexander Reznikov)
+ *
  * Revision 2.3  2003/08/04 12:23:40  gul
  * Add CVS tags
  *
@@ -48,9 +52,10 @@ int W32_CheckOS(unsigned long PlatformId);
 char *get_service_name(char *display_name);
 
 /* Build service arguments list
- * Parameters:  asp - new arguments list
- *              sep - arguments separator char:
- * Set sep to '\0' to build argv, function add two '\0' to indicate end of array.
+ * Parameters:  asp       - new arguments list
+ *              argv      - old arguments list in *argv[] format
+ *              use_argv0 - use argv[0] or GetModuleFileName()
+ * Function add two '\0' to indicate end of array.
  * Return asp size.
  */
-int build_service_arguments(char **asp, char sep);
+int build_service_arguments(char **asp, char *argv[], int use_argv0);
