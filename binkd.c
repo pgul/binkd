@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30.2.7  2003/08/28 09:22:25  stas
+ * Cosmetics
+ *
  * Revision 2.30.2.6  2003/08/28 06:29:51  hbrew
  * Update binkd9x for compability with binkd 0.9.6 commandline; put binkd9x.txt from current
  *
@@ -390,7 +393,7 @@ int main (int argc, char *argv[], char *envp[])
 #endif
 		usage ();
               }
-#if defined (WIN32) && defined (BINKDW9X)
+#if defined (BINKDW9X)
 	      else
 	      if (!strcmp(argv[i], Win9xStartService))
 	        goto BREAK_WHILE;
@@ -410,12 +413,12 @@ int main (int argc, char *argv[], char *envp[])
 #endif
 #if defined (WIN32)
 #if !defined (BINKDW9X)
-	    case 'T':
+	    case 'T': /* Skip option in win32 version */
 	      break;
 #endif
-	    case 'S': /* Skip parameter */
+	    case 'S': /* Skip option and parameter in all win* versions */
 #if defined (BINKDW9X)
-            case 't': /* Skip parameter */
+            case 't': /* Skip option and parameter in win9x version */
 #endif
 	      if (!s[1]){ ++i; }
 	      goto BREAK_WHILE;
