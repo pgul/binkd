@@ -16,9 +16,11 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.2  2003/11/04 00:47:52  hbrew
+ * Cosmetic
+ *
  * Revision 2.1  2003/11/04 00:46:20  hbrew
  * confopt added.
- *
  *
  */
 
