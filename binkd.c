@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.17  2003/03/01 17:42:32  gul
+ * Added tzset() call to main() start
+ *
  * Revision 2.16  2003/03/01 17:33:25  gul
  * Clean daemonize code
  *
@@ -116,6 +119,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <setjmp.h>
+#include <time.h>
 
 #include "Config.h"
 #include "sys.h"
@@ -274,6 +278,7 @@ int main (int argc, char *argv[], char *envp[])
   int  nochdir;
 #endif
 
+  tzset();
 #if defined(WIN32) && !defined(BINKDW9X)
   service(argc, argv, envp);
 #endif
