@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.36  2003/08/12 09:31:46  val
+ * don't strlower() mask in flag/exec since we now use pmatch_ncase()
+ *
  * Revision 2.35  2003/08/12 09:23:00  val
  * migrate from pmatch() to pmatch_ncase()
  *
@@ -1157,7 +1160,7 @@ static void read_flag_exec_info (KEYWORD *key, char *s)
       body[0]++;
     }
     tmp->pattern = w;
-    strlower (tmp->pattern);
+    /*strlower (tmp->pattern);*/
 
     tmp->next = 0;
     if (last == 0)
