@@ -1,3 +1,7 @@
+2004/10/18 18:22:24 1.0a-409 gul
+client.c,2.54,2.55 common.h,2.12,2.13 exitproc.c,2.39,2.40 perlhooks.c,2.46,2.47 reapchld.inc,2.4,2.5 tools.c,2.63,2.64
+Change handle perl errors method
+
 2004/10/18 18:16:40 1.0a-408 gul
 protocol.c,2.160,2.161
 Minor bugfix (patch from Victor Levenets <aq@takas.lt>)
