@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.164  2004/11/03 08:22:21  stas
+ * Set 'unsigned char *' to prevent warnings
+ *
  * Revision 2.163  2004/10/20 17:30:55  gul
  * Fixed segfault on transmission compressed files
  * when sizeof(off_t)!=sizeof(long) and loglevel>3.
@@ -1004,7 +1007,7 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
       /* There is a file in transfer and we don't wait for an answer for * *
        * "FILE ... -1" */
       int sz;
-      char *buf = state->obuf + BLK_HDR_SIZE;
+      unsigned char *buf = (unsigned char *)state->obuf + BLK_HDR_SIZE;
 
       if (state->out.f)
       {
