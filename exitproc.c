@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/03/05 11:40:12  gul
+ * Fix win32 compilation
+ *
  * Revision 2.2  2003/03/05 09:00:45  gul
  * Fix win32 compilation
  *
@@ -53,13 +56,13 @@ int binkd_exit;
 
 static fd_set sockets;
 
-int add_socket(int sockfd)
+int add_socket(SOCKET sockfd)
 {
   FD_SET (sockfd, &sockets);
   return 0;
 }
 
-int del_socket(int sockfd)
+int del_socket(SOCKET sockfd)
 {
   FD_CLR (sockfd, &sockets);
   return 0;

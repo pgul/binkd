@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/03/05 11:40:12  gul
+ * Fix win32 compilation
+ *
  * Revision 2.4  2003/03/03 23:41:20  gul
  * Try to resolve problem with active threads while exitproc running
  *
@@ -133,12 +136,14 @@ void rel_grow_handles(int nh);
 #define rel_grow_handles(nh)
 #endif
 
+#ifdef _iphdrs_h /* SOCKET type defined */
 #ifdef HAVE_THREADS
-int add_socket(int sockfd);
-int del_socket(int sockfd);
+int add_socket(SOCKET sockfd);
+int del_socket(SOCKET sockfd);
 #else
 #define add_socket(sockfd)
 #define del_socket(sockfd)
+#endif
 #endif
 
 #endif
