@@ -15,6 +15,17 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.86  2003/07/19 06:59:37  hbrew
+ * Auto increase patchlevel, set 0.9.6a-74
+ * Complex patch:
+ * * nt/w32tools.c: Fix warnings
+ * * nt/w32tools.c: Fix typo in #ifdef
+ * * nt/win9x.c: Fix type in #include
+ * * Config.h, sys.h, branch.c, nt/service.c,
+ *     nt/win9x.c, : _beginthread()-->BEGINTHREAD()
+ * * binkd.c, common.h, mkfls/nt95-msvc/Makefile.dep,
+ *     nt/service.c, nt/w32tools.c,nt/win9x.c: cosmitic code cleanup
+ *
  * Revision 2.85  2003/07/19 06:59:34  hbrew
  * Complex patch:
  * * nt/w32tools.c: Fix warnings
@@ -361,7 +372,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-73"
+#define MYVER "0.9.6a-74"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
