@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67.2.1  2003/06/06 16:27:44  gul
+ * Workaround winsock bug - giveup CPU when sending file
+ *
  * Revision 2.67  2003/06/04 20:59:43  gul
  * bugfix: do not force NR-mode if remote uses binkp/1.0
  *
@@ -538,6 +541,17 @@ static int send_block (STATE *state)
 	return 0;
       }
       Log (7, "data transfer would block");
+#if defined(WIN32) /* workaround winsock bug - give up CPU */
+      {
+	struct timeval tv;
+	fd_set r;
+	FD_ZERO (&r);
+	FD_SET (state->s, &r);
+	tv.tv_sec = 0;
+	tv.tv_usec = 10000; /* 10 ms */
+	select (state->s + 1, &r, 0, 0, &tv);
+      }
+#endif
     }
     else
     {
