@@ -1,3 +1,8 @@
+2003/10/07 23:50:11 1.0a-223 gul
+client.c,2.48,2.49 exitproc.c,2.29,2.30 server.c,2.34,2.35
+Wait for servmanager exit from exitproc()
+(Patch from Alexander Reznikov)
+
 2003/10/07 21:03:22 1.0a-222 stas
 service.c,2.30,2.31
 Fix error with MS VC. Thanks to Serguei Trouchelle <stro@isd.dp.ua>
