@@ -48,6 +48,9 @@
   #include <sys/param.h>
 #endif
 
+/* Enviromant variables */
+#define BINKD_LOGPATH_ENVIRON "BINKD_LOG"
+
 /* Please, no spaces here! */
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"

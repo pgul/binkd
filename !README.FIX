@@ -553,3 +553,5 @@ NT/95:  ctrl-c problems fixed
 	Comments in config now starts only if '#' follows after space.
 
 	Argus-compatible file requests implementation.
+
+	Log file may be defined in enviroment variable BINKD_LOG.

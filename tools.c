@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.58  2004/01/02 20:58:56  stas
+ * Log file may be defined in enviroment variable BINKD_LOG
+ *
  * Revision 2.57  2003/11/17 01:03:27  hbrew
  * Fix BINKDW9X macro
  *
@@ -568,15 +571,18 @@ void Log (int lev, char *s,...)
       return;
   }
 
-  if (lev <= current_loglevel && *current_logpath)
+  if (lev <= current_loglevel /*&& *current_logpath*/)
   {
     FILE *logfile = 0;
     int i;
+    char *__logpath;
 
     LockSem(&lsem);
+    __logpath = (current_logpath && *current_logpath) ?
+                               current_logpath : getenv(BINKD_LOGPATH_ENVIRON);
     for (i = 0; logfile == 0 && i < 10; ++i)
     {
-      logfile = fopen (current_logpath, "a");
+      logfile = fopen (__logpath, "a");
     }
     if (logfile)
     {
