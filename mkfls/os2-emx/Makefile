@@ -37,8 +37,8 @@ else
 ifdef PERLDL
 # Now segfault in perl_parse :(
 PERLDIR=C:/PERL5/LIB/5.00553/os2
-CFLAGS+= -DWITH_PERL -DPERLDL -DDOSISH -DPERL_IS_AOUT -DEMBED -I$(PERLDIR)/CORE
-LFLAGS+= -Zsmall-conv -Zstack 16000
+CFLAGS+= -Zmt -DWITH_PERL -DPERLDL -DDOSISH -DPERL_IS_AOUT -DEMBED -I$(PERLDIR)/CORE
+LFLAGS+= -Zmt -Zcrtdll -Zstack 16000
 PERLSRC=perlhooks.c
 else
 CFLAGS+= -Zcrtdll

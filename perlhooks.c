@@ -14,8 +14,8 @@
  * $Id$
  *
  * $Log$
- * Revision 2.17  2003/08/26 14:36:47  gul
- * Perl hooks in os2-emx
+ * Revision 2.18  2003/08/26 16:45:52  gul
+ * binkd/2 perl dynamic DLL load
  *
  * Revision 2.16  2003/08/26 07:43:54  stream
  * Use generic lists
@@ -84,6 +84,9 @@
 #include <sys/wait.h>
 #endif
 #ifdef OS2
+#ifdef PERLDL
+#define INCL_DOSMODULEMGR
+#endif
 #define INCL_DOSPROCESS
 #include <os2.h>
 #endif
@@ -138,25 +141,15 @@ extern "C" {
 #ifdef PERLDL
 # define Perl_sv_2pv			(*dl_Perl_sv_2pv)
 # define Perl_sv_2uv			(*dl_Perl_sv_2uv)
-# define Perl_Tstack_base_ptr		(*dl_Perl_Tstack_base_ptr)
-# define Perl_Tmarkstack_ptr    	(*dl_Perl_Tmarkstack_ptr)
-# define Perl_Tmarkstack_ptr_ptr	(*dl_Perl_Tmarkstack_ptr_ptr)
-# define Perl_Tstack_sp_ptr		(*dl_Perl_Tstack_sp_ptr)
-# define Perl_get_context		(*dl_Perl_get_context)
 # define Perl_sv_2mortal		(*dl_Perl_sv_2mortal)
 # define Perl_newSViv			(*dl_Perl_newSViv)
-# define Perl_Isv_undef_ptr		(*dl_Perl_Isv_undef_ptr)
 # define Perl_av_store			(*dl_Perl_av_store)
 # define Perl_av_fetch			(*dl_Perl_av_fetch)
 # define Perl_av_len			(*dl_Perl_av_len)
 # define Perl_newXS			(*dl_Perl_newXS)
-# define boot_DynaLoader		(*dl_boot_DynaLoader)
 # define Perl_sv_2bool			(*dl_Perl_sv_2bool)
-# define Perl_TXpv_ptr			(*dl_Perl_TXpv_ptr)
-# define Perl_get_cv			(*dl_Perl_get_cv)
 # define perl_run			(*dl_perl_run)
 # define Perl_sv_setiv			(*dl_Perl_sv_setiv)
-# define Perl_get_sv			(*dl_Perl_get_sv)
 # define perl_free			(*dl_perl_free)
 # define perl_destruct			(*dl_perl_destruct)
 # define perl_parse			(*dl_perl_parse)
@@ -165,34 +158,61 @@ extern "C" {
 # define Perl_newAV			(*dl_Perl_newAV)
 # define Perl_av_push			(*dl_Perl_av_push)
 # define Perl_av_clear			(*dl_Perl_av_clear)
-# define Perl_get_av			(*dl_Perl_get_av)
 # define Perl_newRV_noinc		(*dl_Perl_newRV_noinc)
 # define Perl_newHV			(*dl_Perl_newHV)
 # define Perl_hv_store			(*dl_Perl_hv_store)
 # define Perl_newSVpv			(*dl_Perl_newSVpv)
 # define Perl_hv_clear			(*dl_Perl_hv_clear)
-# define Perl_get_hv			(*dl_Perl_get_hv)
 # define Perl_push_scope		(*dl_Perl_push_scope)
-# define Perl_Tscopestack_ix_ptr	(*dl_Perl_Tscopestack_ix_ptr)
-# define perl_clone			(*dl_perl_clone)
-# define Perl_set_context		(*dl_Perl_set_context)
-# define Perl_Iperl_destruct_level_ptr	(*dl_Perl_Iperl_destruct_level_ptr)
-# define Perl_Ierrgv_ptr		(*dl_Perl_Ierrgv_ptr)
 # define Perl_pop_scope			(*dl_Perl_pop_scope)
 # define Perl_free_tmps			(*dl_Perl_free_tmps)
-# define Perl_call_pv			(*dl_Perl_call_pv)
 # define Perl_markstack_grow		(*dl_Perl_markstack_grow)
-# define Perl_Tmarkstack_max_ptr	(*dl_Perl_Tmarkstack_max_ptr)
-# define Perl_Ttmps_ix_ptr		(*dl_Perl_Ttmps_ix_ptr)
 # define Perl_save_int			(*dl_Perl_save_int)
-# define Perl_Ttmps_floor_ptr		(*dl_Perl_Ttmps_floor_ptr)
 # define Perl_sv_2iv			(*dl_Perl_sv_2iv)
 # define Perl_sv_setsv			(*dl_Perl_sv_setsv)
 # define Perl_sv_setpv			(*dl_Perl_sv_setpv)
 # define Perl_sv_setpvn			(*dl_Perl_sv_setpvn)
 # define Perl_av_undef			(*dl_Perl_av_undef)
-# define Perl_sv_setpvf_nocontext	(*dl_Perl_sv_setpvf_nocontext)
 # define Perl_hv_fetch			(*dl_Perl_hv_fetch)
+#ifdef OS2
+# define PL_errgv			(*dl_PL_errgv)
+# define PL_stack_sp			(*dl_PL_stack_sp)
+# define PL_markstack_ptr		(*dl_PL_markstack_ptr)
+# define PL_sv_undef			(*dl_PL_sv_undef)
+# define PL_stack_base			(*dl_PL_stack_base)
+# define PL_markstack_max		(*dl_PL_markstack_max)
+# define PL_tmps_ix			(*dl_PL_tmps_ix)
+# define PL_tmps_floor			(*dl_PL_tmps_floor)
+# define Perl_sv_setpvf			(*dl_Perl_sv_setpvf)
+# define perl_get_sv			(*dl_perl_get_sv)
+# define perl_get_av			(*dl_perl_get_av)
+# define perl_get_hv			(*dl_perl_get_hv)
+# define perl_get_cv			(*dl_perl_get_cv)
+# define perl_call_pv			(*dl_perl_call_pv)
+#else
+# define Perl_Ierrgv_ptr		(*dl_Perl_Ierrgv_ptr)
+# define Perl_Tstack_sp_ptr		(*dl_Perl_Tstack_sp_ptr)
+# define Perl_Tmarkstack_ptr_ptr	(*dl_Perl_Tmarkstack_ptr_ptr)
+# define Perl_Isv_undef_ptr		(*dl_Perl_Isv_undef_ptr)
+# define Perl_Tstack_base_ptr		(*dl_Perl_Tstack_base_ptr)
+# define Perl_Tmarkstack_max_ptr	(*dl_Perl_Tmarkstack_max_ptr)
+# define Perl_Ttmps_ix_ptr		(*dl_Perl_Ttmps_ix_ptr)
+# define Perl_Ttmps_floor_ptr		(*dl_Perl_Ttmps_floor_ptr)
+# define Perl_sv_setpvf_nocontext	(*dl_Perl_sv_setpvf_nocontext)
+# define Perl_get_sv			(*dl_Perl_get_sv)
+# define Perl_get_av			(*dl_Perl_get_av)
+# define Perl_get_hv			(*dl_Perl_get_hv)
+# define Perl_get_cv			(*dl_Perl_get_cv)
+# define Perl_call_pv			(*dl_Perl_call_pv)
+# define Perl_get_context		(*dl_Perl_get_context)
+# define Perl_set_context		(*dl_Perl_set_context)
+# define perl_clone			(*dl_perl_clone)
+# define Perl_Iperl_destruct_level_ptr	(*dl_Perl_Iperl_destruct_level_ptr)
+# define Perl_Tscopestack_ix_ptr	(*dl_Perl_Tscopestack_ix_ptr)
+# define Perl_Tmarkstack_ptr    	(*dl_Perl_Tmarkstack_ptr)
+# define Perl_TXpv_ptr			(*dl_Perl_TXpv_ptr)
+# define boot_DynaLoader		(*dl_boot_DynaLoader)
+#endif
 #endif
 
 #include <EXTERN.h>
@@ -227,6 +247,19 @@ extern "C" {
 #endif
 
 #ifdef PERLDL
+
+#ifdef OS2
+#define pTHX_
+#define pTHX void
+#define pTHXo_
+#define pTHXo void
+#define _Const
+#define OS2_Perl_data	(*dl_OS2_Perl_data)
+typedef void (*XSUBADDR_t)(CV* cv _CPERLproto);
+typedef void(*XSINIT_t)(void);
+#else
+#define _Const const
+#endif
 
 /* below are the prototypes as they should appear:
 PERL_CALLCONV char*	(*dl_Perl_sv_2pv)(pTHX_ SV* sv, STRLEN *lp);
@@ -291,21 +324,11 @@ PERL_CALLCONV I32** (*dl_Perl_Tmarkstack_ptr_ptr)(pTHXo);
 PERL_CALLCONV SV*** (*dl_Perl_Tstack_sp_ptr)(pTHXo);
 PERL_CALLCONV void (*dl_boot_DynaLoader)(pTHXo_ CV* cv);
 */
-/* below is the prototype with typedef:
-typedef char* (PERL_CALLCONV *tf_Perl_sv_2pv)(pTHX_ SV* sv, STRLEN* lp);
-tf_Perl_sv_2pv		dl_Perl_sv_2pv;
-*/
 
 /* the currently used way to define prototypes via macro */
-# define VK_MAKE_DFL(t,n,a) \
-	typedef t (PERL_CALLCONV *T##n)##a##; \
-	T##n	n
-
+#define VK_MAKE_DFL(t,n,a) t (*n) a
 VK_MAKE_DFL(char*, dl_Perl_sv_2pv, (pTHX_ SV* sv, STRLEN* lp));
 VK_MAKE_DFL(UV, dl_Perl_sv_2uv, (pTHX_ SV* sv));
-
-VK_MAKE_DFL(void*, dl_Perl_get_context, (void));
-VK_MAKE_DFL(void, dl_Perl_set_context, (void *thx));
 
 VK_MAKE_DFL(SV*, dl_Perl_sv_2mortal, (pTHX_ SV* sv));
 VK_MAKE_DFL(SV*, dl_Perl_newSViv, (pTHX_ IV i));
@@ -318,10 +341,6 @@ VK_MAKE_DFL(void, dl_Perl_av_clear, (pTHX_ AV* ar));
 
 VK_MAKE_DFL(CV*, dl_Perl_newXS, (pTHX_ char* name, XSUBADDR_t f, char* filename));
 VK_MAKE_DFL(bool, dl_Perl_sv_2bool, (pTHX_ SV* sv));
-VK_MAKE_DFL(CV*, dl_Perl_get_cv, (pTHX_ const char* name, I32 create));
-VK_MAKE_DFL(SV*, dl_Perl_get_sv, (pTHX_ const char* name, I32 create));
-VK_MAKE_DFL(AV*, dl_Perl_get_av, (pTHX_ const char* name, I32 create));
-VK_MAKE_DFL(HV*, dl_Perl_get_hv, (pTHX_ const char* name, I32 create));
 
 VK_MAKE_DFL(PerlInterpreter*, dl_perl_alloc, (void));
 VK_MAKE_DFL(void, dl_perl_construct, (PerlInterpreter* interp));
@@ -329,7 +348,6 @@ VK_MAKE_DFL(void, dl_perl_destruct, (PerlInterpreter* interp));
 VK_MAKE_DFL(void, dl_perl_free, (PerlInterpreter* interp));
 VK_MAKE_DFL(int, dl_perl_run, (PerlInterpreter* interp));
 VK_MAKE_DFL(int, dl_perl_parse, (PerlInterpreter* interp, XSINIT_t xsinit, int argc, char** argv, char** env));
-VK_MAKE_DFL(PerlInterpreter*, dl_perl_clone, (PerlInterpreter* interp, UV flags));
 
 VK_MAKE_DFL(void, dl_Perl_sv_setiv, (pTHX_ SV* sv, IV num));
 VK_MAKE_DFL(void, dl_Perl_sv_setsv, (pTHX_ SV* dsv, SV* ssv));
@@ -339,41 +357,67 @@ VK_MAKE_DFL(void, dl_Perl_sv_setpvn, (pTHX_ SV* sv, const char* ptr, STRLEN len)
 VK_MAKE_DFL(AV*, dl_Perl_newAV, (pTHX));
 VK_MAKE_DFL(SV*, dl_Perl_newRV_noinc, (pTHX_ SV *sv));
 VK_MAKE_DFL(HV*, dl_Perl_newHV, (pTHX));
-VK_MAKE_DFL(SV*, dl_Perl_newSVpv, (pTHX_ const char* s, STRLEN len));
+VK_MAKE_DFL(SV*, dl_Perl_newSVpv, (pTHX_ _Const char* s, STRLEN len));
 
-VK_MAKE_DFL(SV**, dl_Perl_hv_store, (pTHX_ HV* tb, const char* key, U32 klen, SV* val, U32 hash));
+VK_MAKE_DFL(SV**, dl_Perl_hv_store, (pTHX_ HV* tb, _Const char* key, U32 klen, SV* val, U32 hash));
 VK_MAKE_DFL(void, dl_Perl_hv_clear, (pTHX_ HV* tb));
-VK_MAKE_DFL(SV**, dl_Perl_hv_fetch, (pTHX_ HV* tb, const char* key, U32 klen, I32 lval));
+VK_MAKE_DFL(SV**, dl_Perl_hv_fetch, (pTHX_ HV* tb, _Const char* key, U32 klen, I32 lval));
 
 VK_MAKE_DFL(void, dl_Perl_push_scope, (pTHX));
 VK_MAKE_DFL(void, dl_Perl_pop_scope, (pTHX));
 VK_MAKE_DFL(void, dl_Perl_free_tmps, (pTHX));
-VK_MAKE_DFL(I32, dl_Perl_call_pv, (pTHX_ const char* sub_name, I32 flags));
 VK_MAKE_DFL(void, dl_Perl_markstack_grow, (pTHX));
 VK_MAKE_DFL(void, dl_Perl_save_int, (pTHX_ int* intp));
 
 VK_MAKE_DFL(IV, dl_Perl_sv_2iv, (pTHX_ SV* sv));
 VK_MAKE_DFL(void, dl_Perl_av_undef, (pTHX_ AV* ar));
 
+#ifdef OS2
+VK_MAKE_DFL(void, dl_Perl_sv_setpvf, (SV* sv, const char* pat, ...));
+VK_MAKE_DFL(CV*, dl_perl_get_cv, (pTHX_ _Const char* name, I32 create));
+VK_MAKE_DFL(SV*, dl_perl_get_sv, (pTHX_ _Const char* name, I32 create));
+VK_MAKE_DFL(AV*, dl_perl_get_av, (pTHX_ _Const char* name, I32 create));
+VK_MAKE_DFL(HV*, dl_perl_get_hv, (pTHX_ _Const char* name, I32 create));
+VK_MAKE_DFL(I32, dl_perl_call_pv, (pTHX_ _Const char* sub_name, I32 flags));
+GV*  *dl_PL_errgv;
+SV** *dl_PL_stack_sp;
+I32* *dl_PL_markstack_ptr;
+SV   *dl_PL_sv_undef;
+SV** *dl_PL_stack_base;
+I32* *dl_PL_markstack_max;
+I32  *dl_PL_tmps_ix;
+I32  *dl_PL_tmps_floor;
+OS2_Perl_data_t *dl_OS2_Perl_data;
+#else
+VK_MAKE_DFL(CV*, dl_Perl_get_cv, (pTHX_ _Const char* name, I32 create));
+VK_MAKE_DFL(SV*, dl_Perl_get_sv, (pTHX_ _Const char* name, I32 create));
+VK_MAKE_DFL(AV*, dl_Perl_get_av, (pTHX_ _Const char* name, I32 create));
+VK_MAKE_DFL(HV*, dl_Perl_get_hv, (pTHX_ _Const char* name, I32 create));
+VK_MAKE_DFL(I32, dl_Perl_call_pv, (pTHX_ _Const char* sub_name, I32 flags));
+VK_MAKE_DFL(GV**, dl_Perl_Ierrgv_ptr, (pTHXo));
+VK_MAKE_DFL(SV***, dl_Perl_Tstack_sp_ptr, (pTHXo));
+VK_MAKE_DFL(I32**, dl_Perl_Tmarkstack_ptr_ptr, (pTHXo));
+VK_MAKE_DFL(SV*, dl_Perl_Isv_undef_ptr, (pTHXo));
+VK_MAKE_DFL(SV***, dl_Perl_Tstack_base_ptr, (pTHXo));
+VK_MAKE_DFL(I32**, dl_Perl_Tmarkstack_max_ptr, (pTHXo));
+VK_MAKE_DFL(I32*, dl_Perl_Ttmps_ix_ptr, (pTHXo));
+VK_MAKE_DFL(I32*, dl_Perl_Ttmps_floor_ptr, (pTHXo));
+VK_MAKE_DFL(I32**, dl_Perl_Tmarkstack_ptr, (pTHXo));
+VK_MAKE_DFL(XPV**, dl_Perl_TXpv_ptr, (pTHXo));
+VK_MAKE_DFL(void, dl_boot_DynaLoader, (pTHXo_ CV* cv));
+
+VK_MAKE_DFL(void*, dl_Perl_get_context, (void));
+VK_MAKE_DFL(void, dl_Perl_set_context, (void *thx));
+VK_MAKE_DFL(PerlInterpreter*, dl_perl_clone, (PerlInterpreter* interp, UV flags));
+VK_MAKE_DFL(int*, dl_Perl_Iperl_destruct_level_ptr, (pTHXo));
+VK_MAKE_DFL(I32*, dl_Perl_Tscopestack_ix_ptr, (pTHXo));
+
 #ifdef CHECK_FORMAT
 VK_MAKE_DFL(void, dl_Perl_sv_setpvf_nocontext, (SV* sv, const char* pat, ...) __attribute__((format(printf,2,3))) );
 #else
 VK_MAKE_DFL(void, dl_Perl_sv_setpvf_nocontext, (SV* sv, const char* pat, ...));
 #endif
-
-VK_MAKE_DFL(int*, dl_Perl_Iperl_destruct_level_ptr, (pTHXo));
-VK_MAKE_DFL(GV**, dl_Perl_Ierrgv_ptr, (pTHXo));
-VK_MAKE_DFL(I32*, dl_Perl_Tscopestack_ix_ptr, (pTHXo));
-VK_MAKE_DFL(I32**, dl_Perl_Tmarkstack_ptr, (pTHXo));
-VK_MAKE_DFL(I32**, dl_Perl_Tmarkstack_max_ptr, (pTHXo));
-VK_MAKE_DFL(I32*, dl_Perl_Ttmps_ix_ptr, (pTHXo));
-VK_MAKE_DFL(I32*, dl_Perl_Ttmps_floor_ptr, (pTHXo));
-VK_MAKE_DFL(SV*, dl_Perl_Isv_undef_ptr, (pTHXo));
-VK_MAKE_DFL(XPV**, dl_Perl_TXpv_ptr, (pTHXo));
-VK_MAKE_DFL(SV***, dl_Perl_Tstack_base_ptr, (pTHXo));
-VK_MAKE_DFL(I32**, dl_Perl_Tmarkstack_ptr_ptr, (pTHXo));
-VK_MAKE_DFL(SV***, dl_Perl_Tstack_sp_ptr, (pTHXo));
-VK_MAKE_DFL(void, dl_boot_DynaLoader, (pTHXo_ CV* cv));
+#endif
 
 /* the list of functions to import from DLL */
 #define VK_MAKE_DLFUNC(n) { (void **)&dl_##n, #n }
@@ -381,8 +425,6 @@ VK_MAKE_DFL(void, dl_boot_DynaLoader, (pTHXo_ CV* cv));
 struct perl_dlfunc { void **f; char *name; } perl_dlfuncs[] = {
   VK_MAKE_DLFUNC(Perl_sv_2pv),
   VK_MAKE_DLFUNC(Perl_sv_2uv),
-  VK_MAKE_DLFUNC(Perl_get_context),
-  VK_MAKE_DLFUNC(Perl_set_context),
   VK_MAKE_DLFUNC(Perl_sv_2mortal),
   VK_MAKE_DLFUNC(Perl_newSViv),
   VK_MAKE_DLFUNC(Perl_av_store),
@@ -392,17 +434,12 @@ struct perl_dlfunc { void **f; char *name; } perl_dlfuncs[] = {
   VK_MAKE_DLFUNC(Perl_av_clear),
   VK_MAKE_DLFUNC(Perl_newXS),
   VK_MAKE_DLFUNC(Perl_sv_2bool),
-  VK_MAKE_DLFUNC(Perl_get_cv),
-  VK_MAKE_DLFUNC(Perl_get_sv),
-  VK_MAKE_DLFUNC(Perl_get_av),
-  VK_MAKE_DLFUNC(Perl_get_hv),
   VK_MAKE_DLFUNC(perl_alloc),
   VK_MAKE_DLFUNC(perl_construct),
   VK_MAKE_DLFUNC(perl_destruct),
   VK_MAKE_DLFUNC(perl_free),
   VK_MAKE_DLFUNC(perl_run),
   VK_MAKE_DLFUNC(perl_parse),
-  VK_MAKE_DLFUNC(perl_clone),
   VK_MAKE_DLFUNC(Perl_sv_setiv),
   VK_MAKE_DLFUNC(Perl_sv_setsv),
   VK_MAKE_DLFUNC(Perl_sv_setpv),
@@ -417,25 +454,50 @@ struct perl_dlfunc { void **f; char *name; } perl_dlfuncs[] = {
   VK_MAKE_DLFUNC(Perl_push_scope),
   VK_MAKE_DLFUNC(Perl_pop_scope),
   VK_MAKE_DLFUNC(Perl_free_tmps),
-  VK_MAKE_DLFUNC(Perl_call_pv),
   VK_MAKE_DLFUNC(Perl_markstack_grow),
   VK_MAKE_DLFUNC(Perl_save_int),
   VK_MAKE_DLFUNC(Perl_sv_2iv),
   VK_MAKE_DLFUNC(Perl_av_undef),
-  VK_MAKE_DLFUNC(Perl_sv_setpvf_nocontext),
-  VK_MAKE_DLFUNC(Perl_Iperl_destruct_level_ptr),
+#ifdef OS2
+  VK_MAKE_DLFUNC(perl_get_cv),
+  VK_MAKE_DLFUNC(perl_get_sv),
+  VK_MAKE_DLFUNC(perl_get_av),
+  VK_MAKE_DLFUNC(perl_get_hv),
+  VK_MAKE_DLFUNC(perl_call_pv),
+  VK_MAKE_DLFUNC(PL_errgv),
+  VK_MAKE_DLFUNC(PL_stack_sp),
+  VK_MAKE_DLFUNC(PL_markstack_ptr),
+  VK_MAKE_DLFUNC(PL_sv_undef),
+  VK_MAKE_DLFUNC(PL_stack_base),
+  VK_MAKE_DLFUNC(PL_markstack_max),
+  VK_MAKE_DLFUNC(PL_tmps_ix),
+  VK_MAKE_DLFUNC(PL_tmps_floor),
+  VK_MAKE_DLFUNC(OS2_Perl_data),
+  VK_MAKE_DLFUNC(Perl_sv_setpvf),
+#else
+  VK_MAKE_DLFUNC(Perl_get_cv),
+  VK_MAKE_DLFUNC(Perl_get_sv),
+  VK_MAKE_DLFUNC(Perl_get_av),
+  VK_MAKE_DLFUNC(Perl_get_hv),
+  VK_MAKE_DLFUNC(Perl_call_pv),
   VK_MAKE_DLFUNC(Perl_Ierrgv_ptr),
-  VK_MAKE_DLFUNC(Perl_Tscopestack_ix_ptr),
-  VK_MAKE_DLFUNC(Perl_Tmarkstack_ptr),
+  VK_MAKE_DLFUNC(Perl_Tstack_sp_ptr),
+  VK_MAKE_DLFUNC(Perl_Tmarkstack_ptr_ptr),
+  VK_MAKE_DLFUNC(Perl_Isv_undef_ptr),
+  VK_MAKE_DLFUNC(Perl_Tstack_base_ptr),
   VK_MAKE_DLFUNC(Perl_Tmarkstack_max_ptr),
   VK_MAKE_DLFUNC(Perl_Ttmps_ix_ptr),
   VK_MAKE_DLFUNC(Perl_Ttmps_floor_ptr),
-  VK_MAKE_DLFUNC(Perl_Isv_undef_ptr),
+  VK_MAKE_DLFUNC(Perl_sv_setpvf_nocontext),
+  VK_MAKE_DLFUNC(Perl_get_context),
+  VK_MAKE_DLFUNC(Perl_set_context),
+  VK_MAKE_DLFUNC(perl_clone),
+  VK_MAKE_DLFUNC(Perl_Iperl_destruct_level_ptr),
+  VK_MAKE_DLFUNC(Perl_Tscopestack_ix_ptr),
+  VK_MAKE_DLFUNC(Perl_Tmarkstack_ptr),
   VK_MAKE_DLFUNC(Perl_TXpv_ptr),
-  VK_MAKE_DLFUNC(Perl_Tstack_base_ptr),
-  VK_MAKE_DLFUNC(Perl_Tmarkstack_ptr_ptr),
-  VK_MAKE_DLFUNC(Perl_Tstack_sp_ptr),
   VK_MAKE_DLFUNC(boot_DynaLoader),
+#endif
   { NULL, NULL }
 };
 #endif                                                      /* PERLDL */
@@ -699,7 +761,11 @@ char *s, *p;
   EXTERN_C void perl_aeq(pTHXo_ CV* cv);
   EXTERN_C void perl_arm(pTHXo_ CV* cv);
 #else
-  static XS(boot_DynaLoader);
+# ifndef PERLDL
+  XS(boot_DynaLoader);
+# else
+  /* I don't know how to use DynaLoader with PERLDL under OS/2 :-( */
+# endif
 #endif
 
 #ifdef _MSC_VER
@@ -855,7 +921,7 @@ extern void msg_send2 (STATE *state, t_msg m, char *s1, char *s2);
   XSRETURN_EMPTY;
 }
 
-#if defined(OS2)
+#if defined(OS2) && !defined(PERLDL)
 void boot_DynaLoader(CV *cv);
 void boot_DB_File(CV *cv);
 void boot_Fcntl(CV *cv);
@@ -876,6 +942,7 @@ static void xs_init(void)
 {
   static char *file = __FILE__;
 #if defined(OS2)
+#ifndef PERLDL
   newXS("DB_File::bootstrap", boot_DB_File, file);
   newXS("Fcntl::bootstrap", boot_Fcntl, file);
   newXS("POSIX::bootstrap", boot_POSIX, file);
@@ -884,10 +951,13 @@ static void xs_init(void)
   newXS("OS2::Process::bootstrap", boot_OS2__Process, file);
   newXS("OS2::ExtAttr::bootstrap", boot_OS2__ExtAttr, file);
   newXS("OS2::REXX::bootstrap", boot_OS2__REXX, file);
+#endif
 #else
   dXSUB_SYS;
 #endif
+#if !defined(OS2) || !defined(PERLDL)
   newXS("DynaLoader::boot_DynaLoader", boot_DynaLoader, file);
+#endif
   newXS("Log", perl_Log, file);
   newXS("aeq", perl_aeq, file);
   newXS("arm", perl_arm, file);
@@ -918,15 +988,26 @@ int perl_init(char *perlfile) {
   /* load DLL */
   if (*perl_dll) {
     struct perl_dlfunc *dlfunc;
+#ifdef OS2
+    char buf[256];
+    HMODULE hl;
+    if (DosLoadModule(buf, sizeof(buf), perl_dll, &hl))
+#else /* MSC */
     HINSTANCE hl = LoadLibrary(perl_dll);
-    if (!hl) {
+    if (!hl)
+#endif
+    {
       Log(LL_ERR, "perl_init(): can't load library %s", perl_dll);
       return 0;
     }
     Log(LL_DBG2, "perl_init(): load library: %p", hl);
 
     for (dlfunc = perl_dlfuncs; dlfunc->name; dlfunc++) {
+#ifdef OS2
+      if (!DosQueryProcAddr(hl, 0, dlfunc->name, (PFN*)dlfunc->f))
+#else
       if (*(dlfunc->f) = GetProcAddress(hl, dlfunc->name))
+#endif
         Log(LL_DBG2, "perl_init(): load method %s: %p", dlfunc->name, *(dlfunc->f));
       else {
         Log(LL_ERR, "perl_init(): can't load method %s", dlfunc->name);
