@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.33  2003/10/24 06:40:13  val
+ * PERLDL support for both Perl 5.6 and 5.8 versions
+ *
  * Revision 2.32  2003/10/22 14:24:51  stas
  * Remove obsolete defines
  *
@@ -170,7 +173,8 @@
 /* ---------------- perl stuff --------------- */
 /* dynamic load */
 #ifdef PERLDL
-# define Perl_sv_2pv			(*dl_Perl_sv_2pv)
+# define Perl_sv_2pv_flags		(hl_Perl_sv_2pv_flags)
+# define Perl_sv_2pv			(hl_Perl_sv_2pv)
 # define Perl_sv_2uv			(*dl_Perl_sv_2uv)
 # define Perl_sv_2mortal		(*dl_Perl_sv_2mortal)
 # define Perl_newSViv			(*dl_Perl_newSViv)
@@ -200,7 +204,8 @@
 # define Perl_markstack_grow		(*dl_Perl_markstack_grow)
 # define Perl_save_int			(*dl_Perl_save_int)
 # define Perl_sv_2iv			(*dl_Perl_sv_2iv)
-# define Perl_sv_setsv			(*dl_Perl_sv_setsv)
+# define Perl_sv_setsv_flags		(hl_Perl_sv_setsv_flags)
+# define Perl_sv_setsv			(hl_Perl_sv_setsv)
 # define Perl_sv_setpv			(*dl_Perl_sv_setpv)
 # define Perl_sv_setpvn			(*dl_Perl_sv_setpvn)
 # define Perl_av_undef			(*dl_Perl_av_undef)
@@ -276,6 +281,10 @@
 #endif
 
 #ifdef PERLDL
+
+#if WITH_PERL<58
+# define SV_GMAGIC		2      /* sv.h */
+#endif
 
 #ifdef OS2
 #define pTHX_
@@ -360,7 +369,16 @@ tf_Perl_sv_2pv         dl_Perl_sv_2pv;
 
 /* the currently used way to define prototypes via macro */
 #define VK_MAKE_DFL(t,n,a) t (PERL_CALLCONV *n) a
+VK_MAKE_DFL(char*, dl_Perl_sv_2pv_flags, (pTHX_ SV* sv, STRLEN* lp, I32 flags));
 VK_MAKE_DFL(char*, dl_Perl_sv_2pv, (pTHX_ SV* sv, STRLEN* lp));
+PERL_CALLCONV char* hl_Perl_sv_2pv(pTHX_ SV* sv, STRLEN* lp) {
+  if (dl_Perl_sv_2pv) return dl_Perl_sv_2pv(aTHX_ sv, lp);
+  else return dl_Perl_sv_2pv_flags(aTHX_ sv, lp, SV_GMAGIC);
+}
+PERL_CALLCONV char* hl_Perl_sv_2pv_flags(pTHX_ SV* sv, STRLEN* lp, I32 flags) {
+  if (dl_Perl_sv_2pv_flags) return dl_Perl_sv_2pv_flags(aTHX_ sv, lp, flags);
+  else return dl_Perl_sv_2pv(aTHX_ sv, lp);
+}
 VK_MAKE_DFL(UV, dl_Perl_sv_2uv, (pTHX_ SV* sv));
 
 VK_MAKE_DFL(SV*, dl_Perl_sv_2mortal, (pTHX_ SV* sv));
@@ -377,13 +395,26 @@ VK_MAKE_DFL(bool, dl_Perl_sv_2bool, (pTHX_ SV* sv));
 
 VK_MAKE_DFL(PerlInterpreter*, dl_perl_alloc, (void));
 VK_MAKE_DFL(void, dl_perl_construct, (PerlInterpreter* interp));
+#if WITH_PERL>=58
+VK_MAKE_DFL(int, dl_perl_destruct, (PerlInterpreter* interp));
+#else
 VK_MAKE_DFL(void, dl_perl_destruct, (PerlInterpreter* interp));
+#endif
 VK_MAKE_DFL(void, dl_perl_free, (PerlInterpreter* interp));
 VK_MAKE_DFL(int, dl_perl_run, (PerlInterpreter* interp));
 VK_MAKE_DFL(int, dl_perl_parse, (PerlInterpreter* interp, XSINIT_t xsinit, int argc, char** argv, char** env));
 
 VK_MAKE_DFL(void, dl_Perl_sv_setiv, (pTHX_ SV* sv, IV num));
+VK_MAKE_DFL(void, dl_Perl_sv_setsv_flags, (pTHX_ SV* dsv, SV* ssv, I32 flags));
 VK_MAKE_DFL(void, dl_Perl_sv_setsv, (pTHX_ SV* dsv, SV* ssv));
+void hl_Perl_sv_setsv(pTHX_ SV* sv, SV* ssv) {
+  if (dl_Perl_sv_setsv) dl_Perl_sv_setsv(aTHX_ sv, ssv);
+  else dl_Perl_sv_setsv_flags(aTHX_ sv, ssv, SV_GMAGIC);
+}
+void hl_Perl_sv_setsv_flags(pTHX_ SV* sv, SV* ssv, I32 flags) {
+  if (dl_Perl_sv_setsv) dl_Perl_sv_setsv_flags(aTHX_ sv, ssv, flags);
+  else dl_Perl_sv_setsv(aTHX_ sv, ssv);
+}
 VK_MAKE_DFL(void, dl_Perl_sv_setpv, (pTHX_ SV* sv, const char* ptr));
 VK_MAKE_DFL(void, dl_Perl_sv_setpvn, (pTHX_ SV* sv, const char* ptr, STRLEN len));
 
@@ -450,13 +481,18 @@ VK_MAKE_DFL(void, dl_Perl_sv_setpvf_nocontext, (SV* sv, const char* pat, ...) __
 #else
 VK_MAKE_DFL(void, dl_Perl_sv_setpvf_nocontext, (SV* sv, const char* pat, ...));
 #endif
+
 #endif
 
 /* the list of functions to import from DLL */
 #define VK_MAKE_DLFUNC(n) { (void **)&dl_##n, #n }
 
 struct perl_dlfunc { void **f; char *name; } perl_dlfuncs[] = {
+/*#if WITH_PERL>=58
+  VK_MAKE_DLFUNC(Perl_sv_2pv_flags),
+#else
   VK_MAKE_DLFUNC(Perl_sv_2pv),
+#endif*/
   VK_MAKE_DLFUNC(Perl_sv_2uv),
   VK_MAKE_DLFUNC(Perl_sv_2mortal),
   VK_MAKE_DLFUNC(Perl_newSViv),
@@ -474,7 +510,11 @@ struct perl_dlfunc { void **f; char *name; } perl_dlfuncs[] = {
   VK_MAKE_DLFUNC(perl_run),
   VK_MAKE_DLFUNC(perl_parse),
   VK_MAKE_DLFUNC(Perl_sv_setiv),
+/*#if WITH_PERL>=58
+  VK_MAKE_DLFUNC(Perl_sv_setsv_flags),
+#else
   VK_MAKE_DLFUNC(Perl_sv_setsv),
+#endif*/
   VK_MAKE_DLFUNC(Perl_sv_setpv),
   VK_MAKE_DLFUNC(Perl_sv_setpvn),
   VK_MAKE_DLFUNC(Perl_newAV),
@@ -1064,6 +1104,21 @@ int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
         return 0;
       }
     }
+#ifdef OS2
+#else
+    {
+      (void*)dl_Perl_sv_2pv = GetProcAddress(hl, "Perl_sv_2pv");
+      (void*)dl_Perl_sv_2pv_flags = GetProcAddress(hl, "Perl_sv_2pv_flags");
+      if (!dl_Perl_sv_2pv && !dl_Perl_sv_2pv_flags) {
+        Log(LL_ERR, "perl_init(): can't load method Perl_sv_2pv or Perl_sv_2pv_flags");
+      }
+      (void*)dl_Perl_sv_setsv = GetProcAddress(hl, "Perl_sv_setsv");
+      (void*)dl_Perl_sv_setsv_flags = GetProcAddress(hl, "Perl_sv_setsv_flags");
+      if (!dl_Perl_sv_setsv && !dl_Perl_sv_setsv_flags) {
+        Log(LL_ERR, "perl_init(): can't load method Perl_sv_setv or Perl_sv_setsv_flags");
+      }
+    }
+#endif
   } 
   else {
     Log(LL_ERR, "You should define `perl-dll' in config to use Perl hooks");
