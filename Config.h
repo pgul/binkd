@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.141  2003/08/24 17:28:33  hbrew
+ * Auto increase patchlevel, set 0.9.6a-128
+ * Fix work with sighandler on win32
+ *
  * Revision 2.140  2003/08/24 16:55:10  hbrew
  * Auto increase patchlevel, set 0.9.6a-127
  * Fix memory allocation for polls
@@ -606,7 +610,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-127"
+#define MYVER "0.9.6a-128"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
