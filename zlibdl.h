@@ -22,7 +22,7 @@
 #endif
 
 /* type for compress() and decompress() */
-typedef int ZLIB_CALLCONV zlib_compress_func(char *, int *, const char *, int);
+typedef int ZLIB_CALLCONV zlib_compress_func(char *, unsigned long *, const char *, int);
 
 /* actual compress() and decompress() */
 extern zlib_compress_func *dl_compress, *dl_uncompress;
