@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.147  2004/01/07 12:23:39  gul
+ * Remove zaccept keyword, receiving compressed files possibility
+ * is always on now if binkd was compiled with zlib/bzip2 support.
+ *
  * Revision 2.146  2003/12/28 10:23:25  gul
  * Print file offset on "receiving interrupted" log message
  *
@@ -622,18 +626,16 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to, BINKD_CONFI
   state->z_obuf = xalloc (ZBLKSIZE);
 #endif
 #ifdef WITH_ZLIB
-# ifndef ZLIBDL
-  if (config->zaccept) state->z_canrecv |= 1;
-# else
-  if (config->zaccept && zlib_loaded) state->z_canrecv |= 1;
+# ifdef ZLIBDL
+  if (!zlib_loaded)
 # endif
+  state->z_canrecv |= 1;
 #endif
 #ifdef WITH_BZLIB2
-# ifndef ZLIBDL
-  if (config->zaccept) state->z_canrecv |= 2;
-# else
-  if (config->zaccept && bzlib2_loaded) state->z_canrecv |= 2;
+# ifdef ZLIBDL
+  if (bzlib2_loaded)
 # endif
+  state->z_canrecv |= 2;
 #endif
   setsockopts (state->s = socket);
   TF_ZERO (&state->in);

@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.64  2004/01/07 12:23:40  gul
+ * Remove zaccept keyword, receiving compressed files possibility
+ * is always on now if binkd was compiled with zlib/bzip2 support.
+ *
  * Revision 2.63  2004/01/07 12:07:47  gul
  * New function free_nodes()
  *
@@ -446,7 +450,6 @@ void lock_config_structure(BINKD_CONFIG *c)
     c->oblksize          = DEF_BLKSIZE;
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
     c->zminsize          = 1024;
-    c->zaccept           = 0;
     c->zlevel            = 0;
 #endif
     c->max_servers       = 100;
@@ -663,7 +666,6 @@ static KEYWORD keywords[] =
   {"present-aka", read_akachain, &work_config.akamask, ACT_PRESENT, 0},
 
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
-  {"zaccept", read_bool, &work_config.zaccept, 0, 0},
   {"zlevel", read_int, &work_config.zlevel, 0, 9},
   {"zminsize", read_int, &work_config.zminsize, 0, DONT_CHECK},
   {"zallow", read_zrule, &work_config.zrules, ZRULE_ALLOW, 0},

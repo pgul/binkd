@@ -543,7 +543,7 @@ NT/95:  ctrl-c problems fixed
 	Ifcico/qico passwords file format support (Stas Degteff <g@ural.org>).
 
 	Compression (zlib, bz2) support. New config keywords
-	zallow, zdeny, zaccept (val khokhlov, Pavel Gulchouck).
+	zallow, zdeny (val khokhlov, Pavel Gulchouck).
 
 	New commandline option -vv - show optional compiled-in extensions.
 

@@ -64,7 +64,7 @@ Common Data Structures
               minfree_nonsecure, hold, hold_skipped, backresolv, send_if_pwd,
               filebox, brakebox, root_domain, check_pkthdr, pkthdr_badext
               (if compiled with zlib support:)
-              zaccept, zblksize, zminsize
+              zblksize, zminsize
 
 %domain - hash, each element corresponds to a domain (or alias):
               key - domain name

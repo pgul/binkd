@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.29  2004/01/07 12:23:40  gul
+ * Remove zaccept keyword, receiving compressed files possibility
+ * is always on now if binkd was compiled with zlib/bzip2 support.
+ *
  * Revision 2.28  2003/12/26 20:11:32  gul
  * Add -d commandline switch - dump parsed config and exit;
  * remove 'debugcfg' config token.
@@ -194,7 +198,6 @@ struct _BINKD_CONFIG
   int        oblksize;
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
   int        zminsize;
-  int        zaccept;
   int        zlevel;
 #endif
   int        nettimeout;
