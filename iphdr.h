@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/03/01 18:37:08  gul
+ * Use HAVE_SYS_PARAM_H macro
+ *
  * Revision 2.1  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -37,12 +40,12 @@
 #include <sys/types.h>
 #include "sys.h"                            /* Get system i/o headers */
 
+#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
+
 #if !defined(WIN32)
   #include <netinet/in.h>
-  #ifndef __WATCOMC__
-    #include <sys/param.h>		    /* One of these two should have
-					     * MAXHOSTNAMELEN */
-  #endif
   #include <netdb.h>			    /* One of these two should have
 					     * MAXHOSTNAMELEN */
 #endif
