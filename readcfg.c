@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.56  2003/10/11 08:41:46  gul
+ * stricmp() -> STRICMP()
+ *
  * Revision 2.55  2003/10/11 06:54:55  stas
  * ifcico/qico passwords file support
  *
@@ -1075,7 +1078,7 @@ static int passwords (KEYWORD *key, int wordcount, char **words)
     char *node, *password;
 
     node = strtok(linebuf, spaces);
-    if(node && stricmp(node,"password")==0 )
+    if(node && STRICMP(node,"password")==0 )
       node = strtok(NULL, spaces); /* ifcico/qico passwords file detected */
 
     if (node)
