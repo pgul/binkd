@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.39  2003/06/02 14:10:17  gul
+ * write domain and IP to logfile on outgoing connections
+ *
  * Revision 2.38  2003/04/30 13:38:17  gul
  * Avoid warnings
  *
@@ -449,9 +452,10 @@ static int call0 (FTN_NODE *node)
       else
 #endif
       {
-        strcpy(host, inet_ntoa (sin.sin_addr));
-        if (port != oport) sprintf(host+strlen(host), ":%u", port);
-        Log (4, "trying %s...", host);
+	if (port == oport)
+          Log (4, "trying %s...", inet_ntoa (sin.sin_addr));
+	else
+          Log (4, "trying %s:%u...", inet_ntoa (sin.sin_addr), port);
       }
       releasehostsem();
       if (bindaddr[0])
