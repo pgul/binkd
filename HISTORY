@@ -1,3 +1,8 @@
+2003/09/08 09:36:53 0.9.6a-165 val
+exitproc.c,2.24,2.25 perlhooks.c,2.20,2.21
+(a) don't call exitfunc for perlhook fork'ed process
+(b) many compilation warnings in perlhooks.c fixed
+
 2003/09/07 07:50:13 0.9.6a-164 hbrew
 exitproc.c,2.23,2.24
 Remove binkd9x restart-on-config-change code; move binkd9x deinit to exitfunc()
