@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.124  2003/09/19 13:54:30  gul
+ * undef VAL_STYLE ip check by default
+ *
  * Revision 2.123  2003/09/19 12:52:57  val
  * fix bug with not sending GZ parameter to M_FILE after M_GET
  *
@@ -494,8 +497,7 @@
 #endif
 
 /* define to enable val's code for -ip checks (default is gul's code) */
-/* warning: there were serious bugs in gul's code  */
-#define VAL_STYLE
+#undef VAL_STYLE
 
 static char *scommand[] = {"NUL", "ADR", "PWD", "FILE", "OK", "EOB",
                            "GOT", "ERR", "BSY", "GET", "SKIP"};
