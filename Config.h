@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.112  2003/08/16 06:21:14  gul
+ * Auto increase patchlevel, set 0.9.6a-99
+ * Log() semaphoring removed
+ *
  * Revision 2.111  2003/08/15 08:48:52  gul
  * Auto increase patchlevel, set 0.9.6a-98
  * Compilation error fixed
@@ -478,7 +482,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-98"
+#define MYVER "0.9.6a-99"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
