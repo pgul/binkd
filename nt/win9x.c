@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.8  2003/06/14 00:44:53  hbrew
+ * Fix binkd9x -t(--all) and -u(--all) crashes
+ *
  * Revision 2.7  2003/06/13 03:07:16  hbrew
  * Fix win9x-service crash (add NULL to new argv array)
  *
@@ -550,7 +553,7 @@ binkd_win9x_srvlst *win9x_get_services_list(int sort)
       if ((len<prefixlen)||(strncmp(tmp, Win9xServPrefix, prefixlen)!=0)||((len>prefixlen)&&(tmp[prefixlen]!='-')))
         continue;
 
-      srvlst->names = (char **)realloc(srvlst->names, srvlst->count+1);
+      srvlst->names = (char **)realloc(srvlst->names, (srvlst->count+1)*sizeof(char *));
       srvlst->names[srvlst->count] = strdup(tmp);
       srvlst->count++;
     }
@@ -575,6 +578,8 @@ void win9x_free_services_list(binkd_win9x_srvlst *srvlst)
     if (srvlst->names[i])
       free(srvlst->names[i]);
 
+  if (srvlst->names)
+    free(srvlst->names);
   free(srvlst);
 }
 
