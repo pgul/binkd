@@ -1,3 +1,8 @@
+2003/09/05 13:17:22 0.9.6a-159 gul
+ftnq.c,2.25,2.26 ftnq.h,2.6,2.7 protocol.c,2.114,2.115
+Send argus-compatible freqs.
+Warning: works only with prescan!
+
 2003/09/05 12:57:19 0.9.6a-158 gul
 protocol.c,2.113,2.114
 Process multiply M_NUL FREQ messages
