@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2003/10/23 16:36:24  gul
+ * Fix warning
+ *
  * Revision 2.12  2003/10/20 15:44:29  gul
  * Declare DLL functions as WINAPI
  *
@@ -67,7 +70,6 @@
 
 #ifdef WIN32
 #define _WIN32    1
-#define BZ_EXPORT 1
 #endif
 #endif
 
