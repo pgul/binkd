@@ -1,3 +1,7 @@
+2004/01/24 03:07:07 1.0a-371 hbrew
+service.c,2.51,2.52
+Fix warning
+
 2004/01/23 20:09:34 1.0a-370 gul
 protocol.c,2.152,2.153
 Fixed erroneous "Unknown option ... ignored" message
