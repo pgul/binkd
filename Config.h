@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10.2.9  2003/10/08 10:32:50  gul
+ * Auto increase patchlevel, set 0.9.5p3-stable
+ * Fix exit threads in exitfunc()
+ *
  * Revision 2.10.2.8  2003/10/07 08:54:22  hbrew
  * Auto increase patchlevel, set 0.9.5p2-stable
  * '\r\n' --> '\n'
@@ -110,7 +114,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.5p2-stable"
+#define MYVER "0.9.5p3-stable"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
