@@ -4,7 +4,7 @@ https.o: https.c Config.h readcfg.h iphdr.h sys.h ftnaddr.h ftndom.h \
  ftnnode.h tools.h getw.h https.h iptools.h
 binkd.o: binkd.c Config.h sys.h iphdr.h readcfg.h ftnaddr.h ftndom.h \
  ftnnode.h server.h client.h tools.h getw.h bsy.h protocol.h assert.h \
- binlog.h setpttl.h reapchld.inc
+ binlog.h setpttl.h daemonize.h reapchld.inc
 readcfg.o: readcfg.c Config.h readcfg.h iphdr.h sys.h ftnaddr.h \
  ftndom.h ftnnode.h tools.h getw.h ftnq.h srif.h prothlp.h protoco2.h \
  iptools.h assert.h readflo.h
@@ -54,3 +54,4 @@ exitproc.o: exitproc.c Config.h sys.h bsy.h ftnaddr.h tools.h getw.h \
 getw.o: getw.c getw.h
 xalloc.o: xalloc.c tools.h getw.h
 setpttl.o: unix/setpttl.c
+daemonize.o: unix/daemonize.c tools.h getw.h daemonize.h

@@ -468,3 +468,5 @@ NT/95:  ctrl-c problems fixed
 
 	If remote requests file offset more then file size, touch
 	the file and drop session for send it from 0 next session.
+
+	binkd/unix: run as daemon (Alex Semenyaka <alexs@snark.rinet.ru>).

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2001/01/16 03:53:23  gul
+ * Added -D switch (run as daemon)
+ *
  * Revision 2.0  2001/01/10 12:12:37  gul
  * Binkd is under CVS again
  *
@@ -75,6 +78,7 @@
 #include "assert.h"
 #include "binlog.h"
 #include "setpttl.h"
+#include "daemonize.h"
 
 #ifdef WIN32
 #include "nt/service.h"
@@ -127,6 +131,9 @@ void usage ()
 #endif
 
   printf ("usage: binkd [-Cc"
+#if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
+          "D"
+#endif
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
 	  "i"
 #elif defined(WIN32)
@@ -137,6 +144,9 @@ void usage ()
 	  " [socket]"
 #endif
 	  "\n"
+#if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
+	  "  -D       run as daemon\n"
+#endif
 	  "  -C       exit(3) on config change\n"
 	  "  -c       run client only\n"
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
@@ -167,6 +177,9 @@ void usage ()
 
 /* Command line flags */
 int inetd_flag = 0;		       /* Run from inetd (-i) */
+#if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
+int daemon_flag = 0;		       /* Run as daemon (-D) */
+#endif
 int server_flag = 0;		       /* Run servermgr (-s) */
 int client_flag = 0;		       /* Run clientmgr (-c) */
 int poll_flag = 0;		       /* Run clientmgr, make all jobs, quit
@@ -185,6 +198,9 @@ int main (int argc, char *argv[], char *envp[])
 /* Config file name */
   char *config = NULL;
   char **saved_argv;
+#if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
+  int  nochdir;
+#endif
 
 #ifdef WIN32
   service(argc, argv, envp);
@@ -242,6 +258,17 @@ int main (int argc, char *argv[], char *envp[])
 	    case 'v':
 	      ++verbose_flag;
 	      break;
+#if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
+	    case 'D':
+	      daemon_flag = 1;
+	      /* remove this switch from saved_argv */
+	      { int j;
+	        free(saved_argv[i]);
+	        for (j=i; j<argc; j++)
+	          saved_argv[j]=saved_argv[j+1];
+	      }
+	      break;
+#endif
 	    default:
 	      Log (0, "%s: -%c: unknown command line switch", argv[0], *s);
 	    case 0:
@@ -362,6 +389,27 @@ int main (int argc, char *argv[], char *envp[])
     protocol (inetd_socket, 0);
     soclose (inetd_socket);
     exit (0);
+  }
+#endif
+
+#if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
+  if (daemon_flag)
+  {
+	 if (!server_flag)
+		 Log (0, "Only server can be run in the daemon mode");
+	 else
+	 {
+		 if (saved_argv[0][0] == '/')
+			nochdir = 0;
+		 else
+		 {
+			nochdir = 1;
+		 	// Log (6, "Run with relative path, will not chdir to /");
+		 }
+
+		 if (binkd_daemonize(nochdir) < 0)
+		 Log (0, "Cannot daemonize");
+	 }
   }
 #endif
 

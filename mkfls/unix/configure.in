@@ -15,7 +15,7 @@ AC_CHECK_HEADERS(arpa/inet.h)
 dnl Checks for typedefs, structures, and compiler characteristics.
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(snprintf vsyslog waitpid statvfs statfs uname)
+AC_CHECK_FUNCS(snprintf vsyslog waitpid statvfs statfs uname daemon setsid)
 
 dnl Checks for libraries.
 AC_CHECK_FUNC(socket)
@@ -84,6 +84,19 @@ AC_TRY_COMPILE([
 ], [
   return facilitynames[0].c_name && facilitynames[0].c_val;
 ], AC_DEFINE(HAVE_FACILITYNAMES) AC_MSG_RESULT(yes),
+AC_MSG_RESULT(no),
+AC_MSG_RESULT(cross-compiling. No assumptions made)
+)
+
+dnl -------------------------------------------------------------------------
+dnl Check for TIOCNOTTY
+
+AC_MSG_CHECKING(for TIOCNOTTY)
+AC_TRY_COMPILE([
+#include <sys/ioctl.h>
+], [
+  return ioctl(0, TIOCNOTTY, (char*)0);
+], AC_DEFINE(HAVE_TIOCNOTTY) AC_MSG_RESULT(yes),
 AC_MSG_RESULT(no),
 AC_MSG_RESULT(cross-compiling. No assumptions made)
 )

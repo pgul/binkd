@@ -3,7 +3,7 @@
 binkd \- transfer files between two Fidonet systems over TCP/IP
 .SH SYNOPSIS
 .B binkd
-.RB [ \-Ccipqsv ]
+.RB [ \-CcDipqsv ]
 .RB [
 .B \-P
 .I node
@@ -37,6 +37,11 @@ is checked every 60 seconds.
 Start client only. Normally
 .B Binkd
 starts both server and client.
+.TP
+.BI \-D
+Run
+.B Binkd
+as a daemon (cannot be used for client-only mode).
 .TP
 .BI \-i
 Run
