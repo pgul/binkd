@@ -15,8 +15,8 @@
  * $Id$
  *
  * $Log$
- * Revision 2.33  2003/06/10 12:29:13  stas
- * Fix on fix commandline parsing
+ * Revision 2.34  2003/06/10 19:15:25  gul
+ * Also one commandline parser fix
  *
  * Revision 2.32  2003/06/10 07:28:25  gul
  * Fix patch about commandline parsing
@@ -346,13 +346,12 @@ char *parseargs (int argc, char *argv[])
   char *s=NULL;
   int i;
   struct polls *psP;
-#if defined(WIN32)
-    char *st;
-#endif
 
   for (i = 1; i < argc; ++i)
   {
 #if defined(WIN32)
+    char *st;
+
     if (argv[i][0] == '\001'){ /* binkd called as NT Service */
       service_flag = w32_run_as_service;
       i++;
@@ -584,8 +583,8 @@ char *parseargs (int argc, char *argv[])
 #ifdef BINKD_DAEMONIZE
 	    case 'D': /* run as unix daemon */
 	      daemon_flag = 1;
-	      /* remove this switch from saved_argv */
-              argv[i][0]='\0';
+	      *s = 'U';
+	    case 'U': /* internal use only, already daemonized */
 	      break;
 #endif
 
