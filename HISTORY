@@ -1,3 +1,7 @@
+2004/11/21 13:55:44 1.0a-435 val
+readcfg.c,2.79,2.80
+remove old commented code for limit-rate debug output
+
 2004/11/19 17:58:51 1.0a-434 gul
 perlhooks.c,2.49,2.50
 Add dynamic load function used by new errors handler
