@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2003/08/18 09:15:39  gul
+ * Cosmetics
+ *
  * Revision 2.13  2003/08/14 08:29:22  gul
  * Use snprintf() from sprintf.c if no such libc function
  *
@@ -149,6 +152,7 @@
 
 #ifdef VISUALCPP
   #define sleep(a) Sleep(a*1000)
+  #define pipe(h)  _pipe(h, 0, 64)
 #endif
 
 #if defined(EBADTYPE) && !defined(ENOTDIR)

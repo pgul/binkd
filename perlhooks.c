@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2003/08/18 09:15:39  gul
+ * Cosmetics
+ *
  * Revision 2.10  2003/08/18 07:35:08  val
  * multiple changes:
  * - hide-aka/present-aka logic
@@ -528,7 +531,7 @@ struct s_perlerr {
   int pid;
 } perlerr = { 0, {0,0}, 0 };
 
-#if defined(__OS2__) || defined(_MSC_VER)
+#ifdef HAVE_THREADS
 /* thread that reads from pipe */
 static void err_thread(void *arg) {
   FILE *R;
@@ -558,21 +561,23 @@ int pid, try = 0;
   e->pid = 0;
 #if defined(HAVE_FORK)
   pipe(e->errpipe);
-  close(e->errpipe[1]);
   while (try < 10) {
     pid = fork();
     /* parent */
     if (pid > 0) {
+      close(e->errpipe[0]);
       e->olderr = dup(fileno(stderr));
       dup2(e->errpipe[1], fileno(stderr));
-      close(e->errpipe[0]);
+      close(e->errpipe[1]);
       e->pid = pid;
+      break;
     }
     /* child */
     else if (pid == 0) {
       FILE *R;
       char buf[256];
 
+      close(e->errpipe[1]);
       R = fdopen(e->errpipe[0], "r");
       buf[0] = 0;
       while ( fgets(buf, sizeof(buf), R) ) {
@@ -590,6 +595,7 @@ int pid, try = 0;
     /* error */
     else if (errno != EINTR) {
       close(e->errpipe[0]);
+      close(e->errpipe[1]);
       Log(LL_ERR, "handle_perlerr(): can't fork (%s)", strerror(errno));
       return;
     }
@@ -597,22 +603,20 @@ int pid, try = 0;
   }
 #elif defined(HAVE_THREADS)
    if (!thread_safe) return;
-# ifdef _MSC_VER
-   _pipe(e->errpipe, 0, 64);
-# else
    pipe(e->errpipe);
-# endif
    e->olderr = dup(fileno(stderr));
    dup2(e->errpipe[1], fileno(stderr));
    close(e->errpipe[1]);
    e->pid = BEGINTHREAD(&err_thread, STACKSIZE, &(e->errpipe[0]));
    if (e->pid <= 0) {
      close(e->errpipe[0]);
+     dup2(e->olderr, fileno(stderr));
+     close(e->olderr);
      Log(LL_ERR, "handle_perlerr(): can't begin thread (%s)", strerror(errno));
      e->pid = 0;
    }
 #else
-# error "Don't know how to hanlde Perl errors in this case"
+ /* Don't know how to hanlde Perl errors in this case */
 #endif
 }
 #define handle_perlerr(arg) handle_perlerr2(arg, 0)
@@ -623,9 +627,13 @@ static void restore_perlerr(struct s_perlerr *e) {
     dup2(e->olderr, fileno(stderr));
     close(e->olderr);
 #if defined(HAVE_FORK)
+#ifdef HAVE_WAITPID
     waitpid(e->pid, &e->pid, 0);
+#else
+    /* will be reaped by SIGCHLD handler */
+#endif
 #elif defined(HAVE_THREADS)
-# ifdef __OS2__
+# ifdef OS2
     DosWaitThread((PTID)&(e->pid), DCWW_WAIT);
 # elif defined(_MSC_VER)
     /* what to do here? */
