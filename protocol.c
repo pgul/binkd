@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.163  2004/10/20 17:30:55  gul
+ * Fixed segfault on transmission compressed files
+ * when sizeof(off_t)!=sizeof(long) and loglevel>3.
+ *
  * Revision 2.162  2004/10/19 16:28:19  gul
  * Do not remove complete received but not renamed partial files
  * for prevent data loss in ND-mode.
@@ -1124,9 +1128,9 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
         mkhdr(state->obuf, sz);
         if (!fleft && rc == 1)
         {
-          Log(4, "Compressed %lu bytes to %lu for %s, ratio %.1f%%",
-              state->z_osize, state->z_cosize, state->out.netname,
-              100.0 * state->z_cosize / state->z_osize);
+          Log(4, "Compressed %" PRIuMAX " bytes to %" PRIuMAX " for %s, ratio %.1f%%",
+              (uintmax_t)state->z_osize, (uintmax_t)state->z_cosize,
+              state->out.netname, 100.0 * state->z_cosize / state->z_osize);
           compress_deinit(state->z_send, state->z_odata);
           state->z_odata = NULL;
           state->z_send = 0;
