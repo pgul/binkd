@@ -56,8 +56,11 @@ OPTIONS
        -s     Start  server  only.  Normally  Binkd  starts  both
               server and client.
 
-       -v     Be verbose.  Binkd -v will dump binkd's version and
-              quit.
+       -v     Be verbose.  This flag can  be  specified  multiple
+              times  for  even  higher  verbosity.  Binkd -v will
+              dump  binkd's  version  and   quit.    Binkd   -vvv
+              binkd.cfg will dump binkd's configuration and still
+              work.
 
        -m     Disable CRAM-MD5 authorization. Implies -r.
 
@@ -71,19 +74,19 @@ SIGNALS
 SEE ALSO
        inetd(8)
 
-       Binkd    homepage,   http://www.corbina.net/~maloff/binkd/
+       Binkd   homepage,    http://www.corbina.net/~maloff/binkd/
        ftp://happy.kiev.ua/pub/fidosoft/mailer/binkd/
        ftp://fido.thunderdome.ws/pub/mirror/binkd/
        ftp://ftp.lucky.net/pub/fido/binkd/
 
-       "Binkd User Guide" by  Nick  Soveiko,  http://www.doe.car-
+       "Binkd  User  Guide"  by Nick Soveiko, http://www.doe.car-
        leton.ca/~nsoveiko/fido/binkd/man/
 
 
 AUTHORS
        Dima Maloff <maloff@tts.magadan.su> and others.
 
-       This  manual  page  is  based  on  "Binkd  User  Guide" by
+       This manual  page  is  based  on  "Binkd  User  Guide"  by
        nsoveiko@doe.carleton.ca (Nick Soveiko)
 
 
@@ -92,4 +95,4 @@ REPORTING BUGS
 
 
 
-                           15 Jun 2004                   BINKD(8)
+                            8 Nov 2004                   BINKD(8)
