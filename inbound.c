@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2003/02/27 15:37:19  gul
+ * Bugfix in disk free space check
+ *
  * Revision 2.7  2002/11/22 14:40:42  gul
  * Check free space on inbox if defined
  *
@@ -283,7 +286,7 @@ FILE *inb_fopen (char *netname, size_t size, time_t time, FTN_ADDR *from,
 
     freespace = getfree(buf);
     freespace2 = getfree(inbound);
-    if (freespace < freespace2) freespace = freespace2;
+    if (freespace > freespace2) freespace = freespace2;
     if (req_free >= 0 &&
 	freespace < (size - sb.st_size + 1023) / 1024 + req_free)
     {
