@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.21  2004/08/06 07:05:22  gul
+ * Fixed typo in prev patch
+ *
  * Revision 2.20  2004/08/04 19:51:40  gul
  * Change SIGCHLD handling, make signal handler more clean,
  * prevent occasional hanging (mutex deadlock) under linux kernel 2.6.
@@ -251,7 +254,7 @@ typedef long int intmax_t;
 typedef unsigned long int uintmax_t;
 #endif
 #ifndef HAVE_STRTOUMAX
-#define STRTOUMAX(ptr, endptr, base)	strtoul(ptr, endptr, base)
+#define strtoumax(ptr, endptr, base)	strtoul(ptr, endptr, base)
 #endif
 
 #ifndef HAVE_FSEEKO
