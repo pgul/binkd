@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.33  2004/09/11 13:57:12  gul
+ * Remove duplicate line
+ *
  * Revision 2.32  2004/09/06 10:50:06  val
  * node data could be over-written by defnode data if hosts were set to `-', fixed
  *
@@ -353,7 +356,6 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
     on->NR_flag=np->NR_flag;
     on->ND_flag=np->ND_flag;
     on->MD_flag=np->MD_flag;
-    on->ND_flag=np->ND_flag;
     on->NP_flag=np->NP_flag;
     on->HC_flag=np->HC_flag;
     on->restrictIP=np->restrictIP;
