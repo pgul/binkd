@@ -99,9 +99,9 @@ $(OUTDIR)\exitproc.obj: \
 	"iphdr.h" \
 	"readcfg.h" \
 	"sem.h" \
+	"server.h" \
 	"sys.h" \
 	"tools.h" \
-	"server.h" \
 	"nt\wsock.h"
 
 $(OUTDIR)\ftnaddr.obj: \
@@ -154,8 +154,8 @@ $(OUTDIR)\ftnq.obj: \
 	"nt\wsock.h"
 
 $(OUTDIR)\getw.obj: \
-	"tools.h" \
-	"getw.h"
+	"getw.h" \
+	"tools.h"
 
 $(OUTDIR)\https.obj: \
 	"Config.h" \
@@ -358,6 +358,9 @@ $(OUTDIR)\xalloc.obj: \
 	"getw.h" \
 	"tools.h"
 
+$(OUTDIR)\TCPErr.obj: \
+	"sem.h"
+
 $(OUTDIR)\WSock.obj: \
 	"getw.h" \
 	"tools.h"
@@ -392,15 +395,22 @@ $(OUTDIR)\sem.obj: \
 
 $(OUTDIR)\service.obj: \
 	"Config.h" \
+	"common.h" \
 	"getw.h" \
+	"iphdr.h" \
+	"sys.h" \
 	"tools.h" \
-	"nt\service.h"
+	"nt\service.h" \
+	"nt\wsock.h"
 
 $(OUTDIR)\win9x.obj: \
 	"Config.h" \
 	"getw.h" \
+	"iphdr.h" \
+	"sys.h" \
 	"tools.h" \
-	"nt\win9x.h"
+	"nt\win9x.h" \
+	"nt\wsock.h"
 
 $(OUTDIR)\des_enc.obj: \
 	"ntlm\des.h" \
