@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.143  2003/08/24 18:54:32  gul
+ * Auto increase patchlevel, set 0.9.6a-130
+ * Bugfix in timeout check on win32
+ *
  * Revision 2.142  2003/08/24 18:06:01  hbrew
  * Auto increase patchlevel, set 0.9.6a-129
  * Update for previous patch
@@ -614,7 +618,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-129"
+#define MYVER "0.9.6a-130"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
