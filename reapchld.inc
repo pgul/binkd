@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/08/18 09:41:01  gul
+ * Little cleanup in handle perl errors
+ *
  * Revision 2.1  2003/03/10 08:38:07  gul
  * Make n_servers/n_clients changes thread-safe
  *
@@ -21,18 +24,20 @@
   extern int pidcmgr;
 
 #ifdef HAVE_WAITPID
-  while ((pid = waitpid (-1, &status, WNOHANG)) > 0)	/* NO ";" !!! */
+  while ((pid = waitpid (-1, &status, WNOHANG)) > 0)
 #else
-  pid = (int) wait (&status);
+  if ((pid = (int) wait (&status)) > 0)
 #endif
-  if (pid > 0)
   {
     if (pidcmgr && pid == pidcmgr) {
       Log (0, "client manager (pid=%u) exited, retcode %u", pid, status);
       exit(4);
     }
 #ifdef CHILDCOUNT
-    threadsafe(CHILDCOUNT--);
+#ifdef WITH_PERL
+    if (pid != perl_errpid)
+#endif
+      CHILDCOUNT--;
 #endif
     Log (4, "rc(%i)=%i", pid, status);
   }

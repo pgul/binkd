@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.25  2003/08/18 09:41:00  gul
+ * Little cleanup in handle perl errors
+ *
  * Revision 2.24  2003/06/20 10:37:02  val
  * Perl hooks for binkd - initial revision
  *
@@ -151,7 +154,7 @@
 #include "assert.h"
 #include "setpttl.h"
 #include "sem.h"
-#if defined(WITH_PERL) && defined(HAVE_THREADS)
+#if defined(WITH_PERL)
 #include "perlhooks.h"
 #endif
 

@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2003/08/18 09:41:00  gul
+ * Little cleanup in handle perl errors
+ *
  * Revision 2.11  2003/08/18 09:15:39  gul
  * Cosmetics
  *
@@ -528,8 +531,8 @@ struct perl_const { char *name; int value; } perl_consts[] = {
 struct s_perlerr {
   int olderr;
   int errpipe[2];
-  int pid;
-} perlerr = { 0, {0,0}, 0 };
+} perlerr = { 0, {0,0} };
+int perl_errpid;
 
 #ifdef HAVE_THREADS
 /* thread that reads from pipe */
@@ -550,30 +553,30 @@ static void err_thread(void *arg) {
   }
   fclose(R);
   fflush(stderr);
+  _endthread();
 }
 #endif
 
 /* set up perl errors handler, redirect stderr to pipe */
 static void handle_perlerr2(struct s_perlerr *e, int thread_safe) {
 #ifdef HAVE_FORK
-int pid, try = 0;
+int try = 0;
 #endif
-  e->pid = 0;
+  perl_errpid = 0;
 #if defined(HAVE_FORK)
   pipe(e->errpipe);
   while (try < 10) {
-    pid = fork();
+    perl_errpid = fork();
     /* parent */
-    if (pid > 0) {
+    if (perl_errpid > 0) {
       close(e->errpipe[0]);
       e->olderr = dup(fileno(stderr));
       dup2(e->errpipe[1], fileno(stderr));
       close(e->errpipe[1]);
-      e->pid = pid;
       break;
     }
     /* child */
-    else if (pid == 0) {
+    else if (perl_errpid == 0) {
       FILE *R;
       char buf[256];
 
@@ -594,11 +597,13 @@ int pid, try = 0;
     }
     /* error */
     else if (errno != EINTR) {
+      perl_errpid = 0;
       close(e->errpipe[0]);
       close(e->errpipe[1]);
       Log(LL_ERR, "handle_perlerr(): can't fork (%s)", strerror(errno));
       return;
     }
+    perl_errpid = 0;
     try++;
   }
 #elif defined(HAVE_THREADS)
@@ -607,13 +612,13 @@ int pid, try = 0;
    e->olderr = dup(fileno(stderr));
    dup2(e->errpipe[1], fileno(stderr));
    close(e->errpipe[1]);
-   e->pid = BEGINTHREAD(&err_thread, STACKSIZE, &(e->errpipe[0]));
-   if (e->pid <= 0) {
+   perl_errpid = BEGINTHREAD(&err_thread, STACKSIZE, &(e->errpipe[0]));
+   if (perl_errpid <= 0) {
+     perl_errpid = 0;
+     Log(LL_ERR, "handle_perlerr(): can't begin thread (%s)", strerror(errno));
      close(e->errpipe[0]);
      dup2(e->olderr, fileno(stderr));
      close(e->olderr);
-     Log(LL_ERR, "handle_perlerr(): can't begin thread (%s)", strerror(errno));
-     e->pid = 0;
    }
 #else
  /* Don't know how to hanlde Perl errors in this case */
@@ -623,24 +628,24 @@ int pid, try = 0;
 
 /* restore perl errors handler, read pipe to var and restore stderr */
 static void restore_perlerr(struct s_perlerr *e) {
-  if (e->pid) {
+  if (perl_errpid) {
     dup2(e->olderr, fileno(stderr));
     close(e->olderr);
 #if defined(HAVE_FORK)
 #ifdef HAVE_WAITPID
-    waitpid(e->pid, &e->pid, 0);
+    waitpid(perl_errpid, &perl_errpid, 0);
 #else
     /* will be reaped by SIGCHLD handler */
 #endif
 #elif defined(HAVE_THREADS)
 # ifdef OS2
-    DosWaitThread((PTID)&(e->pid), DCWW_WAIT);
+    DosWaitThread((PTID)&(perl_errpid), DCWW_WAIT);
 # elif defined(_MSC_VER)
     /* what to do here? */
 # endif
 #endif
   }
-  e->pid = 0;
+  perl_errpid = 0;
 }
 
 /* handle multi-line perl eval error message */

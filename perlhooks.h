@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/08/18 09:41:00  gul
+ * Little cleanup in handle perl errors
+ *
  * Revision 2.3  2003/08/18 07:29:09  val
  * multiple changes:
  * - perl error handling made via fork/thread
@@ -42,6 +45,8 @@ extern char *perl_subnames[]; /* names for perl subs */
 
 extern int perl_manages_queue; /* queue is managed from perl: sorting, etc */
 extern int perl_wants_queue;   /* export queue to perl subs */
+
+extern int perl_errpid;        /* pid or tid which handle perl errors */
 
 int perl_init(char *); /* init root perl, parse hooks file, return success */
 void perl_setup(void); /* set config vars to root perl */
