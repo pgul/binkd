@@ -1,3 +1,7 @@
+2004/01/07 23:40:49 1.0a-356 stas
+binkd.c,2.85,2.86
+Options -i and -u is marked deprecated for win32
+
 2004/01/07 15:12:33 1.0a-355 gul
 binkd.8,2.5,2.6 binkd.c,2.84,2.85 protocol.c,2.147,2.148 readcfg.c,2.64,2.65
 Update 2003->2004 in copyright notices
