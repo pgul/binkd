@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22  2003/09/11 08:26:11  val
+ * fix for Perl hooks code after steam's patch for pNodArray
+ *
  * Revision 2.21  2003/09/08 06:36:51  val
  * (a) don't call exitfunc for perlhook fork'ed process
  * (b) many compilation warnings in perlhooks.c fixed
@@ -1239,19 +1242,19 @@ void perl_setup(BINKD_CONFIG *cfg) {
   hv_clear(hv);
   for (i = 0; i < cfg->nNod; i++) {
     hv2 = newHV();
-    VK_ADD_HASH_str(hv2, sv, "hosts", cfg->pNod[i].hosts);
-    VK_ADD_HASH_str(hv2, sv, "pwd", cfg->pNod[i].pwd);
-    VK_ADD_HASH_str(hv2, sv, "ibox", cfg->pNod[i].ibox);
-    VK_ADD_HASH_str(hv2, sv, "obox", cfg->pNod[i].obox);
-    buf[0] = cfg->pNod[i].obox_flvr; buf[1] = 0;
+    VK_ADD_HASH_str(hv2, sv, "hosts", cfg->pNodArray[i]->hosts);
+    VK_ADD_HASH_str(hv2, sv, "pwd", cfg->pNodArray[i]->pwd);
+    VK_ADD_HASH_str(hv2, sv, "ibox", cfg->pNodArray[i]->ibox);
+    VK_ADD_HASH_str(hv2, sv, "obox", cfg->pNodArray[i]->obox);
+    buf[0] = cfg->pNodArray[i]->obox_flvr; buf[1] = 0;
     VK_ADD_HASH_str(hv2, sv, "obox_flvr", buf);
-    VK_ADD_HASH_int(hv2, sv, "NR", cfg->pNod[i].NR_flag);
-    VK_ADD_HASH_int(hv2, sv, "ND", cfg->pNod[i].ND_flag);
-    VK_ADD_HASH_int(hv2, sv, "MD", cfg->pNod[i].MD_flag);
-    VK_ADD_HASH_int(hv2, sv, "HC", cfg->pNod[i].HC_flag);
-    VK_ADD_HASH_int(hv2, sv, "IP", cfg->pNod[i].restrictIP);
+    VK_ADD_HASH_int(hv2, sv, "NR", cfg->pNodArray[i]->NR_flag);
+    VK_ADD_HASH_int(hv2, sv, "ND", cfg->pNodArray[i]->ND_flag);
+    VK_ADD_HASH_int(hv2, sv, "MD", cfg->pNodArray[i]->MD_flag);
+    VK_ADD_HASH_int(hv2, sv, "HC", cfg->pNodArray[i]->HC_flag);
+    VK_ADD_HASH_int(hv2, sv, "IP", cfg->pNodArray[i]->restrictIP);
     sv = newRV_noinc( (SV*)hv2 );
-    ftnaddress_to_str(buf, &(cfg->pNod[i].fa));
+    ftnaddress_to_str(buf, &(cfg->pNodArray[i]->fa));
     VK_ADD_HASH_sv(hv, sv, buf);
   }
   Log(LL_DBG2, "perl_setup(): %%node done");
