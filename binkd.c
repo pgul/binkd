@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2001/10/28 14:52:58  gul
+ * Cyrillic filenames fix
+ *
  * Revision 2.3  2001/08/24 13:23:28  da
  * binkd/binkd.c
  * binkd/readcfg.c
@@ -91,6 +94,7 @@
 #include "daemonize.h"
 
 #ifdef WIN32
+#include <windows.h>
 #include "nt/service.h"
 #endif
 
@@ -380,6 +384,9 @@ int main (int argc, char *argv[], char *envp[])
   BinLogInit ();
   rnd ();
   initsetproctitle (argc, argv, envp);
+#ifdef WIN32
+  SetFileApisToOEM();
+#endif
 
   /* Set up break handler, set up exit list if needed */
   if (!set_break_handlers ())
