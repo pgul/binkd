@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.23  2003/09/15 06:57:09  val
+ * compression support via zlib: config keywords, improvements, OS/2 code
+ *
  * Revision 2.22  2003/09/11 08:26:11  val
  * fix for Perl hooks code after steam's patch for pNodArray
  *
@@ -1136,6 +1139,11 @@ void perl_setup(BINKD_CONFIG *cfg) {
   VK_ADD_HASH_str(hv, sv, "root_domain", cfg->root_domain);
   VK_ADD_HASH_int(hv, sv, "check_pkthdr", cfg->pkthdr_type);
   VK_ADD_HASH_str(hv, sv, "pkthdr_badext", cfg->pkthdr_bad);
+#ifdef WITH_ZLIB
+  VK_ADD_HASH_intz(hv, sv, "zaccept", cfg->zaccept);
+  VK_ADD_HASH_intz(hv, sv, "zblksize", cfg->zblksize);
+  VK_ADD_HASH_intz(hv, sv, "zminsize", cfg->zminsize);
+#endif
   Log(LL_DBG2, "perl_setup(): %%config done");
   /* domain */
   hv = perl_get_hv("domain", TRUE);
@@ -1374,10 +1382,17 @@ static void setup_session(STATE *state, int lvl) {
     VK_ADD_HASH_intz(hv, sv, "NR", state->NR_flag);
     VK_ADD_HASH_intz(hv, sv, "MD", state->MD_flag);
     VK_ADD_HASH_intz(hv, sv, "crypt", state->crypt_flag);
+#ifdef WITH_ZLIB
+    VK_ADD_HASH_intz(hv, sv, "GZ", state->z_cansend);
+#endif
     setup_addrs("he", state->nfa, state->fa);
     if (state->nAddr && state->pAddr)
       setup_addrs("me", state->nAddr, state->pAddr);
       else setup_addrs("me", cfg->nAddr, cfg->pAddr);
+#ifdef WITH_ZLIB
+    VK_ADD_intz(sv, "z_send", state->z_send);
+    VK_ADD_intz(sv, "z_recv", state->z_recv);
+#endif
     state->perl_set_lvl = 2;
   }
   /* lvl 3 */

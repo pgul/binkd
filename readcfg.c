@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.53  2003/09/15 06:57:09  val
+ * compression support via zlib: config keywords, improvements, OS/2 code
+ *
  * Revision 2.52  2003/09/12 07:37:57  val
  * compression support via zlib (preliminary)
  *
@@ -370,6 +373,15 @@ static void destroy_shares(void *p)
   simplelist_free(&pp->sfa.linkpoint, NULL);
 }
 
+#ifdef WITH_ZLIB
+static void destroy_zrule(void *p)
+{
+  struct zrule *pp = p;
+
+  xfree(pp->mask);
+}
+#endif
+
 /*#ifdef HTTPS
 static void destroy_proxy(void *p)
 {
@@ -399,6 +411,8 @@ void lock_config_structure(BINKD_CONFIG *c)
     c->oblksize          = DEF_BLKSIZE;
 #ifdef WITH_ZLIB
     c->zblksize          = min(4*DEF_BLKSIZE, MAX_BLKSIZE-64);
+    c->zminsize          = 1024;
+    c->zaccept           = 0;
 #endif
     c->max_servers       = 100;
     c->max_clients       = 100;
@@ -456,6 +470,9 @@ void unlock_config_structure(BINKD_CONFIG *c)
     simplelist_free(&c->evt_flags.linkpoint,   destroy_evtflags);
     simplelist_free(&c->akamask.linkpoint,     destroy_akachain);
     simplelist_free(&c->shares.linkpoint,      destroy_shares);
+#ifdef WITH_ZLIB
+    simplelist_free(&c->zrules.linkpoint,      destroy_zrule);
+#endif
 
 //#ifdef HTTPS
 //    simplelist_free(&c->proxylist,   destroy_proxy);
@@ -519,6 +536,9 @@ static int read_inboundcase (KEYWORD *key, int wordcount, char **words);
 static int read_port (KEYWORD *key, int wordcount, char **words);
 static int read_skip (KEYWORD *key, int wordcount, char **words);
 static int read_check_pkthdr (KEYWORD *key, int wordcount, char **words);
+#ifdef WITH_ZLIB
+static int read_zrule (KEYWORD *key, int wordcount, char **words);
+#endif
 
 /* Helper functions for shared akas implementation */
 static int read_shares (KEYWORD *key, int wordcount, char **words);
@@ -555,9 +575,6 @@ static KEYWORD keywords[] =
   {"call-delay", read_int, &work_config.call_delay, 1, DONT_CHECK},
   {"timeout", read_int, &work_config.nettimeout, 1, DONT_CHECK},
   {"oblksize", read_int, &work_config.oblksize, MIN_BLKSIZE, MAX_BLKSIZE},
-#ifdef WITH_ZLIB
-  {"zblksize", read_int, &work_config.zblksize, MIN_BLKSIZE, MAX_BLKSIZE-64},
-#endif
   {"maxservers", read_int, &work_config.max_servers, 0, DONT_CHECK},
   {"maxclients", read_int, &work_config.max_clients, 0, DONT_CHECK},
   {"inbound", read_string, work_config.inbound, 'd', 0},
@@ -620,6 +637,15 @@ static KEYWORD keywords[] =
   {"nolog", read_mask, &work_config.nolog, 0, 0},
   {"hide-aka", read_akachain, &work_config.akamask, ACT_HIDE, 0},
   {"present-aka", read_akachain, &work_config.akamask, ACT_PRESENT, 0},
+
+#ifdef WITH_ZLIB
+  {"zaccept", read_bool, &work_config.zaccept, 0, 0},
+  {"zblksize", read_int, &work_config.zblksize, MIN_BLKSIZE, MAX_BLKSIZE-64},
+  {"zminsize", read_int, &work_config.zminsize, 0, DONT_CHECK},
+  {"zallow", read_zrule, &work_config.zrules, ZRULE_ALLOW, 0},
+  {"zdeny", read_zrule, &work_config.zrules, ZRULE_DENY, 0},
+#endif
+
   {NULL, NULL, NULL, 0, 0}
 };
 
@@ -1446,6 +1472,34 @@ static int read_akachain (KEYWORD *key, int wordcount, char **words)
   return 1;
 }
 
+#ifdef WITH_ZLIB
+struct zrule *zrule_test(int type, char *s, struct zrule *root)
+{
+  struct zrule *ps = root;
+
+  while (ps)
+    if (s == NULL && type == ps->type) return ps;
+    else if (pmatch_ncase(ps->mask, s)) return (type == ps->type ? ps : NULL);
+    else ps = ps->next;
+  return NULL;
+}
+
+static int read_zrule (KEYWORD *key, int wordcount, char **words)
+{
+  struct zrule new_entry;
+  int    i;
+
+  if (wordcount == 0) return ConfigError("at least one mask expected");
+
+  new_entry.type = key->option1;
+  for (i = 0; i < wordcount; i++) {
+    new_entry.mask = xstrdup(words[i]);
+    simplelist_add(key->var, &new_entry, sizeof(new_entry));
+  }
+  return 1;
+}
+#endif
+
 static addrtype parse_addrtype(char *w)
 {
   if (STRICMP (w, "all") == 0) return A_ALL;
@@ -1784,6 +1838,22 @@ static void debug_readcfg (void)
         }
       }
     }
+#ifdef WITH_ZLIB
+    else if (k->callback == read_zrule)
+    {
+      if (k->option1 == ZRULE_DENY)
+        printf("\n    [see zallow]");
+      else
+      {
+        struct zrule *p;
+
+        for (p = ((TYPE_LIST(zrule) *)k->var)->first; p; p = p->next)
+        {
+          printf("\n    %s %s", (p->type == ZRULE_DENY ? "zdeny" : "zallow"), p->mask);
+        }
+      }
+    }
+#endif
     else if (k->callback == read_check_pkthdr)
     {
       if (work_config.pkthdr_type == 0)

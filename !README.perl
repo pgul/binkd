@@ -63,6 +63,8 @@ Common Data Structures
               inbound, inbound_nonsecure, temp_inbound, minfree, 
               minfree_nonsecure, hold, hold_skipped, backresolv, send_if_pwd,
               filebox, brakebox, root_domain, check_pkthdr, pkthdr_badext
+              (if compiled with zlib support:)
+              zaccept, zblksize, zminsize
 
 %domain - hash, each element corresponds to a domain (or alias):
               key - domain name
@@ -130,7 +132,7 @@ Session Data
   $location      + +   remote location
   $traf_mail     + +   mail traffic in bytes
   $traf_file     + +   other traffic in bytes
-  %opt           + +   hash with keys: ND, NR, MD, crypt
+  %opt           + +   hash with keys: ND, NR, MD, crypt, GZ
   @he          + + +   array of remote aka
   @me          + + +   array of present our akas
   $bytes_rcvd      +
@@ -138,6 +140,8 @@ Session Data
   $files_rcvd      +
   $files_sent      +
   @queue         + ?   current queue (see below)
+  $z_send        +     use compression on being sent file if set to 1
+  $z_recv        +     use compression on being received file if set to 1
 
   Queue (@queue) is available to hooks if $want_queue is set. If, in addition,
   $manage_queue is set then @queue is transferred back to binkd upon successful

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.23  2003/09/15 06:57:09  val
+ * compression support via zlib: config keywords, improvements, OS/2 code
+ *
  * Revision 2.22  2003/09/12 07:37:58  val
  * compression support via zlib (preliminary)
  *
@@ -168,6 +171,15 @@ struct akachain
   char *mask;
   enum { ACT_UNKNOWN=0, ACT_HIDE, ACT_PRESENT } type;
 };
+#ifdef WITH_ZLIB
+/* val: struct for zallow, zdeny */
+struct zrule
+{
+  struct zrule *next;
+  char *mask;
+  enum { ZRULE_ALLOW, ZRULE_DENY } type;
+};
+#endif
 
 struct _BINKD_CONFIG
 {
@@ -185,6 +197,8 @@ struct _BINKD_CONFIG
   int        oblksize;
 #ifdef WITH_ZLIB
   int        zblksize;
+  int        zminsize;
+  int        zaccept;
 #endif
   int        nettimeout;
   int        connect_timeout;
@@ -226,6 +240,9 @@ struct _BINKD_CONFIG
   DEFINE_LIST(_EVT_FLAG)     evt_flags;
   DEFINE_LIST(akachain)      akamask;
   DEFINE_LIST(_SHARED_CHAIN) shares; /* Linked list for shared akas header */
+#ifdef WITH_ZLIB
+  DEFINE_LIST(zrule)         zrules;
+#endif
 
   /*
    #ifdef HTTPS
@@ -315,5 +332,9 @@ void destroy_maskchain(void *p);
 int  get_host_and_port (int n, char *host, unsigned short *port, char *src, FTN_ADDR *fa, BINKD_CONFIG *config);
 
 char *mask_test(char *s, struct maskchain *chain);
+
+#ifdef WITH_ZLIB
+struct zrule *zrule_test(int type, char *s, struct zrule *root);
+#endif
 
 #endif

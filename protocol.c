@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.119  2003/09/15 06:57:09  val
+ * compression support via zlib: config keywords, improvements, OS/2 code
+ *
  * Revision 2.118  2003/09/12 09:09:38  val
  * zlib compression support and configure for unix (my first try to write
  * autoconf script, i hope it works on your system ;-)
@@ -526,9 +529,14 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to, BINKD_CONFI
   state->delay_EOB = 0;
   state->state_ext = P_NA;
 #ifdef WITH_ZLIB
-  state->z_ok = state->z_ocnt = state->z_icnt = 0;
+  state->z_cansend = state->z_ocnt = state->z_icnt = 0;
   state->z_ibuf = xalloc (MAX_BLKSIZE + 1);
   state->z_obuf = xalloc (MAX_BLKSIZE + 1);
+# ifndef ZLIBDL
+  state->z_canrecv = config->zaccept;
+# else
+  state->z_canrecv = config->zaccept && (dl_uncompress != NULL);
+# endif
 #endif
   setsockopts (state->s = socket);
   TF_ZERO (&state->in);
@@ -804,8 +812,8 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
       if (state->out.f)
       {
 #ifdef WITH_ZLIB
-        sz = (off_t) (state->z_ok ? config->zblksize : config->oblksize);
-        sz = min (sz, state->out.size - ftell (state->out.f));
+        sz = state->z_send ? config->zblksize : config->oblksize;
+        sz = min ((off_t) sz, state->out.size - ftell (state->out.f));
 #else
 	sz = min ((off_t) config->oblksize, state->out.size - ftell (state->out.f));
 #endif
@@ -895,7 +903,7 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
           state->z_ocnt = MAX_BLKSIZE;
           compress(state->z_obuf, &(state->z_ocnt), 
                    state->obuf + BLK_HDR_SIZE, sz);
-          Log(7, "compress: %d -> %d", sz, state->z_ocnt);
+          Log(7, "compress: %d to %d byte(s)", sz, state->z_ocnt);
           mkhdr(state->obuf, state->z_ocnt);
           memcpy(state->obuf + BLK_HDR_SIZE, state->z_obuf, state->z_ocnt);
           sz = state->z_ocnt;
@@ -1149,7 +1157,11 @@ static int NUL (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
       if (!strcmp (w, "GZ"))
       {
         Log(2, "Remote supports GZ mode");
-        state->z_ok = 1;
+#ifdef ZLIBDL
+        state->z_cansend = (dl_compress != NULL);
+#else
+        state->z_cansend = 1;
+#endif
       }
 #endif
       free (w);
@@ -2401,7 +2413,7 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
           state->z_icnt = MAX_BLKSIZE;
           uncompress(state->z_ibuf, &(state->z_icnt), 
                      state->ibuf, state->isize);
-          Log (7, "decompress: %d -> %d", state->isize, state->z_icnt);
+          Log (7, "decompress: %d to %d byte(s)", state->isize, state->z_icnt);
           memcpy(state->ibuf, state->z_ibuf, state->z_icnt);
           state->isize = state->z_icnt;
         }
@@ -2566,6 +2578,7 @@ static void banner (STATE *state, BINKD_CONFIG *config)
 {
   int tz;
   char szLocalTime[60];
+  char szOpt[60];
   time_t t;
   struct tm tm;
   char *dayweek[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
@@ -2613,18 +2626,17 @@ static void banner (STATE *state, BINKD_CONFIG *config)
 
   if (state->to || !state->delay_ADR) send_ADR (state, config);
 
-  if (state->to)
-    msg_sendf (state, M_NUL, "OPT NDA"
+  szOpt[0] = 0;
+  if (state->to) {
+    strcat(szOpt, " NDA");
+    if (state->NR_flag & WANT_NR) strcat(szOpt, " NR");
+    if (state->ND_flag & THEY_ND) strcat(szOpt, " NA");
+    if (state->crypt_flag & WE_CRYPT) strcat(szOpt, " CRYPT");
+  }
 #ifdef WITH_ZLIB
-                                 " GZ"
+  if (state->z_canrecv) strcat(szOpt, " GZ");
 #endif
-                                      "%s%s%s",
-               (state->NR_flag & WANT_NR) ? " NR" : "",
-               (state->ND_flag & THEY_ND) ? " ND" : "",
-               (state->crypt_flag & WE_CRYPT) ? " CRYPT" : "");
-#ifdef WITH_ZLIB
-    else msg_sendf (state, M_NUL, "OPT GZ");
-#endif
+  if (szOpt[0] != 0) msg_send2(state, M_NUL, "OPT", szOpt);
 }
 
 static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
@@ -2752,7 +2764,8 @@ static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
   Log (3, "sending %s as %s (%li)",
        state->out.path, state->out.netname, (long) state->out.size);
 #ifdef WITH_ZLIB
-  if (state->z_ok/* && gz_mask_test(state->out.netname)*/) {
+  if (state->z_cansend && state->out.size >= config->zminsize
+      && zrule_test(ZRULE_ALLOW, state->out.netname, config->zrules.first)) {
     extra = " GZ"; state->z_send = 1;
     Log (4, "gzip mode is on for %s", state->out.netname);
   }

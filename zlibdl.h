@@ -14,8 +14,15 @@
  * $Id$
  */
 
+#ifndef _ZLIBDL_H_
+#define _ZLIBDL_H_
+
+#ifdef WIN32
+# define ZLIB_CALLCONV __stdcall
+#endif
+
 /* type for compress() and decompress() */
-typedef int __stdcall zlib_compress_func(char *, int *, const char *, int);
+typedef int ZLIB_CALLCONV zlib_compress_func(char *, int *, const char *, int);
 
 /* actual compress() and decompress() */
 extern zlib_compress_func *dl_compress, *dl_uncompress;
@@ -25,3 +32,5 @@ extern zlib_compress_func *dl_compress, *dl_uncompress;
 
 /* loading function */
 int zlib_init(const char *dll_name);
+
+#endif

@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2003/09/15 06:57:09  val
+ * compression support via zlib: config keywords, improvements, OS/2 code
+ *
  * Revision 2.12  2003/09/12 09:09:38  val
  * zlib compression support and configure for unix (my first try to write
  * autoconf script, i hope it works on your system ;-)
@@ -69,7 +72,11 @@
 #include "prothlp.h"
 
 #ifdef WITH_ZLIB
-#include <zconf.h>
+# ifndef ZLIBDL
+#  include <zconf.h>
+# else
+#  define uLongf unsigned long
+# endif
 #endif
 
 #define BLK_HDR_SIZE 2
@@ -181,7 +188,8 @@ struct _STATE
   int perl_set_lvl;             /* Level of already set Perl vars */
 #endif
 #ifdef WITH_ZLIB
-  int z_ok, z_recv, z_send;     /* gzip is on for current file */
+  int z_canrecv, z_cansend;     /* remote supports zlib compression */
+  int z_recv, z_send;           /* gzip is on for current file */
   uLongf z_ocnt, z_icnt;        /* length of actual data */
   char *z_obuf, *z_ibuf;        /* compression and decompression buffers */
 #endif
