@@ -19,4 +19,3 @@
 - charsets support, unicode
 - present aka
 - 3 passwords in passwd-file - "incoming,pkt,outgoing"
-- do not save zero-length *.dt files and corresponding *.hr

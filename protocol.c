@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.45  2003/03/25 14:08:30  gul
+ * Do not save empty partial files
+ *
  * Revision 2.44  2003/03/11 00:04:25  gul
  * Use patches for compile under MSDOS by MSC 6.0 with IBMTCPIP
  *
@@ -296,18 +299,24 @@ static int deinit_protocol (STATE *state)
 
   if (state->in.f)
   {
-    fclose (state->in.f);
-    if (pmatch ("????????.[Pp][Kk][Tt]", state->in.netname))
+    off_t s;
+    if (ispkt (state->in.netname))
     {
       Log (2, "%s: partial .pkt", state->in.netname);
+      s = 0;
+    }
+    else
+    {
+      if ((s = ftell (state->in.f)) == 0)
+	Log (4, "%s: empty partial", state->in.netname);
+    }
+    fclose (state->in.f);
+    if (s == 0)
       inb_reject (state->in.netname, state->in.size, state->in.time,
 		  state->fa, state->nallfa, state->inbound);
-    }
   }
   if (state->out.f)
     fclose (state->out.f);
-  if (state->in_complete.f)
-    fclose (state->in_complete.f);
   if (state->flo.f)
     fclose (state->flo.f);
   if (state->killlist)
