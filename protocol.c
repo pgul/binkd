@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.66  2003/06/02 17:56:03  gul
+ * Workaround old binkd bug in asymmetric NR-mode
+ *
  * Revision 2.65  2003/06/02 17:29:28  gul
  * Bugfix in asymmetric ND-mode
  *
@@ -1277,6 +1280,16 @@ static int PWD (STATE *state, char *pwd, int sz)
     state->ND_flag |= THEY_ND;
   if ((state->ND_flag & WE_ND) == 0 && (state->ND_flag & CAN_NDA) == 0)
     state->ND_flag &= ~THEY_ND;
+
+  if ((state->NR_flag & WANT_NR) &&
+      !(state->ND_flag & CAN_NDA) && !(state->ND_flag & WE_ND))
+    /* workaround bug of old binkd */
+    /* force symmetric NR-mode with it */
+#if 0
+    state->NR_flag &= ~WANT_NR;
+#else
+    state->NR_flag |= WE_NR;
+#endif
 
   if ((state->NR_flag & WANT_NR) ||
       (state->crypt_flag == (WE_CRYPT | THEY_CRYPT)) ||
