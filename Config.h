@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.81  2003/07/18 12:36:01  stas
+ * Auto increase patchlevel, set 0.9.6a-70
+ * Remove old code; add some checks; use new option '--service' for win9x
+ *
  * Revision 2.80  2003/07/18 10:31:06  stas
  * Auto increase patchlevel, set 0.9.6a-69
  * New functions: IsNT(), Is9x(); small code cleanup
@@ -335,7 +339,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-69"
+#define MYVER "0.9.6a-70"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
