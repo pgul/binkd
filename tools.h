@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19  2003/08/19 10:16:12  gul
+ * Rename trunc() -> trunc_file() due to conflict under OS/2 EMX
+ *
  * Revision 2.18  2003/08/18 15:44:51  stream
  * New function last_slash(): Return pointer to last directory separator
  * in file name, or NULL if no path present.
@@ -209,7 +212,7 @@ char *ed (char *src, char *a, char *b, size_t *size);
  * Remove/trucate a file, log this
  */
 int delete (char *);
-int trunc (char *);
+int trunc_file (char *);
 
 #ifdef UNIX
 #define sdelete(file) delete(file)

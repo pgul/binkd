@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.45  2003/08/19 10:16:11  gul
+ * Rename trunc() -> trunc_file() due to conflict under OS/2 EMX
+ *
  * Revision 2.44  2003/08/19 10:13:15  gul
  * Change Log() semaphoring
  *
@@ -849,7 +852,7 @@ int delete (char *path)
   return rc;
 }
 
-int trunc (char *path)
+int trunc_file (char *path)
 {
   int h;
 

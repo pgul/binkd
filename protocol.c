@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.101  2003/08/19 10:16:12  gul
+ * Rename trunc() -> trunc_file() due to conflict under OS/2 EMX
+ *
  * Revision 2.100  2003/08/18 07:35:08  val
  * multiple changes:
  * - hide-aka/present-aka logic
@@ -850,7 +853,7 @@ static int perform_action (STATE *state, char *path, char action)
   }
   else if (action == 't')
   {
-    trunc (path);
+    trunc_file (path);
   }
   else if (action == 's')
   {
