@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2.2.1  2003/08/27 10:22:28  stas
+ * Make binkd 0.9.5 command line compatible with binkd 0.9.6
+ *
  * Revision 2.2  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -28,5 +31,10 @@
  *
  */
 
+#define DEFAULT_SRVNAME "binkd-service"
+
 int checkservice(void);
 int service(int argc, char **argv, char **envp);
+
+/* For debugging */
+#define AlertWin(msg) MessageBox(NULL, msg, MYNAME, MB_OK|MB_ICONSTOP|0x00200000L|MB_SYSTEMMODAL|MB_SETFOREGROUND)

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30.2.3  2003/08/27 10:22:28  stas
+ * Make binkd 0.9.5 command line compatible with binkd 0.9.6
+ *
  * Revision 2.30.2.2  2003/07/17 04:35:23  hbrew
  * Fix "No prototype found for 'isdigit'" warning.
  *
@@ -364,7 +367,12 @@ int main (int argc, char *argv[], char *envp[])
 	    case '-':
 	      /* GNU-style options */
 	      if (!strcmp (s + 1, "help"))
+	      {
+#ifdef WIN32
+              if (!isService)
+#endif
 		usage ();
+              }
 	      else
 		Log (0, "%s: --%s: unknown command line switch", extract_filename(argv[0]), s + 1);
 	    case 'C':
@@ -381,6 +389,12 @@ int main (int argc, char *argv[], char *envp[])
 #if defined(WIN32) && !defined (BINKDW9X)
 	    case 'T':
 	    case 't':
+	      break;
+#endif
+#if defined(WIN32)
+	    case 'S': /* Skip parameter */
+	      if (!s[1]){ ++i; }
+	      s="t";
 	      break;
 #endif
 	    case 'P':
@@ -422,11 +436,19 @@ int main (int argc, char *argv[], char *envp[])
 	      break;
 #endif
 	    case 'h':
-	      usage();
+#ifdef WIN32
+              if (isService)
+                 break;
+#endif
+              usage();
 	    default:
 	      Log (0, "%s: -%c: unknown command line switch", extract_filename(argv[0]), *s);
-	    case 0:
-	      usage ();
+	    case '\0':
+#ifdef WIN32
+              if (isService)
+                 break;
+#endif
+              usage();
 	  }
 	++s;
       }

@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4.2.3  2003/08/27 10:22:28  stas
+ * Make binkd 0.9.5 command line compatible with binkd 0.9.6
+ *
  * Revision 2.4.2.2  2003/06/21 15:35:35  hbrew
  * Fix running on Win9x-systems.
  *
@@ -59,7 +62,7 @@
 /* int W32_CheckOS(unsigned long PlatformId); */ /* see TCPErr.c */
 
 static char libname[]="ADVAPI32";
-static char *srvname="binkd-service";
+static char *srvname=DEFAULT_SRVNAME;
 static char reg_path[]="Software\\";
 static SERVICE_STATUS_HANDLE sshan;
 static SERVICE_STATUS sstat;
@@ -281,7 +284,7 @@ static int service_main(int type)
         CloseServiceHandle(sman);
         return 1;
       }
-      sprintf(path + strlen(path), " \1 -(%s)", srvname);
+      sprintf(path + strlen(path), " \1 -S%s", srvname);
       shan=CreateService(sman, srvname, srvname, SERVICE_ALL_ACCESS,
         srvtype, SERVICE_AUTO_START,
         SERVICE_ERROR_NORMAL, path, NULL, NULL, NULL, NULL, NULL);
@@ -312,7 +315,6 @@ static int service_main(int type)
       }
       if(sstat.dwCurrentState != SERVICE_RUNNING)
       {
-        Log(-1, "Service not started...\n");
         rc=1;
       }
     }
@@ -339,6 +341,8 @@ static int service_main(int type)
       }
       if(sstat.dwCurrentState!=SERVICE_STOPPED)
         Log(-1, "Unable to stop service!\n");
+      else
+        Log(-1, "Service \"%s\" stopped...\n", srvname);
     }
     if(!DeleteService(shan))
     {
@@ -558,10 +562,23 @@ int service(int argc, char **argv, char **envp)
         memcpy(srvname, sp1 + 1, sp2 - sp1 - 1);
         strcpy(sp1, sp2 + 1);
       }
+      sp1 = strchr(argv[i],'S');
+      if(sp1)
+      { if ( strcmp(srvname, DEFAULT_SRVNAME) )
+          free(srvname);
+        if (sp1[1])
+          srvname = strdup(sp1+1);
+        else if (argv[++i])
+        {
+          srvname = strdup(argv[i]);
+        }
+        else
+          Log( 0, "Parameter required after '-S' option (service name)\n");
+      }
     }
   }
 
-  if ((argc==1) || ((argc == 3) && (argv[1][0] == 1)))
+  if ((argv[1][0] == 1))
   {
     SERVICE_TABLE_ENTRY dt[]= { {srvname, (LPSERVICE_MAIN_FUNCTION)ServiceMain}, {NULL, NULL}};
     if(service_main(6)) return argc;
@@ -575,18 +592,26 @@ int service(int argc, char **argv, char **envp)
     if(argv[i][0]=='-')
     {
       if (j > 0)
-      { char *sP;
+      { char *sP, *Sp, *sp2;
         sP = strchr(argv[i], 'P');   /* Check for 'i' or 'u' in domain: -P1:2/3.4@fidonet -P9:8/7.6@usernet */
+        Sp = strchr(argv[i], 'S');
         if(!sp){
           sp=strchr(argv[i], j==1?'i':'u');
-          if( (sP && sP>sp) || (i>=2 && argv[i-1][strlen(argv[i-1])-1]=='P') )
+          if( sp && ( (sP && sP<sp) || (i>=2 && argv[i-1][strlen(argv[i-1])-1]=='P')
+              || (Sp && Sp<sp) || (i>=2 && argv[i-1][strlen(argv[i-1])-1]=='S') )
+            )
             sp = NULL;
 
-          if( strchr(argv[i], j==2?'i':'u'))
+          if(  (sp2=strchr(argv[i], j==2?'i':'u'))
+            && !( (sP && sP<sp2) || (i>=2 && argv[i-1][strlen(argv[i-1])-1]!='P')
+              || (Sp && Sp<sp2) || (i>=2 && argv[i-1][strlen(argv[i-1])-1]!='S') )
+            )
           {
-            Log(-1, "Service already %sinstalled...", j==2?"":"UN");
+            Log(-1, "Service \"%s\" already %sinstalled...", srvname, j==2?"":"UN");
             exit(0);
           }
+          if(sp && *sp=='i') /* Remove 'i' from options list (shift chars in string) */
+            memmove(sp,sp+1,strlen(sp));
         }
       }
       if (strchr(argv[i], 'T'))
@@ -601,34 +626,35 @@ int service(int argc, char **argv, char **envp)
   if(j<1) return argc;
 
   if(sp)
-  {
+  { char args[1024];
     switch(j)
     {
     case 1: /* service is not installed */
       asp=(char*)malloc(len + strlen(srvname) + 10);
+      Log(-1, "Store argv for service:\n");
+      args[0]='\0';
       for(i=len=0;i<argc;i++)
       {
         if (i == 1)
         {
-          len += sprintf(asp+len, "-(%s)t", srvname) + 1;
+          len += sprintf(asp+len, "-S%s", srvname);
+          strnzcat(args, " \"-S", sizeof(args));
+          strnzcat(args, srvname, sizeof(args));
+          strnzcat(args, "\"", sizeof(args));
         }
-        if((argv[i][0]=='-')&&((sp=strchr(argv[i], 'i'))!=NULL))
+        if ( (j=strlen(argv[i]))>0 && strcmp(argv[i],"-") )
         {
-          if(!argv[i][2]) continue;
-          j=sp-argv[i];
-          memcpy(asp+len, argv[i], j);
-          len+=j;
-          if((j=strlen(sp+1))>0) memcpy(asp+len, sp+1, j);
-          len+=j;
-        }
-        else if((j=strlen(argv[i]))>0)
-        {
+          strnzcat(args, " \"", sizeof(args));
+          strnzcat(args, argv[i], sizeof(args));
+          strnzcat(args, "\"", sizeof(args));
           memcpy(asp+len, argv[i], j);
           len+=j;
         }
         asp[len++]=0;
       }
       asp[len++]=0;
+      Log(-1,"%s\n",args);
+
       if(envp)
       {
         for(i=j=0; envp[i];i++) j+=strlen(envp[i])+1;
@@ -667,13 +693,13 @@ int service(int argc, char **argv, char **envp)
       if(esp) free(esp);
       if(!service_main(5))
       {
-        Log(-1, "%s installed and started...\n", srvname);
+        Log(-1, "Service \"%s\" installed and started...\n", srvname);
         exit(0);
       }
-      Log(1, "Unable to start service!");
+      Log(-1, "Unable to start service \"%s\"!\n", srvname);
     case 2: /* service is installed */
       if(service_main(3))  return argc;
-      Log(-1, "%s uninstalled...\n", srvname);
+      Log(-1, "Service \"%s\" uninstalled...\n", srvname);
       sp=(char *)malloc(MAXPATHLEN);
       strcpy(sp, reg_path);
       strcat(sp, srvname);
