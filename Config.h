@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.53  2003/07/07 08:34:29  val
+ * Auto increase patchlevel, set 0.9.6a-42
+ * pmatch() replaced by define to xpmatch()
+ *
  * Revision 2.52  2003/07/07 08:33:27  val
  * Auto increase patchlevel, set 0.9.6a-41
  * `perl-hooks' config keyword to specify perl script
@@ -215,7 +219,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-41"
+#define MYVER "0.9.6a-42"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
