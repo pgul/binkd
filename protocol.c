@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.149  2004/01/08 11:36:06  gul
+ * Fix typo in previous patch
+ *
  * Revision 2.148  2004/01/07 13:12:29  gul
  * Update 2003->2004 in copyright notices
  *
@@ -630,7 +633,7 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to, BINKD_CONFI
 #endif
 #ifdef WITH_ZLIB
 # ifdef ZLIBDL
-  if (!zlib_loaded)
+  if (zlib_loaded)
 # endif
   state->z_canrecv |= 1;
 #endif
@@ -1320,10 +1323,9 @@ static int NUL (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
       {
         Log(2, "Remote supports GZ mode");
 #ifdef ZLIBDL
-        if (zlib_loaded) state->z_cansend |= 1;
-#else
-        state->z_cansend |= 1;
+        if (zlib_loaded)
 #endif
+        state->z_cansend |= 1;
       }
 #endif
 #ifdef WITH_BZLIB2
@@ -1331,10 +1333,9 @@ static int NUL (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
       {
         Log(2, "Remote supports BZ2 mode");
 #ifdef ZLIBDL
-        if (bzlib2_loaded) state->z_cansend |= 2;
-#else
-        state->z_cansend |= 2;
+        if (bzlib2_loaded)
 #endif
+        state->z_cansend |= 2;
       }
 #endif
       if (!strcmp (w, "EXTCMD"))
