@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.23  2003/10/06 16:47:28  stas
+ * Use enumeration in parameter and return values of service_main()
+ *
  * Revision 2.22  2003/10/05 10:01:15  stas
  * Remove unused code
  *
@@ -135,7 +138,7 @@ static int res_checkservice=0;
 static DWORD dwErr=0;
 static char **serv_argv=NULL;
 static char **serv_envp=NULL;
-static int service_main(int type);
+static enum service_main_retcodes service_main(enum service_main_types type);
 extern int checkcfg_flag;
 int _isService=-1;
 
@@ -199,7 +202,7 @@ void atServiceExit(void)
   }
   ReportStatusToSCMgr(SERVICE_STOPPED, dwErr, 3000);
   if((checkcfg_flag==2)&&(res_checkservice>0))
-    service_main(4);
+    service_main(service_main_start);
 }
 
 int binkd_main(int argc, char **argv, char **envp);
@@ -300,13 +303,14 @@ static void WINAPI ServiceMain(DWORD argc,LPSTR* args)
 }
 
 static DWORD srvtype = SERVICE_WIN32_OWN_PROCESS;
-static int service_main(int type)
+static enum service_main_retcodes service_main(enum service_main_types type)
 {
   SC_HANDLE sman=NULL, shan=NULL;
-  int i, rc=0;
+  int i;
+  enum service_main_retcodes rc=service_main_ret_ok;
 
   if(!IsNT())
-    return 2;
+    return service_main_ret_not;
 
   sman=OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
   if(!sman)
@@ -322,22 +326,22 @@ static int service_main(int type)
   if(!type)  /* return 0 if we can install service */
   {
     CloseServiceHandle(sman);
-    return 0;
+    return service_main_ret_ok;
   }
   shan=OpenService(sman, srvname, SERVICE_ALL_ACCESS);
 
   switch(type)
   {
-  case 6:
-    if(!shan) rc=1; else
-    if(!QueryServiceStatus(shan,&sstat)) rc=2; else
-    if(sstat.dwCurrentState != SERVICE_START_PENDING) rc=3;
+  case service_main_testrunning:
+    if(!shan) rc=service_test_notinstall; else
+    if(!QueryServiceStatus(shan,&sstat)) rc=service_test_fail; else
+    if(sstat.dwCurrentState != SERVICE_START_PENDING) rc=service_test_notrunning;
     break;
-  case 1: /* return 0 if service installed, or 1 if not */
-    if(!shan) rc=1;
+  case service_main_testinstalled: /* return 0 if service installed, or 1 if not */
+    if(!shan) rc=service_test_notinstall;
     break;
-  case 5:
-  case 2: /* install, if we don have one */
+  case service_main_installstart:
+  case service_main_install: /* install, if we don have one */
     if(!shan)
     {
       char path[MAXPATHLEN+1];
@@ -345,7 +349,7 @@ static int service_main(int type)
       {
         Log(1, "Error in GetModuleFileName()=%s", tcperr(GetLastError()) );
         CloseServiceHandle(sman);
-        return 1;
+        return service_main_ret_failinstall;
       }
       shan=CreateService( sman,                 /* SCManager database */
                           srvname,              /* name of service */
@@ -384,12 +388,12 @@ static int service_main(int type)
         }
       }
     }
-    if((rc)||(type==2)) break;
-  case 4: /* start service */
+    if((rc)||(type==service_main_install)) break;
+  case service_main_start: /* start service */
     if(!shan)
     {
       Log(-1, "Service \"%s\" not installed...", srvname);
-      rc=1;
+      rc=service_test_notinstall;
       break;
     }
     if(StartService(shan, 0, NULL))
@@ -409,16 +413,16 @@ static int service_main(int type)
       if(sstat.dwCurrentState != SERVICE_RUNNING)
       {
         Log(-1, "Service not started...");
-        rc=1;
+        rc=service_main_ret_failstart;
       }
     }
     else
     {
       Log(1, "Error in StartService()=%s", tcperr(GetLastError()) );
-      rc=1;
+      rc=service_main_ret_failstart;
     }
     break;
-  case 3: /* stop & uninstall. */
+  case service_main_uninstall: /* stop & uninstall. */
     if(!shan) break;
     /* try to stop the service  */
     if(ControlService(shan, SERVICE_CONTROL_STOP, &sstat))
@@ -440,7 +444,7 @@ static int service_main(int type)
     if(!DeleteService(shan))
     {
       Log(1, "Error in DeleteService()=%s", tcperr(GetLastError()) );
-      rc=1;
+      rc=service_main_ret_faildelete;
     }
     break;
   }
@@ -683,7 +687,7 @@ int service(int argc, char **argv, char **envp)
       sp=(char*)malloc(MAXPATHLEN+1);
       strcpy(sp, reg_path_prefix);
       strcat(sp, srvname);
-      if(!service_main(2))
+      if(!service_main(service_main_install))
       {
         Log(-1, "Service '%s' installed...", srvname);
       }
@@ -746,7 +750,7 @@ int service(int argc, char **argv, char **envp)
       free(sp);
       free(asp);
       if(esp) free(esp);
-      if(!service_main(4))
+      if(!service_main(service_main_start))
       {
         Log(-1, "Service '%s' started.", srvname);
         exit(0);
@@ -761,7 +765,7 @@ int service(int argc, char **argv, char **envp)
       Log(-1, "Service '%s' already uninstalled...", srvname);
       exit(0);
     }else{
-      if(service_main(3))  return argc;
+      if(service_main(service_main_uninstall))  return argc;
       Log(-1, "Service '%s' uninstalled.", srvname);
       exit(0);
     }
@@ -782,8 +786,8 @@ int checkservice(void)
 {
   if(res_checkservice) return res_checkservice;
   if(Is9x()) return res_checkservice=(CHKSRV_CANT_INSTALL);
-  if(service_main(0)) return res_checkservice=(CHKSRV_CANT_INSTALL);
-  if(service_main(1)) return res_checkservice=CHKSRV_NOT_INSTALLED;
+  if(service_main(service_main_services)) return res_checkservice=(CHKSRV_CANT_INSTALL);
+  if(service_main(service_main_testinstalled)) return res_checkservice=CHKSRV_NOT_INSTALLED;
   return res_checkservice=CHKSRV_INSTALLED;
 }
 

@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2003/10/06 16:47:28  stas
+ * Use enumeration in parameter and return values of service_main()
+ *
  * Revision 2.6  2003/10/05 09:37:43  stas
  * Optimize binkd/nt start: use hack to determine if we're running as a service without waiting for the service control manager to fail
  *
@@ -41,27 +44,31 @@
  */
 
 /* service_main types of call */
-#define service_main_services       0 /* Check: we can operate with services */
-#define service_main_testinstalled  1 /* Check: installed or not */
-#define service_main_install        2 /* Install service */
-#define service_main_uninstall      3 /* Uninstall service */
-#define service_main_start          4 /* Start service */
-#define service_main_installstart   5 /* Install and start service */
-#define service_main_testrunning    6 /* Check: service is running */
-#define service_main_stop           7 /* Stop service */
+enum service_main_types{
+   service_main_services      = 0, /* Check: we can operate with services */
+   service_main_testinstalled = 1, /* Check: installed or not */
+   service_main_install       = 2, /* Install service */
+   service_main_uninstall     = 3, /* Uninstall service */
+   service_main_start         = 4, /* Start service */
+   service_main_installstart  = 5, /* Install and start service */
+   service_main_testrunning   = 6, /* Check: service is running */
+   service_main_stop          = 7, /* Stop service */
+};
 
 /* service_main return values */
-#define service_main_ret_ok         0
-#define service_test_notinstall     1 /* Service not installed (OpenService() failed or other) */
-#define service_test_fail           2 /* Can't check service: QueryServiceStatus() fail */
-#define service_test_notrunning     3 /* Service not running */
-#define service_main_ret_failinstall 1 /* Service install fail */
-#define service_main_ret_failstart  1 /* Service start failed */
-#define service_main_ret_failstop   1 /* Service stop failed */
-#define service_main_ret_faildelete 1 /* Service delete failed */
-#define service_main_ret_fail       2 /* Can't check service: QueryServiceStatus() fail */
-#define service_main_ret_not        2 /* Can't operate: OpenSCManagerA() dont exist */
-#define service_main_ret_failcontrol 3 /* OpenSCManager failed */
+enum service_main_retcodes{
+   service_main_ret_ok          = 0,
+   service_test_notinstall      = 1, /* Service not installed (OpenService() failed or other) */
+   service_test_fail            = 2, /* Can't check service: QueryServiceStatus() fail */
+   service_test_notrunning      = 3, /* Service not running */
+   service_main_ret_failinstall = 1, /* Service install fail */
+   service_main_ret_failstart   = 1, /* Service start failed */
+   service_main_ret_failstop    = 1, /* Service stop failed */
+   service_main_ret_faildelete  = 1, /* Service delete failed */
+   service_main_ret_fail        = 2, /* Can't check service: QueryServiceStatus() fail */
+   service_main_ret_not         = 2, /* Can't operate: OpenSCManagerA() dont exist (incompatible OS) */
+   service_main_ret_failcontrol = 3, /* OpenSCManager failed */
+};
 
 extern char *service_name;
 
