@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.69  2004/09/02 09:00:50  val
+ * fix warnings
+ *
  * Revision 2.68  2004/09/02 08:56:20  val
  * bandwidth limiting config parameter 'limit-rate'
  *
@@ -1664,7 +1667,7 @@ static int read_check_pkthdr (KEYWORD *key, int wordcount, char **words)
 static int read_rate (KEYWORD *key, int wordcount, char **words)
 {
   int i, rate = 0, maskonly = 0;
-  char mod = 0, *ss;
+  char *ss;
   addrtype at = A_ALL;
   struct ratechain new_entry;
 
@@ -1999,7 +2002,7 @@ void debug_readcfg (void)
         else if (sk->rate < 0)
           printf("\n    %s %d%% \"%s\"", describe_addrtype(sk->atype), -sk->rate, sk->mask);
         else
-          printf("\n    %s %ld \"%s\"", describe_addrtype(sk->atype), sk->rate, sk->mask);
+          printf("\n    %s %d \"%s\"", describe_addrtype(sk->atype), sk->rate, sk->mask);
       }
     }
 #endif
