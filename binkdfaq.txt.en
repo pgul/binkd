@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of November 09 2004
+        Version of November 24 2004
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -43,6 +43,8 @@ from Russian by Michael Dukelsky 2:5020/1042.
     32. How to Create a Poll Correctly.
     33. What Does the Number in Brackets in the Log Mean?
     34. How to Configure BinkD for sending outgoing mail?
+    35. What for Does One Need the "share" Directive in the Configuration File?
+    36. What for Does One Need the "ftrans" Directive in the Configuration File?
     A1. I Have Found a Bug in BinkD!
     A2. I Want To Talk To Developers.
     A3. I Want To Get Information About Changes In BinkD Immediately!
@@ -1069,6 +1071,36 @@ possibility of packing netmail to BSO has been provided by their developers
 (for example, in T-Mail starting with the version 2500).
     See also the answer to question 17.
     
+    
+----------------------------------------------------------------------------
+
+
+        35. What for Does One Need the "share" Directive in the Configuration File?
+
+    Shared AKA is used for sending netmail to one of the alternative routes
+and is your protection for the case when your netmail link goes down.
+In the sample configuration file
+
+    share 2:999/999 2:5020/52 2:5020/238
+
+the uplinks are 2:5020/52 and 2:5020/238 with the shared AKA 2:999/999 added.
+Then you configure packing netmail to 2:999/999 and BinkD will send it to 
+those of the two uplinks, the session with which will occur earlier. If there
+is no connection to 2:5020/52 the netmail will go to 2:5020/238. If there is
+no connection to 2:5020/238 it will go to 2:5020/52.
+    
+    
+----------------------------------------------------------------------------
+
+
+        36. What for Does One Need the "ftrans" Directive in the Configuration File?
+
+    It is necessary for placing BinkD and your tosser at different computers
+in the net, when outbound resides at a net drive and the paths to it are 
+different. Moreover the tosser may run on a computer with FAT and the paths
+of the d:\long\path\to type, and BinkD may run on a UNIX machine with paths
+of the /mnt/samba/wincomp1/path/to type.
+
     
 ----------------------------------------------------------------------------
 
