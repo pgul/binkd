@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/02/28 19:13:55  gul
+ * Added prodcode
+ *
  * Revision 2.4  2003/02/22 21:53:39  gul
  * Typo in comment
  *
@@ -61,6 +64,8 @@
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
 #define MYVER "0.9.5a"
+
+#define PRODCODE 0x13FF  /* by FTSCPROD */
 
 /* Environment */
 #define MAX_ENV_VAR_NAME 256
