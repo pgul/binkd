@@ -1,3 +1,12 @@
+2004/01/08 15:27:52 1.0a-364 val
+dirwin32.c,2.1,2.2 dirwin32.h,2.3,2.4
+* extend struct dirent for dos and win32 in order to get file attribute
+* ignore hidden files in boxes for dos/win32/os2
+* if we can differ files from directories w/o stat(), don't call stat()
+  when scanning boxes (unix: freebsd)
+* if we can't unlink file, don't send it again in the same session
+* for dos/win32/os2 try to clear read/only attribute if can't unlink file
+
 2004/01/08 15:07:42 1.0a-363 val
 inbound.c,2.30,2.31 tools.c,2.60,2.61 tools.h,2.25,2.26
 use new pkt header parsing function in check-pkthdr, remove older function
