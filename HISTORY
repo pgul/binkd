@@ -1,3 +1,10 @@
+2004/11/22 17:56:47 1.0a-438 stream
+readcfg.c,2.81,2.82 tools.c,2.64,2.65
+Errors in config were not logged to file (log file name was set only
+when config was completely loaded, checked and accepted). Now log
+settings are changed immediately after each log-related directive
+(only for first-time config load)
+
 2004/11/22 17:51:20 1.0a-437 stas
 readcfg.c,2.80,2.81
 Change error level to -1 for the config file parameter error (binkd/w32 will display message box with error message)
