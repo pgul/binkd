@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.31  2004/09/06 10:47:06  val
+ * bandwidth limiting code advancements, `listed' session state fix
+ *
  * Revision 2.30  2004/09/02 08:56:20  val
  * bandwidth limiting config parameter 'limit-rate'
  *
@@ -191,7 +194,7 @@ struct ratechain
   struct ratechain *next;
   char *mask;
   addrtype atype;
-  int rate;
+  long rate;
 };
 #endif
 
@@ -356,6 +359,11 @@ char *mask_test(char *s, struct maskchain *chain);
 
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
 struct zrule *zrule_test(int type, char *s, struct zrule *root);
+#endif
+
+#ifdef BW_LIM
+long parse_rate (char *w, char **err);
+char *describe_rate(long rate);
 #endif
 
 #endif

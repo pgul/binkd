@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.158  2004/09/06 10:47:04  val
+ * bandwidth limiting code advancements, `listed' session state fix
+ *
  * Revision 2.157  2004/09/02 09:31:52  val
  * release CPU when limiting bandwidth on Win32
  *
@@ -883,7 +886,7 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
         state->bw_bpsN++;
       }
       else state->bw_bps = (9*state->bw_bps + bps) / 10;
-      Log (7, "send: current bps is %u, avg. bps is %u", bps, state->bw_bps);
+      Log (9, "send: current bps is %u, avg. bps is %u", bps, state->bw_bps);
     }
     else if (state->bw_send && state->bw_bytes > state->bw_send) 
       return 2; /* !!! val: temp !!! */
@@ -1408,6 +1411,18 @@ static int NUL (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
 	state->extcmd = 1;  /* They can accept extra params for commands */
 	Log(2, "Remote supports EXTCMD mode");
       }
+#ifdef BW_LIM
+      if (!strncmp(w, "RATE<", 4)) {
+        char *s = w + 5, *ss;
+        state->bw_recv = parse_rate(s, &ss);
+        if (ss || state->bw_recv < 0) {
+          Log(2, "Remote sent incorrect desired rate limit `%s'", s);
+          state->bw_recv = 0;
+        }
+        else if (state->bw_recv > 0)
+          Log(2, "Remote requests rate limit %s", describe_rate(state->bw_recv));
+      }
+#endif
       free (w);
     }
   }
@@ -1534,6 +1549,10 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
   char szFTNAddr[FTN_ADDR_SZ + 1];
   int secure_NR, unsecure_NR;
   int secure_ND, unsecure_ND;
+#ifdef BW_LIM
+  unsigned long bw_recv = 0;
+  int bw_send_unlim = 0, bw_recv_unlim = 0;
+#endif
 
   s[sz] = 0;
   secure_NR = unsecure_NR = NO_NR;
@@ -1761,10 +1780,10 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
     }
 #endif
 
+    if (pn) state->listed_flag |= pn->listed;
     if (state->expected_pwd[0] && pn)
     {
       char *pwd = state->to ? pn->out_pwd : pn->pwd;
-      state->listed_flag = 1;
       if (!strcmp (state->expected_pwd, "-"))
       {
 	memcpy(state->expected_pwd, pwd, sizeof (state->expected_pwd));
@@ -1811,6 +1830,18 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
       {
 	main_AKA_ok = 1;
       }
+#ifdef BW_LIM
+      if (pn && pn->listed) {
+        if (pn->bw_send == 0) bw_send_unlim = 1;
+        else if (pn->bw_send < 0 && (unsigned long)(-pn->bw_send) > state->bw_send_rel) 
+          state->bw_send_rel = -pn->bw_send;
+        else if (pn->bw_send > 0 && (unsigned long)pn->bw_send > state->bw_send_abs)
+          state->bw_send_abs = pn->bw_send;
+
+        if (pn->bw_recv == 0) bw_recv_unlim = 1;
+        else if (pn->bw_recv > 0 && (unsigned long)pn->bw_recv > bw_recv) bw_recv = pn->bw_recv;
+      }
+#endif
     }
     else
     {
@@ -1889,6 +1920,28 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
       state->NR_flag |= unsecure_NR;
     }
   }
+
+#ifdef BW_LIM
+  pn = NULL;
+  {
+    FTN_ADDR dfa = {"defnode", 0, 0, 0, 0};
+    pn = get_node_info(&dfa, config);
+  }
+  if (bw_send_unlim) state->bw_send_abs = state->bw_send_rel = 0;
+  /* use defnode's -bw settings if no explicit */
+  else if (!state->bw_send_abs && !state->bw_send_rel && pn) {
+    if (pn->bw_send >= 0) state->bw_send_abs = pn->bw_send;
+    else state->bw_send_rel = -pn->bw_send;
+  }
+  if (state->bw_send_abs || state->bw_send_rel)
+    Log (7, "Session send rate limit is %s cps or %d%%", 
+            describe_rate(state->bw_send_abs), state->bw_send_rel);
+  if (!bw_recv_unlim) { 
+    if (!bw_recv && pn) bw_recv = pn->bw_recv;
+    if (bw_recv > 0 && bw_recv != 100)
+      msg_send2 (state, M_NUL, "OPT RATE<", describe_rate(bw_recv));
+  }
+#endif
 
   if (state->to)
   {
@@ -2164,13 +2217,13 @@ static void setup_rate_limit (STATE *state, BINKD_CONFIG *config)
   else {
     /* if mask set to specific rate, adjust to remote percent rate */
     if (rlim > 0) 
-      state->bw_send = state->bw_send_rel ? rlim * (state->bw_send_rel / 100) : rlim;
+      state->bw_send = state->bw_send_rel ? rlim * state->bw_send_rel / 100 : rlim;
     /* if mask set to relative rate, adjust node absolute rate by it */
     else 
-      state->bw_send = state->bw_send_abs ? state->bw_send_abs * (-rlim / 100) : 0;
+      state->bw_send = state->bw_send_abs ? state->bw_send_abs * (-rlim) / 100 : 0;
   }
   /* remote demands us to limit our rate, so be it */
-  if (state->bw_recv && state->bw_send > state->bw_recv)
+  if (state->bw_recv && (state->bw_send > state->bw_recv || !state->bw_send))
     state->bw_send = state->bw_recv;
   if (state->bw_send)
     Log (3, "rate limit for %s is %d cps", state->out.netname, state->bw_send);

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.31  2004/09/06 10:47:04  val
+ * bandwidth limiting code advancements, `listed' session state fix
+ *
  * Revision 2.30  2004/01/18 20:39:31  gul
  * Undo previous patch
  *
@@ -184,9 +187,13 @@ static void sort_nodes (BINKD_CONFIG *config)
 /*
  * Add a new node, or edit old settings for a node
  */
-static void add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pwd,
+static FTN_NODE *add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pwd,
               char obox_flvr, char *obox, char *ibox, int NR_flag, int ND_flag,
-	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, BINKD_CONFIG *config)
+	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, 
+#ifdef BW_LIM
+              long bw_send, long bw_recv,
+#endif
+              BINKD_CONFIG *config)
 {
   int cn;
   FTN_NODE *pn = NULL; /* avoid compiler warning */
@@ -214,6 +221,9 @@ static void add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd
     pn->MD_flag = MD_USE_OLD;
     pn->HC_flag = HC_USE_OLD;
     pn->restrictIP = RIP_OFF;
+#ifdef BW_LIM
+    pn->bw_send = bw_send; pn->bw_recv = bw_recv;
+#endif
 
     /* We've broken the order... */
     config->nNodSorted = 0;
@@ -269,15 +279,28 @@ static void add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd
     xfree (pn->ibox);
     pn->ibox = xstrdup (ibox);
   }
+
+  return pn;
 }
 
 void add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pwd,
               char obox_flvr, char *obox, char *ibox, int NR_flag, int ND_flag,
-	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, BINKD_CONFIG *config)
+	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, 
+#ifdef BW_LIM
+              long bw_send, long bw_recv,
+#endif
+              BINKD_CONFIG *config)
 {
+  FTN_NODE *pn;
+
   locknodesem();
-  add_node_nolock(fa, hosts, pwd, pkt_pwd, out_pwd, obox_flvr, obox, ibox, 
-                  NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, config);
+  pn = add_node_nolock(fa, hosts, pwd, pkt_pwd, out_pwd, obox_flvr, obox, ibox, 
+                  NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, 
+#ifdef BW_LIM
+                  bw_send, bw_recv,
+#endif
+                  config);
+  pn->listed = 1;
   releasenodesem();
 }
 
@@ -331,11 +354,18 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
     on->NP_flag=np->NP_flag;
     on->HC_flag=np->HC_flag;
     on->restrictIP=np->restrictIP;
+#ifdef BW_LIM
+    on->bw_send = np->bw_send; on->bw_recv = np->bw_recv;
+#endif
     return on;
   }
 
   add_node_nolock(fa, np->hosts, NULL, NULL, NULL, np->obox_flvr, np->obox, np->ibox,
-       np->NR_flag, np->ND_flag, np->MD_flag, np->restrictIP, np->HC_flag, np->NP_flag, config);
+       np->NR_flag, np->ND_flag, np->MD_flag, np->restrictIP, np->HC_flag, np->NP_flag, 
+#ifdef BW_LIM
+       np->bw_send, np->bw_recv,
+#endif
+       config);
   sort_nodes (config);
   memcpy (&n.fa, fa, sizeof (FTN_ADDR));
   return search_for_node(&n, config);
@@ -421,7 +451,11 @@ int poll_node (char *s, BINKD_CONFIG *config)
     locknodesem();
     if (!get_node_info_nolock (&target, config))
       add_node_nolock (&target, "*", NULL, NULL, NULL, '-', NULL, NULL, NR_USE_OLD, ND_USE_OLD,
-                       MD_USE_OLD, RIP_USE_OLD, HC_USE_OLD, NP_USE_OLD, config);
+                       MD_USE_OLD, RIP_USE_OLD, HC_USE_OLD, NP_USE_OLD, 
+#ifdef BW_LIM
+                       BW_DEF, BW_DEF,
+#endif
+                       config);
     releasenodesem();
     return create_poll (&target, POLL_NODE_FLAVOUR, config);
   }

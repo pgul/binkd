@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19  2004/09/06 10:47:04  val
+ * bandwidth limiting code advancements, `listed' session state fix
+ *
  * Revision 2.18  2004/01/08 12:57:18  val
  * * parse up to 3 comma-separated passwords (in,pkt,out)
  * * use out password for outgoing sessions if it's set
@@ -123,7 +126,11 @@ FTN_NODE *get_node_info (FTN_ADDR *fa, BINKD_CONFIG *config);
  */
 void add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pwd,
               char obox_flvr, char *obox, char *ibox, int NR_flag, int ND_flag,
-	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, BINKD_CONFIG *config);
+	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, 
+#ifdef BW_LIM
+              long bw_send, long bw_recv,
+#endif
+              BINKD_CONFIG *config);
 
 #define NR_ON        1
 #define NR_OFF       0
@@ -149,6 +156,10 @@ void add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pw
 #define NP_ON       1
 #define NP_OFF      0
 #define NP_USE_OLD -1		       /* Use old value */
+
+#ifdef BW_LIM
+#define BW_DEF     -100                /* default value: 100% */
+#endif
 
 /*
  * Iterates through nodes while func() == 0.

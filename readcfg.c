@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.70  2004/09/06 10:47:05  val
+ * bandwidth limiting code advancements, `listed' session state fix
+ *
  * Revision 2.69  2004/09/02 09:00:50  val
  * fix warnings
  *
@@ -1148,7 +1151,11 @@ static int passwords (KEYWORD *key, int wordcount, char **words)
         split_passwords(password, &pkt_pwd, &out_pwd);
         exp_ftnaddress (&fa, work_config.pAddr, work_config.nAddr, work_config.pDomains.first);
         add_node (&fa, NULL, password, pkt_pwd, out_pwd, '-', NULL, NULL,
-                  NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, HC_USE_OLD, NP_USE_OLD, &work_config);
+                  NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, HC_USE_OLD, NP_USE_OLD, 
+#ifdef BW_LIM
+                  BW_DEF, BW_DEF,
+#endif
+                  &work_config);
       }
     }
   }
@@ -1252,6 +1259,9 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
   int   i, j;
   int   NR_flag = NR_USE_OLD, ND_flag = ND_USE_OLD, HC_flag = HC_USE_OLD,
         MD_flag = MD_USE_OLD, NP_flag = NP_USE_OLD, restrictIP = RIP_USE_OLD;
+#ifdef BW_LIM
+  long bw_send = BW_DEF, bw_recv = BW_DEF;
+#endif
   FTN_ADDR fa;
 
   memset(w, 0, sizeof(w)); /* init by NULL's */
@@ -1292,6 +1302,21 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
         HC_flag = HC_OFF;
       else if (STRICMP (tmp, "-noproxy") == 0)
         NP_flag = NP_ON;
+#ifdef BW_LIM
+      else if (STRICMP (tmp, "-bw") == 0) {
+        char *s1, *s2, *ss;
+        if (j == wordcount - 1) ConfigError("`-bw' option requires parameter");
+        s1 = words[++j];
+        s2 = strchr(s1, '/');
+        if (s2) { *s2 = 0; s2++; }
+        bw_send = bw_recv = parse_rate(s1, &ss);
+        if (ss) ConfigError("syntax error near `%s'", ss);
+        if (s2) {
+          bw_recv = parse_rate(s2, &ss);
+          if (ss) ConfigError("syntax error near `%s'", ss);
+        }
+      }
+#endif
       else
         return ConfigError("%s: unknown option for `node' keyword", tmp);
     }
@@ -1320,7 +1345,11 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
 
   split_passwords(w[2], &pkt_pwd, &out_pwd);
   add_node (&fa, w[1], w[2], pkt_pwd, out_pwd, (char)(w[3] ? w[3][0] : '-'), w[4], w[5],
-            NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, &work_config);
+            NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, 
+#ifdef BW_LIM
+            bw_send, bw_recv,
+#endif
+            &work_config);
 
   return 1;
 #undef ARGNUM
@@ -1663,6 +1692,26 @@ static int read_check_pkthdr (KEYWORD *key, int wordcount, char **words)
   return 1;
 }
 #ifdef BW_LIM
+/* parse `<rate>[kM%]|-' string
+   return in err pointer to error, NULL if no error */
+long parse_rate (char *w, char **err)
+{
+  long rate;
+  char *ss;
+
+  if (err) *err = NULL;
+  if (*w == '-' && w[1] == 0) return 0;
+  rate = strtoul(w, &ss, 10);
+  if (ss) {
+    switch (*ss) {
+      case 'k': case 'K': rate <<= 10; ss++; break;
+      case 'm': case 'M': rate <<= 20; ss++; break;
+      case '%': rate = -rate; ss++; break;
+    }
+    if (*ss) { if (err) *err = ss; return 0; }
+  }
+  return rate;
+}
 /* limit-rate [all|listed|unlisted|secure|unsecure] <rate>[kM%]|- <mask>... */
 static int read_rate (KEYWORD *key, int wordcount, char **words)
 {
@@ -1685,6 +1734,9 @@ static int read_rate (KEYWORD *key, int wordcount, char **words)
     }
     if (i < 2 && maskonly == 0)
     {
+      rate = parse_rate(w, &ss);
+      if (ss) return ConfigError("syntax error near '%s'", ss);
+/*
       if (*w == '-' && w[1] == 0) { rate = 0; continue; }
       if (!isdigit(*w))
         return ConfigNeedNumber(w);
@@ -1697,6 +1749,7 @@ static int read_rate (KEYWORD *key, int wordcount, char **words)
         }
         if (*ss) return ConfigError("incorrect char in rate value '%c'", *ss);
       }
+*/
       maskonly = 1; /* size detected, only masks are allowed further */
       continue;
     }
@@ -1851,7 +1904,14 @@ static int print_node_info_1 (FTN_NODE *fn, void *arg)
          (fn->HC_flag == HC_OFF) ? " -nohc" : "",
          (fn->NP_flag == NP_ON)  ? " -noproxy" : "",
          (fn->restrictIP == RIP_ON)  ? " -ip" : "",
-         (fn->restrictIP == RIP_SIP) ? " -sip" : "");
+         (fn->restrictIP == RIP_SIP) ? " -sip" : ""
+        );
+#ifdef BW_LIM
+  if (fn->bw_send != BW_DEF || fn->bw_recv != BW_DEF) {
+    printf(" -bw %s", describe_rate(fn->bw_send));
+    printf("/%s", describe_rate(fn->bw_recv));
+  }
+#endif
   return 0;
 }
 
@@ -1867,11 +1927,25 @@ static char *describe_addrtype(addrtype a)
   }
   return "???";
 }
-
+#ifdef BW_LIM
+char *describe_rate(long rate)
+{
+  static char buf[12];
+  int c;
+  if (rate == 0) return "-";
+  else if (rate < 0) c = sprintf(buf, "%d%%", -rate);
+  else if (rate >= (1 << 20) && (rate & (1 << 20 - 1)) == 0) c = sprintf(buf, "%dM", rate >> 20);
+  else if (rate >= (1 << 10) && (rate & (1 << 10 - 1)) == 0) c = sprintf(buf, "%dk", rate >> 10);
+  else c = sprintf(buf, "%d", rate);
+  buf[c] = 0;
+  return buf;
+}
+#endif
 void debug_readcfg (void)
 {
   KEYWORD *k;
   char szfa[FTN_ADDR_SZ + 1];
+
 
   for (k = keywords; k->key; k++)
   {
@@ -1997,12 +2071,15 @@ void debug_readcfg (void)
     {
       struct ratechain *sk;
       for (sk = work_config.rates.first; sk; sk = sk->next) {
+          printf("\n    %s %s \"%s\"", describe_addrtype(sk->atype), describe_rate(sk->rate), sk->mask);
+/*
         if (sk->rate == 0)
           printf("\n    %s - \"%s\"", describe_addrtype(sk->atype), sk->mask);
         else if (sk->rate < 0)
           printf("\n    %s %d%% \"%s\"", describe_addrtype(sk->atype), -sk->rate, sk->mask);
         else
           printf("\n    %s %d \"%s\"", describe_addrtype(sk->atype), sk->rate, sk->mask);
+*/
       }
     }
 #endif

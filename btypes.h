@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2004/09/06 10:47:04  val
+ * bandwidth limiting code advancements, `listed' session state fix
+ *
  * Revision 2.4  2004/01/08 12:57:18  val
  * * parse up to 3 comma-separated passwords (in,pkt,out)
  * * use out password for outgoing sessions if it's set
@@ -74,6 +77,7 @@ struct _FTN_ADDR
 typedef struct _FTN_NODE FTN_NODE;
 struct _FTN_NODE
 {
+  int listed;                          /* listed or added by defnode? */
   char *hosts;			       /* "host1:port1,host2:port2,*" */
 
   FTN_ADDR fa;
@@ -93,6 +97,9 @@ struct _FTN_NODE
   int busy;			       /* 0=free, 'c'=.csy, other=.bsy */
   int mail_flvr;		       /* -1=no mail, other=it's flavour */
   int files_flvr;		       /* -1=no files, other=it's flavour */
+#ifdef BW_LIM
+  long bw_send, bw_recv;               /* send and receive bw limits */
+#endif
 };
 
 typedef struct _FTNQ FTNQ;
