@@ -1,3 +1,7 @@
+2003/12/28 12:23:28 1.0a-316 gul
+protocol.c,2.145,2.146
+Print file offset on "receiving interrupted" log message
+
 2003/12/26 23:31:48 1.0a-315 gul
 reapchld.inc,2.3,2.4
 Report exit code or signal number of exited processes
