@@ -1,3 +1,7 @@
+2004/08/04 16:07:05 1.0a-385 gul
+binlog.c,2.10,2.11
+Binlogs writes correctly now independent on bytes order and alignment
+
 2004/08/04 14:33:13 1.0a-384 gul
 ftnq.c,2.33,2.34 ftnq.h,2.8,2.9 inbound.c,2.31,2.32 protocol.c,2.153,2.154 sys.h,2.17,2.18
 Attemp to support large files (>4G)
