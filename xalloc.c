@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/10/19 22:44:17  gul
+ * Add xstrcat(), use dynamic strings for OPT
+ *
  * Revision 2.3  2003/08/26 22:18:48  gul
  * Fix compilation under w32-mingw and os2-emx
  *
@@ -67,6 +70,15 @@ void *xstrdup (const char *str)
 
   strcpy (p, str);
   return p;
+}
+
+void *xstrcat (char **str, const char *s2)
+{
+  int n = strlen (*str);
+
+  *str = (char *)xrealloc (*str, n + strlen (s2) + 1);
+  strcpy (*str + n, s2);
+  return *str;
 }
 
 void xfree(void *p)

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.133  2003/10/19 22:44:17  gul
+ * Add xstrcat(), use dynamic strings for OPT
+ *
  * Revision 2.132  2003/10/19 12:21:47  gul
  * Stream compression
  *
@@ -1862,7 +1865,7 @@ static int PWD (STATE *state, char *pwd, int sz, BINKD_CONFIG *config)
 {
   int bad_pwd=STRNICMP(pwd, "CRAM-", 5);
   int no_password=!strcmp (state->expected_pwd, "-");
-  char szOpt[60];
+  char *szOpt;
 
   UNUSED_ARG(sz);
 
@@ -1950,18 +1953,19 @@ static int PWD (STATE *state, char *pwd, int sz, BINKD_CONFIG *config)
       state->NR_flag &= ~WANT_NR;
   }
 
-  strcpy(szOpt, " EXTCMD");
-  if (state->NR_flag & WANT_NR) strcat(szOpt, " NR");
-  if (state->ND_flag & THEY_ND) strcat(szOpt, " ND");
-  if ((!(state->ND_flag & WE_ND)) != (!(state->ND_flag & THEY_ND))) strcat(szOpt, " NDA");
-  if (state->crypt_flag == (WE_CRYPT | THEY_CRYPT)) strcat(szOpt, " CRYPT");
+  szOpt = xstrdup(" EXTCMD");
+  if (state->NR_flag & WANT_NR) xstrcat(&szOpt, " NR");
+  if (state->ND_flag & THEY_ND) xstrcat(&szOpt, " ND");
+  if ((!(state->ND_flag & WE_ND)) != (!(state->ND_flag & THEY_ND))) xstrcat(&szOpt, " NDA");
+  if (state->crypt_flag == (WE_CRYPT | THEY_CRYPT)) xstrcat(&szOpt, " CRYPT");
 #ifdef WITH_ZLIB
-  if (state->z_canrecv & 1) strcat(szOpt, " GZ");
+  if (state->z_canrecv & 1) xstrcat(&szOpt, " GZ");
 #endif
 #ifdef WITH_BZLIB2
-  if (state->z_canrecv & 2) strcat(szOpt, " BZ2");
+  if (state->z_canrecv & 2) xstrcat(&szOpt, " BZ2");
 #endif
   msg_send2(state, M_NUL, "OPT", szOpt);
+  xfree(szOpt);
   msg_send2 (state, M_OK, state->state==P_SECURE ? "secure" : "non-secure", 0);
   return complete_login (state, config);
 }
@@ -2941,7 +2945,7 @@ static void banner (STATE *state, BINKD_CONFIG *config)
 {
   int tz;
   char szLocalTime[60];
-  char szOpt[60];
+  char *szOpt;
   time_t t;
   struct tm tm;
   char *dayweek[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
@@ -2990,19 +2994,19 @@ static void banner (STATE *state, BINKD_CONFIG *config)
 
   if (state->to || !state->delay_ADR) send_ADR (state, config);
 
-  szOpt[0] = 0;
   if (state->to) {
-    strcat(szOpt, " NDA EXTCMD");
-    if (state->NR_flag & WANT_NR) strcat(szOpt, " NR");
-    if (state->ND_flag & THEY_ND) strcat(szOpt, " ND");
-    if (state->crypt_flag & WE_CRYPT) strcat(szOpt, " CRYPT");
+    szOpt = xstrdup(" NDA EXTCMD");
+    if (state->NR_flag & WANT_NR) xstrcat(&szOpt, " NR");
+    if (state->ND_flag & THEY_ND) xstrcat(&szOpt, " ND");
+    if (state->crypt_flag & WE_CRYPT) xstrcat(&szOpt, " CRYPT");
 #ifdef WITH_ZLIB
-    if (state->z_canrecv & 1) strcat(szOpt, " GZ");
+    if (state->z_canrecv & 1) xstrcat(&szOpt, " GZ");
 #endif
 #ifdef WITH_BZLIB2
-    if (state->z_canrecv & 2) strcat(szOpt, " BZ2");
+    if (state->z_canrecv & 2) xstrcat(&szOpt, " BZ2");
 #endif
     msg_send2(state, M_NUL, "OPT", szOpt);
+    xfree(szOpt);
   }
 }
 
