@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.130  2003/10/14 07:34:28  gul
+ * Use getwordx() for parse optional M_FILE params
+ *
  * Revision 2.129  2003/10/12 12:58:40  gul
  * No changes ;)
  *
@@ -971,9 +974,9 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
 /*
  * Extends parse_args() by sending error message to the remote
  */
-static int parse_msg_args (int ac, char **av, char *s, char *ID, STATE *state)
+static char *parse_msg_args (int ac, char **av, char *s, char *ID, STATE *state)
 {
-  int rc = parse_args (ac, av, s, ID);
+  char *rc = parse_args (ac, av, s, ID);
 
   if (!rc)
     msg_send2 (state, M_ERR, ID, ": cannot parse args");
@@ -1931,15 +1934,12 @@ struct skipchain *skip_test(STATE *state, BINKD_CONFIG *config)
  */
 static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 {
-  const int argc = 4;
-  char *argv[4];
+  int argc = 4;
+  char *argv[4], *w;
   off_t offset;
-#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
-  char *args0 = xstrdup(args);
-#endif
   UNUSED_ARG(sz);
 
-  if (parse_msg_args (argc, argv, args, "M_FILE", state))
+  if ((args = parse_msg_args (argc, argv, args, "M_FILE", state)) != NULL)
   {
     /* They request us for offset (M_FILE "name size time -1") */
     int off_req = 0;
@@ -2100,32 +2100,40 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
 
     Log (3, "receiving %s (%li byte(s), off %li)",
 	 state->in.netname, (long) (state->in.size), (long) offset);
+
 #if defined(WITH_ZLIB) || defined (WITH_BZLIB2)
     state->z_recv = 0;
-#ifdef WITH_ZLIB
+#endif
+    for (argc = 1; (w = getwordx (args, argc, 0)) != 0; ++argc)
     {
-      char *s2 = strstr(args0, " GZ");
-      if (s2 && (s2[3] == 0 || s2[3] == ' ')) {
-        state->z_recv = 1;
-        Log (4, "gzip mode is on for %s", state->in.netname);
+      if (w[0] == '\0') ;
+#ifdef WITH_ZLIB
+      else if (strcmp(w, "GZ") == 0)
+      {
+	if (state->z_recv == 0)
+          Log (4, "gzip mode is on for %s", state->in.netname);
+        state->z_recv |= 1;
       }
-    }
 #endif
 #ifdef WITH_BZLIB2
-    {
-      char *s2 = strstr(args0, " BZ2");
-      if (s2 && (s2[4] == 0 || s2[4] == ' ')) {
-        if (state->z_recv) {
-          Log (1, "both GZ and BZ2 extras are both specified for %s", state->in.netname);
-          msg_send2 (state, M_ERR, "can't handle GZ and BZ2 at the same time for ", state->in.netname);
-          return 0;
-        }
-        state->z_recv = 2;
-        Log (4, "bzip2 mode is on for %s", state->in.netname);
+      else if (strcmp(w, "BZ2") == 0)
+      {
+	if (state->z_recv == 0)
+          Log (4, "bzip2 mode is on for %s", state->in.netname);
+        state->z_recv |= 2;
       }
-    }
 #endif
-    xfree(args0);
+      else
+        Log (4, "Unknown option %s for %s ignored", w, state->in.netname);
+      free(w);
+    }
+
+#if defined(WITH_ZLIB) && defined(WITH_BZLIB2)
+    if (state->z_recv == 3) {
+      Log (1, "Both GZ and BZ2 extras are specified for %s", state->in.netname);
+      msg_send2 (state, M_ERR, "Can't handle GZ and BZ2 at the same time for ", state->in.netname);
+      return 0;
+    }
 #endif
 
     if (fseek (state->in.f, offset, SEEK_SET) == -1)

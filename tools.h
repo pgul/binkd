@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22  2003/10/14 07:34:28  gul
+ * Use getwordx() for parse optional M_FILE params
+ *
  * Revision 2.21  2003/09/24 07:39:49  val
  * fix warning
  *
@@ -200,7 +203,7 @@ int mkpath (char *s);
  * saves them as argv[0]...argv[argc-1]. Logs error
  * "ID: cannot parse args", if args containes less than argc words.
  */
-int parse_args (int argc, char *argv[], char *src, char *ID);
+char *parse_args (int argc, char *argv[], char *src, char *ID);
 
 /*
  * (pmatch.c) Returns true if the pattern matches the string.

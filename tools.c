@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.54  2003/10/14 07:34:28  gul
+ * Use getwordx() for parse optional M_FILE params
+ *
  * Revision 2.53  2003/10/05 09:37:42  stas
  * Optimize binkd/nt start: use hack to determine if we're running as a service without waiting for the service control manager to fail
  *
@@ -765,7 +768,7 @@ char *strnzcat (char *dst, const char *src, size_t len)
  * saves them as argv[0]...argv[argc-1]. Logs error
  * "ID: cannot parse args", if args containes less than argc words.
  */
-int parse_args (int argc, char *argv[], char *src, char *ID)
+char *parse_args (int argc, char *argv[], char *src, char *ID)
 {
   int i = 0;
 
@@ -786,10 +789,10 @@ int parse_args (int argc, char *argv[], char *src, char *ID)
   if (i < argc)
   {
     Log (1, "%s: cannot parse args", ID, src);
-    return 0;
+    return NULL;
   }
   else
-    return 1;
+    return src;
 }
 
 /*
