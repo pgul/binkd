@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.82  2004/11/22 15:56:41  stream
+ * Errors in config were not logged to file (log file name was set only
+ * when config was completely loaded, checked and accepted). Now log
+ * settings are changed immediately after each log-related directive
+ * (only for first-time config load)
+ *
  * Revision 2.81  2004/11/22 15:51:14  stas
  * Change error level to -1 for the config file parameter error (binkd/w32 will display message box with error message)
  *
@@ -623,6 +629,8 @@ static int read_int (KEYWORD *key, int wordcount, char **words);
 static int read_time (KEYWORD *key, int wordcount, char **words);
 static int read_string (KEYWORD *key, int wordcount, char **words);
 static int read_bool (KEYWORD *key, int wordcount, char **words);
+static int read_log_string (KEYWORD *key, int wordcount, char **words);
+static int read_log_int (KEYWORD *key, int wordcount, char **words);
 static int read_flag_exec_info (KEYWORD *key, int wordcount, char **words);
 static int read_rfrule (KEYWORD *key, int wordcount, char **words);
 static int read_mask (KEYWORD *key, int wordcount, char **words);
@@ -651,9 +659,9 @@ static KEYWORD keywords[] =
 {
   {"include", include, NULL, 0, 0},
   {"passwords", passwords, work_config.passwords, 'f', 0},
-  {"log", read_string, work_config.logpath, 'f', 0},
-  {"loglevel", read_int, &work_config.loglevel, 0, DONT_CHECK},
-  {"conlog", read_int, &work_config.conlog, 0, DONT_CHECK},
+  {"log", read_log_string, work_config.logpath, 'f', 0},
+  {"loglevel", read_log_int, &work_config.loglevel, 0, DONT_CHECK},
+  {"conlog", read_log_int, &work_config.conlog, 0, DONT_CHECK},
   {"binlog", read_string, work_config.binlogpath, 'f', 0},
   {"fdinhist", read_string, work_config.fdinhist, 'f', 0},
   {"fdouthist", read_string, work_config.fdouthist, 'f', 0},
@@ -1521,6 +1529,45 @@ static int read_int (KEYWORD *key, int wordcount, char **words)
   return 1;
 }
 
+/*
+ * When config is loaded for a first time, we have no log filename set yet
+ * (it will be done only when config is checked and accepted).
+ * It means that errors in configuration will be not logged even if
+ * we have a 'log' directive in the beginning of configuration file.
+ *
+ * To avoid this, check: have active config ready or not? If not, 
+ * reinit log immediately after any log-related directive has been processed.
+ */
+
+static void log_bootstrap(void)
+{
+  if (current_config == NULL)  /* do it only we have no active config */
+  {
+    /* 
+     * Passing 'nolog' structures here can be dangerous, we still don't know
+     * will config (and their memory) be accepted or free'd.
+     * We can duplicate them in InitLog() but it'll be overkill.
+     */
+    InitLog(work_config.loglevel, work_config.conlog, work_config.logpath, NULL);
+  }
+}
+
+static int read_log_string (KEYWORD *key, int wordcount, char **words)
+{
+  if (read_string(key, wordcount, words) == 0)
+    return 0;
+  log_bootstrap();
+  return 1;
+}
+
+static int read_log_int (KEYWORD *key, int wordcount, char **words)
+{
+  if (read_int(key, wordcount, words) == 0)
+    return 0;
+  log_bootstrap();
+  return 1;
+}
+
 static int read_bool (KEYWORD *key, int wordcount, char **words)
 {
   if (wordcount != 0)
@@ -2060,9 +2107,9 @@ void debug_readcfg (void)
   for (k = keywords; k->key; k++)
   {
     printf("%-24s ", k->key);
-    if (k->callback == read_string)
+    if (k->callback == read_string || k->callback == read_log_string)
       printf("\"%s\"", (char *)k->var);
-    else if (k->callback == read_int || k->callback == read_port)
+    else if (k->callback == read_int || k->callback == read_port || k->callback == read_log_int)
       printf("%d", *(int *)(k->var));
     else if (k->callback == read_bool)
       printf(*(int *)(k->var) ? "[yes]" : "<not defined>");

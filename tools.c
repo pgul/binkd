@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.65  2004/11/22 15:56:42  stream
+ * Errors in config were not logged to file (log file name was set only
+ * when config was completely loaded, checked and accepted). Now log
+ * settings are changed immediately after each log-related directive
+ * (only for first-time config load)
+ *
  * Revision 2.64  2004/10/18 15:22:20  gul
  * Change handle perl errors method
  *
@@ -311,7 +317,7 @@
  */
 static int  current_loglevel = 1;
 static int  current_conlog   = 1;
-static char *current_logpath = "";
+static char *current_logpath; /* This is malloc'ed string and can be NULL */
 static struct maskchain *current_nolog = NULL;
 
 /*
@@ -541,9 +547,11 @@ struct tm *safe_localtime(time_t *t, struct tm *tm)
 void InitLog(int loglevel, int conlog, char *logpath, void *first)
 {
   LockSem(&lsem);
+  xfree(current_logpath);
+  current_logpath  = NULL;   /* just in case if xstrdup() fails */
   current_loglevel = loglevel;
   current_conlog   = conlog;
-  current_logpath  = logpath;
+  current_logpath  = xstrdup(logpath);
   current_nolog    = (struct maskchain *)first;
   ReleaseSem(&lsem);
 }
