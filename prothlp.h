@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.3  2003/06/26 13:21:32  gul
  * More clean status process in no-NR mode
  *
@@ -91,6 +97,6 @@ void add_to_rcvdlist (RCVDLIST **rcvdlist, int *n_rcvdlist, char *name);
 void free_rcvdlist (RCVDLIST **rcvdlist, int *n_rcvdlist);
 
 /* Creates a netname from a local name */
-void netname (char *s, TFILE *q);
+void netname (char *s, TFILE *q, BINKD_CONFIG *config);
 
 #endif

@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.29  2003/08/26 16:06:27  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.28  2003/08/25 06:11:06  gul
  * Fix compilation with HAVE_FORK
  *
@@ -127,43 +133,25 @@
  * We now use branch(). Listening changed.
  */
 
-#include <sys/types.h>
-#include <time.h>
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-#include <sys/stat.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-
-#ifdef HAVE_FORK
-#include <signal.h>
-#elif defined(HAVE_THREADS)
-#ifdef HAVE_DOS_H
-#include <dos.h>
-#endif
-#include <process.h>
-#elif !defined(DOS)
-#error Must define either HAVE_FORK or HAVE_THREADS!
-#endif
-
-#include "Config.h"
-#include "sys.h"
-#include "iphdr.h"
+#include "readcfg.h"
 #include "common.h"
+#include "server.h"
+
+#include "iphdr.h"
 #include "iptools.h"
 #include "tools.h"
-#include "readcfg.h"
 #include "protocol.h"
-#include "server.h"
 #include "assert.h"
 #include "setpttl.h"
 #include "sem.h"
 #if defined(WITH_PERL)
 #include "perlhooks.h"
+#endif
+
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
 #endif
 
 int n_servers = 0;
@@ -181,9 +169,10 @@ static void chld (int signo)
 
 SOCKET sockfd = INVALID_SOCKET;
 
-void serv (void *arg)
+static void serv (void *arg)
 {
   int h = *(int *) arg;
+  BINKD_CONFIG *config;
 #if defined(WITH_PERL) && defined(HAVE_THREADS)
   void *cperl;
 #endif
@@ -193,10 +182,12 @@ void serv (void *arg)
   soclose(sockfd);
   sockfd = INVALID_SOCKET;
 #endif
+
+  config = lock_current_config();
 #if defined(WITH_PERL) && defined(HAVE_THREADS)
   cperl = perl_init_clone();
 #endif
-  protocol (h, 0, NULL);
+  protocol (h, 0, NULL, config);
   Log (5, "downing server...");
 #if defined(WITH_PERL) && defined(HAVE_THREADS)
   perl_done_clone(cperl);
@@ -204,6 +195,7 @@ void serv (void *arg)
   del_socket(h);
   soclose (h);
   free (arg);
+  unlock_config_structure(config);
   rel_grow_handles (-6);
 #ifdef HAVE_THREADS
   threadsafe(--n_servers);
@@ -214,7 +206,13 @@ void serv (void *arg)
 #endif
 }
 
-void servmgr (void *arg)
+/*
+ * Server manager.
+ * Warning!!! This function expected to be run in "main" thread,
+ * NOT by branch()'ing!!!
+ */
+
+static int do_server(BINKD_CONFIG *config)
 {
   SOCKET new_sockfd;
   int pid;
@@ -223,37 +221,23 @@ void servmgr (void *arg)
   int opt = 1;
   int save_errno;
 
-  srand(time(0));
-  setproctitle ("server manager");
-  Log (4, "servmgr started");
-
-  /* Store initial value for Binkd config's mtime */
-  checkcfg ();
-
-#ifdef HAVE_FORK
-  signal (SIGCHLD, chld);
-#endif
-
-  if ((sockfd = socket (AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
-    Log (0, "socket: %s", TCPERR ());
-
   if (setsockopt (sockfd, SOL_SOCKET, SO_REUSEADDR,
-		  (char *) &opt, sizeof opt) == SOCKET_ERROR)
+                  (char *) &opt, sizeof opt) == SOCKET_ERROR)
     Log (1, "setsockopt (SO_REUSEADDR): %s", TCPERR ());
 
   memset(&serv_addr, 0, sizeof serv_addr);
   serv_addr.sin_family = AF_INET;
-  if (bindaddr[0])
-    serv_addr.sin_addr.s_addr = inet_addr (bindaddr);
+  if (config->bindaddr[0])
+    serv_addr.sin_addr.s_addr = inet_addr (config->bindaddr);
   else
     serv_addr.sin_addr.s_addr = htonl (INADDR_ANY);
-  serv_addr.sin_port = htons ((unsigned short) iport);
+  serv_addr.sin_port = htons ((unsigned short) config->iport);
 
   if (bind (sockfd, (struct sockaddr *) & serv_addr, sizeof (serv_addr)) != 0)
     Log (0, "bind: %s", TCPERR ());
 
   listen (sockfd, 5);
-  setproctitle ("server manager (listen %u)", (unsigned) iport);
+  setproctitle ("server manager (listen %u)", (unsigned) config->iport);
 
   for (;;)
   {
@@ -266,62 +250,57 @@ void servmgr (void *arg)
     tv.tv_sec  = CHECKCFG_INTERVAL;
     switch (select(sockfd+1, &r, NULL, NULL, &tv))
     { case 0: /* timeout */
-        /* Test config mtime */
-        if (checkcfg_flag)
-          checkcfg();
+      /* Test config mtime */
+      if (checkcfg())
+        return 0;
+      continue;
+    case -1:
+      if (TCPERRNO == EINTR)
         continue;
-      case -1:
-        if (TCPERRNO == EINTR)
-          continue;
-	save_errno = TCPERRNO;
-	Log (1, "select: %s", TCPERR ());
-        goto accepterr;
+      save_errno = TCPERRNO;
+      Log (1, "select: %s", TCPERR ());
+      goto accepterr;
     }
 
     /* Test config mtime */
-    if (checkcfg_flag)
-      checkcfg ();
+    if (checkcfg())
+      return 0;
 
     client_addr_len = sizeof (client_addr);
     if ((new_sockfd = accept (sockfd, (struct sockaddr *) & client_addr,
-			      &client_addr_len)) == INVALID_SOCKET)
+                              &client_addr_len)) == INVALID_SOCKET)
     {
       save_errno = TCPERRNO;
       if (save_errno != EINVAL && save_errno != EINTR)
       {
-	if (!binkd_exit)
-	  Log (1, "accept: %s", TCPERR ());
+        if (!binkd_exit)
+          Log (1, "accept: %s", TCPERR ());
 #ifdef UNIX
-	if (save_errno == ECONNRESET ||
-	    save_errno == ETIMEDOUT ||
-	    save_errno == EHOSTUNREACH)
-	   continue;
+        if (save_errno == ECONNRESET ||
+            save_errno == ETIMEDOUT ||
+            save_errno == EHOSTUNREACH)
+          continue;
 #endif
-accepterr:
+      accepterr:
 #ifdef OS2
-	if (save_errno == ENOTSOCK)
-	{ /* os/2 ugly hack */
-#if 0 // !!! will be fixed nicely later (already fixed in -dev-rt)
-	  if (config_list)
-	  { config_list->mtime--;
-	    checkcfg();
-	  }
+        /* Buggy external process closed our socket? Or OS/2 bug? */
+        if (save_errno == ENOTSOCK)
+          return 0;  /* will force socket re-creation */
 #endif
-	}
-#endif
-        exit(1);
+        return -1;
       }
     }
     else
-    { char host[MAXHOSTNAMELEN + 1];
+    {
+      char host[MAXHOSTNAMELEN + 1];
 
       add_socket(new_sockfd);
       rel_grow_handles (6);
       ext_rand=rand();
-      get_hostname(&client_addr, host, sizeof(host));
+      get_hostname(&client_addr, host, sizeof(host), config);
       lockhostsem();
       Log (3, "incoming from %s (%s)", host,
-	   inet_ntoa (client_addr.sin_addr));
+           inet_ntoa (client_addr.sin_addr));
       releasehostsem();
 
       /* Creating a new process for the incoming connection */
@@ -331,18 +310,49 @@ accepterr:
         del_socket(new_sockfd);
         soclose(new_sockfd);
         rel_grow_handles (-6);
-	threadsafe(--n_servers);
-	PostSem(&eothread);
-	Log (1, "cannot branch out");
+        threadsafe(--n_servers);
+        PostSem(&eothread);
+        Log (1, "cannot branch out");
         sleep(1);
       }
       else
       {
-	Log (5, "started server #%i, id=%i", n_servers, pid);
+        Log (5, "started server #%i, id=%i", n_servers, pid);
 #ifdef HAVE_FORK
-	soclose (new_sockfd);
+        soclose (new_sockfd);
 #endif
       }
     }
   }
+}
+
+void servmgr (void)
+{
+  int status;
+
+  srand(time(0));
+  setproctitle ("server manager");
+  Log (4, "servmgr started");
+
+  /* Store initial value for Binkd config's mtime */
+  checkcfg ();
+
+#ifdef HAVE_FORK
+  signal (SIGCHLD, chld);
+#endif
+
+  /* Loop on socket (bindaddr can be changed by reload
+   * do_server() will return 0 to restart and -1 to terminate
+   */
+  do
+  {
+    if ((sockfd = socket (AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
+      Log (0, "socket: %s", TCPERR ());
+
+    status = do_server(current_config);
+
+    soclose(sockfd);
+    sockfd = INVALID_SOCKET;
+
+  } while (status == 0 && !binkd_exit);
 }

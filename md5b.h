@@ -27,6 +27,12 @@ documentation and/or software.
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.4  2003/03/10 10:57:45  gul
  * Extern declarations moved to header files
  *
@@ -102,12 +108,7 @@ typedef struct {
 typedef unsigned char MDcaddr_t[MD5_DIGEST_LEN];
 
 #define MD_CHALLENGE_LEN 16
-#include "prothlp.h"
-#include "readcfg.h"
-#include "ftnnode.h"
-#include "iphdr.h"
 #include "protoco2.h"
-#include "server.h"
 
 unsigned char *MD_getChallenge(char *src, STATE *st);
 char *MD_buildDigest(char *pw, unsigned char *challenge);

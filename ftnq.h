@@ -14,6 +14,12 @@
 /* $Id$
  *
  * $Log$
+ * Revision 2.6  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.5  2003/06/20 10:37:02  val
  * Perl hooks for binkd - initial revision
  *
@@ -52,11 +58,6 @@
 #ifndef _ftnq_h
 #define _ftnq_h
 
-#include <stdio.h>
-#include "Config.h"
-#include "ftnaddr.h"
-#include "ftnnode.h"
-
 typedef struct _FTNQ FTNQ;
 struct _FTNQ
 {
@@ -90,39 +91,39 @@ struct _FTNQ
 /*
  * Scans outbound. Return value must be q_free()'d.
  */
-FTNQ *q_scan (FTNQ *q);
-void q_free (FTNQ *q);
+FTNQ *q_scan (FTNQ *q, BINKD_CONFIG *config);
+void q_free (FTNQ *q, BINKD_CONFIG *config);
 
 /*
  * Add a file to the queue.
  */
-FTNQ *q_add_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action, char type);
+FTNQ *q_add_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action, char type, BINKD_CONFIG *config);
 
 /*
  * Add a file to the end of queue.
  */
-FTNQ *q_add_last_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action, char type);
+FTNQ *q_add_last_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action, char type, BINKD_CONFIG *config);
 
 /*
  * Adds to the q all files for n akas stored in fa
  */
-FTNQ *q_scan_addrs (FTNQ *q, FTN_ADDR *fa, int n, int to);
+FTNQ *q_scan_addrs (FTNQ *q, FTN_ADDR *fa, int n, int to, BINKD_CONFIG *config);
 
 /*
  * Scans fileboxes for n akas stored in fa
  */
-FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n);
+FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n, BINKD_CONFIG *config);
 
 /*
  * 0 = the queue is empty.
  */
-FTN_NODE *q_not_empty (void);
+FTN_NODE *q_not_empty (BINKD_CONFIG *config);
 
 /*
  * Selects a node to make the next call. (It's alost like
  * q_not_empty(), but it will never select a node twice)
  */
-FTN_NODE *q_next_node (void);
+FTN_NODE *q_next_node (BINKD_CONFIG *config);
 
 /*
  * Selects from q the next file for fa (Returns a pointer to a q element)
@@ -132,17 +133,17 @@ FTNQ *select_next_file (FTNQ *q, FTN_ADDR *fa, int nAka);
 /*
  * Just lists q, not more
  */
-void q_list (FILE *out, FTNQ *q);
+void q_list (FILE *out, FTNQ *q, BINKD_CONFIG *config);
 
 /*
  * Creates an empty .?lo
  */
-int create_poll (FTN_ADDR *fa, int flvr);
+int create_poll (FTN_ADDR *fa, int flvr, BINKD_CONFIG *config);
 
 /*
  * Set .hld for a node
  */
-void hold_node (FTN_ADDR *fa, time_t hold_until);
+void hold_node (FTN_ADDR *fa, time_t hold_until, BINKD_CONFIG *config);
 
 /*
  * get size of files in the queue
@@ -168,9 +169,9 @@ extern const char prio[];
 enum bad_try_type { BAD_NA, BAD_CALL, BAD_MERR, BAD_MBSY, BAD_IO, BAD_TIMEOUT, 
                     BAD_AKA, BAD_AUTH };
 
-void bad_try (FTN_ADDR *fa, const char *error, const int where);
-void good_try (FTN_ADDR *fa, char *comment);
-void read_try (FTN_ADDR *fa, unsigned *nok, unsigned *nbad);
-void write_try (FTN_ADDR *fa, unsigned *nok, unsigned *nbad, char *comment);
+void bad_try (FTN_ADDR *fa, const char *error, const int where, BINKD_CONFIG *config);
+void good_try (FTN_ADDR *fa, char *comment, BINKD_CONFIG *config);
+void read_try (FTN_ADDR *fa, unsigned *nok, unsigned *nbad, BINKD_CONFIG *config);
+void write_try (FTN_ADDR *fa, unsigned *nok, unsigned *nbad, char *comment, BINKD_CONFIG *config);
 
 #endif

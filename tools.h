@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.20  2003/08/26 16:06:27  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.19  2003/08/19 10:16:12  gul
  * Rename trunc() -> trunc_file() due to conflict under OS/2 EMX
  *
@@ -113,6 +119,7 @@
 #endif
 
 void Log (int lev, char *s,...);
+void InitLog(struct _BINKD_CONFIG *config);
 
 #define LOGINT(v) Log(6, "%s=%i\n", #v, (int)(v))
 
@@ -122,6 +129,7 @@ void Log (int lev, char *s,...);
 void *xalloc (size_t size);
 void *xrealloc (void *ptr, size_t size);
 void *xstrdup (const char *str);
+void xfree(void *ptr);
 
 /*
  * Compare strings ignoring case
@@ -171,7 +179,7 @@ char *strwipe (char *s);
 /*
  * 1 -- created, 0 -- already busy
  */
-int create_sem_file (char *s);
+int create_sem_file (char *s, int loglevel);
 int create_empty_sem_file (char *s);
 
 /*
@@ -249,7 +257,7 @@ char **mkargv (int argc, char **argv);
 /*
  * Apply filename case style defined in inboundcase
  */
-char *makeinboundcase (char *s);
+char *makeinboundcase (char *s, struct _BINKD_CONFIG *config);
 
 /*
  * Thread-safe localtime & gmtime functions
@@ -257,7 +265,7 @@ char *makeinboundcase (char *s);
 struct tm *safe_localtime(time_t *t, struct tm *tm);
 struct tm *safe_gmtime(time_t *t, struct tm *tm);
 time_t safe_time(void);
-int tz_off(time_t t);
+int tz_off(time_t t, struct _BINKD_CONFIG *config);
 
 
 /* Safe string to long conversion: negative converts using atol,

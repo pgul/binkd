@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.10  2003/05/26 20:37:59  gul
  * typo in previous patch
  *
@@ -58,32 +64,26 @@
  * Initial revision
  */
 
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <ctype.h>
+#include "readcfg.h"
+#include "iptools.h"
+#include "tools.h"
+#include "sem.h"
 
+#include <ctype.h>
 #if defined(HAVE_SYS_IOCTL_H)
 #include <sys/ioctl.h>
 #endif
 
-#include "iphdr.h"
-#include "iptools.h"
-#include "tools.h"
-#include "readcfg.h"
-#include "sem.h"
-
 /*
  * Finds ASCIIZ address
  */
-const char *get_hostname (struct sockaddr_in *addr, char *host, int len)
+const char *get_hostname (struct sockaddr_in *addr, char *host, int len, BINKD_CONFIG *config)
 {
   struct hostent *hp;
   struct sockaddr_in s;
 
   memcpy(&s, addr, sizeof(s));
-  if (backresolv)
+  if (config->backresolv)
   {
     lockresolvsem();
     hp = gethostbyaddr ((char *) &s.sin_addr, sizeof s.sin_addr, AF_INET);

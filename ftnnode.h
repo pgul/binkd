@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.12  2003/08/18 17:19:13  stream
  * Partially implemented new configuration parser logic (required for config reload)
  *
@@ -78,11 +84,6 @@
 #ifndef _ftnnode_h
 #define _ftnnode_h
 
-#include <stdio.h>
-#include "Config.h"
-#include "ftnaddr.h"
-#include "iphdr.h"
-
 #define MAXPWDLEN 40
 
 typedef struct _FTN_NODE FTN_NODE;
@@ -100,16 +101,13 @@ struct _FTN_NODE
   int MD_flag;
   int HC_flag;
   int restrictIP;
+  /* int NP_flag; */                      /* no proxy */
 
   time_t hold_until;
   int busy;			       /* 0=free, 'c'=.csy, other=.bsy */
   int mail_flvr;		       /* -1=no mail, other=it's flavour */
   int files_flvr;		       /* -1=no files, other=it's flavour */
 };
-
-extern int nNod;
-extern FTN_NODE *pNod;
-extern int nNodSorted;
 
 /*
  * Call this before all others functions from this file.
@@ -130,22 +128,20 @@ void releasenodesem (void);
 /*
  * Return up/downlink info by fidoaddress. 0 == node not found
  */
-FTN_NODE *get_node_info (FTN_ADDR *fa);
+FTN_NODE *get_node_info (FTN_ADDR *fa, BINKD_CONFIG *config);
 
 /*
  * Find up/downlink info by fidoaddress and write info into node var.
  * Return pointer to node structure or NULL if node not found.
  */
-FTN_NODE *get_node (FTN_ADDR *fa, FTN_NODE *node);
+FTN_NODE *get_node (FTN_ADDR *fa, FTN_NODE *node, BINKD_CONFIG *config);
 
 /*
  * Add a new node, or edit old settings for a node
- *
- * 1 -- ok, 0 -- error;
  */
-int add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
+void add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
 	      char *obox, char *ibox, int NR_flag, int ND_flag,
-	      int MD_flag, int restrictIP, int HC_flag);
+	      int MD_flag, int restrictIP, int HC_flag, BINKD_CONFIG *config);
 
 #define NR_ON        1
 #define NR_OFF       0
@@ -171,12 +167,12 @@ int add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
 /*
  * Iterates through nodes while func() == 0.
  */
-int foreach_node (int (*func) (FTN_NODE *fn, void *a2), void *a3);
+int foreach_node (int (*func) (FTN_NODE *fn, void *a2), void *a3, BINKD_CONFIG *config);
 
 /*
  * Create a poll for an address (in "z:n/n.p" format) (0 -- bad)
  */
 #define POLL_NODE_FLAVOUR 'i'
-int poll_node (char *s);
+int poll_node (char *s, BINKD_CONFIG *config);
 
 #endif

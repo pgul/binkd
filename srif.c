@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2003/08/26 16:06:27  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.11  2003/08/23 15:51:51  stream
  * Implemented common list routines for all linked records in configuration
  *
@@ -66,20 +72,13 @@
  *
  */
 
-#include <string.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <ctype.h>
-
-#include "Config.h"
-#include "ftnaddr.h"
-#include "ftnq.h"
-#include "tools.h"
+#include "readcfg.h"
 #include "srif.h"
-#include "run.h"
-#include "tools.h"
 
-TYPE_LIST(_EVT_FLAG) evt_flags;
+#include "tools.h"
+#include "run.h"
+
+#include <ctype.h>
 
 static EVTQ *evt_queue(EVTQ *eq, char evt_type, char *path)
 {
@@ -99,12 +98,12 @@ static EVTQ *evt_queue(EVTQ *eq, char evt_type, char *path)
 /*
  * Tests if filename matches any of EVT_FLAG's patterns.
  */
-int evt_test (EVTQ **eq, char *filename)
+int evt_test (EVTQ **eq, char *filename, BINKD_CONFIG *config)
 {
   EVT_FLAG *curr;
   int rc=0;
 
-  for (curr = evt_flags.first; curr; curr = curr->next)
+  for (curr = config->evt_flags.first; curr; curr = curr->next)
   {
     if (pmatch_ncase(curr->pattern, filename))
     {
@@ -153,9 +152,9 @@ void evt_set (EVTQ *eq)
 }
 
 /* Makes SRIF request and SRIF response names from FTN address of a node */
-static int mksrifpaths (FTN_ADDR *fa, char *srf, char *rsp)
+static int mksrifpaths (FTN_ADDR *fa, char *srf, char *rsp, BINKD_CONFIG *config)
 {
-  ftnaddress_to_filename (srf, fa);
+  ftnaddress_to_filename (srf, fa, config);
   if (*srf)
   {
     strnzcpy (rsp, srf, MAXPATHLEN);
@@ -198,7 +197,7 @@ static int srif_fill (char *path, FTN_ADDR *fa, int nfa,
   return 0;
 }
 
-static FTNQ *parse_response (FTNQ *q, char *rsp, FTN_ADDR *fa)
+static FTNQ *parse_response (FTNQ *q, char *rsp, FTN_ADDR *fa, BINKD_CONFIG *config)
 {
   FILE *in = fopen (rsp, "r");
 
@@ -217,13 +216,13 @@ static FTNQ *parse_response (FTNQ *q, char *rsp, FTN_ADDR *fa)
       switch (*buf)
 	{
 	  case '=':
-	    q = q_add_last_file (q, buf + 1, fa, 'h', 'd', 0);
+	    q = q_add_last_file (q, buf + 1, fa, 'h', 'd', 0, config);
 	    break;
 	  case '+':
-	    q = q_add_last_file (q, buf + 1, fa, 'h', 0, 0);
+	    q = q_add_last_file (q, buf + 1, fa, 'h', 0, 0, config);
 	    break;
 	  case '-':
-	    q = q_add_last_file (q, buf + 1, fa, 'h', 'a', 0);
+	    q = q_add_last_file (q, buf + 1, fa, 'h', 'a', 0, config);
 	    break;
 	  default:
 	    Log (2, "parse_response: unknown predictor `%c', ignored response file `%s'", *buf, buf + 1);
@@ -384,11 +383,11 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa,
  */
 FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename,
 	       FTN_ADDR *fa, int nfa,
-	       int prot, int listed, char *peer_name, STATE *st)
+	       int prot, int listed, char *peer_name, STATE *st, BINKD_CONFIG *config)
 {
   EVT_FLAG *curr;
 
-  for (curr = evt_flags.first; curr; curr = curr->next)
+  for (curr = config->evt_flags.first; curr; curr = curr->next)
   {
     if (curr->command && pmatch_ncase(curr->pattern, filename))
     {
@@ -397,7 +396,7 @@ FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename,
 	if (!st)
 	{
 	  char srf[MAXPATHLEN + 1], rsp[MAXPATHLEN + 1];
-	  if (mksrifpaths (fa, srf, rsp))
+	  if (mksrifpaths (fa, srf, rsp, config))
 	  {
 	    char *w = ed (curr->command, "*S", srf, NULL);
 
@@ -409,7 +408,7 @@ FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename,
 	    else
 	      Log (1, "srif_fill: error");
 	    free (w);
-	    q = parse_response (q, rsp, fa);
+	    q = parse_response (q, rsp, fa, config);
 	    delete (srf);
 	    delete (rsp);
 	  }

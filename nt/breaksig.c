@@ -24,6 +24,12 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.10  2003/08/26 16:06:27  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.9  2003/08/24 18:05:59  hbrew
  * Update for previous patch
  *
@@ -75,13 +81,13 @@
 /*                        Local include files                         */
 /*--------------------------------------------------------------------*/
 
-#include "..\sys.h"
-#include "..\common.h"
-#include "..\tools.h"
-#include "..\iphdr.h"
-#include "..\bsy.h"
-#include "..\binlog.h"
-#include "..\readcfg.h"
+//#include "..\sys.h"
+//#include "..\iphdr.h"
+//#include "..\bsy.h"
+//#include "..\binlog.h"
+#include "../readcfg.h"
+#include "../common.h"
+#include "../tools.h"
 #ifdef BINKDW9X
 #include "win9x.h"
 #endif

@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.47  2003/08/26 16:06:27  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.46  2003/08/25 06:11:06  gul
  * Fix compilation with HAVE_FORK
  *
@@ -204,39 +210,36 @@
  * `include', extened `node', more?
  */
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
+#include "readcfg.h"
+#include "common.h"
+
+#include "sem.h"
+#include "tools.h"
+#include "srif.h"
+#include "iptools.h"
+#include "readflo.h"
+
 #include <ctype.h>
-#include <string.h>
+#include <sys/stat.h>
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
 #define SYSLOG_NAMES
 #include <syslog.h>
 #endif
-#ifdef HAVE_FORK
-#include <setjmp.h>
-#endif
 
-#include "Config.h"
-#include "common.h"
-#include "readcfg.h"
-#include "tools.h"
-#include "ftnaddr.h"
-#include "ftnq.h"
-#include "srif.h"
-#include "iphdr.h"
-#include "iptools.h"
-#include "assert.h"
-#include "readflo.h"
+/*
+ * Pointer to actual config used by all processes
+ */
+BINKD_CONFIG  *current_config;
+
+/*
+ * Temporary static structure for configuration reading
+ */
+static BINKD_CONFIG  work_config;
 
 static char *current_path = "<command line>";
 static int   current_line;
 static char  linebuf[MAXCFGLINE + 1];
 static char  spaces[] = " \n\t";
-
-#define UNUSED_ARG(s)  (void)(s)
 
 struct conflist_type
 {
@@ -248,9 +251,9 @@ struct conflist_type
 /*
  * Add static object to list (allocate new entry and copy static data)
  */
-static void simplelist_add(struct list_linkpoint *lp, void *data, int size)
+void simplelist_add(struct list_linkpoint *lp, void *data, int size)
 {
-  DEFINE_LIST(__dummy__) *l = (TYPE_LIST(__dummy__) *) lp; /* linkpoint always at the beginning of list */
+  DEFINE_LIST(__dummy__) *l = (void *) lp; /* linkpoint always at the beginning of list */
 
   void *p = xalloc(size);  /* new data element - variable size! */
 
@@ -266,22 +269,23 @@ static void simplelist_add(struct list_linkpoint *lp, void *data, int size)
     l->linkpoint.last = l->linkpoint.last->next = p;
 }
 
-#if 0
 /*
  * Destroy list and all its entries
  */
-static void simplelist_free(struct simplelist *l, void (*destructor)(void *))
+void simplelist_free(struct list_linkpoint *lp, void (*destructor)(void *))
 {
-  struct simplelist_data *p, *next_p;
+  DEFINE_LIST(__dummy__) *l = (void *) lp; /* linkpoint always at the beginning of list */
+  void *p, *next_p;
 
   for (p = l->first; p; p = next_p)
   {
     if (destructor)
       destructor(p);
-    next_p = p->next;
+    next_p = ((struct list_itemlink *)p)->next;
     free(p);
   }
-  l->first = l->last = NULL;
+  l->first = NULL;
+  l->linkpoint.last = NULL;
 }
 
 /*
@@ -293,93 +297,177 @@ static void destroy_configlist(void *p)
 
   xfree(pp->path);
 }
-#endif
 
-char siport[MAXSERVNAME + 1] = "";
-char soport[MAXSERVNAME + 1] = "";
-int havedefnode=0;
-int iport = 0;
-int oport = 0;
-int call_delay = 60;
-int rescan_delay = 60;
-int nettimeout = DEF_TIMEOUT;
-int oblksize = DEF_BLKSIZE;
-int max_servers = 100;
-int max_clients = 100;
-int kill_dup_partial_files = 0;
-int kill_old_partial_files = 0;
-int kill_old_bsy = 0;
-int percents = 0;
-int minfree = -1;
-int minfree_nonsecure = -1;
-int debugcfg = 0;
-int printq = 0;
-int backresolv = 0;
-char sysname[MAXSYSTEMNAME + 1] = "";
-char sysop[MAXSYSOPNAME + 1] = "";
-char location[MAXLOCATIONNAME + 1] = "";
-char nodeinfo[MAXNODEINFO + 1] = "";
-char inbound[MAXPATHLEN + 1] = ".";
-char inbound_nonsecure[MAXPATHLEN + 1] = "";
-char temp_inbound[MAXPATHLEN + 1] = "";
+static void destroy_domains(void *p)
+{
+  FTN_DOMAIN *pp = p;
 
-/* This is header of shared aka list */
-SHARED_CHAIN * shares = 0;
+  xfree(pp->path);
+  xfree(pp->dir);
+}
 
-#ifdef MAILBOX
-/* FileBoxes dir */
-char tfilebox[MAXPATHLEN + 1] = "";
-/* BrakeBoxes dir */
-char bfilebox[MAXPATHLEN + 1] = "";
-int  deleteablebox = 0;
-#endif
-int  deletedirs = 0;
-char logpath[MAXPATHLEN + 1] = "";
-char binlogpath[MAXPATHLEN + 1] = "";
-char fdinhist[MAXPATHLEN + 1] = "";
-char fdouthist[MAXPATHLEN + 1] = "";
-char pid_file[MAXPATHLEN + 1] = "";
-#ifdef HTTPS
-char proxy[MAXHOSTNAMELEN + 40] = "";
-char socks[MAXHOSTNAMELEN + 40] = "";
-#endif
-char bindaddr[16] = "";
-int loglevel = 4;
-int conlog = 1;
-int send_if_pwd = 0;
-int tzoff = -1; /* autodetect */
-char root_domain[MAXHOSTNAMELEN + 1] = "fidonet.net.";
-int prescan = 0;
-enum inbcasetype inboundcase = INB_SAVE;
-int connect_timeout = 0;
-static DEFINE_LIST(conflist_type) config_list;
-addrtype pkthdr_type = 0;
-char *pkthdr_bad = NULL;
-#ifdef AMIGADOS_4D_OUTBOUND
-int aso = 0;
-#endif
-#ifdef WITH_PERL
-char perl_script[MAXPATHLEN + 1] = "";
-char perl_dll[MAXPATHLEN + 1] = "";
-int perl_strict = 0;
-#endif
-TYPE_LIST(maskchain) nolog;
-TYPE_LIST(akachain)  akamask;
+static void destroy_evtflags(void *p)
+{
+  EVT_FLAG *pp = p;
+
+  xfree(pp->path);
+  xfree(pp->command);
+  xfree(pp->pattern);
+}
+
+static void destroy_rfrules(void *p)
+{
+  RF_RULE *pp = p;
+
+  xfree(pp->from);
+  xfree(pp->to);
+}
+
+void destroy_maskchain(void *p)
+{
+  struct maskchain *pp = p;
+
+  xfree(pp->mask);
+}
+
+static void destroy_skipchain(void *p)
+{
+  struct skipchain *pp = p;
+
+  xfree(pp->mask);
+}
+
+static void destroy_akachain(void *p)
+{
+  struct akachain *pp = p;
+
+  xfree(pp->mask);
+}
+
+static void destroy_shares(void *p)
+{
+  SHARED_CHAIN *pp = p;
+
+  simplelist_free(&pp->sfa.linkpoint, NULL);
+}
+
+/*#ifdef HTTPS
+static void destroy_proxy(void *p)
+{
+  struct proxy_info *pp = p;
+
+  xfree(pp->host);
+  xfree(pp->username);
+  xfree(pp->password);
+}
+#endif*/
+
+/*
+ * Zero config data and set default values of other variables
+ * Note: must be called on locked config
+ */
+void lock_config_structure(BINKD_CONFIG *c)
+{
+  if (++(c->usageCount) == 1)
+  {
+    /* First-time call: init default values */
+
+    c->iport             = DEF_PORT;
+    c->oport             = DEF_PORT;
+    c->call_delay        = 60;
+    c->rescan_delay      = 60;
+    c->nettimeout        = DEF_TIMEOUT;
+    c->oblksize          = DEF_BLKSIZE;
+    c->max_servers       = 100;
+    c->max_clients       = 100;
+    c->minfree           = -1;
+    c->minfree_nonsecure = -1;
+    c->loglevel          = 4;
+    c->conlog            = 1;
+    c->inboundcase       = INB_SAVE;
+    c->hold_skipped      = 60 * 60;
+    c->tzoff             = -1; /* autodetect */
+
+    strcpy(c->inbound, ".");
+    strcpy(c->root_domain, "fidonet.net.");
+  }
+}
+
+/*
+ * Deregister config usage. When config is not used anymore,
+ * free all dynamically allocated entries in configuration data
+ */
+void unlock_config_structure(BINKD_CONFIG *c)
+{
+  int  usage;
+
+  LockSem(&config_sem);
+  usage = --(c->usageCount);
+  ReleaseSem(&config_sem);
+
+  if (usage == 0)
+  {
+    /* Free all dynamic data here */
+
+    int i;
+    FTN_NODE *node;
+
+    xfree(c->pAddr);
+
+    for (i = 0, node = c->pNod; i < c->nNod; i++, node++)
+    {
+      xfree(node->hosts);
+      xfree(node->obox);
+      xfree(node->ibox);
+    }
+    xfree(c->pNod);
+    xfree(c->pkthdr_bad);
+
+    simplelist_free(&c->config_list.linkpoint, destroy_configlist);
+    simplelist_free(&c->pDomains.linkpoint,    destroy_domains);
+    simplelist_free(&c->overwrite.linkpoint,   destroy_maskchain);
+    simplelist_free(&c->nolog.linkpoint,       destroy_maskchain);
+    simplelist_free(&c->skipmask.linkpoint,    destroy_skipchain);
+    simplelist_free(&c->rf_rules.linkpoint,    destroy_rfrules);
+    simplelist_free(&c->evt_flags.linkpoint,   destroy_evtflags);
+    simplelist_free(&c->akamask.linkpoint,     destroy_akachain);
+    simplelist_free(&c->shares.linkpoint,      destroy_shares);
+
+//#ifdef HTTPS
+//    simplelist_free(&c->proxylist,   destroy_proxy);
+//#endif
+
+    if (c != &work_config)
+    {
+      Log(4, "previous config is no longer in use, unloading");
+      free(c);
+    }
+  }
+}
+
+/*
+ * Locks current config structure and return pointer to it
+ * Can be called anychronously in new thread
+ */
+BINKD_CONFIG *lock_current_config(void)
+{
+  BINKD_CONFIG *ret;
+
+  LockSem(&config_sem);
+
+  ret = current_config;
+  if (ret)
+    lock_config_structure(ret);
+
+  ReleaseSem(&config_sem);
+
+  return ret;
+}
+
 
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
-
 int syslog_facility = -1;
-
 #endif
-
-int tries = 0;
-int hold = 0;
-int hold_skipped = 60 * 60;
-TYPE_LIST(maskchain) overwrite;
-TYPE_LIST(skipchain) skipmask;
-
-int nAddr = 0;
-FTN_ADDR *pAddr = 0;
 
 typedef struct _KEYWORD KEYWORD;
 struct _KEYWORD
@@ -414,80 +502,80 @@ static void add_shares(SHARED_CHAIN * chain);
 static void add_address(SHARED_CHAIN * chain, FTN_ADDR_CHAIN * aka);
 
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
-
 static int read_syslog_facility (KEYWORD *key, int wordcount, char **words);
-
 #endif
+
+static void debug_readcfg (void);
 
 #define DONT_CHECK 0x7fffffffl
 
-KEYWORD keywords[] =
+static KEYWORD keywords[] =
 {
   {"passwords", passwords, NULL, 0, 0},
   {"include", include, NULL, 0, 0},
-  {"log", read_string, logpath, 'f', 0},
-  {"loglevel", read_int, &loglevel, 0, DONT_CHECK},
-  {"conlog", read_int, &conlog, 0, DONT_CHECK},
-  {"binlog", read_string, binlogpath, 'f', 0},
-  {"fdinhist", read_string, fdinhist, 'f', 0},
-  {"fdouthist", read_string, fdouthist, 'f', 0},
-  {"tzoff", read_int, &tzoff, DONT_CHECK, DONT_CHECK},
+  {"log", read_string, work_config.logpath, 'f', 0},
+  {"loglevel", read_int, &work_config.loglevel, 0, DONT_CHECK},
+  {"conlog", read_int, &work_config.conlog, 0, DONT_CHECK},
+  {"binlog", read_string, work_config.binlogpath, 'f', 0},
+  {"fdinhist", read_string, work_config.fdinhist, 'f', 0},
+  {"fdouthist", read_string, work_config.fdouthist, 'f', 0},
+  {"tzoff", read_int, &work_config.tzoff, DONT_CHECK, DONT_CHECK},
   {"domain", read_domain_info, NULL, 0, 0},
   {"address", read_aka_list, NULL, 0, 0},
-  {"sysname", read_string, sysname, 0, MAXSYSTEMNAME},
-  {"bindaddr", read_string, bindaddr, 0, 16},
-  {"sysop", read_string, sysop, 0, MAXSYSOPNAME},
-  {"location", read_string, location, 0, MAXLOCATIONNAME},
-  {"nodeinfo", read_string, nodeinfo, 0, MAXNODEINFO},
-  {"iport", read_port, &iport, 0, MAXSERVNAME},
-  {"oport", read_port, &oport, 0, MAXSERVNAME},
-  {"rescan-delay", read_int, &rescan_delay, 1, DONT_CHECK},
-  {"call-delay", read_int, &call_delay, 1, DONT_CHECK},
-  {"timeout", read_int, &nettimeout, 1, DONT_CHECK},
-  {"oblksize", read_int, &oblksize, MIN_BLKSIZE, MAX_BLKSIZE},
-  {"maxservers", read_int, &max_servers, 0, DONT_CHECK},
-  {"maxclients", read_int, &max_clients, 0, DONT_CHECK},
-  {"inbound", read_string, inbound, 'd', 0},
-  {"inbound-nonsecure", read_string, inbound_nonsecure, 'd', 0},
-  {"temp-inbound", read_string, temp_inbound, 'd', 0},
+  {"sysname", read_string, work_config.sysname, 0, MAXSYSTEMNAME},
+  {"bindaddr", read_string, work_config.bindaddr, 0, 16},
+  {"sysop", read_string, work_config.sysop, 0, MAXSYSOPNAME},
+  {"location", read_string, work_config.location, 0, MAXLOCATIONNAME},
+  {"nodeinfo", read_string, work_config.nodeinfo, 0, MAXNODEINFO},
+  {"iport", read_port, &work_config.iport, 0, 0},
+  {"oport", read_port, &work_config.oport, 0, 0},
+  {"rescan-delay", read_int, &work_config.rescan_delay, 1, DONT_CHECK},
+  {"call-delay", read_int, &work_config.call_delay, 1, DONT_CHECK},
+  {"timeout", read_int, &work_config.nettimeout, 1, DONT_CHECK},
+  {"oblksize", read_int, &work_config.oblksize, MIN_BLKSIZE, MAX_BLKSIZE},
+  {"maxservers", read_int, &work_config.max_servers, 0, DONT_CHECK},
+  {"maxclients", read_int, &work_config.max_clients, 0, DONT_CHECK},
+  {"inbound", read_string, work_config.inbound, 'd', 0},
+  {"inbound-nonsecure", read_string, work_config.inbound_nonsecure, 'd', 0},
+  {"temp-inbound", read_string, work_config.temp_inbound, 'd', 0},
   {"node", read_node_info, NULL, 0, 0},
   {"defnode", read_node_info, NULL, 1, 0},
-  {"kill-dup-partial-files", read_bool, &kill_dup_partial_files, 0, 0},
-  {"kill-old-partial-files", read_int, &kill_old_partial_files, 1, DONT_CHECK},
-  {"kill-old-bsy", read_int, &kill_old_bsy, 1, DONT_CHECK},
-  {"percents", read_bool, &percents, 0, 0},
-  {"minfree", read_int, &minfree, 0, DONT_CHECK},
-  {"minfree-nonsecure", read_int, &minfree_nonsecure, 0, DONT_CHECK},
+  {"kill-dup-partial-files", read_bool, &work_config.kill_dup_partial_files, 0, 0},
+  {"kill-old-partial-files", read_int, &work_config.kill_old_partial_files, 1, DONT_CHECK},
+  {"kill-old-bsy", read_int, &work_config.kill_old_bsy, 1, DONT_CHECK},
+  {"percents", read_bool, &work_config.percents, 0, 0},
+  {"minfree", read_int, &work_config.minfree, 0, DONT_CHECK},
+  {"minfree-nonsecure", read_int, &work_config.minfree_nonsecure, 0, DONT_CHECK},
   {"flag", read_flag_exec_info, NULL, 'f', 0},
   {"exec", read_flag_exec_info, NULL, 'e', 0},
-  {"debugcfg", read_bool, &debugcfg, 0, 0},
-  {"printq", read_bool, &printq, 0, 0},
-  {"try", read_int, &tries, 0, 0xffff},
-  {"hold", read_int, &hold, 0, DONT_CHECK},
-  {"hold-skipped", read_int, &hold_skipped, 0, DONT_CHECK},
-  {"backresolv", read_bool, &backresolv, 0, 0},
-  {"pid-file", read_string, pid_file, 'f', 0},
+  {"debugcfg", read_bool, &work_config.debugcfg, 0, 0},
+  {"printq", read_bool, &work_config.printq, 0, 0},
+  {"try", read_int, &work_config.tries, 0, 0xffff},
+  {"hold", read_int, &work_config.hold, 0, DONT_CHECK},
+  {"hold-skipped", read_int, &work_config.hold_skipped, 0, DONT_CHECK},
+  {"backresolv", read_bool, &work_config.backresolv, 0, 0},
+  {"pid-file", read_string, work_config.pid_file, 'f', 0},
 #ifdef HTTPS
-  {"proxy", read_string, proxy, 0, MAXHOSTNAMELEN + 40},
-  {"socks", read_string, socks, 0, MAXHOSTNAMELEN + 40},
+  {"proxy", read_string, work_config.proxy, 0, MAXHOSTNAMELEN + 40},
+  {"socks", read_string, work_config.socks, 0, MAXHOSTNAMELEN + 40},
 #endif
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
   {"syslog", read_syslog_facility, &syslog_facility, 0, 0},
 #endif
   {"ftrans", read_rfrule, NULL, 0, 0},
-  {"send-if-pwd", read_bool, &send_if_pwd, 0, 0},
-  {"root-domain", read_string, root_domain, 0, MAXHOSTNAMELEN},
-  {"prescan", read_bool, &prescan, 0, 0},
-  {"connect-timeout", read_int, &connect_timeout, 0, DONT_CHECK},
+  {"send-if-pwd", read_bool, &work_config.send_if_pwd, 0, 0},
+  {"root-domain", read_string, work_config.root_domain, 0, MAXHOSTNAMELEN},
+  {"prescan", read_bool, &work_config.prescan, 0, 0},
+  {"connect-timeout", read_int, &work_config.connect_timeout, 0, DONT_CHECK},
 #ifdef MAILBOX
-  {"filebox", read_string, tfilebox, 'd', 0},
-  {"brakebox", read_string, bfilebox, 'd', 0},
-  {"deletebox", read_bool, &deleteablebox, 0, 0},
+  {"filebox", read_string, work_config.tfilebox, 'd', 0},
+  {"brakebox", read_string, work_config.bfilebox, 'd', 0},
+  {"deletebox", read_bool, &work_config.deleteablebox, 0, 0},
 #endif
   {"skip", read_skip, NULL, 0, 0},
-  {"inboundcase", read_inboundcase, &inboundcase, 0, 0},
-  {"deletedirs", read_bool, &deletedirs, 0, 0},
-  {"overwrite", read_mask, &overwrite, 0, 0},
+  {"inboundcase", read_inboundcase, &work_config.inboundcase, 0, 0},
+  {"deletedirs", read_bool, &work_config.deletedirs, 0, 0},
+  {"overwrite", read_mask, &work_config.overwrite, 0, 0},
 
   /* shared akas definitions */
   {"share", read_shares, 0, 0, 0},
@@ -495,51 +583,20 @@ KEYWORD keywords[] =
   {"check-pkthdr", read_check_pkthdr, NULL, 0, 0},
 
 #ifdef AMIGADOS_4D_OUTBOUND
-  {"aso", read_bool, &aso, 0, 0},
+  {"aso", read_bool, &work_config.aso, 0, 0},
 #endif
 
 #ifdef WITH_PERL
-  {"perl-hooks", read_string, perl_script, 'f', 0},
-  {"perl-dll", read_string, perl_dll, 'f', 0},
-  {"perl-strict", read_bool, &perl_strict, 0, 0},
+  {"perl-hooks", read_string, work_config.perl_script, 'f', 0},
+  {"perl-dll", read_string, work_config.perl_dll, 'f', 0},
+  {"perl-strict", read_bool, &work_config.perl_strict, 0, 0},
 #endif
 
-  {"nolog", read_mask, &nolog, 0, 0},
-  {"hide-aka", read_akachain, &akamask, ACT_HIDE, 0},
-  {"present-aka", read_akachain, &akamask, ACT_PRESENT, 0},
+  {"nolog", read_mask, &work_config.nolog, 0, 0},
+  {"hide-aka", read_akachain, &work_config.akamask, ACT_HIDE, 0},
+  {"present-aka", read_akachain, &work_config.akamask, ACT_PRESENT, 0},
   {NULL, NULL, NULL, 0, 0}
 };
-
-static void debug_readcfg(void);
-
-/*
- * Zero config data and set default values of other variables
- * Note: must be called on locked config
- */
-void lock_config_structure(/*struct config_data *c*/)
-{
-//  if (++(c->usageCount) == 1)
-  {
-    /* First-time call: init default values */
-
-    /*c->*/iport             = DEF_PORT;
-    /*c->*/oport             = DEF_PORT;
-    /*c->*/call_delay        = 60;
-    /*c->*/rescan_delay      = 60;
-    /*c->*/nettimeout        = DEF_TIMEOUT;
-    /*c->*/oblksize          = DEF_BLKSIZE;
-    /*c->*/max_servers       = 100;
-    /*c->*/max_clients       = 100;
-    /*c->*/minfree           = -1;
-    /*c->*/minfree_nonsecure = -1;
-    /*c->*/loglevel          = 4;
-    /*c->*/inboundcase       = INB_SAVE;
-    /*c->*/hold_skipped      = 60 * 60;
-
-    strcpy(/*c->*/inbound, ".");
-    strcpy(/*c->*/root_domain, "fidonet.net.");
-  }
-}
 
 /* Check for (personal) outbox pointed to (common) outbound */
 static int check_outbox(char *obox)
@@ -553,7 +610,7 @@ static int check_outbox(char *obox)
 #ifndef UNIX
   OBOX = strupper(xstrdup(obox));
 #endif
-  for (pd = pDomains; pd; pd=pd->next)
+  for (pd=work_config.pDomains.first; pd; pd=pd->next)
   {
     if (pd->alias4)
       continue;
@@ -618,6 +675,15 @@ static int isDefined(char *value, char *name)
   return 1;
 }
 
+static void add_to_config_list(const char *path)
+{
+  struct  conflist_type new_entry;
+
+  new_entry.path  = xstrdup(path);
+  new_entry.mtime = 0;
+  simplelist_add(&work_config.config_list.linkpoint, &new_entry, sizeof(new_entry));
+}
+
 static int check_boxes(FTN_NODE *node, void *arg)
 {
   struct stat st;
@@ -656,62 +722,21 @@ static int check_boxes(FTN_NODE *node, void *arg)
 static int check_config(void)
 {
   struct stat st, si;
-  if (temp_inbound[0] && stat(temp_inbound, &st) == 0)
+  if (work_config.temp_inbound[0] && stat(work_config.temp_inbound, &st) == 0)
   {
-    if (stat(inbound, &si) == 0 && st.st_dev != si.st_dev)
+    if (stat(work_config.inbound, &si) == 0 && st.st_dev != si.st_dev)
       return ConfigError("Inbound and temp-inbound must be in the same partition");
-    if (stat(inbound_nonsecure, &si) == 0 && st.st_dev != si.st_dev)
+    if (stat(work_config.inbound_nonsecure, &si) == 0 && st.st_dev != si.st_dev)
       return ConfigError("Unsecure-inbound and temp-inbound must be in the same partition");
   }
-  if (foreach_node(check_boxes, temp_inbound[0] ? &st.st_dev : NULL))
+  if (foreach_node(check_boxes, work_config.temp_inbound[0] ? &st.st_dev : NULL, &work_config))
     return 0;
   return 1;
 }
 
-int checkcfg (void)
-{
-  struct stat sb;
-  struct conflist_type *pc;
-#ifdef HAVE_FORK
-  extern jmp_buf jb;
-#endif
-
-  for (pc = config_list.first; pc; pc = pc->next)
-  {
-    if (pc->path == NULL || stat (pc->path, &sb))
-      continue;
-    if (pc->mtime == 0)
-    {
-      pc->mtime = (unsigned long)sb.st_mtime;
-    }
-    else if ((time_t)pc->mtime != sb.st_mtime)
-    {
-#if defined(HAVE_FORK)
-      Log (2, "%s changed! Restart binkd...", pc->path);
-      longjmp(jb, 1);
-#else
-#if defined(BINKDW9X)
-      Log (2, "%s changed! Restart binkd...", pc->path);
-#else
-      Log (2, "%s changed! exit(3)...", pc->path);
-#endif
-      checkcfg_flag=2;
-#endif
-      exit (3);
-    }
-  }
-  return 0;
-}
-
-static void add_to_config_list(const char *path)
-{
-  struct  conflist_type new_entry;
-
-  new_entry.path  = xstrdup(path);
-  new_entry.mtime = 0;
-  simplelist_add(&/*work_config.*/config_list.linkpoint, &new_entry, sizeof(new_entry));
-}
-
+/*
+ * Parses one configuration file
+ */
 static int readcfg0 (char *path)
 {
 #define MAX_WORDS_ON_LINE 64
@@ -766,44 +791,89 @@ static int readcfg0 (char *path)
 /*
  * Parses and reads _path as config.file
  */
-void readcfg (char *_path)
+int readcfg (char *path)
 {
   int  success = 0;
+  BINKD_CONFIG *new_config, *old_config;
 
-  // memset(&work_config, 0, sizeof(work_config));
-  lock_config_structure(/* &work_config */);
+  memset(&work_config, 0, sizeof(work_config));
+  lock_config_structure(&work_config);
 
-  if (readcfg0 (_path)                 &&
-      isDefined(sysname,  "sysname")   &&
-      isDefined(sysop,    "sysop")     &&
-      isDefined(location, "location")  &&
-      isDefined(nodeinfo, "nodeinfo")
+  if (
+      readcfg0(path)                               &&
+      isDefined(work_config.sysname,  "sysname")   &&
+      isDefined(work_config.sysop,    "sysop")     &&
+      isDefined(work_config.location, "location")  &&
+      isDefined(work_config.nodeinfo, "nodeinfo")
      )
   {
     do
     {
-      if (!nAddr)
+      if (work_config.nAddr == 0)
       {
         ConfigError("your address should be defined");
         break;
       }
-      if (pDomains == 0)
+      if (work_config.pDomains.first == NULL)
       {
         ConfigError("at least one domain should be defined");
         break;
       }
 
-      if (!*inbound_nonsecure)
-        strcpy (inbound_nonsecure, inbound);
+      /* setup command-line overrides */
+
+      if (verbose_flag >= 3)
+        work_config.debugcfg = 1;
+
+      if (quiet_flag)
+      {
+        work_config.percents = 0;
+        work_config.conlog = 0;
+        work_config.printq = 0;
+      }
+      switch (verbose_flag)
+      {
+      case 0:
+        break;
+      case 1:
+        work_config.percents = work_config.printq = 1;
+        work_config.loglevel = work_config.conlog = 4;
+        break;
+      case 2:
+      case 3:
+      default:
+        work_config.percents = work_config.printq = 1;
+        work_config.loglevel = work_config.conlog = 6;
+        break;
+      }
+
+      if (!*work_config.inbound_nonsecure)
+        strcpy (work_config.inbound_nonsecure, work_config.inbound);
 
       if (!check_config())
         break;
 
-      if (debugcfg)
+      if (work_config.debugcfg)
         debug_readcfg ();
 
       /* All checks passed! */
+
       success = 1;
+
+      /* Set this config as current */
+
+      new_config = xalloc(sizeof(work_config));
+      memcpy(new_config, &work_config, sizeof(work_config));
+
+      InitLog(new_config);
+
+      LockSem(&config_sem);
+      old_config = current_config;
+      current_config = new_config;
+      ReleaseSem(&config_sem);
+
+      if (old_config)
+        unlock_config_structure(old_config);
 
     } while (0);
   }
@@ -811,14 +881,50 @@ void readcfg (char *_path)
   if (!success)
   {
     /* Config error. Abort or continue? */
-//    if (current_config == NULL)
+    if (current_config == NULL)
       Log(0, "error in configuration, aborting");
-//    else
-//    {
-//      Log(1, "error in configuration, using old config");
-//      unlock_config_structure(&work_config);
-//    }
+    else
+    {
+      Log(1, "error in configuration, using old config");
+      unlock_config_structure(&work_config);
+    }
   }
+
+  return success;
+}
+
+/*
+ * Check for change in configuration files
+ * !!! Must be called from "main" thread only !!!
+ */
+
+int checkcfg(void)
+{
+  struct stat sb;
+  struct conflist_type *pc;
+
+  if (!checkcfg_flag)
+    return 0;
+
+  for (pc = current_config->config_list.first; pc; pc = pc->next)
+  {
+    if (stat (pc->path, &sb))
+      continue;
+    if (pc->mtime == 0)
+      pc->mtime = sb.st_mtime;
+    else if (pc->mtime != sb.st_mtime)
+    {
+      /* If reload failed, this will keep us from constant reload */
+      pc->mtime = sb.st_mtime;
+
+      Log(2, "%s changed! Reloading configuration...", pc->path);
+
+      /* Reload starting from first file in list */
+      pc = current_config->config_list.first;
+      return readcfg(pc->path);
+    }
+  }
+  return 0;
 }
 
 /*
@@ -849,7 +955,7 @@ static void check_dir_path (char *s)
 
 static int Config_ParseAddress(char *s, FTN_ADDR *a)
 {
-  if (!parse_ftnaddress (s, a /*, &work_config*/))
+  if (!parse_ftnaddress (s, a, &work_config))
     return ConfigError("%s: the address cannot be parsed", s);
   return 1;
 }
@@ -909,11 +1015,11 @@ static int passwords (KEYWORD *key, int wordcount, char **words)
     if (node)
     {
       password = strtok(NULL, spaces);
-      if (password && parse_ftnaddress (node, &fa /*, &work_config */)) /* Do not process if any garbage found */
+      if (password && parse_ftnaddress (node, &fa, &work_config)) /* Do not process if any garbage found */
       {
-        exp_ftnaddress (&fa /*, &work_config*/);
+        exp_ftnaddress (&fa, &work_config);
         add_node (&fa, NULL, password, '-', NULL, NULL,
-                  NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, HC_USE_OLD /*, NP_USE_OLD, &work_config */);
+                  NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, HC_USE_OLD /*, NP_USE_OLD */, &work_config);
       }
     }
   }
@@ -932,8 +1038,8 @@ static int read_aka_list (KEYWORD *key, int wordcount, char **words)
 
   for (i = 0; i < wordcount; i++)
   {
-    pAddr = xrealloc (pAddr, sizeof (FTN_ADDR) * (nAddr+1));
-    a = pAddr + nAddr;
+    work_config.pAddr = xrealloc (work_config.pAddr, sizeof (FTN_ADDR) * (work_config.nAddr+1));
+    a = work_config.pAddr + work_config.nAddr;
 
     if (!Config_ParseAddress(words[i], a))
       return 0;
@@ -941,12 +1047,11 @@ static int read_aka_list (KEYWORD *key, int wordcount, char **words)
       return ConfigError("%s: must be at least a 4D address", words[i]);
     if (a->domain[0] == 0)
     {
-      //if (work_config.pDomains.first == NULL)
-      if (!pDomains)
+      if (work_config.pDomains.first == NULL)
         return ConfigError("at least one domain must be defined first");
-      strcpy (a->domain, get_matched_domain(a->z, pAddr, nAddr));
+      strcpy (a->domain, get_matched_domain(a->z, work_config.pAddr, work_config.nAddr, &work_config));
     }
-    ++nAddr;
+    ++work_config.nAddr;
   }
 
   return 1;
@@ -961,7 +1066,7 @@ static int read_domain_info (KEYWORD *key, int wordcount, char **words)
   if (!isArgCount(3, wordcount))
     return 0;
 
-  if (get_domain_info (words[0] /*, &work_config*/))
+  if (get_domain_info (words[0], &work_config))
     return ConfigError("%s: duplicate domain", words[0]);
 
   memset(&new_domain, 0, sizeof(new_domain));
@@ -969,7 +1074,7 @@ static int read_domain_info (KEYWORD *key, int wordcount, char **words)
 
   if (!STRICMP (words[1], "alias-for"))
   {
-    if ((tmp_domain = get_domain_info (words[2] /*, &work_config*/)) == 0)
+    if ((tmp_domain = get_domain_info (words[2], &work_config)) == 0)
       return ConfigError("%s: undefined domain", words[2]);
     new_domain.alias4 = tmp_domain;
   }
@@ -1006,12 +1111,7 @@ static int read_domain_info (KEYWORD *key, int wordcount, char **words)
     new_domain.path = xstrdup(new_path);
   }
 
-  /*  simplelist_add(&work_config.pDomains, &new_domain, sizeof(new_domain)); */
-
-  tmp_domain = xalloc(sizeof(FTN_DOMAIN));
-  *tmp_domain = new_domain;
-  tmp_domain->next = pDomains;
-  pDomains = tmp_domain;
+  simplelist_add(&work_config.pDomains.linkpoint, &new_domain, sizeof(new_domain));
 
   return 1;
 }
@@ -1032,7 +1132,7 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
   if (key->option1) /* defnode */
   {
     w[i++] = "0:0/0.0@defnode";
-    havedefnode = 1;
+    work_config.havedefnode = 1;
   }
 
   for (j = 0; j < wordcount; j++)
@@ -1081,7 +1181,7 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
     return ConfigError("missing node address");
   if (!Config_ParseAddress (w[0], &fa))
     return 0;
-  exp_ftnaddress (&fa /*, &work_config */);
+  exp_ftnaddress (&fa, &work_config);
 
   if (w[2] && w[2][0] == 0)
     return ConfigError("empty password");
@@ -1091,7 +1191,7 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
   check_dir_path (w[5]);
 
   add_node (&fa, w[1], w[2], (char)(w[3] ? w[3][0] : '-'), w[4], w[5],
-            NR_flag, ND_flag, MD_flag, restrictIP, HC_flag /*, NP_flag, &work_config */);
+            NR_flag, ND_flag, MD_flag, restrictIP, HC_flag /*, NP_flag*/, &work_config);
 
   return 1;
 #undef ARGNUM
@@ -1110,7 +1210,7 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
  *
  *  Returns 0 on error, -1 on EOF, 1 otherwise
  */
-int get_host_and_port (int n, char *host, unsigned short *port, char *src, FTN_ADDR *fa)
+int get_host_and_port (int n, char *host, unsigned short *port, char *src, FTN_ADDR *fa, BINKD_CONFIG *config)
 {
   int rc = 0;
   char *s = getwordx2 (src, n, 0, ",;", "");
@@ -1123,13 +1223,13 @@ int get_host_and_port (int n, char *host, unsigned short *port, char *src, FTN_A
       *t = 0;
 
     if (!strcmp (s, "*"))
-      ftnaddress_to_domain (host, fa);
+      ftnaddress_to_domain (host, fa, config);
     else
       strnzcpy (host, s, MAXHOSTNAMELEN);
 
     if (!t)
     {
-      *port = oport;
+      *port = config->oport;
       rc = 1;
     }
     else if ((*port = find_port (t + 1)) != 0)
@@ -1262,7 +1362,7 @@ static int read_rfrule (KEYWORD *key, int wordcount, char **words)
 
   new_entry.from = xstrdup(words[0]);
   new_entry.to   = xstrdup(words[1]);
-  simplelist_add(&rf_rules.linkpoint, &new_entry, sizeof(new_entry));
+  simplelist_add(&work_config.rf_rules.linkpoint, &new_entry, sizeof(new_entry));
 
   return 1;
 }
@@ -1305,7 +1405,7 @@ static int read_akachain (KEYWORD *key, int wordcount, char **words)
 
   if (!Config_ParseAddress(words[0], &new_entry.fa))  /* aka */
     return 0;
-  exp_ftnaddress(&new_entry.fa);
+  exp_ftnaddress(&new_entry.fa, &work_config);
 
   mask = words[1];
   type = key->option1;
@@ -1339,6 +1439,8 @@ static int read_skip (KEYWORD *key, int wordcount, char **words)
   addrtype at = A_ALL;
   struct skipchain new_entry;
 
+  UNUSED_ARG(key);
+
   for (i = 0; i < wordcount; i++)
   {
     char *w = words[i];
@@ -1364,7 +1466,7 @@ static int read_skip (KEYWORD *key, int wordcount, char **words)
     new_entry.size  = (sz > 0 ? sz << 10 : sz);
     new_entry.atype = at;
     new_entry.destr = destr;
-    simplelist_add(&skipmask.linkpoint, &new_entry, sizeof(new_entry));
+    simplelist_add(&work_config.skipmask.linkpoint, &new_entry, sizeof(new_entry));
 
     maskonly = 2; /* at least one filemask present */
   }
@@ -1383,7 +1485,7 @@ static int read_check_pkthdr (KEYWORD *key, int wordcount, char **words)
     return SyntaxError(key);
 
   w = words[0];
-  if ((pkthdr_type = parse_addrtype(w)) != 0)
+  if ((work_config.pkthdr_type = parse_addrtype(w)) != 0)
   {
     w = words[1];
     if (!isArgCount(2, wordcount))
@@ -1391,14 +1493,15 @@ static int read_check_pkthdr (KEYWORD *key, int wordcount, char **words)
   }
   else
   {
-    pkthdr_type = A_ALL;
+    work_config.pkthdr_type = A_ALL;
     if (!isArgCount(1, wordcount))
       return 0;
   }
 
   if (*w == '.')
     w++;
-  pkthdr_bad = xstrdup(w);
+  xfree(work_config.pkthdr_bad);
+  work_config.pkthdr_bad = xstrdup(w);
 
   return 1;
 }
@@ -1447,29 +1550,91 @@ static int read_flag_exec_info (KEYWORD *key, int wordcount, char **words)
     new_event.pattern = xstrdup(words[i]);
     /* strlower (new_event->pattern); */
 
-    simplelist_add(&evt_flags.linkpoint, &new_event, sizeof(new_event));
+    simplelist_add(&work_config.evt_flags.linkpoint, &new_event, sizeof(new_event));
   }
 
   return 1;
 }
 
+#if 0 /* def HTTPS */
+static int read_proxy (KEYWORD *key, int wordcount, char **words)
+{
+  char *p, *proxy_user, *proxy_password;
+  struct proxy_info pro;
+
+  if (!isArgCount(1, wordcount))
+    return 0;
+
+  /* by default, username and password are empty */
+  proxy_user = proxy_password = "";
+  if (key->option1 == 'p')
+  {
+    pro.method = CMETHOD_HTTP;
+    pro.port   = 3128;
+  }
+  else
+  {
+    pro.method = CMETHOD_SOCKS4;
+    pro.port   = 1080;
+  }
+
+  /*
+   * !!! TODO !!! Get default port number from service name ("squid", "socks")
+   */
+
+  if ((p = strchr(words[0], '/')) != NULL)
+  {
+    /* Username/password? Set socks mode to socks5 */
+    if (pro.method == CMETHOD_SOCKS4)
+      pro.method = CMETHOD_SOCKS5;
+    /* parse username and password */
+    *p++ = 0;
+    proxy_user = p;
+    if ((p = strchr(p, '/')) != NULL)
+    {
+      *p++ = 0;
+      proxy_password = p;
+    }
+    /* Note: NTLM auth kept as part of password and handled by connector */
+  }
+    /* port number */
+  if ((p = strchr(words[0], ':')) != NULL)
+  {
+    *p++ = 0;
+    if (*p)  /* avoid getting "default binkp" port */
+    {
+      pro.port = find_port(p); /* return 0 on error */
+      if (pro.port == 0)
+        return 0;
+    }
+  }
+
+  pro.host     = xstrdup(words[0]);
+  pro.username = xstrdup(proxy_user);
+  pro.password = xstrdup(proxy_password);
+  simplelist_add(&work_config.proxylist, &pro, sizeof(pro));
+  return 1;
+}
+#endif
+
 static int print_node_info_1 (FTN_NODE *fn, void *arg)
 {
   char szfa[FTN_ADDR_SZ + 1];
 
+  UNUSED_ARG(arg);
   ftnaddress_to_str (szfa, &fn->fa);
-  printf ("\n    %-20.20s %s %s %c %s %s%s%s%s%s%s%s%s%s",
-	   szfa, fn->hosts ? fn->hosts : "-", fn->pwd,
-	   fn->obox_flvr, fn->obox ? fn->obox : "-",
-	   fn->ibox ? fn->ibox : "-",
-	   (fn->NR_flag == NR_ON) ? " -nr" : "",
-	   (fn->ND_flag == ND_ON) ? " -nd" : "",
-	   (fn->ND_flag == MD_ON) ? " -md" : "",
-	   (fn->ND_flag == MD_OFF) ? " -nomd" : "",
-	   (fn->HC_flag == HC_ON) ? " -hc" : "",
-	   (fn->HC_flag == HC_OFF) ? " -nohc" : "",
-	   (fn->restrictIP == RIP_ON) ? " -ip" : "",
-	   (fn->restrictIP == RIP_SIP) ? " -sip" : "");
+  printf("\n    %-20.20s %s %s %c %s %s%s%s%s%s%s%s%s%s",
+         szfa, fn->hosts ? fn->hosts : "-", fn->pwd,
+         fn->obox_flvr, fn->obox ? fn->obox : "-",
+         fn->ibox ? fn->ibox : "-",
+         (fn->NR_flag == NR_ON) ? " -nr" : "",
+         (fn->ND_flag == ND_ON) ? " -nd" : "",
+         (fn->ND_flag == MD_ON) ? " -md" : "",
+         (fn->ND_flag == MD_OFF) ? " -nomd" : "",
+         (fn->HC_flag == HC_ON) ? " -hc" : "",
+         (fn->HC_flag == HC_OFF) ? " -nohc" : "",
+         (fn->restrictIP == RIP_ON) ? " -ip" : "",
+         (fn->restrictIP == RIP_SIP) ? " -sip" : "");
   return 0;
 }
 
@@ -1503,13 +1668,13 @@ static void debug_readcfg (void)
     else if (k->callback == include)
     {
       struct conflist_type *c;
-      for (c = /*work_config.*/config_list.first; c; c = c->next)
+      for (c = work_config.config_list.first; c; c = c->next)
         printf("\n    %s", c->path);
     }
     else if (k->callback == read_domain_info)
     {
       FTN_DOMAIN *c;
-      for (c = /*work_config.*/pDomains/*.first*/; c; c = c->next)
+      for (c = work_config.pDomains.first; c; c = c->next)
         if (c->alias4)
           printf("\n    %s alias-for %s", c->name, c->alias4->name);
         else
@@ -1519,24 +1684,24 @@ static void debug_readcfg (void)
     {
       int  i;
 
-      for (i = 0; i < /*work_config.*/nAddr; i++)
+      for (i = 0; i < work_config.nAddr; i++)
       {
-        ftnaddress_to_str (szfa, /*work_config.*/pAddr + i);
+        ftnaddress_to_str (szfa, work_config.pAddr + i);
         printf("\n    %s", szfa);
       }
     }
     else if (k->callback == read_node_info)
     {
       if (k->option1 == 0) /* not defnode */
-        foreach_node (print_node_info_1, 0 /*, &work_config*/);
+        foreach_node (print_node_info_1, 0, &work_config);
       else
-        printf(/*work_config.*/havedefnode ? "[see 0:0/0@defnode]" : "<not defined>");
+        printf(work_config.havedefnode ? "[see 0:0/0@defnode]" : "<not defined>");
     }
     else if (k->callback == read_flag_exec_info)
     {
       EVT_FLAG *c;
 
-      for (c = /*work_config.*/evt_flags.first; c; c = c->next)
+      for (c = work_config.evt_flags.first; c; c = c->next)
       {
         char *s = (k->option1 == 'f' ? c->path : c->command);
         if (s)
@@ -1548,12 +1713,12 @@ static void debug_readcfg (void)
     {
       RF_RULE *c;
 
-      for (c = /*work_config.*/rf_rules.first; c; c = c->next)
+      for (c = work_config.rf_rules.first; c; c = c->next)
         printf("\n    \"%s\" => \"%s\"", c->from, c->to);
     }
     else if (k->callback == read_inboundcase)
     {
-      switch (/*work_config.*/inboundcase)
+      switch (work_config.inboundcase)
       {
       case INB_SAVE:  printf("save");  break;
       case INB_UPPER: printf("upper"); break;
@@ -1565,7 +1730,7 @@ static void debug_readcfg (void)
     else if (k->callback == read_skip)
     {
       struct skipchain *sk;
-      for (sk = skipmask.first; sk; sk = sk->next)
+      for (sk = work_config.skipmask.first; sk; sk = sk->next)
         printf("\n    %s %c%ld \"%s\"", describe_addrtype(sk->atype),
                (sk->destr ? '!' : ' '),
 	       (long)(sk->size < 0 ? sk->size : sk->size >> 10),
@@ -1596,29 +1761,28 @@ static void debug_readcfg (void)
     }
     else if (k->callback == read_check_pkthdr)
     {
-      if (pkthdr_type == 0)
+      if (work_config.pkthdr_type == 0)
         printf("<disabled>");
       else
-        printf("%s %s", describe_addrtype(pkthdr_type), pkthdr_bad);
+        printf("%s %s", describe_addrtype(work_config.pkthdr_type), work_config.pkthdr_bad);
     }
     else if (k->callback == read_shares)
     {
       SHARED_CHAIN   *ch;
       FTN_ADDR_CHAIN *fch;
 
-      for (ch = shares; ch; ch = ch->next)
+      for (ch = work_config.shares.first; ch; ch = ch->next)
       {
         ftnaddress_to_str(szfa, &ch->sha);
         printf("\n    %s", szfa);
-        for (fch = ch->sfa; fch; fch = fch->next)
+        for (fch = ch->sfa.first; fch; fch = fch->next)
         {
           ftnaddress_to_str(szfa, &fch->fa);
           printf(" %s", szfa);
         }
       }
     }
-#ifdef HTTPS
-    /*
+#if 0 /* def HTTPS */
      else if (k->callback == read_proxy)
      {
      struct proxy_info *prox;
@@ -1630,7 +1794,7 @@ static void debug_readcfg (void)
      prox->host, prox->port, prox->username, prox->password);
      else
      printf("[see `proxy']");
-     }*/
+     }
 #endif
     else
       printf("[this item cannot be displayed]");
@@ -1645,22 +1809,16 @@ static void debug_readcfg (void)
 static int read_shares (KEYWORD *key, int wordcount, char **words)
 {
   int i;
-  SHARED_CHAIN   *chn;
-  FTN_ADDR_CHAIN *fchn;
+  SHARED_CHAIN   chn;
+  FTN_ADDR_CHAIN fchn;
   KEYWORD        *k;
 
   if (wordcount < 2)
     return SyntaxError(key);
 
-  chn = xalloc(sizeof(SHARED_CHAIN));
-  chn->next = 0;
-  chn->sfa  = 0;
-  if (!Config_ParseAddress(words[0], &chn->sha))
-  {
-    free(chn);
+  if (!Config_ParseAddress(words[0], &chn.sha))
     return 0;
-  }
-  exp_ftnaddress(&chn->sha);
+  exp_ftnaddress(&chn.sha, &work_config);
 
   /* To scan outgoing mails to shared node
    * `node share_addr' string is simulated
@@ -1670,48 +1828,23 @@ static int read_shares (KEYWORD *key, int wordcount, char **words)
     {
       /* Our first argument passed to read_node_info as-is, with argc = 1 */
       if (read_node_info(k, 1, words) == 0)
-      {
-        free(chn);
         return 0;
-      }
       break;
     }
 
+  memset(&chn.sfa, 0, sizeof(chn.sfa)); /* clear list */
   for (i = 1; i < wordcount; ++i)
   {
-    fchn = xalloc(sizeof(FTN_ADDR_CHAIN));
-    fchn->own  = chn;
-    fchn->next = 0;
-    if (!Config_ParseAddress (words[i], &fchn->fa))
-      return 0;  /* !!! known memory leak - will be fixed !!! */
-    exp_ftnaddress(&fchn->fa);
-    add_address(chn, fchn);
+    if (!Config_ParseAddress (words[i], &fchn.fa))
+    {
+      destroy_shares(&chn);
+      return 0;
+    }
+    exp_ftnaddress(&fchn.fa, &work_config);
+    simplelist_add(&chn.sfa.linkpoint, &fchn, sizeof(fchn));
   }
 
-  add_shares(chn);
+  simplelist_add(&work_config.shares.linkpoint, &chn, sizeof(chn));
+
   return 1;
-}
-
-static void add_shares(SHARED_CHAIN *chain)
-{
-  if (shares == 0)
-    shares = chain;
-  else
-  {
-    SHARED_CHAIN *sh = shares;
-    while (sh->next) sh = sh->next;
-    sh->next = chain;
-  }
-}
-
-static void add_address(SHARED_CHAIN *chain, FTN_ADDR_CHAIN *aka)
-{
-  if (chain->sfa == 0)
-    chain->sfa = aka;
-  else
-  {
-    FTN_ADDR_CHAIN *fac = chain->sfa;
-    while (fac->next) fac = fac->next;
-    fac->next = aka;
-  }
 }

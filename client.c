@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.42  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.41  2003/07/28 10:23:33  val
  * Perl DLL dynamic load for Win32, config keyword perl-dll, nmake PERLDL=1
  *
@@ -173,28 +179,16 @@
  * Revision 1.2  1996/12/07  12:03:02  mff
  * Now fork()'s or _beginthread()'s
  */
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdlib.h>
 
+#include "readcfg.h"
+#include "client.h"
+
+#include <ctype.h>
 #ifdef HAVE_FORK
 #include <signal.h>
 #include <setjmp.h>
-#elif defined(HAVE_THREADS)
-#ifdef HAVE_DOS_H
-#include <dos.h>
-#endif
-#include <process.h>
-#elif !defined(DOS)
-#error Must define either HAVE_FORK or HAVE_THREADS!
 #endif
 
-#include "Config.h"
-#include "sys.h"
-#include "iphdr.h"
-#include "client.h"
-#include "readcfg.h"
 #include "common.h"
 #include "iptools.h"
 #include "ftnq.h"
@@ -212,7 +206,7 @@
 #include "https.h"
 #endif
 
-void call (void *arg);
+static void call (void *arg);
 
 int n_clients = 0;
 
@@ -266,11 +260,90 @@ void rel_grow_handles(int nh)
 }
 #endif
 
+struct call_args
+{
+    FTN_NODE     *node;
+    BINKD_CONFIG *config;
+};
+
+/*
+ * Run one client loop. Return -1 to exit
+ */
+static int do_client(BINKD_CONFIG *config, int *pq_empty)
+{
+  FTN_NODE *r;
+  int pid;
+  int n_cl = n_clients;
+
+  if (*pq_empty)
+  {
+    q_free (SCAN_LISTED, config);
+    if (config->printq)
+      Log (-1, "scan\r");
+    n_cl = n_clients;
+    q_scan (SCAN_LISTED, config);
+    *pq_empty = !q_not_empty (config);
+    if (config->printq)
+    {
+      q_list (stderr, SCAN_LISTED, config);
+      Log (-1, "idle\r");
+    }
+  }
+  if (n_clients < config->max_clients)
+  {
+    if ((r = q_next_node (config)) != 0 &&
+        bsy_test (&r->fa, F_BSY, config) &&
+        bsy_test (&r->fa, F_CSY, config))
+    {
+      struct call_args args;
+
+      rel_grow_handles (6);
+      threadsafe(++n_clients);
+      lock_config_structure(config);
+      args.node   = r;
+      args.config = config;
+      if ((pid = branch (call, &args, sizeof (args))) < 0)
+      {
+        unlock_config_structure(config);
+        rel_grow_handles (-6);
+        threadsafe(--n_clients);
+        PostSem(&eothread);
+        Log (1, "cannot branch out");
+        SLEEP(1);
+      }
+      else
+      {
+        Log (5, "started client #%i, id=%i", n_clients, pid);
+#if defined(HAVE_FORK) && !defined(AMIGA)
+        unlock_config_structure(config); /* Forked child has own copy */
+#endif
+      }
+    }
+    else
+    {
+      if (poll_flag && n_cl <= 0 && n_clients <= 0 && q_not_empty (config) == 0)
+      {
+        Log (4, "the queue is empty, quitting...");
+        return -1;
+      }
+      *pq_empty = 1;
+      SLEEP (config->rescan_delay);
+    }
+  }
+  else
+  {
+    SLEEP (config->call_delay);
+  }
+
+  return 0;
+}
+
 void clientmgr (void *arg)
 {
-  int pid;
   int q_empty = 1;
-  int n_cl = n_clients;
+  int status;
+
+  UNUSED_ARG(arg);
 
 #ifdef HAVE_FORK
   pidcmgr = 0;
@@ -283,63 +356,20 @@ void clientmgr (void *arg)
   setproctitle ("client manager");
   Log (4, "clientmgr started");
 
-  while (!binkd_exit)
+  do
   {
-    FTN_NODE *r;
+    BINKD_CONFIG *config;
 
-    if (checkcfg_flag && client_flag && !server_flag && !poll_flag)
+    if (client_flag && !server_flag && !poll_flag)
       checkcfg();
-    if (q_empty)
-    {
-      q_free (SCAN_LISTED);
-      if (printq)
-	Log (-1, "scan\r");
-      n_cl = n_clients;
-      q_scan (SCAN_LISTED);
-      q_empty = !q_not_empty ();
-      if (printq)
-      {
-	q_list (stderr, SCAN_LISTED);
-	Log (-1, "idle\r");
-      }
-    }
-    if (n_clients < max_clients)
-    {
-      if ((r = q_next_node ()) != 0 &&
-	  bsy_test (&r->fa, F_BSY) &&
-	  bsy_test (&r->fa, F_CSY))
-      {
-        rel_grow_handles (6);
-	threadsafe(++n_clients);
-	if ((pid = branch (call, (void *) r, sizeof (*r))) < 0)
-	{
-          rel_grow_handles (-6);
-	  threadsafe(--n_clients);
-	  PostSem(&eothread);
-	  Log (1, "cannot branch out");
-          SLEEP(1);
-	}
-	else
-	{
-	  Log (5, "started client #%i, id=%i", n_clients, pid);
-	}
-      }
-      else
-      {
-	if (poll_flag && n_cl <= 0 && n_clients <= 0 && q_not_empty () == 0)
-	{
-	  Log (4, "the queue is empty, quitting...");
-	  break;
-	}
-	q_empty = 1;
-	SLEEP (rescan_delay);
-      }
-    }
-    else
-    {
-      SLEEP (call_delay);
-    }
-  }
+
+    config = lock_current_config();
+
+    status = do_client(config, &q_empty);
+
+    unlock_config_structure(config);
+  } while (status == 0 && !binkd_exit);
+
 #ifdef HAVE_THREADS
   pidcmgr = 0;
   if (server_flag) {
@@ -351,7 +381,7 @@ void clientmgr (void *arg)
 #endif
 }
 
-static int call0 (FTN_NODE *node)
+static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 {
   int sockfd = INVALID_SOCKET;
   struct hostent he;
@@ -378,10 +408,10 @@ static int call0 (FTN_NODE *node)
   memset(&sin, 0, sizeof(sin));
 
 #ifdef HTTPS
-  if (proxy[0] || socks[0])
+  if (config->proxy[0] || config->socks[0])
   {
     char *sp, *sport;
-    strncpy(host, proxy[0] ? proxy: socks, sizeof(host));
+    strncpy(host, config->proxy[0] ? config->proxy: config->socks, sizeof(host));
     if ((sp=strchr(host, ':')) != NULL)
     {
       *sp++ = '\0';
@@ -393,15 +423,15 @@ static int call0 (FTN_NODE *node)
     {
       if((sp=strchr(host, '/')) != NULL)
 	*sp++ = '\0';
-      sport = proxy[0] ? "squid" : "socks"; /* default port */
+      sport = config->proxy[0] ? "squid" : "socks"; /* default port */
     }
     if (!isdigit(*sport))
     { struct servent *se;
       lockhostsem();
       if ((se = getservbyname(sport, "tcp")) == NULL)
       {
-	Log(2, "Port %s not found, try default %d", sp, proxy[0] ? 3128 : 1080);
-	sin.sin_port = htons((unsigned short)(proxy[0] ? 3128 : 1080));
+	Log(2, "Port %s not found, try default %d", sp, config->proxy[0] ? 3128 : 1080);
+	sin.sin_port = htons((unsigned short)(config->proxy[0] ? 3128 : 1080));
       } else
 	sin.sin_port = se->s_port;
       releasehostsem();
@@ -411,7 +441,7 @@ static int call0 (FTN_NODE *node)
     /* resolve proxy host */
     if ((hp = find_host(host, &he, &defaddr)) == NULL)
     {
-      Log(1, "%s host %s not found", proxy[0] ? "Proxy" : "Socks", host);
+      Log(1, "%s host %s not found", config->proxy[0] ? "Proxy" : "Socks", host);
       return 0;
     }
   }
@@ -419,7 +449,7 @@ static int call0 (FTN_NODE *node)
 
   for (i = 1; sockfd == INVALID_SOCKET
        && (rc = get_host_and_port
-	   (i, host, &port, node->hosts, &node->fa)) != -1; ++i)
+	   (i, host, &port, node->hosts, &node->fa, config)) != -1; ++i)
   {
     if (rc == 0)
     {
@@ -427,12 +457,12 @@ static int call0 (FTN_NODE *node)
       continue;
     }
 #ifdef HTTPS
-    if (!proxy[0] && !socks[0]) /* don't resolve if proxy or socks specified */
+    if (!config->proxy[0] && !config->socks[0]) /* don't resolve if proxy or socks specified */
 #endif
     {
       if ((hp = find_host(host, &he, &defaddr)) == NULL)
       {
-        bad_try(&node->fa, "Cannot gethostbyname", BAD_CALL);
+        bad_try(&node->fa, "Cannot gethostbyname", BAD_CALL, config);
         continue;
       }
       sin.sin_port = htons(port);
@@ -452,40 +482,40 @@ static int call0 (FTN_NODE *node)
       sin.sin_family = hp->h_addrtype;
       lockhostsem();
 #ifdef HTTPS
-      if (proxy[0] || socks[0])
+      if (config->proxy[0] || config->socks[0])
       {
 	char *sp = strchr(host, ':');
 	if (sp) *sp = '\0';
-	if (port == oport)
+	if (port == config->oport)
 	  Log (4, "trying %s via %s %s:%u...", host,
-	       proxy[0] ? "proxy" : "socks", inet_ntoa (sin.sin_addr), 
+	       config->proxy[0] ? "proxy" : "socks", inet_ntoa (sin.sin_addr),
 	       ntohs(sin.sin_port));
 	else
 	  Log (4, "trying %s:%u via %s %s:%u...", host, port,
-	       proxy[0] ? "proxy" : "socks", inet_ntoa (sin.sin_addr), 
+	       config->proxy[0] ? "proxy" : "socks", inet_ntoa (sin.sin_addr),
 	       ntohs(sin.sin_port));
 	sprintf(host+strlen(host), ":%u", port);
       }
       else
 #endif
       {
-	if (port == oport)
+	if (port == config->oport)
           Log (4, "trying %s...", inet_ntoa (sin.sin_addr));
 	else
           Log (4, "trying %s:%u...", inet_ntoa (sin.sin_addr), port);
       }
       releasehostsem();
-      if (bindaddr[0])
+      if (config->bindaddr[0])
       {
         struct sockaddr_in src_sin;
         memset(&src_sin, 0, sizeof(src_sin));
-        src_sin.sin_addr.s_addr = inet_addr(bindaddr);
+        src_sin.sin_addr.s_addr = inet_addr(config->bindaddr);
         src_sin.sin_family = AF_INET;
         if (bind(sockfd, (struct sockaddr *)&src_sin, sizeof(src_sin)))
           Log(4, "bind: %s", TCPERR());
       }
 #ifdef HAVE_FORK
-      if (connect_timeout)
+      if (config->connect_timeout)
       {
 	if (setjmp(jmpbuf))
 	{
@@ -493,7 +523,7 @@ static int call0 (FTN_NODE *node)
 	  goto badtry;
 	}
 	signal(SIGALRM, chld);
-	alarm(connect_timeout);
+	alarm(config->connect_timeout);
       }
 #endif
       if (connect (sockfd, (struct sockaddr *) & sin, sizeof (sin)) == 0)
@@ -515,7 +545,7 @@ badtry:
       if (!binkd_exit)
       {
 	Log (1, "unable to connect: %s", save_err);
-	bad_try (&node->fa, save_err, BAD_CALL);
+	bad_try (&node->fa, save_err, BAD_CALL, config);
       }
       del_socket(sockfd);
       soclose (sockfd);
@@ -523,20 +553,20 @@ badtry:
     }
 #ifdef HAVE_THREADS
 #ifdef HTTPS
-    if (!proxy[0] && !socks[0])
+    if (!config->proxy[0] && !config->socks[0])
 #endif
       free_hostent(hp);
 #endif
 #ifdef HTTPS
-    if (sockfd != INVALID_SOCKET && (proxy[0] || socks[0])) {
-      if (h_connect(sockfd, host) != 0) {
+    if (sockfd != INVALID_SOCKET && (config->proxy[0] || config->socks[0])) {
+      if (h_connect(sockfd, host, config) != 0) {
 	if (!binkd_exit)
-          bad_try (&node->fa, TCPERR (), BAD_CALL);
+          bad_try (&node->fa, TCPERR (), BAD_CALL, config);
         del_socket(sockfd);
         soclose (sockfd);
         sockfd = INVALID_SOCKET;
       }
-      else if (port == oport) {
+      else if (port == config->oport) {
         char *pp;
         if( (pp = strchr(host, ':')) ){
           *pp = '\0';
@@ -546,22 +576,22 @@ badtry:
 #endif
   }
 #if defined(HAVE_THREADS) && defined(HTTPS)
-  if (proxy[0] || socks[0])
+  if (config->proxy[0] || config->socks[0])
     free_hostent(hp);
 #endif
 
   if (sockfd == INVALID_SOCKET)
     return 0;
 
-  protocol (sockfd, node, host);
+  protocol (sockfd, node, host, config);
   del_socket(sockfd);
   soclose (sockfd);
   return 1;
 }
 
-void call (void *arg)
+static void call (void *arg)
 {
-  FTN_NODE *node = (FTN_NODE *) arg;
+  struct call_args *a = arg;
 #if defined(WITH_PERL) && defined(HAVE_THREADS)
   void *cperl;
 #endif
@@ -569,14 +599,15 @@ void call (void *arg)
 #if defined(WITH_PERL) && defined(HAVE_THREADS)
   cperl = perl_init_clone();
 #endif
-  if (bsy_add (&node->fa, F_CSY))
+  if (bsy_add (&a->node->fa, F_CSY, a->config))
   {
-    call0 (node);
-    bsy_remove (&node->fa, F_CSY);
+    call0 (a->node, a->config);
+    bsy_remove (&a->node->fa, F_CSY, a->config);
   }
 #if defined(WITH_PERL) && defined(HAVE_THREADS)
   perl_done_clone(cperl);
 #endif
+  unlock_config_structure(a->config);
   free (arg);
   rel_grow_handles(-6);
 #ifdef HAVE_THREADS

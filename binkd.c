@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.57  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.56  2003/08/26 14:36:47  gul
  * Perl hooks in os2-emx
  *
@@ -237,29 +243,17 @@
  *    Port to NT
  */
 
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <signal.h>
-#include <setjmp.h>
-#include <time.h>
 #include <ctype.h>
 
-#include "Config.h"
-#include "sys.h"
-#include "iphdr.h"
-#include "common.h"
 #include "readcfg.h"
+#include "common.h"
+
 #include "server.h"
 #include "client.h"
 #include "tools.h"
 #include "bsy.h"
 #include "protocol.h"
-#include "assert.h"
-#include "binlog.h"
 #include "setpttl.h"
-#include "sem.h"
 
 #ifdef HAVE_GETOPT
 #include <unistd.h>
@@ -290,6 +284,7 @@ MUTEXSEM resolvsem = 0;
 MUTEXSEM lsem = 0;
 MUTEXSEM blsem = 0;
 MUTEXSEM varsem = 0;
+MUTEXSEM config_sem = 0;
 EVENTSEM eothread = 0;
 EVENTSEM exitcmgr = 0;
 #ifdef OS2
@@ -303,7 +298,7 @@ MUTEXSEM fhsem = 0;
 int pidcmgr = 0;		       /* pid for clientmgr */
 int pidCmgr = 0;		       /* real pid for clientmgr (not 0) */
 int pidsmgr = 0;		       /* pid for server */
-SOCKET inetd_socket = 0;
+static SOCKET inetd_socket = 0;
 
 char *configpath = NULL;               /* Config file name */
 
@@ -313,11 +308,10 @@ static void chld (int signo)
 #include "reapchld.inc"
 }
 
-jmp_buf jb;
 static void hup (int signo)
 {
   Log (2, "got SIGHUP");
-  longjmp (jb, 1);
+  /* !!! ToDo: safe reload of configurations (don't mess with regular checks!) */
 }
 #endif
 
@@ -354,11 +348,7 @@ void usage (void)
 #ifdef BINKD_DAEMONIZE
 	  "  -D       run as daemon\n"
 #endif
-#if defined(HAVE_FORK) || defined(BINKDW9X)
 	  "  -C       reload on config change\n"
-#else
-	  "  -C       exit(3) on config change\n"
-#endif
 	  "  -c       run client only\n"
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
 	  "  -i       run from inetd\n"
@@ -411,10 +401,7 @@ int checkcfg_flag = 0;		       /* exit(3) on config change (-C) */
 int no_MD5 = 0;			       /* disable MD5 flag (-m) */
 int no_crypt = 0;		       /* disable CRYPT (-r) */
 
-struct polls{
-  char *addr;
-  struct polls *next;
-} *psPolls = NULL;                     /* Create polls (-P) */
+static TYPE_LIST(maskchain) psPolls;   /* Create polls (-P) */
 
 #ifdef WIN32
 enum serviceflags service_flag = w32_noservice;  /* install, uninstall, start, stop, restart wnt/w9x service */
@@ -454,7 +441,6 @@ char *parseargs (int argc, char *argv[])
 {
   char *cfgfile=NULL;
   int i, curind, rerun = 0;
-  struct polls *psP;
 
   /* rerun will be removed when reconfig-on-fly feature will be added */
   if (getenv("BINKD_RERUN")) rerun = 1;
@@ -546,10 +532,12 @@ char *parseargs (int argc, char *argv[])
 
 	    case 'P': /* create poll to node */
 	      if (rerun) break;
-	      psP=psPolls;
-	      psPolls = malloc(sizeof(struct polls));
-              psPolls->next = psP;
-              psPolls->addr = optarg;
+              {
+                struct maskchain new_entry;
+
+                new_entry.mask = xstrdup(optarg);
+                simplelist_add(&psPolls.linkpoint, &new_entry, sizeof(new_entry));
+              }
 	      break;
 
 	    case 'p': /* run clients and exit */
@@ -680,14 +668,12 @@ int main (int argc, char *argv[], char *envp[])
   InitSem (&lsem);
   InitSem (&blsem);
   InitSem (&varsem);
+  InitSem (&config_sem);
   InitEventSem (&eothread);
   InitEventSem (&exitcmgr);
 #ifdef OS2
   InitSem (&fhsem);
 #endif
-
-  if (verbose_flag >= 3)
-    debugcfg = 1;
 
   /* Init for ftnnode.c */
   nodes_init ();
@@ -707,28 +693,6 @@ int main (int argc, char *argv[], char *envp[])
     Log (0, "%s: invalid command line: config name must be specified", extract_filename(argv[0]));
   else
     usage ();
-
-  if (quiet_flag)
-  {
-    percents = 0;
-    conlog = 0;
-    printq = 0;
-  }
-  switch (verbose_flag)
-    {
-      case 0:
-	break;
-      case 1:
-	percents = printq = 1;
-	loglevel = conlog = 4;
-	break;
-      case 2:
-      case 3:
-      default:
-	percents = printq = 1;
-	loglevel = conlog = 6;
-	break;
-    }
 
   print_args (tmp, sizeof (tmp), argv + 1);
 #ifdef WIN32
@@ -774,19 +738,16 @@ int main (int argc, char *argv[], char *envp[])
 #endif
 
   { /* Create polls and release polls list */
-    struct polls *psP;
-    while(psPolls){
-      poll_node (psPolls->addr);
-      psP = psPolls;
-      psPolls = psPolls->next;
-      free(psP);
-    }
+    struct maskchain *psP;
+    for (psP = psPolls.first; psP; psP = psP->next)
+      poll_node (psP->mask, current_config);
+    simplelist_free(&psPolls.linkpoint, destroy_maskchain);
   }
 
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
   if (inetd_flag)
   {
-    protocol (inetd_socket, 0, NULL);
+    protocol (inetd_socket, 0, NULL, current_config);
     soclose (inetd_socket);
     exit (0);
   }
@@ -816,10 +777,7 @@ int main (int argc, char *argv[], char *envp[])
   if (client_flag && !server_flag)
   {
 #if defined(HAVE_FORK)
-    if (setjmp(jb))
-      goto binkdrestart;
-    else
-      signal (SIGHUP, hup);
+    signal (SIGHUP, hup);
 #endif
     clientmgr (0);
     exit (0);
@@ -832,26 +790,14 @@ int main (int argc, char *argv[], char *envp[])
   }
 
 #if defined(HAVE_FORK)
-  if (setjmp (jb))
-  {
-binkdrestart:
-    exitfunc();
-    print_args (tmp, sizeof (tmp), saved_argv + 1);
-    Log (2, "exec %s%s", saved_argv[0], tmp);
-    if (execv (saved_argv[0], saved_argv) == -1)
-      Log (1, "execv: %s", strerror (errno));
-  }
-  else
-  {
-    signal (SIGHUP, hup);
-  }
+  signal (SIGHUP, hup);
 #endif
 
-  if (*pid_file)
+  if (*current_config->pid_file)
   {
-    if ( unlink (pid_file) == 0 ) /* successfully unlinked, i.e.
-                                     an old pid_file was found */
-	Log (1, "unexpected pid_file: %s: unlinked", pid_file);
+    if ( unlink (current_config->pid_file) == 0 ) /* successfully unlinked, i.e.
+                                                     an old pid_file was found */
+	Log (1, "unexpected pid_file: %s: unlinked", current_config->pid_file);
     else
     {
 	int current_log_level = 1;
@@ -863,14 +809,12 @@ binkdrestart:
 	   default :
 		break;
 	}
-	Log (current_log_level, "unlink_pid_file: %s: %s", pid_file, strerror (errno));
+	Log (current_log_level, "unlink_pid_file: %s: %s", current_config->pid_file, strerror (errno));
     }
-    if ( create_sem_file (pid_file) == 0 ) /* could not create pid_file */
-	if (loglevel < 5) /* not logged in create_sem_file() */
-	    Log (1, "create_sem_file: %s: %s", pid_file, strerror (errno));
+    create_sem_file (current_config->pid_file, 1);
   }
 
-  servmgr (0);
+  servmgr ();
 
   return 0;
 }

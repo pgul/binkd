@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/08/26 16:06:27  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.2  2003/08/23 15:51:51  stream
  * Implemented common list routines for all linked records in configuration
  *
@@ -32,16 +38,12 @@
 #ifndef _readflo_h
 #define _readflo_h
 
-#include <stdio.h>
-
 typedef struct _RF_RULE RF_RULE;
 struct _RF_RULE
 {
   RF_RULE *next;
   char *from, *to;
 };
-
-extern DEFINE_LIST(_RF_RULE) rf_rules;
 
 /*
  * Reads a line from a flo to dst[MAXPATHLEN], sets action
@@ -55,6 +57,6 @@ int read_flo_line (char *dst, int *action, FILE *flo);
  * Returns 0 if no rf_rules defined, otherwise returned value
  * should be free()'d
  */
-char *trans_flo_line (char *s);
+char *trans_flo_line (char *s, BINKD_CONFIG *config);
 
 #endif

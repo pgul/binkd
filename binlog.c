@@ -26,6 +26,12 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.9  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.8  2003/08/17 19:07:10  gul
  * Fix typo
  *
@@ -65,19 +71,15 @@
 /*                        System include files                        */
 /*--------------------------------------------------------------------*/
 
-#include <time.h>
-#include <stdio.h>
 /*--------------------------------------------------------------------*/
 /*                        Local include files                         */
 /*--------------------------------------------------------------------*/
 
-#include "Config.h"
-#include "binlog.h"
-#include "sys.h"
 #include "readcfg.h"
-#include "prothlp.h"
 #include "protoco2.h"
-#include "assert.h"
+#include "binlog.h"
+
+#include "tools.h"
 #include "sem.h"
 
 /*--------------------------------------------------------------------*/
@@ -86,7 +88,7 @@
 /*    Add record to T-Mail style binary log.                          */
 /*--------------------------------------------------------------------*/
 
-void TLogStat (char *status, STATE *state)
+void TLogStat (char *status, STATE *state, BINKD_CONFIG *config)
 {
 	struct {
 		u16    fZone;
@@ -104,7 +106,7 @@ void TLogStat (char *status, STATE *state)
 
 	FILE *fl;
 
-	if (binlogpath[0]) {
+	if (config->binlogpath[0]) {
 		TS.fStatus = 0;
 
 		if (state->to) {
@@ -130,19 +132,19 @@ void TLogStat (char *status, STATE *state)
 		TS.fBSent = state->bytes_sent;
 		TS.fFReceive = state->files_rcvd;
 		TS.fFSent = state->files_sent;
-		TS.fSTime = state->start_time + tz_off(state->start_time)*60;
+		TS.fSTime = state->start_time + tz_off(state->start_time, config)*60;
 		TS.fLTime = safe_time() - state->start_time;
 		if (STRICMP(status, "OK") != 0) {
 			TS.fStatus |= 3;
 		}
 		LockSem(&blsem);
-		if ((fl = fopen(binlogpath,"ab")) != NULL) {
+		if ((fl = fopen(config->binlogpath,"ab")) != NULL) {
 			fwrite(&TS,sizeof(TS),1,fl);
 			fclose(fl);
 			ReleaseSem(&blsem);
 		} else {
 			ReleaseSem(&blsem);
-			Log(1,"unable to open binary log file `%s'",binlogpath);
+			Log(1,"unable to open binary log file `%s'",config->binlogpath);
 		}
 	}
 
@@ -154,7 +156,7 @@ void TLogStat (char *status, STATE *state)
 /*    Add record to FrontDoor-style binary log.                       */
 /*--------------------------------------------------------------------*/
 
-void FDLogStat (STATE *state)
+void FDLogStat (STATE *state, BINKD_CONFIG *config)
 {
 	struct
 	{
@@ -175,12 +177,12 @@ void FDLogStat (STATE *state)
 	FILE *fp;
 	time_t t;
 
-	if (!state->fa || ((state->to && !fdouthist[0]) || (!state->to && !fdinhist[0])))
+	if (!state->fa || ((state->to && !config->fdouthist[0]) || (!state->to && !config->fdinhist[0])))
             return; /* nothing to do */
 
 	t = safe_time();
-	std.TimeStart = (u32)(state->start_time + tz_off(state->start_time)*60);
-	std.TimeEnd = (u32)(t + tz_off(t)*60);
+	std.TimeStart = (u32)(state->start_time + tz_off(state->start_time, config)*60);
+	std.TimeEnd = (u32)(t + tz_off(t, config)*60);
 	std.Zone = state->fa->z;
 	std.Net = state->fa->net;
 	std.Node = state->fa->node;
@@ -194,8 +196,8 @@ void FDLogStat (STATE *state)
 
 
 	LockSem(&blsem);
-	if (state->to) fp = fopen( fdouthist, "ab" );
-		  else fp = fopen( fdinhist , "ab" );
+	if (state->to) fp = fopen( config->fdouthist, "ab" );
+		  else fp = fopen( config->fdinhist , "ab" );
 
 	if( fp != NULL )
 	{
@@ -206,7 +208,7 @@ void FDLogStat (STATE *state)
 	else
 	{
 		ReleaseSem(&blsem);
-		Log (1, "failed to write to %s", (state->to ? fdouthist : fdinhist));
+		Log (1, "failed to write to %s", (state->to ? config->fdouthist : config->fdinhist));
 	}
 }
 
@@ -216,9 +218,9 @@ void FDLogStat (STATE *state)
 /*    Add record to binary logs.                                      */
 /*--------------------------------------------------------------------*/
 
-void BinLogStat (char *status, STATE *state)
+void BinLogStat (char *status, STATE *state, BINKD_CONFIG *config)
 {
-  TLogStat (status, state);
-  FDLogStat (state);
+  TLogStat (status, state, config);
+  FDLogStat (state, config);
 }
 

@@ -13,6 +13,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.8  2003/07/19 06:59:34  hbrew
  * Complex patch:
  * * nt/w32tools.c: Fix warnings
@@ -100,8 +106,6 @@ int branch (void (*) (void *), void *, size_t);
  * from signal handler (Under NT)
  */
 void exitfunc (void);
-
-int checkcfg (void);
 
 extern int n_servers, n_clients;
 extern int binkd_exit;

@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.2  2003/03/01 18:16:04  gul
  * Use HAVE_SYS_TIME_H macro
  *
@@ -27,4 +33,4 @@
  *
  */
 
-int h_connect(int socket, char *host);
+int h_connect(int socket, char *host, BINKD_CONFIG *config);

@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2003/08/26 16:06:27  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.10  2003/08/17 10:38:55  gul
  * Return semaphoring for log and binlog
  *
@@ -155,6 +161,7 @@ extern MUTEXSEM resolvsem;
 extern MUTEXSEM lsem;
 extern MUTEXSEM blsem;
 extern MUTEXSEM varsem;
+extern MUTEXSEM config_sem;
 extern EVENTSEM eothread;
 extern EVENTSEM exitcmgr;
 #define lockhostsem()		LockSem(&hostsem)

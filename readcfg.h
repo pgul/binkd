@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.20  2003/08/26 16:06:27  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.19  2003/08/23 15:51:51  stream
  * Implemented common list routines for all linked records in configuration
  *
@@ -99,7 +105,23 @@
 #ifndef _readcfg_h
 #define _readcfg_h
 
+#include <stdio.h>
+
 #include "Config.h"
+
+struct list_itemlink  { void *next; };  /* in the beginning of each item! */
+struct list_linkpoint { struct list_itemlink *last; }; /* in the beginning of each list! */
+
+#define TYPE_LIST(itemtype)  struct simplelist_##itemtype
+#define DEFINE_LIST(itemtype)       \
+  TYPE_LIST(itemtype)               \
+  {                                 \
+  struct list_linkpoint linkpoint;  \
+  struct itemtype *first;           \
+  }
+
+typedef struct _BINKD_CONFIG BINKD_CONFIG;
+
 #include "iphdr.h"
 #include "ftnaddr.h"
 #include "ftndom.h"
@@ -116,93 +138,12 @@
 /* val: enum for checks */
 typedef enum { A_ALL=-1, A_LST=1, A_UNLST=2, A_PROT=4, A_UNPROT=8 } addrtype;
 
-struct list_itemlink  { void *next; };  /* in the beginning of each item! */
-struct list_linkpoint { struct list_itemlink *last; }; /* in the beginning of each list! */
-
-#define TYPE_LIST(itemtype)  struct simplelist_##itemtype
-#define DEFINE_LIST(itemtype)       \
-  TYPE_LIST(itemtype)               \
-  {                                 \
-  struct list_linkpoint linkpoint;  \
-  struct itemtype *first;           \
-  }
-
-extern int nAddr;
-extern FTN_ADDR *pAddr;
-extern int iport;
-extern int oport;
-extern int oblksize;
-extern int nettimeout;
-extern int rescan_delay;
-extern int call_delay;
-extern int max_servers;
-extern int max_clients;
-extern char sysname[MAXSYSTEMNAME + 1];
-extern char bindaddr[16];
-extern char sysop[MAXSYSOPNAME + 1];
-extern char location[MAXLOCATIONNAME + 1];
-extern char nodeinfo[MAXNODEINFO + 1];
-extern char inbound[MAXPATHLEN + 1];
-extern char inbound_nonsecure[MAXPATHLEN + 1];
-extern char temp_inbound[MAXPATHLEN + 1];
-extern int kill_dup_partial_files;
-extern int kill_old_partial_files;
-extern int kill_old_bsy;
-extern int minfree;
-extern int minfree_nonsecure;
-extern int tries;
-extern int hold;
-extern int hold_skipped;
-extern int backresolv;
-extern int send_if_pwd;
-extern int debugcfg;
-extern char logpath[MAXPATHLEN + 1];
-extern char binlogpath[MAXPATHLEN + 1];
-extern char fdinhist[MAXPATHLEN + 1];
-extern char fdouthist[MAXPATHLEN + 1];
-extern char pid_file[MAXPATHLEN + 1];
-extern int loglevel;
-extern int conlog;
-extern int printq;
-extern int percents;
-extern int tzoff;
-extern char root_domain[MAXHOSTNAMELEN + 1];
-extern int prescan;
-extern enum inbcasetype { INB_SAVE,INB_UPPER,INB_LOWER,INB_MIXED } inboundcase;
-extern int deletedirs;
-extern int havedefnode;
-extern int connect_timeout;
-extern int syslog_facility;
-extern addrtype pkthdr_type;
-extern char *pkthdr_bad;
-#ifdef MAILBOX
-/* FileBoxes dir */
-extern char tfilebox[MAXPATHLEN + 1];
-/* BrakeBoxes dir */
-extern char bfilebox[MAXPATHLEN + 1];
-extern int deleteablebox;
-#endif
-#ifdef HTTPS
-extern char proxy[MAXHOSTNAMELEN + 40];
-extern char socks[MAXHOSTNAMELEN + 40];
-#endif
-#ifdef AMIGADOS_4D_OUTBOUND
-extern int aso;
-#endif
-#ifdef WITH_PERL
-extern char perl_script[MAXPATHLEN + 1];
-extern char perl_dll[MAXPATHLEN + 1];
-extern int perl_strict;
-#endif
-
 /* val: use for overwrite and nolog */
 struct maskchain
 {
   struct maskchain *next;
   char *mask;
 };
-extern DEFINE_LIST(maskchain) overwrite, nolog;
-
 /* val: struct for skipmask */
 struct skipchain
 {
@@ -212,8 +153,6 @@ struct skipchain
   off_t size;
   int destr;
 };
-extern DEFINE_LIST(skipchain) skipmask;
-
 /* val: struct for hide-aka, present-aka */
 struct akachain
 {
@@ -222,18 +161,149 @@ struct akachain
   char *mask;
   enum { ACT_UNKNOWN=0, ACT_HIDE, ACT_PRESENT } type;
 };
-extern DEFINE_LIST(akachain) akamask;
+
+struct _BINKD_CONFIG
+{
+  int        usageCount;               /* when it reaches zero, config can be freed */
+
+  int        nAddr;          /* total addresses defined */
+  FTN_ADDR  *pAddr;          /* array of adresses */
+
+  int        nNod;           /* number of nodes */
+  FTN_NODE  *pNod;           /* array of nodes  */
+  int        nNodSorted;     /* internal flag   */
+
+  int        iport;
+  int        oport;
+  int        oblksize;
+  int        nettimeout;
+  int        connect_timeout;
+  int        rescan_delay;
+  int        call_delay;
+  int        max_servers;
+  int        max_clients;
+  int        kill_dup_partial_files;
+  int        kill_old_partial_files;
+  int        kill_old_bsy;
+  int        minfree;
+  int        minfree_nonsecure;
+  int        tries;
+  int        hold;
+  int        hold_skipped;
+  int        backresolv;
+  int        send_if_pwd;
+  int        debugcfg;
+  int        loglevel;
+  int        conlog;
+  int        printq;
+  int        percents;
+  int        tzoff;
+  int        prescan;
+  enum inbcasetype { INB_SAVE,INB_UPPER,INB_LOWER,INB_MIXED } inboundcase;
+  int        deletedirs;
+  int        havedefnode;
+#ifdef AMIGADOS_4D_OUTBOUND
+  int        aso;
+#endif
+  addrtype   pkthdr_type;
+  char      *pkthdr_bad;
+
+  DEFINE_LIST(conflist_type) config_list;
+  DEFINE_LIST(_FTN_DOMAIN)   pDomains;
+  DEFINE_LIST(maskchain)     overwrite, nolog;
+  DEFINE_LIST(skipchain)     skipmask;
+  DEFINE_LIST(_RF_RULE)      rf_rules;
+  DEFINE_LIST(_EVT_FLAG)     evt_flags;
+  DEFINE_LIST(akachain)      akamask;
+  DEFINE_LIST(_SHARED_CHAIN) shares; /* Linked list for shared akas header */
+
+  /*
+   #ifdef HTTPS
+   struct simplelistheader  proxylist;
+   #endif
+   */
+
+#ifdef HTTPS
+  char       proxy[MAXHOSTNAMELEN + 40];
+  char       socks[MAXHOSTNAMELEN + 40];
+#endif
+
+  char       root_domain[MAXHOSTNAMELEN + 1];
+  char       sysname[MAXSYSTEMNAME + 1];
+  char       bindaddr[16];
+  char       sysop[MAXSYSOPNAME + 1];
+  char       location[MAXLOCATIONNAME + 1];
+  char       nodeinfo[MAXNODEINFO + 1];
+  char       inbound[MAXPATHLEN + 1];
+  char       inbound_nonsecure[MAXPATHLEN + 1];
+  char       temp_inbound[MAXPATHLEN + 1];
+  char       logpath[MAXPATHLEN + 1];
+  char       binlogpath[MAXPATHLEN + 1];
+  char       fdinhist[MAXPATHLEN + 1];
+  char       fdouthist[MAXPATHLEN + 1];
+  char       pid_file[MAXPATHLEN + 1];
+#ifdef MAILBOX
+  char       tfilebox[MAXPATHLEN + 1];   /* FileBoxes dir */
+  char       bfilebox[MAXPATHLEN + 1];   /* BrakeBoxes dir */
+  int        deleteablebox;
+#endif
+
+#ifdef WITH_PERL
+  char       perl_script[MAXPATHLEN + 1];
+  char       perl_dll[MAXPATHLEN + 1];
+  int        perl_strict;
+#endif
+
+};
+
+extern BINKD_CONFIG  *current_config;
+
+#if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
+extern int syslog_facility;
+#endif
 
 /*
  * Parses and reads the path as a config
+ * Return 1 if config has been loaded Ok
  */
-void readcfg (char *path);
+int readcfg (char *path);
 
-int  get_host_and_port (int n, char *host, unsigned short *port, char *src, FTN_ADDR *fa);
+/*
+ * Checking for changed config files and reloading if necessary.
+ * Return 1 if config has been reloaded Ok
+ */
+int checkcfg (void);
+
+/*
+ * Locks current config structure and return pointer to it in one
+ * thread-safe operation
+ */
+BINKD_CONFIG *lock_current_config(void);
+
+/*
+ * Increment lock counter on specific config
+ */
+void lock_config_structure(BINKD_CONFIG *c);
+
+/*
+ * Release config structure after usage
+ */
+void unlock_config_structure(BINKD_CONFIG *c);
+
+/*
+ * Lists
+ */
+
+void simplelist_add(struct list_linkpoint *lp, void *data, int size);
+void simplelist_free(struct list_linkpoint *lp, void (*destructor)(void *));
+
+/*
+ * Popular destructors
+ */
+void destroy_maskchain(void *p);
+
+int  get_host_and_port (int n, char *host, unsigned short *port, char *src, FTN_ADDR *fa, BINKD_CONFIG *config);
 
 char *mask_test(char *s, struct maskchain *chain);
-
-/* Linked list for shared akas header */
-extern SHARED_CHAIN *shares;
 
 #endif

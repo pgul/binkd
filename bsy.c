@@ -6,6 +6,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.5  2003/06/11 13:10:34  gul
  * Do not try to remove bsy for 0:0/0 at exitlist
  *
@@ -28,34 +34,19 @@
  *
  *
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <time.h>
-#ifndef UNIX
-#include <io.h>
+
 #include <fcntl.h>
-#endif
-
-#include "sys.h"
-
-#ifdef OS2
-#define INCL_DOS
-#include <os2.h>
-#endif
 
 #include "readcfg.h"
 #include "bsy.h"
-#include "tools.h"
+
 #include "sem.h"
+#include "tools.h"
 #include "assert.h"
 #include "readdir.h" /* for rmdir() */
 
 #if defined(HAVE_THREADS) || defined(AMIGA)
-
 static MUTEXSEM sem;	/* =0 initializer fails for amiga. removed. useless anyway? */
-
 #endif
 
 typedef struct _BSY_ADDR BSY_ADDR;
@@ -98,12 +89,12 @@ static BSY_ADDR *bsy_get_free_cell (void)
   return lst;
 }
 
-int bsy_add (FTN_ADDR *fa0, bsy_t bt)
+int bsy_add (FTN_ADDR *fa0, bsy_t bt, BINKD_CONFIG *config)
 {
   char buf[MAXPATHLEN + 1];
   int ok = 0;
 
-  ftnaddress_to_filename (buf, fa0);
+  ftnaddress_to_filename (buf, fa0, config);
 
   LockSem (&sem);
   if (*buf)
@@ -112,7 +103,7 @@ int bsy_add (FTN_ADDR *fa0, bsy_t bt)
     if (mkpath (buf) == -1)
       Log (1, "mkpath: %s", strerror (errno));
 
-    if (create_sem_file (buf))
+    if (create_sem_file (buf, 5))
     {
       BSY_ADDR *new_bsy = bsy_get_free_cell ();
 
@@ -143,11 +134,11 @@ int bsy_add (FTN_ADDR *fa0, bsy_t bt)
 /*
  * Test a busy-flag. 1 -- free, 0 -- busy
  */
-int bsy_test (FTN_ADDR *fa0, bsy_t bt)
+int bsy_test (FTN_ADDR *fa0, bsy_t bt, BINKD_CONFIG *config)
 {
   char buf[MAXPATHLEN + 1];
 
-  ftnaddress_to_filename (buf, fa0);
+  ftnaddress_to_filename (buf, fa0, config);
   if (*buf)
   {
     strnzcat (buf, bt == F_CSY ? ".csy" : ".bsy", sizeof (buf));
@@ -161,12 +152,12 @@ int bsy_test (FTN_ADDR *fa0, bsy_t bt)
   return 0;
 }
 
-void bsy_remove (FTN_ADDR *fa0, bsy_t bt)
+void bsy_remove (FTN_ADDR *fa0, bsy_t bt, BINKD_CONFIG *config)
 {
   char buf[MAXPATHLEN + 1], *p;
   BSY_ADDR *bsy;
 
-  ftnaddress_to_filename (buf, fa0);
+  ftnaddress_to_filename (buf, fa0, config);
   if (*buf)
   {
     strnzcat (buf, bt == F_CSY ? ".csy" : ".bsy", sizeof (buf));
@@ -183,7 +174,7 @@ void bsy_remove (FTN_ADDR *fa0, bsy_t bt)
 #endif
 	delete (buf);
 	/* remove empty point directory */
-	if (deletedirs && fa0->p != 0 && (p = strrchr(buf, *(PATH_SEPARATOR))) != NULL)
+	if (config->deletedirs && fa0->p != 0 && (p = last_slash(buf)) != NULL)
 	{
 	  *p = '\0';
 	  rmdir(buf);
@@ -199,7 +190,7 @@ void bsy_remove (FTN_ADDR *fa0, bsy_t bt)
 /*
  * For exitlist...
  */
-void bsy_remove_all (void)
+void bsy_remove_all (BINKD_CONFIG *config)
 {
   char buf[MAXPATHLEN + 1], *p;
   BSY_ADDR *bsy;
@@ -207,7 +198,7 @@ void bsy_remove_all (void)
   for (bsy = bsy_list; bsy; bsy = bsy->next)
   {
     if (FA_ISNULL (&bsy->fa)) continue; /* free cell */
-    ftnaddress_to_filename (buf, &bsy->fa);
+    ftnaddress_to_filename (buf, &bsy->fa, config);
     if (*buf)
     {
       strnzcat (buf, bsy->bt == F_CSY ? ".csy" : ".bsy", sizeof (buf));
@@ -218,7 +209,7 @@ void bsy_remove_all (void)
 #endif
       delete (buf);
       /* remove empty point directory */
-      if (deletedirs && bsy->fa.p != 0 && (p = strrchr(buf, *(PATH_SEPARATOR))) != NULL)
+      if (config->deletedirs && bsy->fa.p != 0 && (p = last_slash(buf)) != NULL)
       {
 	*p = '\0';
 	rmdir(buf);
@@ -234,7 +225,7 @@ void bsy_remove_all (void)
 /*
  * Touchs all our .bsy's if needed
  */
-void bsy_touch (void)
+void bsy_touch (BINKD_CONFIG *config)
 {
   static time_t last_touch = 0;
 
@@ -246,7 +237,7 @@ void bsy_touch (void)
 
     for (bsy = bsy_list; bsy; bsy = bsy->next)
     {
-      ftnaddress_to_filename (buf, &bsy->fa);
+      ftnaddress_to_filename (buf, &bsy->fa, config);
       if (*buf)
       {
 	strnzcat (buf, bsy->bt == F_CSY ? ".csy" : ".bsy", sizeof (buf));

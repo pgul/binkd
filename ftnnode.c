@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.18  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.17  2003/08/18 17:19:13  stream
  * Partially implemented new configuration parser logic (required for config reload)
  *
@@ -81,22 +87,16 @@
  * Initial revision
  */
 
-#include <stdlib.h>
-#include <string.h>
-#include "assert.h"
-#include "ftnnode.h"
-#include "ftnq.h"
-#include "tools.h"
-#include "sem.h"
 #include "readcfg.h"
+#include "ftnnode.h"
+
+#include "sem.h"
+#include "tools.h"
+#include "ftnq.h"
 
 #if defined(HAVE_THREADS) || defined(AMIGA)
 static MUTEXSEM NSem;
 #endif
-
-int nNod = 0;
-FTN_NODE *pNod = 0;
-int nNodSorted = 0;
 
 /*
  * Call this before all others functions from this file.
@@ -132,106 +132,103 @@ static int node_cmp (FTN_NODE *a, FTN_NODE *b)
 /*
  * Sorts pNod array. Must NOT be called if NSem is locked!
  */
-static void sort_nodes (void)
+static void sort_nodes (BINKD_CONFIG *config)
 {
-  qsort (pNod, nNod, sizeof (FTN_NODE), (int (*) (const void *, const void *)) node_cmp);
-  nNodSorted = 1;
+  qsort (config->pNod, config->nNod, sizeof (FTN_NODE), (int (*) (const void *, const void *)) node_cmp);
+  config->nNodSorted = 1;
 }
 
 /*
  * Add a new node, or edit old settings for a node
- *
- * 1 -- ok, 0 -- error;
  */
-static int add_node_nolock(FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
+static void add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
 	      char *obox, char *ibox, int NR_flag, int ND_flag,
-	      int MD_flag, int restrictIP, int HC_flag)
+	      int MD_flag, int restrictIP, int HC_flag, BINKD_CONFIG *config)
 {
   int cn;
+  FTN_NODE *pn;
 
-  for (cn = 0; cn < nNod; ++cn)
+  for (cn = 0; cn < config->nNod; ++cn)
   {
-    if (!ftnaddress_cmp (&pNod[cn].fa, fa))
+    pn = config->pNod + cn;
+    if (!ftnaddress_cmp (&(pn->fa), fa))
       break;
   }
   /* Node not found, create new entry */
-  if (cn >= nNod)
+  if (cn >= config->nNod)
   {
-    cn = nNod;
-
-    pNod = xrealloc (pNod, sizeof (FTN_NODE) * ++nNod);
-    memset (pNod + cn, 0, sizeof (FTN_NODE));
-    memcpy (&pNod[cn].fa, fa, sizeof (FTN_ADDR));
-    strcpy (pNod[cn].pwd, "-");
-    pNod[cn].hosts = NULL;
-    pNod[cn].obox_flvr = 'f';
-    pNod[cn].NR_flag = NR_OFF;
-    pNod[cn].ND_flag = ND_OFF;
-    pNod[cn].MD_flag = MD_USE_OLD;
-    pNod[cn].HC_flag = HC_USE_OLD;
-    pNod[cn].restrictIP = RIP_OFF;
+    cn = config->nNod;
+    config->pNod = xrealloc (config->pNod, sizeof (FTN_NODE) * ++(config->nNod));
+    pn = config->pNod + cn;
+    memset (pn, 0, sizeof (FTN_NODE));
+    memcpy (&(pn->fa), fa, sizeof (FTN_ADDR));
+    strcpy (pn->pwd, "-");
+    pn->hosts = NULL;
+    pn->obox_flvr = 'f';
+    pn->NR_flag = NR_OFF;
+    pn->ND_flag = ND_OFF;
+ /*   pn->NP_flag = NP_OFF; */
+    pn->MD_flag = MD_USE_OLD;
+    pn->HC_flag = HC_USE_OLD;
+    pn->restrictIP = RIP_OFF;
 
     /* We've broken the order... */
-    nNodSorted = 0;
+    config->nNodSorted = 0;
   }
 
   if (MD_flag != MD_USE_OLD)
-    pNod[cn].MD_flag = MD_flag;
+    pn->MD_flag = MD_flag;
   if (restrictIP != RIP_USE_OLD) 
-    pNod[cn].restrictIP = restrictIP;
+    pn->restrictIP = restrictIP;
   if (NR_flag != NR_USE_OLD)
-    pNod[cn].NR_flag = NR_flag;
+    pn->NR_flag = NR_flag;
   if (ND_flag != ND_USE_OLD)
-    pNod[cn].ND_flag = ND_flag;
+    pn->ND_flag = ND_flag;
+/*  if (NP_flag != NP_USE_OLD)
+    pn->NP_flag = NP_flag; */
   if (HC_flag != HC_USE_OLD)
-    pNod[cn].HC_flag = HC_flag;
+    pn->HC_flag = HC_flag;
 
   if (hosts && *hosts)
   {
-    if (pNod[cn].hosts) free (pNod[cn].hosts);	       
-    pNod[cn].hosts = xstrdup (hosts);
+    xfree (pn->hosts);	       
+    pn->hosts = xstrdup (hosts);
   }
 
   if (pwd && *pwd && strcmp(pwd, "-"))
   {
-    strnzcpy (pNod[cn].pwd, pwd, sizeof (pNod[cn].pwd));
+    strnzcpy (pn->pwd, pwd, sizeof (pn->pwd));
   }
 
   if (obox_flvr != '-')
   {
-    pNod[cn].obox_flvr = obox_flvr;
+    pn->obox_flvr = obox_flvr;
   }
 
   if (obox)
   {
-    if (pNod[cn].obox)
-      free (pNod[cn].obox);
-    pNod[cn].obox = xstrdup (obox);
+    xfree (pn->obox);
+    pn->obox = xstrdup (obox);
   }
 
   if (ibox)
   {
-    if (pNod[cn].ibox)
-      free (pNod[cn].ibox);
-    pNod[cn].ibox = xstrdup (ibox);
+    xfree (pn->ibox);
+    pn->ibox = xstrdup (ibox);
   }
-
-  return 1;
 }
 
-int add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
+void add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
 	      char *obox, char *ibox, int NR_flag, int ND_flag,
-	      int MD_flag, int restrictIP, int HC_flag)
+	      int MD_flag, int restrictIP, int HC_flag, BINKD_CONFIG *config)
 {
-  int res;
   locknodesem();
-  res = add_node_nolock(fa, hosts, pwd, obox_flvr, obox, ibox, NR_flag, ND_flag,
-                        MD_flag, restrictIP, HC_flag);
+  add_node_nolock(fa, hosts, pwd, obox_flvr, obox, ibox, NR_flag, ND_flag,
+                  MD_flag, restrictIP, HC_flag, config);
   releasenodesem();
-  return res;
 }
 
-static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on)
+static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *config)
 {
   struct hostent *he;
   FTN_NODE n, *np;
@@ -241,14 +238,17 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on)
 
   strcpy(n.fa.domain, "defnode");
   n.fa.z=n.fa.net=n.fa.node=n.fa.p=0;
-  np = (FTN_NODE *) bsearch (&n, pNod, nNod, sizeof (FTN_NODE),
+  np = (FTN_NODE *) bsearch (&n, config->pNod, config->nNod, sizeof (FTN_NODE),
                  (int (*) (const void *, const void *)) node_cmp);
 
   if (!np) /* we don't have defnode info */
     return on;
 
-  for (i=1; get_host_and_port(i, host, &port, np->hosts, fa)==1; i++)
+  for (i=1; np->hosts && get_host_and_port(i, host, &port, np->hosts, fa, config)==1; i++)
   {
+    if (!strcmp(host, "-"))
+      continue;
+
     lockresolvsem();
     he=gethostbyname(host);
     releaseresolvsem();
@@ -266,34 +266,34 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on)
     on->ND_flag=np->ND_flag;
     on->MD_flag=np->MD_flag;
     on->ND_flag=np->ND_flag;
+/*  on->NP_flag=np->NP_flag;  */
+    on->HC_flag=np->HC_flag;
     on->restrictIP=np->restrictIP;
     return on;
   }
 
-  if(!add_node_nolock(fa, host, NULL, np->obox_flvr, np->obox, np->ibox, 
-       np->NR_flag, np->ND_flag, np->MD_flag, np->restrictIP, np->HC_flag))
-    return NULL;
-  sort_nodes ();
+  add_node_nolock(fa, host, NULL, np->obox_flvr, np->obox, np->ibox, 
+       np->NR_flag, np->ND_flag, np->MD_flag, np->restrictIP, np->HC_flag, config);
+  sort_nodes (config);
   memcpy (&n.fa, fa, sizeof (FTN_ADDR));
-  return (FTN_NODE *) bsearch (&n, pNod, nNod, sizeof (FTN_NODE),
+  return (FTN_NODE *) bsearch (&n, config->pNod, config->nNod, sizeof (FTN_NODE),
                       (int (*) (const void *, const void *)) node_cmp);
 }
 /*
  * Return up/downlink info by fidoaddress. 0 == node not found
  */
-FTN_NODE *get_node_info (FTN_ADDR *fa)
+FTN_NODE *get_node_info (FTN_ADDR *fa, BINKD_CONFIG *config)
 {
   FTN_NODE n, *np;
 
-  if (!nNodSorted)
-    sort_nodes ();
+  if (!config->nNodSorted)
+    sort_nodes (config);
   memcpy (&n.fa, fa, sizeof (FTN_ADDR));
-  np = (FTN_NODE *) bsearch (&n, pNod, nNod, sizeof (FTN_NODE),
+  np = (FTN_NODE *) bsearch (&n, config->pNod, config->nNod, sizeof (FTN_NODE),
 			   (int (*) (const void *, const void *)) node_cmp);
-  if ((!np || !np->hosts) && havedefnode)
-    np=get_defnode_info(fa, np);
-  else if (np && !np->hosts)
-    /* node exists only in passwords and defnode is not defined */
+  if ((!np || !np->hosts) && config->havedefnode)
+    np=get_defnode_info(fa, np, config);
+  if (np && !np->hosts) /* still no hosts? */
     np->hosts = xstrdup("-");
   return np;
 }
@@ -302,12 +302,12 @@ FTN_NODE *get_node_info (FTN_ADDR *fa)
  * Find up/downlink info by fidoaddress and write info into node var.
  * Return pointer to node structure or NULL if node not found.
  */
-FTN_NODE *get_node (FTN_ADDR *fa, FTN_NODE *node)
+FTN_NODE *get_node (FTN_ADDR *fa, FTN_NODE *node, BINKD_CONFIG *config)
 {
   FTN_NODE *n;
 
   locknodesem();
-  if ((n = get_node_info(fa)) == NULL)
+  if ((n = get_node_info(fa, config)) == NULL)
   {
     releasenodesem();
     return NULL;
@@ -320,17 +320,20 @@ FTN_NODE *get_node (FTN_ADDR *fa, FTN_NODE *node)
 /*
  * Iterates through nodes while func() == 0.
  */
-int foreach_node (int (*func) (FTN_NODE *, void *), void *arg)
+int foreach_node (int (*func) (FTN_NODE *, void *), void *arg, BINKD_CONFIG *config)
 {
   int i, rc = 0;
 
+  if (!config->nNodSorted)
+    sort_nodes (config);
+
   locknodesem();
-  for (i = 0; i < nNod; ++i)
+  for (i = 0; i < config->nNod; ++i)
   {
-    if (!pNod[i].hosts)
-      rc = func (get_node_info(&(pNod[i].fa)), arg);
+    if (!config->pNod[i].hosts)
+      rc = func (get_node_info(&(config->pNod[i].fa), config), arg);
     else
-      rc = func (pNod + i, arg);
+      rc = func (config->pNod + i, arg);
     if (rc != 0)
       break;
   }
@@ -341,11 +344,11 @@ int foreach_node (int (*func) (FTN_NODE *, void *), void *arg)
 /*
  * Create a poll for an address (in "z:n/n.p" format) (0 -- bad)
  */
-int poll_node (char *s)
+int poll_node (char *s, BINKD_CONFIG *config)
 {
   FTN_ADDR target;
 
-  if (!parse_ftnaddress (s, &target))
+  if (!parse_ftnaddress (s, &target, config))
   {
     Log (1, "`%s' cannot be parsed as a Fido-style address\n", s);
     return 0;
@@ -354,14 +357,13 @@ int poll_node (char *s)
   {
     char buf[FTN_ADDR_SZ + 1];
 
-    exp_ftnaddress (&target);
+    exp_ftnaddress (&target, config);
     ftnaddress_to_str (buf, &target);
     Log (4, "creating a poll for %s (`%c' flavour)", buf, POLL_NODE_FLAVOUR);
     locknodesem();
-    if (!get_node_info (&target))
-      if (!add_node_nolock (&target, "*", 0, '-', 0, 0, 0, 0, 0, 0, 0))
-	Log (1, "%s: add_node() failed", buf);
+    if (!get_node_info (&target, config))
+      add_node_nolock (&target, "*", 0, '-', 0, 0, 0, 0, 0, 0, 0, config);
     releasenodesem();
-    return create_poll (&target, POLL_NODE_FLAVOUR);
+    return create_poll (&target, POLL_NODE_FLAVOUR, config);
   }
 }

@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.14  2003/08/24 18:54:30  gul
  * Bugfix in timeout check on win32
  *
@@ -144,7 +150,6 @@ const char *tcperr (void);
   #define ReleaseErrorList()
   #define TCPERR() tcperr()
   #define TCPERRNO (tcperrno)
-  #include <stdio.h>
   #include <sys/errno.h>
   #undef ENAMETOOLONG
   #undef ENOTEMPTY
@@ -155,6 +160,7 @@ const char *tcperr (void);
 const char *tcperr (int);
 void ReleaseErrorList(void);
 
+  #include <errno.h>
   #define TCPERR() tcperr(h_errno)
   #define TCPERRNO (h_errno)
   #define TCPERR_WOULDBLOCK WSAEWOULDBLOCK

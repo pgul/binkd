@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.5  2003/03/26 10:44:40  gul
  * Code cleanup
  *
@@ -44,7 +50,7 @@
 /*
  * Finds ASCIIZ address
  */
-const char *get_hostname (struct sockaddr_in * addr, char *host, int len);
+const char *get_hostname (struct sockaddr_in * addr, char *host, int len, BINKD_CONFIG *config);
 
 #ifdef HAVE_THREADS
 struct hostent *copy_hostent(struct hostent *dest, struct hostent *src);

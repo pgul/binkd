@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.5  2003/08/24 19:42:08  gul
  * Get FTN-domain from matched zone in exp_ftnaddress()
  *
@@ -42,14 +48,11 @@
  * +ftnaddress_to_domain()
  */
 #include <ctype.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
 
-#include "Config.h"
+#include "readcfg.h"
 #include "tools.h"
+
 #include "ftnaddr.h"
-#include "readcfg.h"		       /* For pAddr[0] */
 
 typedef struct
 {
@@ -100,7 +103,7 @@ static int gettoken (TOKEN *token, char **s)
 
 #define TOKENS 10
 
-int parse_ftnaddress (char *s, FTN_ADDR *fa)
+int parse_ftnaddress (char *s, FTN_ADDR *fa, BINKD_CONFIG *config)
 {
   TOKEN token[TOKENS];
   int i;
@@ -151,7 +154,7 @@ int parse_ftnaddress (char *s, FTN_ADDR *fa)
     if (/*token[1].c != ':' ||*/ token_type (token[i + 1]) != T_WORD)
       return 0;
 
-    strcpy (fa->domain, (d = get_domain_info (token[i + 1].s)) ?
+    strcpy (fa->domain, (d = get_domain_info (token[i + 1].s, config)) ?
 	    (d->alias4 ? d->alias4->name : d->name) : token[i + 1].s);
     i += 2;
   }
@@ -174,26 +177,29 @@ int parse_ftnaddress (char *s, FTN_ADDR *fa)
  */
 void xftnaddress_to_str(char *s, FTN_ADDR *fa, int force_point)
 {
+  int n = 0;
   *s = 0;
   if (fa->z != -1)
-    sprintf (s, "%i:", fa->z);
+    n += sprintf (s + n, "%i:", fa->z);
   if (fa->net != -1)
-    sprintf (s + strlen (s), "%i", fa->net);
+    n += sprintf (s + n, "%i", fa->net);
   if (fa->node != -1)
-    sprintf (s + strlen (s), "/%i", fa->node);
+    n += sprintf (s + n, "/%i", fa->node);
   if (fa->p != 0 || fa->node == -1 || force_point)
-    sprintf (s + strlen (s), ".%i", fa->p);
+    n += sprintf (s + n, ".%i", fa->p);
   if (fa->domain[0])
-    sprintf (s + strlen (s), "@%s", fa->domain);
+    n += sprintf (s + n, "@%s", fa->domain);
 }
 
-void exp_ftnaddress (FTN_ADDR *fa)
+void exp_ftnaddress (FTN_ADDR *fa, BINKD_CONFIG *config)
 {
+  FTN_ADDR *pAddr = config->pAddr;
+
   if (!pAddr)
     Log (0, "you should define your address right after domains");
   if (fa->z == -1) {
     /* val: set default zone for a domain */
-    FTN_DOMAIN *d = get_domain_info(fa->domain);
+    FTN_DOMAIN *d = get_domain_info(fa->domain, config);
     fa->z = (d ? (d->alias4 ? *(d->alias4->z) : *(d->z)) : pAddr[0].z);
   }
   if (fa->net == -1)
@@ -201,7 +207,7 @@ void exp_ftnaddress (FTN_ADDR *fa)
   if (fa->node == -1)
     fa->node = pAddr[0].node;
   if (fa->domain[0] == 0)
-    strcpy (fa->domain, get_matched_domain(fa->z, pAddr, nAddr));
+    strcpy (fa->domain, get_matched_domain(fa->z, pAddr, config->nAddr, config));
 }
 
 int ftnaddress_cmp (FTN_ADDR *a, FTN_ADDR *b)
@@ -244,24 +250,24 @@ int ftnamask_cmpm (char *mask, int cnt, FTN_ADDR *fa) {
  *  2:5047/13.1 -> p1.f13.n5047.z2.fidonet.net.
  *  S should have space for MAXHOSTNAMELEN chars.
  */
-void ftnaddress_to_domain (char *s, FTN_ADDR *fa)
+void ftnaddress_to_domain (char *s, FTN_ADDR *fa, BINKD_CONFIG *config)
 {
   if (fa->p == 0)
     sprintf (s, "f%i.n%i.z%i.", fa->node, fa->net, fa->z);
   else
     sprintf (s, "p%i.f%i.n%i.z%i.", fa->p, fa->node, fa->net, fa->z);
-  strnzcat (s, root_domain, MAXHOSTNAMELEN);
+  strnzcat (s, config->root_domain, MAXHOSTNAMELEN);
 }
 
 
 /*
  *  S should have space for MAXPATHLEN chars, sets s to "" if no domain.
  */
-void ftnaddress_to_filename (char *s, FTN_ADDR *fa)
+void ftnaddress_to_filename (char *s, FTN_ADDR *fa, BINKD_CONFIG *config)
 {
   FTN_DOMAIN *d;
 
-  if ((d = get_domain_info (fa->domain)) == 0)
+  if ((d = get_domain_info (fa->domain, config)) == 0)
   {
     *s = 0;
   }
@@ -271,7 +277,7 @@ void ftnaddress_to_filename (char *s, FTN_ADDR *fa)
     char pnt[] = "\0pnt/0000xxxx";     /* ".pnt..." */
 
 #ifdef AMIGADOS_4D_OUTBOUND
-    if (aso)
+    if (config->aso)
       snprintf(s, MAXPATHLEN, "%s%s%s%s%u.%u.%u.%u",
          d->path, PATH_SEPARATOR, d->dir,
          PATH_SEPARATOR, fa->z, fa->net, fa->node, fa->p);

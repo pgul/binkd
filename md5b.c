@@ -27,6 +27,12 @@ documentation and/or software.
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.6  2003/03/11 09:21:30  gul
  * Fixed OS/2 Watcom compilation
  *
@@ -41,16 +47,20 @@ documentation and/or software.
  *
  */
 
+#include "readcfg.h"
+
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <time.h>
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
+#else
+#include <time.h>
 #endif
 #include "sys.h"
 #include "md5b.h"
 #include "tools.h"
+#include "server.h"
 
 /* Constants for MD5Transform routine.
  */

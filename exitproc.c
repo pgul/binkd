@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.21  2003/08/17 10:38:55  gul
  * Return semaphoring for log and binlog
  *
@@ -88,17 +94,11 @@
  * Initial revision
  */
 
-#include <stdlib.h>
-#include <signal.h>
-#include <sys/types.h>
-#include "Config.h"
-#include "sys.h"
-#include "common.h"
-#include "bsy.h"
-#include "iphdr.h"
-#include "tools.h"
 #include "readcfg.h"
-#include "binlog.h"
+#include "common.h"
+
+#include "bsy.h"
+#include "tools.h"
 #include "sem.h"
 #include "server.h"
 #ifdef WITH_PERL
@@ -132,6 +132,8 @@ int del_socket(SOCKET sockfd)
 
 void exitfunc (void)
 {
+  BINKD_CONFIG *config;
+
   Log(7, "exitfunc()");
 #ifdef HAVE_FORK
   if (pidcmgr)
@@ -166,7 +168,9 @@ void exitfunc (void)
     soclose (sockfd);
     sockfd = INVALID_SOCKET;
   }
-  bsy_remove_all ();
+  config = lock_current_config();
+  if (config)
+    bsy_remove_all (config);
   sock_deinit ();
   nodes_deinit ();
 #ifdef WITH_PERL
@@ -180,8 +184,12 @@ Log(7, "exitproc(): pid=%d, cmgr=%d, smgr=%d, inetd=%d", getpid(), pidCmgr, pids
   perl_done(1);
 #  endif
 #endif
-  if (*pid_file && pidsmgr == (int) getpid ())
-    delete (pid_file);
+  if (config)
+  {
+    if (*config->pid_file && pidsmgr == (int) getpid ())
+      delete (config->pid_file);
+    unlock_config_structure(config);
+  }
   CleanSem (&hostsem);
   CleanSem (&resolvsem);
   CleanSem (&lsem);

@@ -2,6 +2,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.3  2003/06/20 10:37:02  val
  * Perl hooks for binkd - initial revision
  *
@@ -19,7 +25,6 @@
 #ifndef _inbound_h
 #define _inbound_h
 
-#include "prothlp.h"
 #include "protoco2.h"
 
 /*
@@ -34,7 +39,7 @@ int inb_test (char *filename, off_t size, time_t t,
  * Creates it if the file does not exist
  */
 FILE *inb_fopen (char *netname, off_t size, time_t t,
-		  FTN_ADDR *from, int nfa, char *inbound, int state);
+		  FTN_ADDR *from, int nfa, char *inbound, int state, BINKD_CONFIG *config);
 
 /*
  * File is complete, rename it to it's realname. 1=ok, 0=failed.
@@ -42,19 +47,19 @@ FILE *inb_fopen (char *netname, off_t size, time_t t,
  */
 int inb_done (char *netname, off_t size, time_t t,
 	       FTN_ADDR *from, int nfa, char *inbound, char *realname,
-               STATE *state);
+               STATE *state, BINKD_CONFIG *config);
 
 /*
  * Remove partial file
  */
 int inb_reject (char *netname, off_t size, time_t time,
-		 FTN_ADDR *from, int nfa, char *inbound);
+		 FTN_ADDR *from, int nfa, char *inbound, BINKD_CONFIG *config);
 
 /*
  * Searches for the ``file'' in the inbound and returns it's tmp name in s.
  * S must have MAXPATHLEN chars. Returns 0 on error, 1=found, 2=created.
  */
 int find_tmp_name (char *s, char *file, off_t size,
-		    time_t time, FTN_ADDR *from, int nfa, char *inbound);
+		    time_t time, FTN_ADDR *from, int nfa, char *inbound, BINKD_CONFIG *config);
 
 #endif

@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/08/26 16:06:27  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.2  2003/08/23 15:51:51  stream
  * Implemented common list routines for all linked records in configuration
  *
@@ -34,8 +40,6 @@
 #define _srif_h
 
 #include "ftnq.h"
-#include "readcfg.h"
-#include "prothlp.h"
 #include "protoco2.h"
 
 typedef struct _EVT_FLAG EVT_FLAG;
@@ -48,19 +52,17 @@ struct _EVT_FLAG
   int imm;				    /* Immediate flag */
 };
 
-extern DEFINE_LIST(_EVT_FLAG) evt_flags;
-
 /*
  * Tests if filename matches any of EVT_FLAG's patterns.
  */
-int evt_test (EVTQ **eq, char *filename);
+int evt_test (EVTQ **eq, char *filename, BINKD_CONFIG *config);
 
 /*
  * Runs external programs using S.R.I.F. interface
  * if the name matches one of our "exec"'s
  */
 FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename0, FTN_ADDR *fa,
-               int nfa, int prot, int listed, char *peer_name, STATE *st);
+               int nfa, int prot, int listed, char *peer_name, STATE *st, BINKD_CONFIG *config);
 
 /*
  * Sets flags for all matched with evt_test events

@@ -2,6 +2,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.9  2003/08/18 07:35:08  val
  * multiple changes:
  * - hide-aka/present-aka logic
@@ -55,6 +61,8 @@
 
 #ifndef _PROTOCO2_H_
 #define _PROTOCO2_H_
+
+#include "prothlp.h"
 
 #define BLK_HDR_SIZE 2
 
@@ -174,8 +182,8 @@ struct _STATE
  *    it's a secure session or
  *    it's an outbound session AND they don't skip what we send
  */
-#define OK_SEND_FILES(S) \
-         ((send_if_pwd == 0 || (S)->state == P_SECURE || (S)->to) \
+#define OK_SEND_FILES(S, config) \
+         (((config)->send_if_pwd == 0 || (S)->state == P_SECURE || (S)->to) \
           && (S)->r_skipped_flag == 0)
 
 /* state.NR_flag: state of binkp when in NR mode */

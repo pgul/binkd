@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.18  2003/08/25 18:25:34  gul
  * Remove partial if received part more then total size
  *
@@ -92,26 +98,18 @@
  * Added more paranoia
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
-#include <ctype.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <time.h>
-
-#include "Config.h"
-#include "sys.h"
-#include "common.h"
 #include "readcfg.h"
 #include "inbound.h"
+#include "common.h"
 #include "tools.h"
 #include "protocol.h"
 #include "readdir.h"
 #ifdef WITH_PERL
 #include "perlhooks.h"
 #endif
+
+#include <ctype.h>
+#include <sys/stat.h>
 
 /* Removes both xxxxx.hr and it's xxxxx.dt */
 static void remove_hr (char *path)
@@ -172,13 +170,13 @@ static int creat_tmp_name (char *s, char *file, off_t size,
   return 1;
 }
 
-static int to_be_deleted (char *tmp_name, char *netname)
+static int to_be_deleted (char *tmp_name, char *netname, BINKD_CONFIG *config)
 {
   struct stat sb;
 
   strcpy (strrchr (tmp_name, '.'), ".dt");
-  if (stat (tmp_name, &sb) == 0 && kill_old_partial_files != 0 &&
-      time (0) - sb.st_mtime > kill_old_partial_files)
+  if (stat (tmp_name, &sb) == 0 && config->kill_old_partial_files != 0 &&
+      time (0) - sb.st_mtime > config->kill_old_partial_files)
   {
     Log (4, "found old .dt/.hr files for %s", netname);
     return 1;
@@ -192,7 +190,7 @@ static int to_be_deleted (char *tmp_name, char *netname)
  * S must have MAXPATHLEN chars. Returns 0 on error, 1=found, 2=created.
  */
 int find_tmp_name (char *s, char *file, off_t size,
-		    time_t time, FTN_ADDR *from, int nfa, char *inbound)
+		    time_t time, FTN_ADDR *from, int nfa, char *inbound, BINKD_CONFIG *config)
 {
   char buf[MAXPATHLEN + 80];
   DIR *dp;
@@ -201,8 +199,8 @@ int find_tmp_name (char *s, char *file, off_t size,
   int i, found = 0;
   char *t;
 
-  if (temp_inbound[0])
-    inbound = temp_inbound;
+  if (config->temp_inbound[0])
+    inbound = config->temp_inbound;
 
   if ((dp = opendir (inbound)) == 0)
   {
@@ -237,7 +235,7 @@ int find_tmp_name (char *s, char *file, off_t size,
       for (i = 0; i < 4; ++i)
 	w[i] = getwordx (buf, i + 1, GWX_NOESC);
 
-      if (!strcmp (w[0], file) && parse_ftnaddress (w[3], &fa))
+      if (!strcmp (w[0], file) && parse_ftnaddress (w[3], &fa, config))
       {
 	for (i = 0; i < nfa; i++)
 	  if (!ftnaddress_cmp (&fa, from + i))
@@ -248,20 +246,19 @@ int find_tmp_name (char *s, char *file, off_t size,
 	{
 	  found = 1;
 	}
-	else if (kill_dup_partial_files && i < nfa)
+	else if (config->kill_dup_partial_files && i < nfa)
 	{
 	  Log (4, "dup partial file (%s):", w[0]);
 	  remove_hr (s);
 	}
       }
-      else if (to_be_deleted (s, w[0]))
+      else if (to_be_deleted (s, w[0], config))
       {
 	remove_hr (s);
       }
 
       for (i = 0; i < 4; ++i)
-	if (w[i])
-	  free (w[i]);
+	xfree (w[i]);
     }
     if (found)
       break;
@@ -286,13 +283,13 @@ int find_tmp_name (char *s, char *file, off_t size,
 }
 
 FILE *inb_fopen (char *netname, off_t size, time_t time, FTN_ADDR *from,
-                 int nfa, char *inbound, int secure_flag)
+                 int nfa, char *inbound, int secure_flag, BINKD_CONFIG *config)
 {
   char buf[MAXPATHLEN + 1];
   struct stat sb;
   FILE *f;
 
-  if (!find_tmp_name (buf, netname, size, time, from, nfa, inbound))
+  if (!find_tmp_name (buf, netname, size, time, from, nfa, inbound, config))
     return 0;
 
 fopen_again:
@@ -314,7 +311,7 @@ fopen_again:
   {
     /* Free space req-d (Kbytes) */
     unsigned long freespace, freespace2;
-    int req_free = ((secure_flag == P_SECURE) ? minfree : minfree_nonsecure);
+    int req_free = ((secure_flag == P_SECURE) ? config->minfree : config->minfree_nonsecure);
 
     freespace = getfree(buf);
     freespace2 = getfree(inbound);
@@ -331,7 +328,7 @@ fopen_again:
 	freespace < (unsigned long)(size - sb.st_size + 1023) / 1024 + req_free)
     {
       Log (1, "no enough free space in %s (%luK, req-d %luK)",
-	   (freespace == freespace2) ? inbound : temp_inbound,
+	   (freespace == freespace2) ? inbound : config->temp_inbound,
 	   freespace,
 	   (unsigned long) (size - sb.st_size + 1023) / 1024 + req_free);
       fclose (f);
@@ -345,11 +342,11 @@ fopen_again:
 }
 
 int inb_reject (char *netname, off_t size,
-		 time_t time, FTN_ADDR *from, int nfa, char *inbound)
+		 time_t time, FTN_ADDR *from, int nfa, char *inbound, BINKD_CONFIG *config)
 {
   char tmp_name[MAXPATHLEN + 1];
 
-  if (find_tmp_name (tmp_name, netname, size, time, from, nfa, inbound) != 1)
+  if (find_tmp_name (tmp_name, netname, size, time, from, nfa, inbound, config) != 1)
   {
     Log (1, "missing tmp file for %s!", netname);
     return 0;
@@ -366,17 +363,17 @@ int inb_reject (char *netname, off_t size,
 
 /* val: check if pkt header is one of the session aka */
 int check_pkthdr(int nfa, FTN_ADDR *from, char *netname, char *tmp_name, 
-                 char *real_name) {
+                 char *real_name, BINKD_CONFIG *config) {
   FTN_NODE *node;
   FILE *PKT;
   PKTHDR buf;
   int i, check = 0, listed = 0, secure = 0;
   short cz = -1, cn = -1, cf = -1, cp = -1;
   /* ext not defined - no check */
-  if (pkthdr_bad == NULL) return 1;
+  if (config->pkthdr_bad == NULL) return 1;
   /* lookup in node records */
   for (i = 0; i < nfa; i++)
-    if ( (node = get_node_info(from+i)) != NULL ) {
+    if ( (node = get_node_info(from+i, config)) != NULL ) {
       if (node->fa.z > 0) listed = 1;
       if (strcmp(node->pwd, "-") != 0) secure = 1;
       /* no check is forced */
@@ -386,11 +383,11 @@ int check_pkthdr(int nfa, FTN_ADDR *from, char *netname, char *tmp_name,
     }
   /* consider default values, if check is not forced */
   if (!check && 
-       ( (pkthdr_type == 0) ||
-         (pkthdr_type == A_PROT && !secure) ||
-         (pkthdr_type == A_UNPROT && secure) ||
-         (pkthdr_type == A_LST && !listed) ||
-         (pkthdr_type == A_UNLST && listed) )
+       ( (config->pkthdr_type == 0) ||
+         (config->pkthdr_type == A_PROT && !secure) ||
+         (config->pkthdr_type == A_UNPROT && secure) ||
+         (config->pkthdr_type == A_LST && !listed) ||
+         (config->pkthdr_type == A_UNLST && listed) )
      ) return 1;
   /* parse pkt header */
   check = 0;
@@ -431,9 +428,9 @@ int check_pkthdr(int nfa, FTN_ADDR *from, char *netname, char *tmp_name,
   i = strlen(real_name); check = 0;
   while (i > 0 && real_name[--i] != '.') check++;
   if (i > 0) {
-    int len = strlen(pkthdr_bad)+1;
+    int len = strlen(config->pkthdr_bad)+1;
     if (len > check) len = check;
-    memcpy(real_name+i+1, pkthdr_bad, len);
+    memcpy(real_name+i+1, config->pkthdr_bad, len);
   }
   return 0;
 }
@@ -444,15 +441,19 @@ int check_pkthdr(int nfa, FTN_ADDR *from, char *netname, char *tmp_name,
  */
 int inb_done (char *netname, off_t size, time_t time,
 	      FTN_ADDR *from, int nfa, char *inbound, char *real_name,
-              STATE *state)
+              STATE *state, BINKD_CONFIG *config)
 {
   char tmp_name[MAXPATHLEN + 1];
   char *s, *u;
   int  unlinked = 0, i;
 
+#ifndef WITH_PERL
+  UNUSED_ARG(state);
+#endif
+
   *real_name = 0;
 
-  if (find_tmp_name (tmp_name, netname, size, time, from, nfa, inbound) != 1)
+  if (find_tmp_name (tmp_name, netname, size, time, from, nfa, inbound, config) != 1)
   {
     Log (1, "missing tmp file for %s!", netname);
     return 0;
@@ -461,7 +462,7 @@ int inb_done (char *netname, off_t size, time_t time,
   strnzcpy (real_name, inbound, MAXPATHLEN);
   strnzcat (real_name, PATH_SEPARATOR, MAXPATHLEN);
   s = real_name + strlen (real_name);
-  strnzcat (real_name, u = makeinboundcase (strdequote (netname)), MAXPATHLEN);
+  strnzcat (real_name, u = makeinboundcase (strdequote (netname), config), MAXPATHLEN);
   free (u);
   strwipe (s);
 
@@ -475,7 +476,7 @@ int inb_done (char *netname, off_t size, time_t time,
   }
 #endif
 
-  if (mask_test(netname, overwrite.first) && !ispkt(netname) && !isarcmail(netname))
+  if (mask_test(netname, config->overwrite.first) && !ispkt(netname) && !isarcmail(netname))
   {
     for(i=0; ; i++)
     {
@@ -503,7 +504,7 @@ int inb_done (char *netname, off_t size, time_t time,
     if (ispkt (netname) || istic (netname) || isarcmail (netname) || isreq (netname))
       s -= 4;
     /* val: check pkt file header */
-    if (ispkt (netname)) check_pkthdr(nfa, from, netname, tmp_name, real_name);
+    if (ispkt (netname)) check_pkthdr(nfa, from, netname, tmp_name, real_name, config);
 
     if (touch (tmp_name, time) != 0)
       Log (1, "touch %s: %s", tmp_name, strerror (errno));

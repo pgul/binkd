@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.23  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.22  2003/08/14 08:29:22  gul
  * Use snprintf() from sprintf.c if no such libc function
  *
@@ -115,44 +121,39 @@
  * Addedd q_scan_addrs()
  */
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <time.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <errno.h>
-
-#include "assert.h"
-#include "Config.h"
-#include "ftnq.h"
 #include "readcfg.h"
+#include "ftnq.h"
+
 #include "tools.h"
 #include "readdir.h"
 #ifdef WITH_PERL
 #include "perlhooks.h"
 #endif
 
+#include <ctype.h>
+#include <sys/stat.h>
+
 const char prio[] = "IiCcDdOoFfHh";
 static const char flo_flvrs[] = "icdfhICDFH";
 static const char out_flvrs[] = "icdohICDOH";
 
-static FTNQ *q_add_dir (FTNQ *q, char *dir, FTN_ADDR *fa1);
-FTNQ *q_add_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action, char type);
+static FTNQ *q_add_dir (FTNQ *q, char *dir, FTN_ADDR *fa1, BINKD_CONFIG *config);
+FTNQ *q_add_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action, char type, BINKD_CONFIG *config);
 
 /*
  * q_free(): frees memory allocated by q_scan()
  */
 static int qn_free (FTN_NODE *fn, void *arg)
 {
+  UNUSED_ARG(arg);
+
   fn->hold_until = 0;
   fn->mail_flvr = fn->files_flvr = 0;
   fn->busy = 0;
   return 0;
 }
 
-void q_free (FTNQ *q)
+void q_free (FTNQ *q, BINKD_CONFIG *config)
 {
   if (q != SCAN_LISTED)
   {
@@ -173,31 +174,40 @@ void q_free (FTNQ *q)
       else
       {
 	last = last->prev;
-	if (last->next)
-	  free (last->next);
+	xfree (last->next);
       }
     }
   }
   else
-    foreach_node (qn_free, 0);
+    foreach_node (qn_free, 0, config);
 }
 
 /*
  * q_scan: scans outbound. Return value must be q_free()'d.
  */
+
+/* Need to pass two parameters: queue and config */
+struct qn_scan_params
+{
+  FTNQ **pq;
+  BINKD_CONFIG *config;
+};
 static int qn_scan (FTN_NODE *fn, void *arg)
 {
-  *(FTNQ **) arg = q_scan_boxes (*(FTNQ **) arg, &fn->fa, 1);
+  struct qn_scan_params *params = arg;
+
+  *(params->pq) = q_scan_boxes (*(params->pq), &fn->fa, 1, params->config);
   return 0;
 }
 
-FTNQ *q_scan (FTNQ *q)
+FTNQ *q_scan (FTNQ *q, BINKD_CONFIG *config)
 {
   char *s;
   char buf[MAXPATHLEN + 1], outb_path[MAXPATHLEN + 1];
   FTN_DOMAIN *curr_domain;
+  struct qn_scan_params qn_params;
 
-  for (curr_domain = pDomains; curr_domain; curr_domain = curr_domain->next)
+  for (curr_domain = config->pDomains.first; curr_domain; curr_domain = curr_domain->next)
   {
     DIR *dp;
     struct dirent *de;
@@ -233,7 +243,7 @@ FTNQ *q_scan (FTNQ *q)
 
 	  FA_ZERO (&fa);
 #ifdef AMIGADOS_4D_OUTBOUND
-	  if (!aso)
+	  if (!config->aso)
 #endif
 	    fa.z = ((de->d_name[len] == '.') ?
 		    strtol (de->d_name + len + 1, (char **) NULL, 16) :
@@ -242,7 +252,7 @@ FTNQ *q_scan (FTNQ *q)
 	  {
 	    strcpy (fa.domain, curr_domain->name);
 	    strnzcpy (buf + strlen (buf), de->d_name, sizeof (buf) - strlen (buf));
-	    q = q_add_dir (q, buf, &fa);
+	    q = q_add_dir (q, buf, &fa, config);
 	  }
 	  *s = 0;
 	}
@@ -250,14 +260,16 @@ FTNQ *q_scan (FTNQ *q)
       closedir (dp);
     }
   }
-  foreach_node (qn_scan, &q);
+  qn_params.pq     = &q;
+  qn_params.config = config;
+  foreach_node (qn_scan, &qn_params, config);
   return q;
 }
 
 /*
  * Adds to the q all files for n akas stored in fa
  */
-FTNQ *q_scan_addrs (FTNQ *q, FTN_ADDR *fa, int n, int to)
+FTNQ *q_scan_addrs (FTNQ *q, FTN_ADDR *fa, int n, int to, BINKD_CONFIG *config)
 {
   char buf[MAXPATHLEN + 1];
   int  i;
@@ -265,29 +277,29 @@ FTNQ *q_scan_addrs (FTNQ *q, FTN_ADDR *fa, int n, int to)
 
   for (i = 0; i < n; ++i)
   {
-    if (!to && send_if_pwd)
+    if (!to && config->send_if_pwd)
     {
       /* do not give unsecure mail even to secure link when send-if-pwd */
       FTN_NODE *fn;
       locknodesem();
-      if ((fn = get_node_info(fa+i)) == NULL ||
+      if ((fn = get_node_info(fa+i, config)) == NULL ||
            fn->pwd == NULL || strcmp(fn->pwd, "-") == 0)
       { releasenodesem();
 	continue;
       }
       releasenodesem();
     }
-    ftnaddress_to_filename (buf, fa + i);
+    ftnaddress_to_filename (buf, fa + i, config);
     if (*buf)
     {
-      if ((s = max (strrchr (buf, '\\'), strrchr (buf, '/'))) != 0)
+      if ((s = last_slash(buf)) != 0)
       {
 	*s = 0;
-	q = q_add_dir (q, buf, fa + i);
+	q = q_add_dir (q, buf, fa + i, config);
       }
     }
   }
-  q = q_scan_boxes (q, fa, n);
+  q = q_scan_boxes (q, fa, n, config);
   return q;
 }
 
@@ -341,7 +353,7 @@ static struct {
 };
 #endif
 
-static FTNQ *q_scan_box (FTNQ *q, FTN_ADDR *fa, char *boxpath, char flvr, int deleteempty)
+static FTNQ *q_scan_box (FTNQ *q, FTN_ADDR *fa, char *boxpath, char flvr, int deleteempty, BINKD_CONFIG *config)
 {
   FTNQ *files = NULL;
   int n_files = 0, i;
@@ -387,7 +399,7 @@ static FTNQ *q_scan_box (FTNQ *q, FTN_ADDR *fa, char *boxpath, char flvr, int de
     qsort (files, n_files, sizeof (FTNQ),
 	   (int (*) (const void *, const void *)) cmp_filebox_files);
     for (i = 0; i < n_files; ++i)
-      q = q_add_file (q, files[i].path, &files[i].fa, files[i].flvr, 'd', 0);
+      q = q_add_file (q, files[i].path, &files[i].fa, files[i].flvr, 'd', 0, config);
     free (files);
   }
   return q;
@@ -396,7 +408,7 @@ static FTNQ *q_scan_box (FTNQ *q, FTN_ADDR *fa, char *boxpath, char flvr, int de
 /*
  * Scans fileboxes for n akas stored in fa
  */
-FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n)
+FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n, BINKD_CONFIG *config)
 {
   FTN_NODE node;
   int i;
@@ -409,17 +421,17 @@ FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n)
   for (i = 0; i < n; ++i)
   {
 #ifndef MAILBOX
-    if (get_node (fa + i, &node) != NULL && node.obox != NULL)
+    if (get_node (fa + i, &node, config) != NULL && node.obox != NULL)
     {
-      q = q_scan_box (q, fa+i, node.obox, node.obox_flvr, 0);
+      q = q_scan_box (q, fa+i, node.obox, node.obox_flvr, 0, config);
     }
 #else
-    if (get_node (fa + i, &node) != NULL && ((node.obox != NULL) || tfilebox[0] || bfilebox[0]))
+    if (get_node (fa + i, &node, config) != NULL && ((node.obox != NULL) || config->tfilebox[0] || config->bfilebox[0]))
     {
       if (node.obox)
-        q = q_scan_box (q, fa+i, node.obox, node.obox_flvr, 0);
-      if (bfilebox[0]) {
-        strnzcpy (buf, bfilebox, sizeof (buf));
+        q = q_scan_box (q, fa+i, node.obox, node.obox_flvr, 0, config);
+      if (config->bfilebox[0]) {
+        strnzcpy (buf, config->bfilebox, sizeof (buf));
         strnzcat (buf, PATH_SEPARATOR, sizeof (buf));
         snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
                 "%s.%u.%u.%u.%u.",
@@ -431,13 +443,13 @@ FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n)
         s = buf + strlen(buf);
         for (j = 0; j < sizeof(brakeExt)/sizeof(brakeExt[0]); j++) {
           strnzcat (buf, brakeExt[j].ext, sizeof (buf));
-          q = q_scan_box (q, fa+i, buf, brakeExt[j].flv, deleteablebox);
+          q = q_scan_box (q, fa+i, buf, brakeExt[j].flv, config->deleteablebox, config);
           *s = '\0';
         }
       }
         
-      if (tfilebox[0]) {
-        strnzcpy ( buf, tfilebox, sizeof (buf));
+      if (config->tfilebox[0]) {
+        strnzcpy ( buf, config->tfilebox, sizeof (buf));
         strnzcat ( buf, PATH_SEPARATOR, sizeof (buf));
         snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
                 "%u.%u.%u.%u",
@@ -445,7 +457,7 @@ FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n)
                 node.fa.net,
                 node.fa.node,
                 node.fa.p);
-        q = q_scan_box (q, fa+i, buf, 'f', deleteablebox);
+        q = q_scan_box (q, fa+i, buf, 'f', config->deleteablebox, config);
         strnzcat ( buf, ".H", sizeof (buf));
 #ifdef UNIX
 	{ struct stat st;
@@ -453,9 +465,9 @@ FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n)
 	    buf[strlen(buf) - 1] = 'h';
 	}
 #endif
-        q = q_scan_box (q, fa+i, buf, 'h', deleteablebox);
+        q = q_scan_box (q, fa+i, buf, 'h', config->deleteablebox, config);
 
-        strnzcpy ( buf, tfilebox, sizeof (buf));
+        strnzcpy ( buf, config->tfilebox, sizeof (buf));
         strnzcat ( buf, PATH_SEPARATOR, sizeof (buf));
         snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
                 "%c%c%c%c%c%c%c%c.%c%c",
@@ -463,7 +475,7 @@ FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n)
                 to32(node.fa.net/1024), to32((node.fa.net/32)%32), to32(node.fa.net%32),
                 to32(node.fa.node/1024),to32((node.fa.node/32)%32),to32(node.fa.node%32),
                 to32(node.fa.p/32),     to32(node.fa.p%32));
-        q = q_scan_box (q, fa+i, buf, 'f', deleteablebox);
+        q = q_scan_box (q, fa+i, buf, 'f', config->deleteablebox, config);
         strnzcat (buf, "H", sizeof (buf));
 #ifdef UNIX
 	{ struct stat st;
@@ -471,7 +483,7 @@ FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n)
 	    buf[strlen(buf) - 1] = 'h';
 	}
 #endif
-        q = q_scan_box (q, fa+i, buf, 'h', deleteablebox);
+        q = q_scan_box (q, fa+i, buf, 'h', config->deleteablebox, config);
       }
     }
 #endif
@@ -481,13 +493,13 @@ FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n)
 }
 
 
-void process_hld (FTN_ADDR *fa, char *path)
+void process_hld (FTN_ADDR *fa, char *path, BINKD_CONFIG *config)
 {
   FTN_NODE *node;
   long hold_until_tmp;
 
   locknodesem();
-  if ((node = get_node_info(fa)) != NULL)
+  if ((node = get_node_info(fa, config)) != NULL)
   {
     FILE *f;
 
@@ -509,14 +521,14 @@ void process_hld (FTN_ADDR *fa, char *path)
   releasenodesem();
 }
 
-void process_bsy (FTN_ADDR *fa, char *path)
+static void process_bsy (FTN_ADDR *fa, char *path, BINKD_CONFIG *config)
 {
   char *s = path + strlen (path) - 4;
   FTN_NODE *node;
   struct stat sb;
 
-  if (stat (path, &sb) == 0 && kill_old_bsy != 0
-      && time (0) - sb.st_mtime > kill_old_bsy)
+  if (stat (path, &sb) == 0 && config->kill_old_bsy != 0
+      && time (0) - sb.st_mtime > config->kill_old_bsy)
   {
     char buf[FTN_ADDR_SZ + 1];
 
@@ -527,7 +539,7 @@ void process_bsy (FTN_ADDR *fa, char *path)
   else
   {
     locknodesem();
-    if ((node = get_node_info (fa)) != 0 && node->busy != 'b' &&
+    if ((node = get_node_info (fa, config)) != 0 && node->busy != 'b' &&
 	   (!STRICMP (s, ".bsy") || !STRICMP (s, ".csy")))
     {
       node->busy = tolower (s[1]);
@@ -545,7 +557,7 @@ void process_bsy (FTN_ADDR *fa, char *path)
  * or even
  *     c:\bbs\outbound\00030004.pnt\        fa1 = 2:3/4.5@fidonet
  */
-static FTNQ *q_add_dir (FTNQ *q, char *dir, FTN_ADDR *fa1)
+static FTNQ *q_add_dir (FTNQ *q, char *dir, FTN_ADDR *fa1, BINKD_CONFIG *config)
 {
   DIR *dp;
   FTN_ADDR fa2;
@@ -560,7 +572,7 @@ static FTNQ *q_add_dir (FTNQ *q, char *dir, FTN_ADDR *fa1)
     while ((de = readdir (dp)) != 0)
     {
 #ifdef AMIGADOS_4D_OUTBOUND
-      if (aso)
+      if (config->aso)
       {
         char ext[4];
         int matched = 0;
@@ -588,10 +600,10 @@ static FTNQ *q_add_dir (FTNQ *q, char *dir, FTN_ADDR *fa1)
         strnzcpy(buf + strlen(buf), s, sizeof(buf) - strlen(buf));
 
         if (!STRICMP(ext, "bsy") || !STRICMP(ext, "csy"))
-	  process_bsy(&fa2, buf);
+	  process_bsy(&fa2, buf, config);
 
 	locknodesem();
-        if (!get_node_info(&fa2) && !is5D(fa1))
+        if (!get_node_info(&fa2, config) && !is5D(fa1))
 	{ releasenodesem();
           continue;
 	}
@@ -600,20 +612,20 @@ static FTNQ *q_add_dir (FTNQ *q, char *dir, FTN_ADDR *fa1)
         if (strchr(out_flvrs, ext[0]) &&
 		  tolower(ext[1]) == 'u' && tolower(ext[2]) == 't')
 	  /* Adding *.?ut */
-	  q = q_add_file(q, buf, &fa2, ext[0], 'd', 'm');
+	  q = q_add_file(q, buf, &fa2, ext[0], 'd', 'm', config);
         else if (!STRICMP(ext, "req"))
 	  /* Adding *.req */
-	  q = q_add_file(q, buf, &fa2, 'h', 's', 'r');
+	  q = q_add_file(q, buf, &fa2, 'h', 's', 'r', config);
         else if (!STRICMP(ext, "hld"))
-	  process_hld(&fa2, buf);
+	  process_hld(&fa2, buf, config);
         else if (strchr(flo_flvrs, ext[0]) &&
 		        tolower(ext[1]) == 'l' && tolower(ext[2]) == 'o')
 	  /* Adding *.?lo */
-	  q = q_add_file(q, buf, &fa2, ext[0], 'd', 'l');
+	  q = q_add_file(q, buf, &fa2, ext[0], 'd', 'l', config);
 	else if (!STRICMP (s + 9, "stc"))
 	{
 	  /* Adding *.stc */
-	  q = q_add_file (q, buf, &fa2, 'h', 0, 's');
+	  q = q_add_file (q, buf, &fa2, 'h', 0, 's', config);
 	}
       }
       else
@@ -650,17 +662,17 @@ static FTNQ *q_add_dir (FTNQ *q, char *dir, FTN_ADDR *fa1)
 	  struct stat sb;
 
 	  if (stat (buf, &sb) == 0 && sb.st_mode & S_IFDIR)
-	    q = q_add_dir (q, buf, &fa2);
+	    q = q_add_dir (q, buf, &fa2, config);
 	  continue;
 	}
 	if (fa2.p == -1)
 	  fa2.p = 0;
 
 	if (!STRICMP (s + 9, "bsy") || !STRICMP (s + 9, "csy"))
-	  process_bsy (&fa2, buf);
+	  process_bsy (&fa2, buf, config);
 
 	locknodesem();
-	if (!havedefnode && !get_node_info (&fa2) && !is5D (fa1))
+	if (!config->havedefnode && !get_node_info (&fa2, config) && !is5D (fa1))
 	{
 	  releasenodesem();
 	  continue;
@@ -670,25 +682,25 @@ static FTNQ *q_add_dir (FTNQ *q, char *dir, FTN_ADDR *fa1)
 	    tolower (s[10]) == 'u' && tolower (s[11]) == 't')
 	{
 	  /* Adding *.?ut */
-	  q = q_add_file (q, buf, &fa2, s[9], 'd', 'm');
+	  q = q_add_file (q, buf, &fa2, s[9], 'd', 'm', config);
 	}
 	else if (!STRICMP (s + 9, "req"))
 	{
 	  /* Adding *.req */
-	  q = q_add_file (q, buf, &fa2, 'h', 's', 'r');
+	  q = q_add_file (q, buf, &fa2, 'h', 's', 'r', config);
 	}
 	else if (!STRICMP (s + 9, "hld"))
-	  process_hld (&fa2, buf);
+	  process_hld (&fa2, buf, config);
 	else if (strchr (flo_flvrs, s[9]) &&
 	         tolower (s[10]) == 'l' && tolower (s[11]) == 'o')
 	{
 	  /* Adding *.?lo */
-	  q = q_add_file (q, buf, &fa2, s[9], 'd', 'l');
+	  q = q_add_file (q, buf, &fa2, s[9], 'd', 'l', config);
 	}
 	else if (!STRICMP (s + 9, "stc"))
 	{
 	  /* Adding *.stc */
-	  q = q_add_file (q, buf, &fa2, 'h', 0, 's');
+	  q = q_add_file (q, buf, &fa2, 'h', 0, 's', config);
 	}
       }
     }
@@ -702,7 +714,7 @@ static FTNQ *q_add_dir (FTNQ *q, char *dir, FTN_ADDR *fa1)
 /*
  * Add a file to the queue.
  */
-FTNQ *q_add_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action, char type)
+FTNQ *q_add_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action, char type, BINKD_CONFIG *config)
 {
   const int argc=3;
   char *argv[3];
@@ -718,13 +730,13 @@ FTNQ *q_add_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action
    * infinite recursion in this function -
    * please, be careful!
    */
-  for(chn = shares;chn;chn = chn->next)
+  for(chn = config->shares.first;chn;chn = chn->next)
   {
     if (ftnaddress_cmp(fa1,&chn->sha) == 0)
     {
-      for(fcn = chn->sfa; fcn; fcn = fcn->next)
+      for(fcn = chn->sfa.first; fcn; fcn = fcn->next)
       {
-        q_add_file(q,filename,&fcn->fa,flvr,action,type);
+        q_add_file(q,filename,&fcn->fa,flvr,action,type, config);
       }
     }
   }
@@ -789,7 +801,7 @@ FTNQ *q_add_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action
     FTN_NODE *node;
 
     locknodesem();
-    if ((node = get_node_info (fa1)) != NULL)
+    if ((node = get_node_info (fa1, config)) != NULL)
     {
       if (type == 'm')
 	node->mail_flvr = MAXFLVR (flvr, node->mail_flvr);
@@ -804,11 +816,11 @@ FTNQ *q_add_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action
 /*
  * Add a file to the end of queue.
  */
-FTNQ *q_add_last_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action, char type)
+FTNQ *q_add_last_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action, char type, BINKD_CONFIG *config)
 {
   FTNQ *new_file, *pq;
 
-  new_file = q_add_file (NULL, filename, fa1, flvr, action, type);
+  new_file = q_add_file (NULL, filename, fa1, flvr, action, type, config);
   if (new_file == NULL) return q;
   if (q == NULL) return new_file;
   for (pq = q; pq->next; pq = pq->next);
@@ -854,7 +866,7 @@ static int qn_list (FTN_NODE *fn, void *arg)
   return 0;
 }
 
-void q_list (FILE *out, FTNQ *q)
+void q_list (FILE *out, FTNQ *q, BINKD_CONFIG *config)
 {
   char buf[FTN_ADDR_SZ + 1];
 
@@ -865,7 +877,7 @@ void q_list (FILE *out, FTNQ *q)
     qnla.first_pass = 1;
     qnla.out = out;
 
-    foreach_node (qn_list, &qnla);
+    foreach_node (qn_list, &qnla, config);
   }
   else
   {
@@ -1022,14 +1034,14 @@ static int qn_not_empty (FTN_NODE *fn, void *arg)
   return 0;
 }
 
-FTN_NODE *q_not_empty (void)
+FTN_NODE *q_not_empty (BINKD_CONFIG *config)
 {
   qn_not_empty_arg arg;
 
   arg.maxflvr = 0;
   arg.fn = 0;
 
-  foreach_node (qn_not_empty, &arg);
+  foreach_node (qn_not_empty, &arg, config);
 
   if (arg.maxflvr && tolower (arg.maxflvr) != 'h')
     return arg.fn;
@@ -1037,9 +1049,9 @@ FTN_NODE *q_not_empty (void)
     return 0;
 }
 
-FTN_NODE *q_next_node (void)
+FTN_NODE *q_next_node (BINKD_CONFIG *config)
 {
-  FTN_NODE *fn = q_not_empty ();
+  FTN_NODE *fn = q_not_empty (config);
 
   if (fn == 0)
     return 0;
@@ -1053,7 +1065,7 @@ FTN_NODE *q_next_node (void)
 /*
  * Creates an empty .?lo
  */
-int create_poll (FTN_ADDR *fa, int flvr)
+int create_poll (FTN_ADDR *fa, int flvr, BINKD_CONFIG *config)
 {
   char buf[MAXPATHLEN + 1];
   char ext[5];
@@ -1063,7 +1075,7 @@ int create_poll (FTN_ADDR *fa, int flvr)
   strcpy (ext, ".flo");
   if (flvr && strchr (flo_flvrs, flvr))
     ext[1] = tolower (flvr);
-  ftnaddress_to_filename (buf, fa);
+  ftnaddress_to_filename (buf, fa, config);
   if (*buf)
   {
     mkpath (buf);
@@ -1081,7 +1093,7 @@ int create_poll (FTN_ADDR *fa, int flvr)
 /*
  * Set .hld for a node
  */
-void hold_node (FTN_ADDR *fa, time_t hold_until)
+void hold_node (FTN_ADDR *fa, time_t hold_until, BINKD_CONFIG *config)
 {
   char buf[MAXPATHLEN + 1];
   char addr[FTN_ADDR_SZ + 1];
@@ -1091,7 +1103,7 @@ void hold_node (FTN_ADDR *fa, time_t hold_until)
   safe_localtime (&hold_until, &tm);
   strftime (time, sizeof (time), "%Y/%m/%d %H:%M:%S", &tm);
   ftnaddress_to_str (addr, fa);
-  ftnaddress_to_filename (buf, fa);
+  ftnaddress_to_filename (buf, fa, config);
   Log (2, "holding %s (%s)", addr, time);
   if (*buf)
   {
@@ -1104,7 +1116,7 @@ void hold_node (FTN_ADDR *fa, time_t hold_until)
       fprintf (f, "%li", (long int) hold_until);
       fclose (f);
       locknodesem();
-      if ((fn = get_node_info (fa)) != NULL)
+      if ((fn = get_node_info (fa, config)) != NULL)
 	fn->hold_until = hold_until;
       releasenodesem();
     }
@@ -1115,13 +1127,13 @@ void hold_node (FTN_ADDR *fa, time_t hold_until)
   }
 }
 
-void write_try (FTN_ADDR *fa, unsigned *nok, unsigned *nbad, char *comment)
+void write_try (FTN_ADDR *fa, unsigned *nok, unsigned *nbad, char *comment, BINKD_CONFIG *config)
 {
   char buf[MAXPATHLEN + 1];
 
-  if (tries > 0)
+  if (config->tries > 0)
   {
-    ftnaddress_to_filename (buf, fa);
+    ftnaddress_to_filename (buf, fa, config);
     if (*buf)
     {
       FILE *f;
@@ -1140,11 +1152,11 @@ void write_try (FTN_ADDR *fa, unsigned *nok, unsigned *nbad, char *comment)
   }
 }
 
-void read_try (FTN_ADDR *fa, unsigned *nok, unsigned *nbad)
+void read_try (FTN_ADDR *fa, unsigned *nok, unsigned *nbad, BINKD_CONFIG *config)
 {
   char buf[MAXPATHLEN + 1];
 
-  ftnaddress_to_filename (buf, fa);
+  ftnaddress_to_filename (buf, fa, config);
   if (*buf)
   {
     FILE *f;
@@ -1166,30 +1178,32 @@ void read_try (FTN_ADDR *fa, unsigned *nok, unsigned *nbad)
   }
 }
 
-void bad_try (FTN_ADDR *fa, const char *error, const int where)
+void bad_try (FTN_ADDR *fa, const char *error, const int where, BINKD_CONFIG *config)
 {
   unsigned nok, nbad;
 
 #ifdef WITH_PERL
   perl_on_error(fa, error, where);
+#else
+  UNUSED_ARG(where);
 #endif
-  if (tries == 0) return;
-  read_try (fa, &nok, &nbad);
-  if (tries > 0 && ++nbad >= (unsigned) tries)
+  if (config->tries == 0) return;
+  read_try (fa, &nok, &nbad, config);
+  if (config->tries > 0 && ++nbad >= (unsigned) config->tries)
   {
     nok = nbad = 0;
-    hold_node (fa, safe_time() + hold);
+    hold_node (fa, safe_time() + config->hold, config);
   }
-  write_try (fa, &nok, &nbad, (char *) error);
+  write_try (fa, &nok, &nbad, (char *) error, config);
 }
 
-void good_try (FTN_ADDR *fa, char *comment)
+void good_try (FTN_ADDR *fa, char *comment, BINKD_CONFIG *config)
 {
   unsigned nok, nbad;
 
-  if (tries == 0) return;
-  read_try (fa, &nok, &nbad);
+  if (config->tries == 0) return;
+  read_try (fa, &nok, &nbad, config);
   nbad = 0;
   ++nok;
-  write_try (fa, &nok, &nbad, comment);
+  write_try (fa, &nok, &nbad, comment, config);
 }

@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.3  2003/06/30 22:42:27  hbrew
  * Print only binkd name (without path) in error messages
  *
@@ -38,18 +44,9 @@
  *
  */
 
-#include <sys/types.h>
-#include <time.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "Config.h"
-#include "sys.h"
-#include "ftnq.h"
+#include "readcfg.h"
 #include "prothlp.h"
-#include "srif.h"
-#include "assert.h"
+
 #include "tools.h"
 
 int tfile_cmp (TFILE *a, char *netname, off_t size, time_t time)
@@ -128,7 +125,7 @@ void free_rcvdlist (RCVDLIST **rcvdlist, int *n_rcvdlist)
   *n_rcvdlist = 0;
 }
 
-void netname (char *s, TFILE *q)
+void netname (char *s, TFILE *q, BINKD_CONFIG *config)
 {
   static char *weekext[] = {"su", "mo", "tu", "we", "th", "fr", "sa"};
 
@@ -153,7 +150,7 @@ void netname (char *s, TFILE *q)
 	if ((*z >= '0') && (*z < '7') && (z[1] == '#'))
 	  memcpy (z, weekext[*z - '0'], 2);
 #ifdef AMIGADOS_4D_OUTBOUND
-	if (aso && isarcmail(s))
+	if (config->aso && isarcmail(s))
 	{ /* "2:2/0 aso name shorter then bso */
 	  char ext[4];
 	  unsigned zone, net, node, p;

@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/08/26 16:06:27  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.1  2003/04/06 20:28:43  gul
  * minor bugfix
  *
@@ -25,9 +31,9 @@
  * Initial revision
  *
  */
+
 #include <stdlib.h>
 #include <string.h>
-
 #include "tools.h"
 
 void *xalloc (size_t size)
@@ -37,6 +43,7 @@ void *xalloc (size_t size)
   if (!p)
     Log (0, "Not enough memory (failed to allocate %lu byte(s))",
 	 (unsigned long) size);
+  memset(p, 0xEE, size);
   return p;
 }
 
@@ -56,4 +63,10 @@ void *xstrdup (const char *str)
 
   strcpy (p, str);
   return p;
+}
+
+void xfree(void *p)
+{
+  if (p)
+    free(p);
 }

@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.5  2003/07/19 06:59:34  hbrew
  * Complex patch:
  * * nt/w32tools.c: Fix warnings
@@ -49,27 +55,9 @@
  * Revision 1.1  1996/12/14  07:01:58  mff
  * Initial revision
  */
-#include <string.h>
-#include <stdlib.h>
-#include <errno.h>
-
-#if defined(HAVE_FORK) && defined(HAVE_THREADS)
-#error You cannot define both HAVE_FORK and HAVE_THREADS!
-#endif
-
-#if !defined(HAVE_FORK) && !defined(HAVE_THREADS) && !defined(DOS)
-#error Must define either HAVE_FORK or HAVE_THREADS!
-#endif
-
-#if defined(HAVE_THREADS) || defined(DOS)
-#ifdef HAVE_DOS_H
-#include <dos.h>
-#endif
-#include <process.h>
-#endif
 
 #include "Config.h"
-#include "sys.h"
+#include "common.h"
 #include "tools.h"
 
 #ifdef AMIGA
@@ -120,8 +108,7 @@ again:
   else
   {
     /* parent, free our copy of args */
-    if (arg)
-      free (arg);
+    xfree (arg);
   }
 #endif
 

@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.48  2003/08/26 16:06:27  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.47  2003/08/23 15:51:51  stream
  * Implemented common list routines for all linked records in configuration
  *
@@ -219,31 +225,35 @@
  * Revision 1.3  1996/12/05  04:30:14  mff
  * Now we don't mkdir drives
  */
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
+
 #include <fcntl.h>
-#include <stdarg.h>
-#include <string.h>
 #include <ctype.h>
+#include <sys/stat.h>
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
 #include <syslog.h>
 #endif
 
-#include "assert.h"
-#include "Config.h"
-#include "sys.h"
+#include "readcfg.h"
 #include "common.h"
 #include "tools.h"
+
+#include "sys.h"
 #include "readdir.h"		       /* for [sys/]utime.h */
-#include "readcfg.h"
 #include "sem.h"
+#include "assert.h"
+
 #ifdef WITH_PERL
 #include "perlhooks.h"
 #endif
+
+/*
+ * We can call Log() even when we have no config ready. So, we must keep
+ * internal variables which will be updated when config is loaded
+ */
+static int  current_loglevel = 1;
+static int  current_conlog   = 1;
+static char *current_logpath = "";
+static struct maskchain *current_nolog = NULL;
 
 /*
  * Lowercase the string
@@ -351,13 +361,13 @@ int create_empty_sem_file (char *name)
   return 1;
 }
 
-int create_sem_file (char *name)
+int create_sem_file (char *name, int errloglevel)
 {
   int h, i;
   char buf[16];
 
   if ((h = open (name, O_RDWR | O_CREAT | O_EXCL, 0666)) == -1)
-  { Log (5, "Can't create %s: %s", name, strerror(errno));
+  { Log (errloglevel, "Can't create %s: %s", name, strerror(errno));
     return 0;
   }
   snprintf (buf, sizeof (buf), "%u\n", (int) getpid ());
@@ -468,6 +478,16 @@ time_t safe_time(void)
 }
 #endif
 
+void InitLog(BINKD_CONFIG *config)
+{
+  LockSem(&lsem);
+  current_loglevel = config->loglevel;
+  current_conlog   = config->conlog;
+  current_logpath  = config->logpath;
+  current_nolog    = config->nolog.first;
+  ReleaseSem(&lsem);
+}
+
 void Log (int lev, char *s,...)
 {
   static int first_time = 1;
@@ -486,7 +506,7 @@ void Log (int lev, char *s,...)
   if (!perl_on_log(buf, sizeof(buf), &lev)) ok = 0;
 #endif
   /* match against nolog */
-  if ( mask_test(buf, nolog.first) != NULL ) ok = 0;
+  if ( mask_test(buf, current_nolog) != NULL ) ok = 0;
   /* log output */
   if (ok)
 { /* if (ok) */
@@ -498,7 +518,7 @@ void Log (int lev, char *s,...)
   t = safe_time();
   safe_localtime (&t, &tm);
 
-  if (lev <= conlog
+  if (lev <= current_conlog
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
       && !inetd_flag
 #endif
@@ -512,7 +532,7 @@ void Log (int lev, char *s,...)
       return;
   }
 
-  if (lev <= loglevel && *logpath)
+  if (lev <= current_loglevel && *current_logpath)
   {
     FILE *logfile = 0;
     int i;
@@ -520,7 +540,7 @@ void Log (int lev, char *s,...)
     LockSem(&lsem);
     for (i = 0; logfile == 0 && i < 10; ++i)
     {
-      logfile = fopen (logpath, "a");
+      logfile = fopen (current_logpath, "a");
     }
     if (logfile)
     {
@@ -532,7 +552,7 @@ void Log (int lev, char *s,...)
       first_time = 0;
     }
     else
-      fprintf (stderr, "Cannot open %s: %s!\n", logpath, strerror (errno));
+      fprintf (stderr, "Cannot open %s: %s!\n", current_logpath, strerror (errno));
     ReleaseSem(&lsem);
   }
 #ifdef WIN32
@@ -547,7 +567,7 @@ void Log (int lev, char *s,...)
 #endif
 
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
-  if (lev <= loglevel && syslog_facility >= 0)
+  if (lev <= current_loglevel && syslog_facility >= 0)
   {
     static int opened = 0;
     static int log_levels[] =
@@ -1011,11 +1031,11 @@ char **mkargv (int argc, char **argv)
 /*
  * Apply filename case style defined in inboundcase
  */
-char *makeinboundcase (char *s)
+char *makeinboundcase (char *s, BINKD_CONFIG *config)
 {
   int i;
 
-  switch (inboundcase)
+  switch (config->inboundcase)
   {
       case INB_UPPER:
 	s = strupper(s);
@@ -1130,12 +1150,12 @@ int read_pkthdr(FILE *F, PKTHDR *hdr) {
   return c == (2*19 + 8 + 1*8);
 }
 
-int tz_off(time_t t)
+int tz_off(time_t t, BINKD_CONFIG *config)
 {
   struct tm tm;
   time_t gt;
 
-  if (tzoff != -1) return tzoff/60;
+  if (config->tzoff != -1) return config->tzoff/60;
   safe_gmtime (&t, &tm);
   tm.tm_isdst = 0;
   gt = mktime(&tm);

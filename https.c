@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.15  2003/04/28 09:46:58  gul
  * Bugfix: free() changes TCPERRNO
  *
@@ -65,21 +71,22 @@
  *
  *
  */
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-#include "Config.h"
+
 #include "readcfg.h"
-#include "sys.h"
-#include "tools.h"
 #include "https.h"
+
+#include "tools.h"
 #include "iptools.h"
 #include "sem.h"
 #ifdef NTLM
 #include "ntlm/helpers.h"
+#endif
+
+#include <ctype.h>
+#ifdef HAVE_SYS_TIME_H
+#include "sys/time.h"
+#else
+#include "time.h"
 #endif
 
 static char b64t[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -121,7 +128,7 @@ static int enbase64(char *data, int size, char *p)
 #define SetTCPError(x) errno=x
 #define PR_ERROR EACCES
 #endif
-int h_connect(int so, char *host)
+int h_connect(int so, char *host, BINKD_CONFIG *config)
 {
 	int ntlm = 0;
 #ifdef NTLM
@@ -134,10 +141,10 @@ int h_connect(int so, char *host)
 	struct in_addr defaddr;
 	unsigned port;
 
-	if (proxy[0])
+	if (config->proxy[0])
 	{
-		strncpy(buf, proxy, sizeof(buf));
-		if ((sp=strchr(proxy, '/')) != NULL)
+		strncpy(buf, config->proxy, sizeof(buf));
+		if ((sp=strchr(config->proxy, '/')) != NULL)
 			*sp++ = '\0';
 		Log(4, "connected to proxy %s", buf);
 		if(sp) 
@@ -159,9 +166,9 @@ int h_connect(int so, char *host)
 			}
 		}
 		memset(buf, 0, sizeof(buf));
-		if (socks[0]) {
+		if (config->socks[0]) {
 			char *sp1;
-			strcpy(buf, socks);
+			strcpy(buf, config->socks);
 			if((sp1=strchr(buf, '/'))!=NULL) sp1[0]=0;
 			if((sp1=strchr(buf, ':'))==NULL) strcat(buf, ":1080");
 			sp1=strdup(buf);
@@ -197,9 +204,9 @@ int h_connect(int so, char *host)
 			fd_set fds;
 			FD_ZERO(&fds);
 			FD_SET(so, &fds);
-			tv.tv_sec=nettimeout;
+			tv.tv_sec=config->nettimeout;
 			tv.tv_usec=0;
-			if(select(so+1,&fds,NULL,&fds,nettimeout>0?&tv:NULL)<1)
+			if(select(so+1,&fds,NULL,&fds,config->nettimeout>0?&tv:NULL)<1)
 			{
 				Log(4, "proxy timeout...");
 				SetTCPError(PR_ERROR);
@@ -258,9 +265,9 @@ int h_connect(int so, char *host)
 			}
 		}
 	}
-	if(socks[0])
+	if(config->socks[0])
 	{
-		strcpy(buf, socks);
+		strcpy(buf, config->socks);
 		if ((sauth=strchr(buf, '/')) != NULL)
 			*sauth++ = '\0';
 		Log(4, "connected to socks%c %s", sauth ? '5' : '4', buf);
@@ -270,7 +277,7 @@ int h_connect(int so, char *host)
 			port = atoi(sp);
 		}
 		else
-			port = oport; /* should never happens */
+			port = config->oport; /* should never happens */
 		if (!sauth)
 		{
 			if ((hp=find_host(host, &he, &defaddr)) == NULL)
@@ -340,7 +347,7 @@ int h_connect(int so, char *host)
 				buf[0]=4;
 				buf[1]=1;
 				lockhostsem();
-				Log (4, port == (unsigned short)oport ? "trying %s..." : "trying %s:%u...",
+				Log (4, port == (unsigned short)config->oport ? "trying %s..." : "trying %s:%u...",
 				     inet_ntoa(*((struct in_addr *)*cp)), port);
 				releasehostsem();
 				buf[2]=(unsigned char)((port>>8)&0xFF);
@@ -378,9 +385,9 @@ int h_connect(int so, char *host)
 				fd_set fds;
 				FD_ZERO(&fds);
 				FD_SET(so, &fds);
-				tv.tv_sec=nettimeout;
+				tv.tv_sec=config->nettimeout;
 				tv.tv_usec=0;
-				if (select(so+1, &fds, NULL, &fds, nettimeout>0?&tv:NULL)<1)
+				if (select(so+1, &fds, NULL, &fds, config->nettimeout>0?&tv:NULL)<1)
 				{
 					Log(4, "socks timeout...");
 					if (sauth) free(sauth);

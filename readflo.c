@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/08/26 16:06:27  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.2  2003/08/23 15:51:51  stream
  * Implemented common list routines for all linked records in configuration
  *
@@ -29,17 +35,11 @@
  *
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <ctype.h>
 
-#include "Config.h"
 #include "readcfg.h"
+#include "tools.h"
 #include "readflo.h"
-#include "assert.h"
-
-TYPE_LIST(_RF_RULE) rf_rules;
 
 /*
  * Reads a line from a flo to dst[MAXPATHLEN], sets action
@@ -87,17 +87,17 @@ int read_flo_line (char *dst, int *action, FILE *flo)
  * Returns 0 if no rf_rules defined, otherwise returned value
  * should be free()'d
  */
-char *trans_flo_line (char *s)
+char *trans_flo_line (char *s, BINKD_CONFIG *config)
 {
   RF_RULE *curr;
   char buf[MAXPATHLEN + 1];
 
-  if (rf_rules.first)
+  if (config->rf_rules.first)
   {
     char *w;
 
     strnzcpy (buf, s, MAXPATHLEN);
-    for (curr = rf_rules.first; curr; curr = curr->next)
+    for (curr = config->rf_rules.first; curr; curr = curr->next)
     {
       w = ed (buf, curr->from, curr->to, NULL);
       strnzcpy (buf, w, MAXPATHLEN);

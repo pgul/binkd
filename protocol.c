@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.108  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.107  2003/08/25 19:09:29  gul
  * Flush file buffer after receive data frame,
  * drop session if extra bytes received.
@@ -401,34 +407,16 @@
  * NT port by ufm
  */
 
-#include <sys/types.h>
-#include <time.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <errno.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
+#include "readcfg.h"
+#include "protocol.h"
 
-#include "Config.h"
-#include "sys.h"
-#include "iphdr.h"
 #include "common.h"
 #include "iptools.h"
 #include "tools.h"
-#include "readcfg.h"
-#include "ftnq.h"
 #include "bsy.h"
 #include "inbound.h"
 #include "srif.h"
 #include "readflo.h"
-#include "protocol.h"
-#include "prothlp.h"
 #include "protoco2.h"
 #include "assert.h"
 #include "binlog.h"
@@ -436,6 +424,15 @@
 #include "sem.h"
 #include "md5b.h"
 #include "crypt.h"
+
+#include <ctype.h>
+#include <sys/stat.h>
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
+
 #ifdef WITH_PERL
 #include "perlhooks.h"
 #endif
@@ -446,7 +443,7 @@ static char *scommand[] = {"NUL", "ADR", "PWD", "FILE", "OK", "EOB",
 /*
  * Fills <<state>> with initial values, allocates buffers, etc.
  */
-static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to)
+static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to, BINKD_CONFIG *config)
 {
   memset (state, 0, sizeof (STATE));
 
@@ -456,7 +453,7 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to)
   state->off_req_sent = 0;
   state->waiting_for_GOT = 0;
   state->send_eof = 0;
-  state->inbound = inbound_nonsecure;
+  state->inbound = config->inbound_nonsecure;
   state->io_error = 0;
   state->ibuf = xalloc (MAX_BLKSIZE + BLK_HDR_SIZE + 1);
   state->isize = -1;
@@ -481,7 +478,7 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to)
 #ifdef WITH_PERL
   state->perl_set_lvl = 0;
 #endif
-  state->delay_ADR = (akamask.first != NULL) ? 1 : 0;
+  state->delay_ADR = (config->akamask.first != NULL) ? 1 : 0;
 #ifdef WITH_PERL
   state->delay_ADR |= (perl_ok & (1<<4)) != 0;
 #endif
@@ -502,7 +499,7 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to)
 /*
  * Clears protocol buffers and queues, closes files, etc.
  */
-static int deinit_protocol (STATE *state)
+static int deinit_protocol (STATE *state, BINKD_CONFIG *config)
 {
   int i;
 
@@ -522,7 +519,7 @@ static int deinit_protocol (STATE *state)
     fclose (state->in.f);
     if (s == 0)
       inb_reject (state->in.netname, state->in.size, state->in.time,
-		  state->fa, state->nallfa, state->inbound);
+		  state->fa, state->nallfa, state->inbound, config);
   }
   if (state->out.f)
     fclose (state->out.f);
@@ -532,30 +529,24 @@ static int deinit_protocol (STATE *state)
     free_killlist (&state->killlist, &state->n_killlist);
   if (state->rcvdlist)
     free_rcvdlist (&state->rcvdlist, &state->n_rcvdlist);
-  if (state->ibuf)
-    free (state->ibuf);
-  if (state->obuf)
-    free (state->obuf);
-  if (state->msgs)
-    free (state->msgs);
-  if (state->sent_fls)
-    free (state->sent_fls);
+  xfree (state->ibuf);
+  xfree (state->obuf);
+  xfree (state->msgs);
+  xfree (state->sent_fls);
   if (state->q)
-    q_free (state->q);
+    q_free (state->q, config);
   for (i = 0; i < state->nfa; ++i)
-    bsy_remove (state->fa + i, F_BSY);
-  if (state->fa)
-    free (state->fa);
-  if (state->pAddr) free (state->pAddr);
-  if (state->MD_challenge)
-	free (state->MD_challenge);
+    bsy_remove (state->fa + i, F_BSY, config);
+  xfree (state->fa);
+  xfree (state->pAddr);
+  xfree (state->MD_challenge);
   rel_grow_handles(-state->nfa);
   Log (6, "binkp deinit done...");
   return 0;
 }
 
 /* Process rcvdlist */
-FTNQ *process_rcvdlist (STATE *state, FTNQ *q)
+static FTNQ *process_rcvdlist (STATE *state, FTNQ *q, BINKD_CONFIG *config)
 {
   int i;
 
@@ -564,7 +555,7 @@ FTNQ *process_rcvdlist (STATE *state, FTNQ *q)
   {
     q = evt_run(&(state->evt_queue), q, state->rcvdlist[i].name, state->fa,
 		state->nfa, state->state == P_SECURE, state->listed_flag,
-		state->peer_name, NULL);
+		state->peer_name, NULL, config);
   }
   return q;
 }
@@ -650,7 +641,7 @@ static void current_file_was_sent (STATE *state)
 /*
  * Sends next msg from the msg queue or next data block
  */
-static int send_block (STATE *state)
+static int send_block (STATE *state, BINKD_CONFIG *config)
 {
   int i, n, save_errno;
   const char *save_err;
@@ -678,7 +669,7 @@ static int send_block (STATE *state)
 	{
 	  Log (1, "send: %s", save_err);
 	  if (state->to)
-	    bad_try (&state->to->fa, save_err, BAD_IO);
+	    bad_try (&state->to->fa, save_err, BAD_IO, config);
 	}
 	return 0;
       }
@@ -750,8 +741,8 @@ static int send_block (STATE *state)
 
       if (state->out.f)
       {
-	sz = min ((off_t) oblksize, state->out.size - ftell (state->out.f));
-	if (percents && state->out.size > 0)
+	sz = min ((off_t) config->oblksize, state->out.size - ftell (state->out.f));
+	if (config->percents && state->out.size > 0)
 	{
 	  printf ("%-20.20s %3.0f%%\r", state->out.netname,
 		  100.0 * ftell (state->out.f) / (float) state->out.size);
@@ -807,7 +798,7 @@ static int send_block (STATE *state)
                 PKTFIELD(ZONEOFFSET), PKTFIELD(NETOFFSET),
                 PKTFIELD(NODEOFFSET), PKTFIELD(POINTOFFSET));
             /* Scan all shared addresses */
-            for(chn = shares;chn;chn = chn->next)
+            for(chn = config->shares.first;chn;chn = chn->next)
             {
               if ((chn->sha.z    == PKTFIELD(ZONEOFFSET )) &&
                   (chn->sha.net  == PKTFIELD(NETOFFSET  ))  &&
@@ -887,7 +878,7 @@ static int perform_action (STATE *state, char *path, char action)
  * If flopath == 0 performs action on file.
  */
 static int remove_from_spool (STATE *state, char *flopath,
-			       char *file, char action)
+                              char *file, char action, BINKD_CONFIG *config)
 {
   char buf[MAXPATHLEN + 1], *w = 0;
   FILE *flo = 0;
@@ -947,7 +938,7 @@ static int remove_from_spool (STATE *state, char *flopath,
 	fgets (buf, MAXPATHLEN, flo);
 	/* We've found the file in flo, so try to translate it's name before
 	 * the action */
-	if (w == 0 && (w = trans_flo_line (file)) != 0)
+	if (w == 0 && (w = trans_flo_line (file, config)) != 0)
 	{
 	  Log (5, "%s mapped to %s", file, w);
 	}
@@ -999,14 +990,14 @@ static void remove_from_sent_files_queue (STATE *state, int n)
   }
 }
 
-static void do_prescan(STATE *state)
+static void do_prescan(STATE *state, BINKD_CONFIG *config)
 {
   char s[64];
   unsigned long netsize, filessize;
 
-  if (OK_SEND_FILES (state) && prescan)
+  if (OK_SEND_FILES (state, config) && config->prescan)
   {
-    state->q = q_scan_addrs (0, state->fa, state->nfa, state->to ? 1 : 0);
+    state->q = q_scan_addrs (0, state->fa, state->nfa, state->to ? 1 : 0, config);
     q_get_sizes (state->q, &netsize, &filessize);
     sprintf(s, "%lu %lu", netsize, filessize);
     msg_send2 (state, M_NUL, "TRF ", s);
@@ -1022,9 +1013,12 @@ static void do_prescan(STATE *state)
 /*
  * Parses if needed and logs down the M_NUL message data
  */
-static int NUL (STATE *state, char *buf, int sz)
+static int NUL (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
 {
   char *s, *a, *b;
+
+  UNUSED_ARG(sz);
+  UNUSED_ARG(config);
 
   Log (3, "%s", s = strquote (buf, SQ_CNTRL));
   if (!memcmp (s, "VER ", 4) &&
@@ -1066,7 +1060,7 @@ static int NUL (STATE *state, char *buf, int sz)
           state->to && (state->to->MD_flag>=0))
       {
 	Log(2, "Remote requests MD mode");
-	if(state->MD_challenge) free(state->MD_challenge);
+	xfree(state->MD_challenge);
 	state->MD_challenge=MD_getChallenge(w, NULL);
       }
       free (w);
@@ -1085,29 +1079,33 @@ static int NUL (STATE *state, char *buf, int sz)
 /*
  * Handles M_ERR msg from the remote
  */
-static int RError (STATE *state, char *buf, int sz)
+static int RError (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
 {
   char *s;
+
+  UNUSED_ARG(sz);
 
   Log (1, "rerror: %s", s = strquote (buf, SQ_CNTRL));
   if (state->to)
-    bad_try (&state->to->fa, s, BAD_MERR);
+    bad_try (&state->to->fa, s, BAD_MERR, config);
   free (s);
   return 0;
 }
 
-static int BSY (STATE *state, char *buf, int sz)
+static int BSY (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
 {
   char *s;
 
+  UNUSED_ARG(sz);
+
   Log (1, "got M_BSY: %s", s = strquote (buf, SQ_CNTRL));
   if (state->to)
-    bad_try (&state->to->fa, s, BAD_MBSY);
+    bad_try (&state->to->fa, s, BAD_MBSY, config);
   free (s);
   return 0;
 }
 
-static char * add_shared_akas(char * s)
+static char * add_shared_akas(char * s, BINKD_CONFIG *config)
 {
   int i;
   char * w, *c;
@@ -1120,9 +1118,9 @@ static char * add_shared_akas(char * s)
 
   for (i = 1; (w = getwordx (s, i, 0)) != 0; ++i)
   {
-    if (parse_ftnaddress (w, &fa) && is5D (&fa))
+    if (parse_ftnaddress (w, &fa, config) && is5D (&fa))
     {
-      for(chn = shares;chn;chn = chn->next)
+      for(chn = config->shares.first;chn;chn = chn->next)
       {
         if (ftnaddress_cmp(&fa,&chn->sha) == 0)
         {
@@ -1142,7 +1140,7 @@ static char * add_shared_akas(char * s)
         }
         else
         {
-          for (fta = chn->sfa;fta;fta = fta->next)
+          for (fta = chn->sfa.first;fta;fta = fta->next)
           {
           if (ftnaddress_cmp(&fta->fa,&fa) == 0)
           {
@@ -1169,7 +1167,7 @@ static char * add_shared_akas(char * s)
   return ad;
 }
 
-static int ADR (STATE *state, char *s, int sz)
+static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 {
   int i, j, main_AKA_ok = 0, ip_verified = 0;
   char *w;
@@ -1188,9 +1186,9 @@ static int ADR (STATE *state, char *s, int sz)
    */
   {
     char *ss, *ad = NULL;
-    if (shares)
+    if (config->shares.first)
     {
-      ad = add_shared_akas(s);
+      ad = add_shared_akas(s, config);
       if (ad)
       {
         ss = xalloc(strlen(s) + strlen(ad) + 1);
@@ -1220,7 +1218,7 @@ static int ADR (STATE *state, char *s, int sz)
 
   for (i = 1; (w = getwordx (s, i, 0)) != 0; ++i)
   {
-    if (!parse_ftnaddress (w, &fa) || !is4D (&fa))
+    if (!parse_ftnaddress (w, &fa, config) || !is4D (&fa))
     {
       char *q = strquote (s, SQ_CNTRL);
 
@@ -1234,14 +1232,14 @@ static int ADR (STATE *state, char *s, int sz)
     free (w);
 
     if (!fa.domain[0])
-      strcpy (fa.domain, get_matched_domain(fa.z, pAddr, nAddr));
+      strcpy (fa.domain, get_matched_domain(fa.z, config->pAddr, config->nAddr, config));
 
     ftnaddress_to_str (szFTNAddr, &fa);
-    pn = get_node(&fa, &n);
+    pn = get_node(&fa, &n, config);
 
     if (pn && n.restrictIP
 #ifdef HTTPS
-        && (state->to == 0 || (!proxy[0] && !socks[0]))
+        && (state->to == 0 || (!config->proxy[0] && !config->socks[0]))
 #endif
         )
     { int i, ipok = 0, rc;
@@ -1260,7 +1258,7 @@ static int ADR (STATE *state, char *s, int sz)
       }
 
       for (i = 1; n.hosts &&
-           (rc = get_host_and_port(i, host, &port, n.hosts, &n.fa)) != -1; ++i)
+           (rc = get_host_and_port(i, host, &port, n.hosts, &n.fa, config)) != -1; ++i)
       {
 	if (rc == 0)
 	{
@@ -1351,7 +1349,7 @@ static int ADR (STATE *state, char *s, int sz)
       }
     }
 
-    if (bsy_add (&fa, F_BSY))
+    if (bsy_add (&fa, F_BSY, config))
     {
       Log (2, "addr: %s", szFTNAddr);
       if (state->nfa == 0)
@@ -1411,7 +1409,7 @@ static int ADR (STATE *state, char *s, int sz)
   {
     ftnaddress_to_str (szFTNAddr, &state->to->fa);
     Log (1, "called %s, but remote has no such AKA", szFTNAddr);
-    bad_try (&state->to->fa, "Remote has no needed AKA", BAD_AKA);
+    bad_try (&state->to->fa, "Remote has no needed AKA", BAD_AKA, config);
     return 0;
   }
   if (ip_verified < 0)
@@ -1441,14 +1439,14 @@ static int ADR (STATE *state, char *s, int sz)
 
   if (state->to)
   {
-    do_prescan (state);
+    do_prescan (state, config);
     if(state->MD_challenge)
     {
       char *tp=MD_buildDigest(state->to->pwd, state->MD_challenge);
       if(!tp)
       {
         Log(2, "Unable to build MD5 digest");
-        bad_try (&state->to->fa, "Unable to build MD5 digest", BAD_AUTH);
+        bad_try (&state->to->fa, "Unable to build MD5 digest", BAD_AUTH, config);
         return 0;
       }
       msg_send2 (state, M_PWD, tp, 0);
@@ -1458,7 +1456,7 @@ static int ADR (STATE *state, char *s, int sz)
     else if ((state->to->MD_flag == 1) && !no_MD5) /* We do not want to talk without MD5 */
     {
       Log(2, "CRAM-MD5 is not supported by remote");
-      bad_try (&state->to->fa, "CRAM-MD5 is not supported by remote", BAD_AUTH);
+      bad_try (&state->to->fa, "CRAM-MD5 is not supported by remote", BAD_AUTH, config);
       return 0;
     }
     else
@@ -1467,24 +1465,24 @@ static int ADR (STATE *state, char *s, int sz)
   return 1;
 }
 
-static char *select_inbound (FTN_ADDR *fa, int secure_flag)
+static char *select_inbound (FTN_ADDR *fa, int secure_flag, BINKD_CONFIG *config)
 {
   FTN_NODE *node;
   char *p;
 
   locknodesem();
-  node = get_node_info(fa);
+  node = get_node_info(fa, config);
   p = ((node && node->ibox) ? node->ibox :
-	  (secure_flag == P_SECURE ? inbound : inbound_nonsecure));
+	  (secure_flag == P_SECURE ? config->inbound : config->inbound_nonsecure));
   releasenodesem();
   return p;
 }
 
-static int complete_login (STATE *state)
+static int complete_login (STATE *state, BINKD_CONFIG *config)
 {
-  state->inbound = select_inbound (state->fa, state->state);
-  if (OK_SEND_FILES (state) && state->q == NULL)
-    state->q = q_scan_addrs (0, state->fa, state->nfa, state->to ? 1 : 0);
+  state->inbound = select_inbound (state->fa, state->state, config);
+  if (OK_SEND_FILES (state, config) && state->q == NULL)
+    state->q = q_scan_addrs (0, state->fa, state->nfa, state->to ? 1 : 0, config);
   state->msgs_in_batch = 0;	       /* Forget about login msgs */
   if (state->state == P_SECURE)
     Log (2, "pwd protected session (%s)",
@@ -1533,10 +1531,12 @@ static int complete_login (STATE *state)
   return 1;
 }
 
-static int PWD (STATE *state, char *pwd, int sz)
+static int PWD (STATE *state, char *pwd, int sz, BINKD_CONFIG *config)
 {
   int bad_pwd=STRNICMP(pwd, "CRAM-", 5);
   int no_password=!strcmp (state->expected_pwd, "-");
+
+  UNUSED_ARG(sz);
 
   if (state->to)
   { Log (1, "unexpected password from the remote on outgoing call: `%s'", pwd);
@@ -1544,7 +1544,7 @@ static int PWD (STATE *state, char *pwd, int sz)
   }
   if ((no_password)&&(bad_pwd))
   {
-    do_prescan (state);
+    do_prescan (state, config);
     state->state = P_NONSECURE;
     if (strcmp (pwd, "-"))
       Log (1, "unexpected password from the remote: `%s'", pwd);
@@ -1584,7 +1584,7 @@ static int PWD (STATE *state, char *pwd, int sz)
       if(no_password)
       {
         state->state = P_NONSECURE;
-        do_prescan (state);
+        do_prescan (state, config);
         if(bad_pwd) {
           Log (1, "unexpected password digest from the remote");
           state->state_ext = P_WE_NONSECURE;
@@ -1593,7 +1593,7 @@ static int PWD (STATE *state, char *pwd, int sz)
       else
       {
 	state->state = P_SECURE;
-        do_prescan (state);
+        do_prescan (state, config);
       }
     }
   }
@@ -1631,11 +1631,13 @@ static int PWD (STATE *state, char *pwd, int sz)
                (!(state->ND_flag & WE_ND)) != (!(state->ND_flag & THEY_ND)) ? " NDA" : "",
                (state->crypt_flag == (WE_CRYPT | THEY_CRYPT)) ? " CRYPT" : "");
   msg_send2 (state, M_OK, state->state==P_SECURE ? "secure" : "non-secure", 0);
-  return complete_login (state);
+  return complete_login (state, config);
 }
 
-static int OK (STATE *state, char *buf, int sz)
+static int OK (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
 {
+  UNUSED_ARG(sz);
+
   if (!state->to) return 0;
   state->state = !strcmp (state->to->pwd, "-") ? P_NONSECURE : P_SECURE;
   if (state->state == P_SECURE && strcmp(buf, "non-secure") == 0)
@@ -1646,18 +1648,18 @@ static int OK (STATE *state, char *buf, int sz)
   }
   if (state->ND_flag == WE_ND || state->ND_flag == THEY_ND)
     state->ND_flag = 0; /* remote does not support asymmetric ND-mode */
-  return complete_login (state);
+  return complete_login (state, config);
 }
 
 /* val: checks file against skip rules */
-struct skipchain *skip_test(STATE *state)
+struct skipchain *skip_test(STATE *state, BINKD_CONFIG *config)
 {
   struct skipchain *ps;
   addrtype amask = 0;
 
   amask |= (state->listed_flag) ? A_LST : A_UNLST;
   amask |= (state->state == P_SECURE) ? A_PROT : A_UNPROT;
-  for (ps = skipmask.first; ps; ps = ps->next)
+  for (ps = config->skipmask.first; ps; ps = ps->next)
   {
     if ( (ps->atype & amask) && pmatch_ncase(ps->mask, state->in.netname) )
     {
@@ -1673,11 +1675,13 @@ struct skipchain *skip_test(STATE *state)
  * Handles M_FILE msg from the remote
  * M_FILE args: "%s %li %lu %li", filename, size, time, offset
  */
-static int start_file_recv (STATE *state, char *args, int sz)
+static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 {
   const int argc = 4;
   char *argv[4];
   off_t offset;
+
+  UNUSED_ARG(sz);
 
   if (parse_msg_args (argc, argv, args, "M_FILE", state))
   {
@@ -1699,15 +1703,15 @@ static int start_file_recv (STATE *state, char *args, int sz)
 
       if (inb_done (state->in_complete.netname, state->in_complete.size,
 	            state->in_complete.time, state->fa, state->nallfa,
-		    state->inbound, realname, state) == 0)
+		    state->inbound, realname, state, config) == 0)
         return 0; /* error, drop session */
       if (*realname)
       {
         /* Set flags */
-        if(evt_test(&(state->evt_queue), realname))
+        if(evt_test(&(state->evt_queue), realname, config))
           state->q = evt_run(&(state->evt_queue), state->q, realname, state->fa,
 	         state->nfa, state->state == P_SECURE, state->listed_flag,
-                 state->peer_name, state);
+                 state->peer_name, state, config);
         /* We will run external programs using this list */
         add_to_rcvdlist (&state->rcvdlist, &state->n_rcvdlist, realname);
       }
@@ -1764,7 +1768,7 @@ static int start_file_recv (STATE *state, char *args, int sz)
       }
 #endif
       /* val: skip check */
-      if ((mask = skip_test(state)) != NULL) {
+      if ((mask = skip_test(state, config)) != NULL) {
 	Log (1, "skipping %s (%sdestructive, %li byte(s), mask %s)",
 	     state->in.netname, mask->destr ? "" : "non-", state->in.size, mask->mask);
 	msg_sendf (state, (t_msg)(mask->destr ? M_GOT : M_SKIP), "%s %li %lu",
@@ -1789,7 +1793,7 @@ static int start_file_recv (STATE *state, char *args, int sz)
       {
 	if ((state->in.f = inb_fopen (state->in.netname, state->in.size,
 				      state->in.time, state->fa, state->nallfa,
-				      state->inbound, state->state)) == 0)
+				      state->inbound, state->state, config)) == 0)
 	{
 	  state->skip_all_flag = 1;
 	}
@@ -1850,17 +1854,19 @@ static int start_file_recv (STATE *state, char *args, int sz)
     return 0;
 }
 
-static int ND_set_status(char *status, FTN_ADDR *fa, STATE *state)
+static int ND_set_status(char *status, FTN_ADDR *fa, STATE *state, BINKD_CONFIG *config)
 {
   char buf[MAXPATHLEN+1];
   FILE *f;
   int  rc;
 
+  UNUSED_ARG(state);
+
   if (fa->z==-1)
   { Log(8, "ND_set_status: unknown address for '%s'", status);
     return 0;
   }
-  ftnaddress_to_filename (buf, fa);
+  ftnaddress_to_filename (buf, fa, config);
   if (*buf=='\0') return 0;
   strnzcat(buf, ".stc", sizeof(buf));
   if (!status || !*status)
@@ -1898,13 +1904,15 @@ static int ND_set_status(char *status, FTN_ADDR *fa, STATE *state)
  * M_GET message from the remote: Resend file from offset
  * M_GET args: "%s %li %lu %li", filename, size, time, offset
  */
-static int GET (STATE *state, char *args, int sz)
+static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 {
   const int argc = 4;
   char *argv[4];
   int i, rc = 0;
   off_t offset, fsize=0;
   time_t ftime=0;
+
+  UNUSED_ARG(sz);
 
   if (parse_msg_args (argc, argv, args, "M_GET", state))
   { {char *errmesg = NULL;
@@ -1961,7 +1969,7 @@ static int GET (STATE *state, char *args, int sz)
 	}
 	else
 	  /* request from offset 0 - file already renamed */
-	  ND_set_status("", &state->out.fa, state);
+	  ND_set_status("", &state->out.fa, state, config);
 	TF_ZERO(&state->out);
       }
       else if ((offset = atol (argv[3])) > state->out.size ||
@@ -1985,7 +1993,7 @@ static int GET (STATE *state, char *args, int sz)
     }
     else
       Log (1, "unexpected M_GET for %s", argv[0]);
-    ND_set_status("", &state->ND_addr, state);
+    ND_set_status("", &state->ND_addr, state, config);
     state->ND_addr.z=-1;
     if (state->ND_flag & WE_ND)
     {
@@ -2006,13 +2014,15 @@ static int GET (STATE *state, char *args, int sz)
  *
  * M_SKIP args: "%s %li %lu", filename, size, time
  */
-static int SKIP (STATE *state, char *args, int sz)
+static int SKIP (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 {
   const int argc = 3;
   char *argv[3];
   int n;
   time_t ftime=0;
   off_t  fsize=0;
+
+  UNUSED_ARG(sz);
 
   if (parse_msg_args (argc, argv, args, "M_SKIP", state))
   { {char *errmesg=NULL;
@@ -2039,7 +2049,7 @@ static int SKIP (STATE *state, char *args, int sz)
       Log (2, "%s skipped by remote", state->out.netname);
       TF_ZERO (&state->out);
     }
-    ND_set_status("", &state->ND_addr, state);
+    ND_set_status("", &state->ND_addr, state, config);
     state->ND_addr.z=-1;
     if ((state->ND_flag & WE_ND) || (state->NR_flag & WE_NR))
     {
@@ -2055,7 +2065,7 @@ static int SKIP (STATE *state, char *args, int sz)
 /*
  * M_GOT args: "%s %li %lu", filename, size, time
  */
-static int GOT (STATE *state, char *args, int sz)
+static int GOT (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 {
   const int argc = 3;
   char *argv[3];
@@ -2064,8 +2074,10 @@ static int GOT (STATE *state, char *args, int sz)
   time_t ftime=0;
   off_t  fsize=0;
 
+  UNUSED_ARG(sz);
+
   if ((state->NR_flag & WE_NR) && !(state->ND_flag & WE_ND))
-    ND_set_status("", &state->ND_addr, state);
+    ND_set_status("", &state->ND_addr, state, config);
   else
     status = strdup(args);
   if (parse_msg_args (argc, argv, args, "M_GOT", state))
@@ -2092,14 +2104,14 @@ static int GOT (STATE *state, char *args, int sz)
       if (status)
       {
 	if (state->off_req_sent)
-	  rc = ND_set_status("", &state->ND_addr, state);
+	  rc = ND_set_status("", &state->ND_addr, state, config);
 	else
-	  rc = ND_set_status(status, &state->ND_addr, state);
+	  rc = ND_set_status(status, &state->ND_addr, state, config);
       }
       state->waiting_for_GOT = state->off_req_sent = 0;
       Log(9, "Don't waiting for M_GOT");
       remove_from_spool (state, state->out.flo,
-			 state->out.path, state->out.action);
+			 state->out.path, state->out.action, config);
       TF_ZERO (&state->out);
     }
     else
@@ -2125,9 +2137,9 @@ static int GOT (STATE *state, char *args, int sz)
 	  if (status)
 	  {
 	    if (state->off_req_sent || !(state->ND_flag & WE_ND))
-	      rc = ND_set_status("", &state->ND_addr, state);
+	      rc = ND_set_status("", &state->ND_addr, state, config);
 	    else
-	      rc = ND_set_status(status, &state->ND_addr, state);
+	      rc = ND_set_status(status, &state->ND_addr, state, config);
 	  }
 	  state->waiting_for_GOT = 0;
 	  Log(9, "Don't waiting for M_GOT");
@@ -2135,7 +2147,7 @@ static int GOT (STATE *state, char *args, int sz)
           perl_after_sent(state, n);
 #endif
 	  remove_from_spool (state, state->sent_fls[n].flo,
-			state->sent_fls[n].path, state->sent_fls[n].action);
+			state->sent_fls[n].path, state->sent_fls[n].action, config);
 	  remove_from_sent_files_queue (state, n);
 	  break;		       /* we have ACK for _ONE_ file */
 	}
@@ -2147,8 +2159,11 @@ static int GOT (STATE *state, char *args, int sz)
     return 0;
 }
 
-static int EOB (STATE *state, char *buf, int sz)
+static int EOB (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
 {
+  UNUSED_ARG(buf);
+  UNUSED_ARG(sz);
+
   state->remote_EOB = 1;
   if (state->in.f)
   {
@@ -2163,15 +2178,15 @@ static int EOB (STATE *state, char *buf, int sz)
 
     if (inb_done (state->in_complete.netname, state->in_complete.size,
                   state->in_complete.time, state->fa, state->nallfa,
-	          state->inbound, realname, state) == 0)
+	          state->inbound, realname, state, config) == 0)
       return 0;
     if (*realname)
     {
       /* Set flags */
-      if (evt_test(&(state->evt_queue), realname))
+      if (evt_test(&(state->evt_queue), realname, config))
         state->q = evt_run(&(state->evt_queue), state->q, realname, state->fa,
 	       state->nfa, state->state == P_SECURE, state->listed_flag,
-               state->peer_name, state);
+               state->peer_name, state, config);
       /* We will run external programs using this list */
       add_to_rcvdlist (&state->rcvdlist, &state->n_rcvdlist, realname);
     }
@@ -2188,14 +2203,14 @@ static int EOB (STATE *state, char *buf, int sz)
   return 1;
 }
 
-typedef int command (STATE *state, char *buf, int sz);
-command *commands[] =
+typedef int command (STATE *state, char *buf, int sz, BINKD_CONFIG *config);
+static command *commands[] =
 {
   NUL, ADR, PWD, start_file_recv, OK, EOB, GOT, RError, BSY, GET, SKIP
 };
 
 /* Recvs next block, processes msgs or writes down the data from the remote */
-static int recv_block (STATE *state)
+static int recv_block (STATE *state, BINKD_CONFIG *config)
 {
   int no;
 
@@ -2218,7 +2233,7 @@ static int recv_block (STATE *state)
       {
 	Log (1, "recv: %s", save_err);
 	if (state->to)
-	  bad_try (&state->to->fa, save_err, BAD_IO);
+	  bad_try (&state->to->fa, save_err, BAD_IO, config);
       }
       return 0;
     }
@@ -2260,7 +2275,7 @@ static int recv_block (STATE *state)
 	  state->ibuf[state->isize] = 0;
           Log (5, "rcvd msg %s %s", scommand[(unsigned char)(state->ibuf[0])], state->ibuf+1);
 	  rc = commands[(unsigned) (state->ibuf[0])]
-	    (state, state->ibuf + 1, state->isize - 1);
+	    (state, state->ibuf + 1, state->isize - 1, config);
 	}
 
 	if (rc == 0)
@@ -2278,7 +2293,7 @@ static int recv_block (STATE *state)
 	  Log (1, "write error: %s", strerror(errno));
 	  return 0;
 	}
-	if (percents && state->in.size > 0)
+	if (config->percents && state->in.size > 0)
 	{
 	  printf ("%-20.20s %3.0f%%\r", state->in.netname,
 		  100.0 * ftell (state->in.f) / (float) state->in.size);
@@ -2307,15 +2322,15 @@ static int recv_block (STATE *state)
 	  {
 	    if (inb_done (state->in.netname, state->in.size,
 		          state->in.time, state->fa, state->nallfa,
-		          state->inbound, realname, state) == 0)
+		          state->inbound, realname, state, config) == 0)
               return 0;
 	    if (*realname)
 	    {
 	      /* Set flags */
-              if (evt_test(&(state->evt_queue), realname))
+              if (evt_test(&(state->evt_queue), realname, config))
                 state->q = evt_run(&(state->evt_queue), state->q, realname,
 		       state->fa, state->nfa, state->state == P_SECURE,
-		       state->listed_flag, state->peer_name, state);
+		       state->listed_flag, state->peer_name, state, config);
 	      /* We will run external programs using this list */
 	      add_to_rcvdlist (&state->rcvdlist, &state->n_rcvdlist, realname);
 	    }
@@ -2356,7 +2371,7 @@ static int recv_block (STATE *state)
       char *s_err = "connection closed by foreign host";
       Log (1, "recv: %s", s_err);
       if (state->to)
-	bad_try (&state->to->fa, s_err, BAD_IO);
+	bad_try (&state->to->fa, s_err, BAD_IO, config);
     }
     return 0;
   }
@@ -2364,7 +2379,7 @@ static int recv_block (STATE *state)
     return 1;
 }
 
-static void send_ADR (STATE *state) {
+static void send_ADR (STATE *state, BINKD_CONFIG *config) {
   char szFTNAddr[FTN_ADDR_SZ + 1];
   char *szAkas;
   int i, N;
@@ -2373,13 +2388,13 @@ static void send_ADR (STATE *state) {
   Log(7, "send_ADR(): got %d remote addresses", state->nfa);
 
   if (!state->pAddr) {
-    state->nAddr = nAddr;
+    state->nAddr = config->nAddr;
     state->pAddr = xalloc(state->nAddr * sizeof(FTN_ADDR));
-    memcpy(state->pAddr, pAddr, state->nAddr*sizeof(FTN_ADDR));
+    memcpy(state->pAddr, config->pAddr, state->nAddr*sizeof(FTN_ADDR));
   }
 
   N = state->nAddr;
-  for (ps = akamask.first; ps; ps = ps->next)
+  for (ps = config->akamask.first; ps; ps = ps->next)
   {
     int t = (ps->type & 0x7f);
     int rc = ftnamask_cmpm(ps->mask, state->nfa, state->fa) == (ps->type & 0x80 ? -1 : 0);
@@ -2427,7 +2442,7 @@ static void send_ADR (STATE *state) {
   free (szAkas);
 }
 
-static void banner (STATE *state)
+static void banner (STATE *state, BINKD_CONFIG *config)
 {
   int tz;
   char szLocalTime[60];
@@ -2449,13 +2464,13 @@ static void banner (STATE *state)
   else
     state->MD_flag=0;
 
-  msg_send2 (state, M_NUL, "SYS ", sysname);
-  msg_send2 (state, M_NUL, "ZYZ ", sysop);
-  msg_send2 (state, M_NUL, "LOC ", location);
-  msg_send2 (state, M_NUL, "NDL ", nodeinfo);
+  msg_send2 (state, M_NUL, "SYS ", config->sysname);
+  msg_send2 (state, M_NUL, "ZYZ ", config->sysop);
+  msg_send2 (state, M_NUL, "LOC ", config->location);
+  msg_send2 (state, M_NUL, "NDL ", config->nodeinfo);
 
   t = safe_time();
-  tz = tz_off(t);
+  tz = tz_off(t, config);
   safe_localtime (&t, &tm);
 
 #if 0
@@ -2476,7 +2491,7 @@ static void banner (STATE *state)
   msg_sendf (state, M_NUL,
     "VER " MYNAME "/" MYVER "%s " PRTCLNAME "/" PRTCLVER, get_os_string ());
 
-  if (state->to || !state->delay_ADR) send_ADR (state);
+  if (state->to || !state->delay_ADR) send_ADR (state, config);
 
   if (state->to)
     msg_sendf (state, M_NUL, "OPT NDA%s%s%s",
@@ -2485,7 +2500,7 @@ static void banner (STATE *state)
                (state->crypt_flag & WE_CRYPT) ? " CRYPT" : "");
 }
 
-static int start_file_transfer (STATE *state, FTNQ *file)
+static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
 {
   struct stat sb;
   FILE *f = NULL;
@@ -2540,12 +2555,12 @@ static int start_file_transfer (STATE *state, FTNQ *file)
 	fclose (state->flo.f);
 	state->flo.f = 0;
 	/* .?lo closed, remove_from_spool() will now unlink it */
-	remove_from_spool (state, state->flo.path, 0, 0);
+	remove_from_spool (state, state->flo.path, 0, 0, config);
 	TF_ZERO (&state->flo);
 	return 0;
       }
 
-      if ((w = trans_flo_line (state->out.path)) != 0)
+      if ((w = trans_flo_line (state->out.path, config)) != 0)
 	Log (5, "%s mapped to %s", state->out.path, w);
 
       if ((f = fopen (w ? w : state->out.path, "rb")) == 0 ||
@@ -2555,13 +2570,13 @@ static int start_file_transfer (STATE *state, FTNQ *file)
 	Log (1, "start_file_transfer: %s: %s",
 	     w ? w : state->out.path, strerror (errno));
         if (f) fclose(f);
-	if (w) free (w);
+	xfree (w);
 	remove_from_spool (state, state->out.flo,
-			   state->out.path, state->out.action);
+			   state->out.path, state->out.action, config);
       }
       else
       {
-	if (w) free (w);
+	xfree (w);
 	break;
       }
     }
@@ -2586,13 +2601,13 @@ static int start_file_transfer (STATE *state, FTNQ *file)
   state->waiting_for_GOT = 0;
   Log(9, "Dont waiting for M_GOT");
   state->out.start = safe_time();
-  netname (state->out.netname, &state->out);
+  netname (state->out.netname, &state->out, config);
   if (ispkt(state->out.netname) && state->out.size <= 60)
   {
     Log (3, "skip empty pkt %s, %li bytes", state->out.path, state->out.size);
     if (state->out.f) fclose(state->out.f);
     remove_from_spool (state, state->out.flo,
-			 state->out.path, state->out.action);
+			 state->out.path, state->out.action, config);
     TF_ZERO (&state->out);
     return 0;
   }
@@ -2629,11 +2644,11 @@ static int start_file_transfer (STATE *state, FTNQ *file)
   return 1;
 }
 
-void log_end_of_session (char *status, STATE *state)
+static void log_end_of_session (char *status, STATE *state, BINKD_CONFIG *config)
 {
   char szFTNAddr[FTN_ADDR_SZ + 1];
 
-  BinLogStat (status, state);
+  BinLogStat (status, state, config);
 #ifdef WITH_PERL
   perl_after_session(state, status);
 #endif
@@ -2652,7 +2667,7 @@ void log_end_of_session (char *status, STATE *state)
        state->bytes_sent, state->bytes_rcvd);
 }
 
-void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
+void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *config)
 {
   STATE state;
   struct timeval tv;
@@ -2660,7 +2675,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
   int no, rd;
 #ifdef WIN32
   unsigned long t_out = 0;
-  unsigned long u_nettimeout = nettimeout*1000000l;
+  unsigned long u_nettimeout = config->nettimeout*1000000l;
 #endif
   struct sockaddr_in peer_name;
   socklen_t peer_name_len = sizeof (peer_name);
@@ -2672,7 +2687,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
   int perl_on_handshake_done = 0;
 #endif
 
-  if (!init_protocol (&state, socket, to))
+  if (!init_protocol (&state, socket, to, config))
     return;
 
   if (getpeername (socket, (struct sockaddr *) & peer_name, &peer_name_len) == -1)
@@ -2685,7 +2700,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
     state.peer_name = current_addr;
   else
   {
-    get_hostname(&peer_name, host, sizeof(host));
+    get_hostname(&peer_name, host, sizeof(host), config);
     state.peer_name = host;
   }
   setproctitle ("%c [%s]", to ? 'o' : 'i', state.peer_name);
@@ -2714,9 +2729,9 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
     }
   }
 #endif
-  if (ok) banner (&state);
+  if (ok) banner (&state, config);
   if (!ok) ;
-  else if (n_servers > max_servers && !to)
+  else if (n_servers > config->max_servers && !to)
   {
     Log (1, "too many servers");
     msg_send2 (&state, M_BSY, "Too many servers", 0);
@@ -2737,12 +2752,12 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
 	  if (state.flo.f ||
 	      (q = select_next_file (state.q, state.fa, state.nfa)) != 0)
 	  {
-	    if (start_file_transfer (&state, q))
+	    if (start_file_transfer (&state, q, config))
 	      break;
 	  }
 	  else
 	  {
-	    q_free (state.q);
+	    q_free (state.q, config);
 	    state.q = 0;
 	    break;
 	  }
@@ -2770,14 +2785,14 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
 	/* End of the current batch */
 	if (state.rcvdlist)
 	{
-	  state.q = process_rcvdlist (&state, state.q);
+	  state.q = process_rcvdlist (&state, state.q, config);
 	  q_to_killlist (&state.killlist, &state.n_killlist, state.q);
 	  free_rcvdlist (&state.rcvdlist, &state.n_rcvdlist);
 	}
 	Log (6, "there were %i msgs in this batch", state.msgs_in_batch);
 	if (state.msgs_in_batch <= 2 || (state.major * 100 + state.minor <= 100))
 	{
-          ND_set_status("", &state.ND_addr, &state);
+          ND_set_status("", &state.ND_addr, &state, config);
           state.ND_addr.z=-1;
 	  break;
 	}
@@ -2786,8 +2801,8 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
 	  /* Start the next batch */
 	  state.msgs_in_batch = 0;
 	  state.remote_EOB = state.local_EOB = 0;
-	  if (OK_SEND_FILES (&state))
-	    state.q = q_scan_boxes (state.q, state.fa, state.nfa);
+	  if (OK_SEND_FILES (&state, config))
+	    state.q = q_scan_boxes (state.q, state.fa, state.nfa, config);
 	  continue;
 	}
       }
@@ -2796,7 +2811,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
     if (t_out < u_nettimeout)
     {
 #endif
-      tv.tv_sec = nettimeout;	       /* Set up timeout for select() */
+      tv.tv_sec = config->nettimeout;	       /* Set up timeout for select() */
       tv.tv_usec = 0;
       Log (8, "tv.tv_sec=%li, tv.tv_usec=%li", (long) tv.tv_sec, (long) tv.tv_usec);
       no = select (socket + 1, &r, &w, 0, &tv);
@@ -2807,17 +2822,17 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
     }
     else
     {
-      Log (8, "win9x winsock workaround: timeout detected (nettimeout=%u sec, t_out=%lu sec)", nettimeout, t_out/1000000);
+      Log (8, "win9x winsock workaround: timeout detected (nettimeout=%u sec, t_out=%lu sec)", config->nettimeout, t_out/1000000);
       no = 0;
     }
 #endif
-      bsy_touch ();		       /* touch *.bsy's */
+      bsy_touch (config);		       /* touch *.bsy's */
       if (no == 0)
       {
 	state.io_error = 1;
 	Log (1, "timeout!");
 	if (to)
-	  bad_try (&to->fa, "Timeout!", BAD_IO);
+	  bad_try (&to->fa, "Timeout!", BAD_IO, config);
 	break;
       }
       else if (no < 0)
@@ -2827,14 +2842,14 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
 	{
 	  Log (1, "select: %s (args: %i %i)", save_err, socket, tv.tv_sec);
 	  if (to)
-	    bad_try (&to->fa, save_err, BAD_IO);
+	    bad_try (&to->fa, save_err, BAD_IO, config);
 	}
 	break;
       }
       rd = FD_ISSET (socket, &r);
       if (rd)       /* Have something to read */
       {
-	if (!recv_block (&state))
+	if (!recv_block (&state, config))
 	  break;
       }
 #ifdef WITH_PERL
@@ -2848,10 +2863,10 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
         }
       }
 #endif
-      if (!state.to && state.delay_ADR && state.nfa && !ADR_sent) { send_ADR (&state); ADR_sent = 1; }
+      if (!state.to && state.delay_ADR && state.nfa && !ADR_sent) { send_ADR (&state, config); ADR_sent = 1; }
       if (FD_ISSET (socket, &w))       /* Clear to send */
       {
-	no = send_block (&state);
+	no = send_block (&state, config);
 #if defined(WIN32) /* workaround winsock bug - give up CPU */
         if (!rd && no == 2)
         {
@@ -2892,21 +2907,21 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
 
   /* Still have something to send */
   while (!state.io_error &&
-        (state.msgs || (state.optr && state.oleft)) && send_block (&state));
+        (state.msgs || (state.optr && state.oleft)) && send_block (&state, config));
 
   if (state.local_EOB && state.remote_EOB && state.sent_fls == 0 &&
       state.GET_FILE_balance == 0 && state.in.f == 0 && state.out.f == 0)
   {
     /* Successful session */
-    log_end_of_session ("OK", &state);
+    log_end_of_session ("OK", &state, config);
     process_killlist (state.killlist, state.n_killlist, 's');
     if (to)
-      good_try (&to->fa, "CONNECT/BND");
+      good_try (&to->fa, "CONNECT/BND", config);
   }
   else
   {
     /* Unsuccessful session */
-    log_end_of_session ("failed", &state);
+    log_end_of_session ("failed", &state, config);
     process_killlist (state.killlist, state.n_killlist, 0);
     if (to)
     {
@@ -2914,19 +2929,19 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
       if (tolower (state.maxflvr) != 'h')
       {
 	Log (4, "restoring poll with `%c' flavour", state.maxflvr);
-	create_poll (&state.to->fa, state.maxflvr);
+	create_poll (&state.to->fa, state.maxflvr, config);
       }
     }
   }
 
-  if (to && state.r_skipped_flag && hold_skipped > 0)
+  if (to && state.r_skipped_flag && config->hold_skipped > 0)
   {
-    Log (2, "holding skipped mail for %li sec", (long) hold_skipped);
-    hold_node (&to->fa, safe_time() + hold_skipped);
+    Log (2, "holding skipped mail for %li sec", (long) config->hold_skipped);
+    hold_node (&to->fa, safe_time() + config->hold_skipped, config);
   }
 
   Log (4, "session closed, quitting...");
-  deinit_protocol (&state);
+  deinit_protocol (&state, config);
   evt_set (state.evt_queue);
   state.evt_queue = NULL;
 }

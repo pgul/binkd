@@ -2,6 +2,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/08/26 16:06:26  stream
+ * Reload configuration on-the fly.
+ *
+ * Warning! Lot of code can be broken (Perl for sure).
+ * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
+ *
  * Revision 2.2  2003/08/18 07:35:08  val
  * multiple changes:
  * - hide-aka/present-aka logic
@@ -34,7 +40,7 @@ struct _FTN_ADDR
 /*
  * 1 -- parsed ok, 0 -- syntax error
  */
-int parse_ftnaddress (char *s, FTN_ADDR *fa);
+int parse_ftnaddress (char *s, FTN_ADDR *fa, BINKD_CONFIG *config);
 
 /*
  * Not safe! Give it at least FTN_ADDR_SZ buffer.
@@ -45,7 +51,7 @@ void xftnaddress_to_str (char *s, FTN_ADDR *fa, int force_point);
 /*
  * Expands an address using pAddr[0] (pAddr[0] is my main a.k.a.)
  */
-void exp_ftnaddress (FTN_ADDR *fa);
+void exp_ftnaddress (FTN_ADDR *fa, BINKD_CONFIG *config);
 
 /*
  *  Returns 0 if match.
@@ -65,21 +71,21 @@ int ftnamask_cmpm(char *, int, FTN_ADDR *);
 /*
  *  S should have space for MAXPATHLEN chars, sets s to "" if no domain.
  */
-void ftnaddress_to_filename (char *s, FTN_ADDR *fa);
+void ftnaddress_to_filename (char *s, FTN_ADDR *fa, BINKD_CONFIG *config);
 
 /*
  *  2:5047/13.1 -> p1.f13.n5047.z2.fidonet.net.
  *  S should have space for MAXHOSTNAMELEN chars.
  */
-void ftnaddress_to_domain (char *s, FTN_ADDR *fa);
+void ftnaddress_to_domain (char *s, FTN_ADDR *fa, BINKD_CONFIG *config);
 
 #define is4D(fa) ((fa)->z != -1 && (fa)->node != -1 && \
-                  (fa)->net != -1 && (fa)->p != -1)
+  (fa)->net != -1 && (fa)->p != -1)
 #define is5D(fa) (is4D(fa) && (fa)->domain[0])
 #define FA_ZERO(fa) (memset((fa)->domain, 0, sizeof((fa)->domain)), \
-		     (fa)->z = (fa)->net = (fa)->node = (fa)->p = -1)
+  (fa)->z = (fa)->net = (fa)->node = (fa)->p = -1)
 #define FA_ISNULL(fa) (!((fa)->domain[0]) && (fa)->z == -1 && \
-		       (fa)->net == -1 && (fa)->node == -1 && (fa)->p == -1)
+  (fa)->net == -1 && (fa)->node == -1 && (fa)->p == -1)
 
 /*
  * Structures for shared aka
@@ -92,15 +98,14 @@ typedef struct _SHARED_CHAIN    SHARED_CHAIN;
 typedef struct _FTN_ADDR_CHAIN  FTN_ADDR_CHAIN;
 
 struct _FTN_ADDR_CHAIN {
-    FTN_ADDR fa;
-    FTN_ADDR_CHAIN * next;
-    SHARED_CHAIN   * own;
+  FTN_ADDR_CHAIN *next;
+  FTN_ADDR        fa;
 };
 
 struct _SHARED_CHAIN {
-    FTN_ADDR         sha;
-    FTN_ADDR_CHAIN * sfa;
-    SHARED_CHAIN   * next;
+  SHARED_CHAIN                 *next;
+  FTN_ADDR                      sha;
+  DEFINE_LIST(_FTN_ADDR_CHAIN)  sfa;
 };
 
 #endif
