@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10.2.4  2004/07/13 17:31:10  stas
+ * Fix the #include statement
+ *
  * Revision 2.10.2.3  2003/08/24 18:58:34  gul
  * Bugfix in timeout check on win32
  *
@@ -156,7 +159,7 @@ void ReleaseErrorList(void);
   #define TCPERRNO (h_errno)
   #define TCPERR_WOULDBLOCK WSAEWOULDBLOCK
   #define TCPERR_AGAIN WSAEWOULDBLOCK
-  #include "nt\wsock.h"
+  #include "nt/WSock.h"
   #define sock_init() WinsockIni()
   #define sock_deinit() WinsockClean()
   #define soclose(h) closesocket(h)
@@ -181,8 +184,8 @@ typedef int SOCKET;
   #define SOCKET_ERROR (-1)
 #endif
 
-#ifndef INADDR_NONE                 
+#ifndef INADDR_NONE
   #define INADDR_NONE -1
-#endif                              
+#endif
 
 #endif
