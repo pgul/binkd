@@ -1,3 +1,7 @@
+2004/01/08 15:07:42 1.0a-363 val
+inbound.c,2.30,2.31 tools.c,2.60,2.61 tools.h,2.25,2.26
+use new pkt header parsing function in check-pkthdr, remove older function
+
 2004/01/08 15:03:53 1.0a-362 val
 binkd.cfg,2.40,2.41 inbound.c,2.29,2.30 protocol.c,2.150,2.151 tools.c,2.59,2.60 tools.h,2.24,2.25
 * new functions for parsing and updating addresses in pkt header (raw, char*)
