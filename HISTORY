@@ -1,3 +1,7 @@
+2003/09/24 12:53:20 0.9.6a-192 val
+zlibdl.c,2.4,2.5 zlibdl.h,2.5,2.6
+fix warnings
+
 2003/09/24 10:39:53 0.9.6a-191 val
 tools.h,2.20,2.21
 fix warning
