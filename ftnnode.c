@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.32  2004/09/06 10:50:06  val
+ * node data could be over-written by defnode data if hosts were set to `-', fixed
+ *
  * Revision 2.31  2004/09/06 10:47:04  val
  * bandwidth limiting code advancements, `listed' session state fix
  *
@@ -381,7 +384,7 @@ static FTN_NODE *get_node_info_nolock (FTN_ADDR *fa, BINKD_CONFIG *config)
     sort_nodes (config);
   memcpy (&n.fa, fa, sizeof (FTN_ADDR));
   np = search_for_node(&n, config);
-  if ((!np || !np->hosts) && config->havedefnode)
+  if ((!np || !np->listed) && config->havedefnode)
     np=get_defnode_info(fa, np, config);
   if (np && !np->hosts) /* still no hosts? */
     np->hosts = xstrdup("-");
