@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2003/08/25 14:09:03  gul
+ * Added exp_ftnaddress() to refresh_queue()
+ *
  * Revision 2.14  2003/08/22 09:41:36  val
  * add check perl!=NULL in perl_on_handshake
  *
@@ -1335,6 +1338,7 @@ static FTNQ *refresh_queue(STATE *state, FTNQ *queue) {
     if (svp && SvOK(*svp)) {
       s = SvPV(*svp, len);
       if (!parse_ftnaddress(s, &(q->fa))) q->fa = state->fa[0];
+      else exp_ftnaddress(&(q->fa));
     } else q->fa = state->fa[0];
   }
   if (queue != SCAN_LISTED) q_free(queue);
