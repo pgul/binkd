@@ -79,7 +79,7 @@ void wndthread(void *par)
     char bn[20];
     ATOM wa;
     HWND wnd;
-    HICON hi,loaded_icon=NULL;
+    HICON hi=NULL,loaded_icon=NULL;
     HANDLE in, out;
     int i;
 
