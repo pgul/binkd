@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.37  2003/03/03 20:16:32  gul
+ * Fixed bug in previous patch
+ *
  * Revision 2.36  2003/03/02 18:08:56  gul
  * Do not scan outbound twice: on prescan (for TRF report) and at complete_login
  *
@@ -2019,7 +2022,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
     {
       /* If the queue is not empty and there is no file in tranafer */
       if (!state.local_EOB && state.q && state.out.f == 0 &&
-          !state.waiting_for_GOT && !state.off_req_sent)
+          !state.waiting_for_GOT && !state.off_req_sent && state.state!=P_NULL)
       {
 	FTNQ *q;
 
