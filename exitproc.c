@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/03/05 11:43:56  gul
+ * Fix win32 compilation
+ *
  * Revision 2.3  2003/03/05 11:40:12  gul
  * Fix win32 compilation
  *
@@ -85,7 +88,7 @@ void exitfunc (void)
     /* wait for threads exit */
     binkd_exit = 1;
     for (i=0; i<5; i++)
-      if (nservers || nclients || (pidcmgr && server_flag))
+      if (n_servers || n_clients || (pidcmgr && server_flag))
       {
 	/* close active sockets */
 	for (h=0; h<sizeof(sockets)*8; h++)

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2003/03/05 11:40:12  gul
+ * Fix win32 compilation
+ *
  * Revision 2.14  2003/03/04 09:56:00  gul
  * Fix threads compilation
  *
@@ -110,11 +113,11 @@
 #endif
 
 #include "Config.h"
-#include "sys.h"
 #include "client.h"
 #include "readcfg.h"
 #include "iphdr.h"
 #include "iptools.h"
+#include "sys.h"
 #include "ftnq.h"
 #include "tools.h"
 #include "protocol.h"
@@ -316,13 +319,13 @@ static int call0 (FTN_NODE *node)
       if ((se = getservbyname(sport, "tcp")) == NULL)
       {
 	Log(2, "Port %s not found, try default %d", sp, proxy[0] ? 3128 : 1080);
-	sin.sin_port = htons(proxy[0] ? 3128 : 1080);
+	sin.sin_port = htons(proxy[0] ? 3128u : 1080u);
       } else
 	sin.sin_port = se->s_port;
       releasehostsem();
     }
     else
-      sin.sin_port = htons(atoi(sport));
+      sin.sin_port = htons((unsigned short)atoi(sport));
     /* resolve proxy host */
     if ((hp = find_host(host, &he, alist, &defaddr)) == NULL)
     {
