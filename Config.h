@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.23  2003/06/12 08:21:46  val
+ * Auto increase patchlevel
+ *
  * Revision 2.22  2003/06/12 08:21:43  val
  * 'skipmask' is replaced with 'skip', which allows more skipping features
  *
@@ -121,7 +124,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-11"
+#define MYVER "0.9.6a-12"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
