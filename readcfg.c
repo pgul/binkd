@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2002/12/17 13:00:44  gul
+ * Fix previous patch
+ *
  * Revision 2.9  2002/12/10 21:31:30  gul
  * Bugfix for check filebox and outbound
  *
@@ -299,25 +302,35 @@ static int check_outbox(char *obox)
   if (obox == NULL) return 0;
   OBOX = strupper(xstrdup(obox));
 #endif
-  while (pd)
+  for (; pd; pd=pd->next)
   {
     if (pd->alias4)
       continue;
     if (pd->path)
+    { 
+      char *s;
 #ifdef UNIX
       if (obox==strstr(obox, pd->path))
-        return 1;
+      {
+        s = obox+strlen(pd->path);
+        if ((*s == '\\' || *s == '/') && strcasecmp(s+1, pd->dir) == 0)
+          return 1;
+      }
 #else
-    { PATH = strupper(xstrdup(pd->path));
+      PATH = strupper(xstrdup(pd->path));
       if (OBOX==strstr(OBOX, PATH))
-      { free(PATH);
-        free(OBOX);
-        return 1;
+      {
+        s = OBOX+strlen(PATH);
+        if ((*s == '\\' || *s == '/') && stricmp(s+1, pd->dir) == 0)
+        {
+          free(PATH);
+          free(OBOX);
+          return 1;
+        }
       }
       free(PATH);
-    }
 #endif
-    pd=pd->next;
+    }
   }
 #ifndef UNIX
   free(OBOX);
@@ -658,7 +671,7 @@ static void read_node_info (KEYWORD *key, char *s)
   check_dir_path (w[5]);
 
   if (check_outbox(w[4]))
-    Log (0, "Outbox can't be point to outbound! (link %s)", w[0]);
+    Log (0, "Outbox cannot point to outbound! (link %s)", w[0]);
 
   if (!add_node (&fa, w[1], w[2], (char)(w[3] ? w[3][0] : '-'), w[4], w[5],
 		 NR_flag, ND_flag, crypt_flag, MD_flag, restrictIP))
