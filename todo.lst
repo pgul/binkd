@@ -3,7 +3,6 @@
 - crc32 check
 - perl hooks
 - shared aka
-- different passwords for remote akas
 - do not kill attaches (save and ignore) if drive missing (unmounted)
 - no incoming calls under BeOS (file locking problem)
 - no syslog support under BeOS
