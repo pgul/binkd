@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.83  2003/07/02 18:16:43  gul
+ * Bugfix fot patch about send status without NR-mode
+ *
  * Revision 2.82  2003/06/26 13:22:24  gul
  * *** empty log message ***
  *
@@ -1846,7 +1849,7 @@ static int GET (STATE *state, char *args, int sz)
 	}
 	else
 	  /* request from offset 0 - file already renamed */
-	  ND_set_status("", &state->out_addr, state);
+	  ND_set_status("", &state->out.fa, state);
 	TF_ZERO(&state->out);
       }
       else if ((offset = atol (argv[3])) > state->out.size ||
@@ -1970,7 +1973,7 @@ static int GOT (STATE *state, char *args, int sz)
 	fclose (state->out.f);
 	state->out.f = NULL;
       }
-      memcpy(&state->ND_addr, &state->out_addr, sizeof(state->out_addr));
+      memcpy(&state->ND_addr, &state->out.fa, sizeof(state->out.fa));
       if (state->ND_flag & WE_ND)
         Log (7, "Set ND_addr to %u:%u/%u.%u",
              state->ND_addr.z, state->ND_addr.net, state->ND_addr.node, state->ND_addr.p);
@@ -1995,7 +1998,7 @@ static int GOT (STATE *state, char *args, int sz)
 	{
 	  char szAddr[FTN_ADDR_SZ + 1];
 
-	  ftnaddress_to_str (szAddr, &state->out_addr);
+	  ftnaddress_to_str (szAddr, &state->out.fa);
 	  state->bytes_sent += state->sent_fls[n].size;
 	  ++state->files_sent;
 	  memcpy (&state->ND_addr, &state->sent_fls[n].fa, sizeof(FTN_ADDR));
@@ -2370,9 +2373,9 @@ static int start_file_transfer (STATE *state, FTNQ *file)
         state->flo.f = f;
       }
     }
-    memcpy(&state->out_addr, &file->fa, sizeof(state->out_addr));
+    memcpy (&state->out.fa, &file->fa, sizeof(FTN_ADDR));
     if ((state->ND_flag & WE_ND) == 0)
-      memcpy(&state->ND_addr, &file->fa, sizeof(state->out_addr));
+      memcpy(&state->ND_addr, &file->fa, sizeof(state->ND_addr));
     Log (8, "cur remote addr is %u:%u/%u.%u",
          file->fa.z, file->fa.net, file->fa.node, file->fa.p);
   }
@@ -2430,7 +2433,6 @@ static int start_file_transfer (STATE *state, FTNQ *file)
   state->out.f = f;
   state->out.size = sb.st_size;
   state->out.time = sb.st_mtime;
-  memcpy (&state->out.fa, &file->fa, sizeof(FTN_ADDR));
   state->waiting_for_GOT = 0;
   Log(9, "Dont waiting for M_GOT");
   state->out.start = safe_time();
