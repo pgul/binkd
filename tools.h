@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9.2.2  2004/10/21 17:02:05  gul
+ * Rename trunc() -> trunc_file() due to conflicts under OS/2 EMX and SuSE
+ *
  * Revision 2.9.2.1  2003/06/30 22:46:03  hbrew
  * Print only binkd name (without path) in error messages
  *
@@ -181,7 +184,7 @@ char *ed (char *src, char *a, char *b, size_t *size);
  * Remove/trucate a file, log this
  */
 int delete (char *);
-int trunc (char *);
+int trunc_file (char *);
 
 /*
  * Get the string with OS name/version

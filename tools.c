@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22.2.3  2004/10/21 17:02:05  gul
+ * Rename trunc() -> trunc_file() due to conflicts under OS/2 EMX and SuSE
+ *
  * Revision 2.22.2.2  2003/12/02 14:24:13  gul
  * Use vsnprintf() if exists
  *
@@ -793,7 +796,7 @@ int delete (char *path)
   return rc;
 }
 
-int trunc (char *path)
+int trunc_file (char *path)
 {
   int h;
 

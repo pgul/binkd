@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12.2.3  2004/10/21 17:02:02  gul
+ * Rename trunc() -> trunc_file() due to conflicts under OS/2 EMX and SuSE
+ *
  * Revision 2.12.2.2  2003/08/28 07:38:09  gul
  * Cosmetics in log
  *
@@ -312,7 +315,7 @@ fopen_again:
       Log (1, "Partial size %lu > %lu (file size), delete partial", 
            (unsigned long) sb.st_size, (unsigned long) size);
       fclose (f);
-      if (trunc (buf) && delete (buf)) return 0;
+      if (trunc_file (buf) && delete (buf)) return 0;
       goto fopen_again;
     }
     if (req_free >= 0 &&
