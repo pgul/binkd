@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2002/03/07 14:29:52  gul
+ * print PID as unsigned to bsy/csy
+ *
  * Revision 2.6  2002/02/25 21:33:56  gul
  * Dequote \hh in filenames as \xhh; both \20 and \x20 are space now (FSP-1011)
  *
@@ -218,7 +221,7 @@ int create_sem_file (char *name)
   { Log (5, "Can't create %s: %s", name, strerror(errno));
     return 0;
   }
-  sprintf (buf, "%i\n", (int) getpid ());
+  sprintf (buf, "%u\n", (int) getpid ());
   if ((i = write(h, buf, strlen(buf))) != (int)strlen(buf))
   { if (i == -1)
       Log (2, "Can't write to %s (handle %d): %s", name, h, strerror(errno));
