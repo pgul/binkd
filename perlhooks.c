@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/07/04 08:13:17  val
+ * core dump in perl_clone() fixed, works with 5.6.0+
+ *
  * Revision 2.3  2003/06/27 07:45:36  val
  * fix to make with perl 5.6.0
  *
@@ -392,11 +395,11 @@ static void xs_init(void)
 
 /* =========================== sys ========================== */
 
+static char *perlargs[] = {"", NULL, NULL};
 /* init root perl, parse hooks file, return success */
 int perl_init(char *perlfile) {
   int rc, i;
   SV *sv;
-  char *perlargs[] = {"", NULL, NULL};
   char *cfgfile, *cfgpath=NULL, *patharg=NULL;
 
   Log(LL_DBG, "perl_init(): %s", perlfile);
@@ -639,7 +642,7 @@ void *perl_init_clone() {
   UV cflags = 0;
   PerlInterpreter *p;
 
-  Log(LL_DBG2, "perl_init_clone(), parent perl=%p", perl);
+  Log(LL_DBG2, "perl_init_clone(), parent perl=%p, context=%p", perl, Perl_get_context());
   if (perl) {
     PERL_SET_CONTEXT(perl);
 #if defined(WIN32) && defined(CLONEf_CLONE_HOST)
@@ -665,8 +668,9 @@ void perl_done_clone(void *p) {
   PERL_SET_CONTEXT((PerlInterpreter *)p); /* as in mod_perl */
   perl_destruct((PerlInterpreter *)p);
 /* #ifndef WIN32 - mod_perl has it unless CLONEf_CLONE_HOST */
+#if !defined(WIN32) || defined(CLONEf_CLONE_HOST)
   perl_free((PerlInterpreter *)p);
-/* #endif */
+#endif
 }
 #endif
 
