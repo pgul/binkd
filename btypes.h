@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/12/26 21:12:06  gul
+ * Change unixtime and file length/offset to unsigned in protocol messages
+ *
  * Revision 2.2  2003/11/21 19:39:59  stream
  * Initial support for "-noproxy" node option
  *
@@ -107,7 +110,7 @@ struct _FTNQ
 				        * now it's obsolete), other -- a file
 				        * to send. */
   char path[MAXPATHLEN + 1];
-  unsigned long size;
+  off_t size;
   time_t time;			       /* this field seems to be used only in
 				        * cmp_filebox_files(), when sorting
 				        * files from a filebox before sending */

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30  2003/12/26 21:12:06  gul
+ * Change unixtime and file length/offset to unsigned in protocol messages
+ *
  * Revision 2.29  2003/12/02 19:32:24  gul
  * Prevent several clients calls to the same node
  *
@@ -1134,7 +1137,7 @@ void hold_node (FTN_ADDR *fa, time_t hold_until, BINKD_CONFIG *config)
     strnzcat (buf, ".hld", sizeof (buf));
     if ((f = fopen (buf, "w")) != NULL)
     {
-      fprintf (f, "%li", (long int) hold_until);
+      fprintf (f, "%lu", (unsigned long int) hold_until);
       fclose (f);
       if ((fn = get_node_info (fa, config)) != NULL)
 	fn->hold_until = hold_until;

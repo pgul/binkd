@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.145  2003/12/26 21:12:06  gul
+ * Change unixtime and file length/offset to unsigned in protocol messages
+ *
  * Revision 2.144  2003/12/15 00:03:55  gul
  * NZ option for M_GET command - request uncompressed file
  *
@@ -809,7 +812,7 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
   /* Have something to send in buffers */
   if (state->optr && state->oleft)
   {
-    Log (7, "sending %li byte(s)", (long) (state->oleft));
+    Log (7, "sending %i byte(s)", state->oleft);
     n = send (state->s, state->optr, state->oleft, 0);
     save_errno = TCPERRNO;
     save_err = TCPERR ();
@@ -840,7 +843,7 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
     {
       state->optr += n;
       state->oleft -= n;
-      Log (7, "partially sent, %li byte(s) left", state->oleft);
+      Log (7, "partially sent, %i byte(s) left", state->oleft);
     }
   }
   else
@@ -868,7 +871,7 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
 	  if (state->oleft + state->msgs[i].sz > MAX_BLKSIZE)
 	    break;
 
-	  Log (7, "put next msg to obuf, %li", (long) state->msgs[i].sz);
+	  Log (7, "put next msg to obuf, %i", state->msgs[i].sz);
 	  memcpy (state->optr, state->msgs[i].s, state->msgs[i].sz);
 	  state->oleft += state->msgs[i].sz;
 	  state->optr += state->msgs[i].sz;
@@ -1136,7 +1139,7 @@ static int remove_from_spool (STATE *state, char *flopath,
     if (state->flo.f && !strcmp (state->flo.path, flopath))
     {
       flo = state->flo.f;
-      offset = ftell (flo);
+      offset = (off_t) ftell (flo);
       fseek (flo, 0, SEEK_SET);
       seek_flag = 1;
     }
@@ -1151,7 +1154,7 @@ static int remove_from_spool (STATE *state, char *flopath,
 
     while (!feof (flo))
     {
-      curr_offset = ftell (flo);
+      curr_offset = (off_t) ftell (flo);
       if (!fgets (buf, MAXPATHLEN, flo))
 	break;
       for (i = strlen (buf) - 1; i >= 0 && isspace (buf[i]); --i)
@@ -2061,8 +2064,8 @@ struct skipchain *skip_test(STATE *state, BINKD_CONFIG *config)
 
 /*
  * Handles M_FILE msg from the remote
- * M_FILE args: "%s %li %lu %li", filename, size, time, offset
- * M_FILE ext.: "%s %li %lu %li %s...", space-separated params
+ * M_FILE args: "%s %lu %lu %lu", filename, size, time, offset
+ * M_FILE ext.: "%s %lu %lu %lu %s...", space-separated params
  *     currently, only GZ and BZ2 parameters supported
  */
 static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *config)
@@ -2117,8 +2120,8 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
       ftnaddress_to_str (szAddr, state->fa);
       state->bytes_rcvd += state->in_complete.size;
       ++state->files_rcvd;
-      Log (2, "rcvd: %s (%li, %.2f CPS, %s)", state->in_complete.netname,
-	   (long) state->in_complete.size,
+      Log (2, "rcvd: %s (%lu, %.2f CPS, %s)", state->in_complete.netname,
+	   (unsigned long) state->in_complete.size,
 	   (double) (state->in_complete.size) /
 	   (safe_time() == state->in_complete.start ?
 	                1 : (safe_time() - state->in_complete.start)), szAddr);
@@ -2136,7 +2139,7 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
           Log ( 1, "File time parsing error: %s! (M_FILE \"%s %s %s %s\")", errmesg, argv[0], argv[1], argv[0], argv[2], argv[3] );
       }
     }
-    offset = (off_t) atol (argv[3]);
+    offset = (off_t) strtoul (argv[3], NULL, 10);
     if (!strcmp (argv[3], "-1"))
     {
       off_req = 1;
@@ -2157,22 +2160,24 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
       int rc;
 
       if ((rc = perl_before_recv(state, offset)) > 0) {
-	Log (1, "skipping %s (%sdestructive, %li byte(s), by Perl before_recv)",
-	     state->in.netname, rc == SKIP_D ? "" : "non-", state->in.size);
-	msg_sendf (state, (t_msg)(rc == SKIP_D ? M_GOT : M_SKIP), "%s %li %lu",
+	Log (1, "skipping %s (%sdestructive, %lu byte(s), by Perl before_recv)",
+	     state->in.netname, rc == SKIP_D ? "" : "non-",
+	     (unsigned long) state->in.size);
+	msg_sendf (state, (t_msg)(rc == SKIP_D ? M_GOT : M_SKIP), "%s %lu %lu",
 		   state->in.netname,
-		   (long) state->in.size,
+		   (unsigned long) state->in.size,
 		   (unsigned long) state->in.time);
 	return 1;
       }
 #endif
       /* val: skip check */
       if ((mask = skip_test(state, config)) != NULL) {
-	Log (1, "skipping %s (%sdestructive, %li byte(s), mask %s)",
-	     state->in.netname, mask->destr ? "" : "non-", state->in.size, mask->mask);
-	msg_sendf (state, (t_msg)(mask->destr ? M_GOT : M_SKIP), "%s %li %lu",
+	Log (1, "skipping %s (%sdestructive, %lu byte(s), mask %s)",
+	     state->in.netname, mask->destr ? "" : "non-",
+	     (unsigned long) state->in.size, mask->mask);
+	msg_sendf (state, (t_msg)(mask->destr ? M_GOT : M_SKIP), "%s %lu %lu",
 		   state->in.netname,
-		   (long) state->in.size,
+		   (unsigned long) state->in.size,
 		   (unsigned long) state->in.time);
 	return 1;
       }
@@ -2180,11 +2185,11 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
       if (inb_test (state->in.netname, state->in.size,
 		    state->in.time, state->inbound, realname))
       {
-	Log (2, "already have %s (%s, %li byte(s))",
-	     state->in.netname, realname, (long) state->in.size);
-	msg_sendf (state, M_GOT, "%s %li %lu",
+	Log (2, "already have %s (%s, %lu byte(s))",
+	     state->in.netname, realname, (unsigned long) state->in.size);
+	msg_sendf (state, M_GOT, "%s %lu %lu",
 		   state->in.netname,
-		   (long) state->in.size,
+		   (unsigned long) state->in.size,
 		   (unsigned long) state->in.time);
 	return 1;
       }
@@ -2208,9 +2213,9 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
       if (state->skip_all_flag)
       {
 	Log (2, "skipping %s (non-destructive)", state->in.netname);
-	msg_sendf (state, M_SKIP, "%s %li %lu",
+	msg_sendf (state, M_SKIP, "%s %lu %lu",
 		   state->in.netname,
-		   (long) state->in.size,
+		   (unsigned long) state->in.size,
 		   (unsigned long) state->in.time);
 	if (state->in.f)
 	  fclose (state->in.f);
@@ -2221,11 +2226,11 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
 
     if (off_req || offset != (off_t) ftell (state->in.f))
     {
-      Log (2, "have %li byte(s) of %s",
-	   (long) ftell (state->in.f), state->in.netname);
-      msg_sendf (state, M_GET, "%s %li %lu %li", state->in.netname,
-		 (long) state->in.size, (unsigned long) state->in.time,
-		 (long) ftell (state->in.f));
+      Log (2, "have %lu byte(s) of %s",
+	   (unsigned long) ftell (state->in.f), state->in.netname);
+      msg_sendf (state, M_GET, "%s %lu %lu %lu", state->in.netname,
+		 (unsigned long) state->in.size, (unsigned long) state->in.time,
+		 (unsigned long) ftell (state->in.f));
       ++state->GET_FILE_balance;
       fclose (state->in.f);
       TF_ZERO (&state->in);
@@ -2236,8 +2241,9 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
       --state->GET_FILE_balance;
     }
 
-    Log (3, "receiving %s (%li byte(s), off %li)",
-	 state->in.netname, (long) (state->in.size), (long) offset);
+    Log (3, "receiving %s (%lu byte(s), off %lu)",
+	 state->in.netname, (unsigned long) (state->in.size),
+	 (unsigned long) offset);
 
     for (argc = 1; (w = getwordx (args, argc, 0)) != 0; ++argc)
     {
@@ -2378,7 +2384,7 @@ static void z_send_stop(STATE *state)
 
 /*
  * M_GET message from the remote: Resend file from offset
- * M_GET args: "%s %li %lu %li", filename, size, time, offset
+ * M_GET args: "%s %lu %lu %lu", filename, size, time, offset
  */
 static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 {
@@ -2434,9 +2440,11 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
       { /* response for status */
 	rc = 1;
 	/* to satisfy remote GET_FILE_balance */
-	msg_sendf (state, M_FILE, "%s %li %lu %li", state->out.netname,
-	           (long) state->out.size, (unsigned long) state->out.time, atol(argv[3]));
-	if (atol(argv[3])==(long)state->out.size && (state->ND_flag & WE_ND))
+	msg_sendf (state, M_FILE, "%s %lu %lu %lu", state->out.netname,
+	           (unsigned long) state->out.size,
+		   (unsigned long) state->out.time, strtoul(argv[3], NULL, 10));
+	if (strtoul(argv[3], NULL, 10) == (unsigned long) state->out.size &&
+	    (state->ND_flag & WE_ND))
 	{
 	  state->send_eof = 1;
 	  state->waiting_for_GOT = 1;
@@ -2449,11 +2457,11 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 	  ND_set_status("", &state->out.fa, state, config);
 	TF_ZERO(&state->out);
       }
-      else if ((offset = atol (argv[3])) > state->out.size ||
+      else if ((offset = strtoul (argv[3], NULL, 10)) > state->out.size ||
                fseek (state->out.f, offset, SEEK_SET) == -1)
       {
-	Log (1, "GET: error seeking %s to %li: %s",
-	     argv[0], offset, strerror (errno));
+	Log (1, "GET: error seeking %s to %lu: %s",
+	     argv[0], (unsigned long) offset, strerror (errno));
 	/* touch the file and drop session */
 	fclose(state->out.f);
 	state->out.f=NULL;
@@ -2462,7 +2470,7 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
       }
       else
       {
-	Log (2, "sending %s from %li", argv[0], offset);
+	Log (2, "sending %s from %lu", argv[0], (unsigned long) offset);
 	for (argc = 1; (extra = getwordx (args, argc, 0)) != 0; ++argc)
 	{
 	  if (strcmp(extra, "GZ") == 0 || strcmp(extra, "BZ2") == 0) ;
@@ -2473,9 +2481,10 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 	}
 	z_send_stop(state);
 	if (!nz) z_send_init(state, config, &extra);
-	msg_sendf (state, M_FILE, "%s %li %lu %li%s", state->out.netname,
-		   (long) state->out.size, (unsigned long) state->out.time,
-		   offset, extra);
+	msg_sendf (state, M_FILE, "%s %lu %lu %lu%s", state->out.netname,
+		   (unsigned long) state->out.size,
+		   (unsigned long) state->out.time,
+		   (unsigned long) offset, extra);
 	rc = 1;
       }
     }
@@ -2500,7 +2509,7 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
  * M_SKIP: Remote asks us to skip a file. Only a file currently in
  * transfer will be skipped!
  *
- * M_SKIP args: "%s %li %lu", filename, size, time
+ * M_SKIP args: "%s %lu %lu", filename, size, time
  */
 static int SKIP (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 {
@@ -2558,7 +2567,7 @@ static int SKIP (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 }
 
 /*
- * M_GOT args: "%s %li %lu", filename, size, time
+ * M_GOT args: "%s %lu %lu", filename, size, time
  */
 static int GOT (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 {
@@ -2624,8 +2633,8 @@ static int GOT (STATE *state, char *args, int sz, BINKD_CONFIG *config)
           if (state->ND_flag & WE_ND)
              Log (7, "Set ND_addr to %u:%u/%u.%u",
                   state->ND_addr.z, state->ND_addr.net, state->ND_addr.node, state->ND_addr.p);
-	  Log (2, "sent: %s (%li, %.2f CPS, %s)", state->sent_fls[n].path,
-	       (long) state->sent_fls[n].size,
+	  Log (2, "sent: %s (%lu, %.2f CPS, %s)", state->sent_fls[n].path,
+	       (unsigned long) state->sent_fls[n].size,
 	       (double) (state->sent_fls[n].size) /
 	       (safe_time() == state->sent_fls[n].start ?
 		1 : (safe_time() - state->sent_fls[n].start)), szAddr);
@@ -2687,8 +2696,8 @@ static int EOB (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
     ftnaddress_to_str (szAddr, state->fa);
     state->bytes_rcvd += state->in_complete.size;
     ++state->files_rcvd;
-    Log (2, "rcvd: %s (%li, %.2f CPS, %s)", state->in_complete.netname,
-         (long) state->in_complete.size,
+    Log (2, "rcvd: %s (%lu, %.2f CPS, %s)", state->in_complete.netname,
+         (unsigned long) state->in_complete.size,
          (double) (state->in_complete.size) /
          (safe_time() == state->in_complete.start ?
                       1 : (safe_time() - state->in_complete.start)), szAddr);
@@ -2899,27 +2908,29 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
 	    ftnaddress_to_str (szAddr, state->fa);
 	    state->bytes_rcvd += state->in.size;
 	    ++state->files_rcvd;
-	    Log (2, "rcvd: %s (%li, %.2f CPS, %s)", state->in.netname,
-	         (long) state->in.size,
+	    Log (2, "rcvd: %s (%lu, %.2f CPS, %s)", state->in.netname,
+	         (unsigned long) state->in.size,
 	         (double) (state->in.size) /
 	         (safe_time() == state->in.start ?
 		  1 : (safe_time() - state->in.start)), szAddr);
 	  }
-	  msg_sendf (state, M_GOT, "%s %li %lu",
+	  msg_sendf (state, M_GOT, "%s %lu %lu",
 		     state->in.netname,
-		     (long) state->in.size,
+		     (unsigned long) state->in.size,
 		     (unsigned long) state->in.time);
 	  TF_ZERO (&state->in);
 	}
 	else if ((off_t) ftell (state->in.f) > state->in.size)
 	{
-	  Log (1, "rcvd %li extra bytes!", (long) ftell (state->in.f) - state->in.size);
+	  Log (1, "rcvd %lu extra bytes!",
+	       (unsigned long) ftell (state->in.f) - state->in.size);
 	  return 0;
 	}
       }
       else if (state->isize > 0)
       {
-	Log (7, "ignoring data block (%li byte(s))", (long) state->isize);
+	Log (7, "ignoring data block (%lu byte(s))",
+	     (unsigned long) state->isize);
       }
       state->isize = -1;
     }
@@ -3178,7 +3189,8 @@ static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
   netname (state->out.netname, &state->out, config);
   if (ispkt(state->out.netname) && state->out.size <= 60)
   {
-    Log (3, "skip empty pkt %s, %li bytes", state->out.path, state->out.size);
+    Log (3, "skip empty pkt %s, %lu bytes", state->out.path,
+	 (unsigned long) state->out.size);
     if (state->out.f) fclose(state->out.f);
     remove_from_spool (state, state->out.flo,
                        state->out.path, state->out.action, config);
@@ -3195,25 +3207,26 @@ static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
     return 0;
   }
 #endif
-  Log (2, "sending %s as %s (%li)",
-       state->out.path, state->out.netname, (long) state->out.size);
+  Log (2, "sending %s as %s (%lu)",
+       state->out.path, state->out.netname, (unsigned long) state->out.size);
   z_send_init(state, config, &extra);
 
   if (state->NR_flag & WE_NR)
   {
-    msg_sendf (state, M_FILE, "%s %li %lu -1%s",
-	       state->out.netname, (long) state->out.size,
+    msg_sendf (state, M_FILE, "%s %lu %lu -1%s",
+	       state->out.netname, (unsigned long) state->out.size,
 	       (unsigned long) state->out.time, extra);
     state->off_req_sent = 1;
   }
   else if (state->out.f == NULL)
     /* status with no NR-mode */
-    msg_sendf (state, M_FILE, "%s %li %lu %li%s",
-	       state->out.netname, (long) state->out.size,
-	       (unsigned long) state->out.time, (long) state->out.size, extra);
+    msg_sendf (state, M_FILE, "%s %lu %lu %lu%s",
+	       state->out.netname, (unsigned long) state->out.size,
+	       (unsigned long) state->out.time,
+	       (unsigned long) state->out.size, extra);
   else
-    msg_sendf (state, M_FILE, "%s %li %lu 0%s",
-	       state->out.netname, (long) state->out.size,
+    msg_sendf (state, M_FILE, "%s %lu %lu 0%s",
+	       state->out.netname, (unsigned long) state->out.size,
 	       (unsigned long) state->out.time, extra);
 
   return 1;
@@ -3397,7 +3410,8 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
 #endif
       tv.tv_sec = config->nettimeout;	       /* Set up timeout for select() */
       tv.tv_usec = 0;
-      Log (8, "tv.tv_sec=%li, tv.tv_usec=%li", (long) tv.tv_sec, (long) tv.tv_usec);
+      Log (8, "tv.tv_sec=%lu, tv.tv_usec=%lu",
+	   (unsigned long) tv.tv_sec, (unsigned long) tv.tv_usec);
       no = select (socket + 1, &r, &w, 0, &tv);
       if (no < 0)
         save_err = TCPERR ();
@@ -3520,7 +3534,8 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
 
   if (to && state.r_skipped_flag && config->hold_skipped > 0)
   {
-    Log (2, "holding skipped mail for %li sec", (long) config->hold_skipped);
+    Log (2, "holding skipped mail for %lu sec",
+	 (unsigned long) config->hold_skipped);
     hold_node (&to->fa, safe_time() + config->hold_skipped, config);
   }
 

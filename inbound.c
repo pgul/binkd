@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.27  2003/12/26 21:12:06  gul
+ * Change unixtime and file length/offset to unsigned in protocol messages
+ *
  * Revision 2.26  2003/12/05 23:39:36  gul
  * Bugfix on inb_done() with ND-mode
  *
@@ -175,8 +178,9 @@ static int creat_tmp_name (char *s, TFILE *file, FTN_ADDR *from, char *inbound)
 	return 0;
       }
       ftnaddress_to_str (node, from);
-      if (fprintf (f, "%s %li %li %s\n", file->netname, (long int)file->size,
-                   (long int) file->time, node) <= 0)
+      if (fprintf (f, "%s %lu %lu %s\n", file->netname,
+                   (unsigned long int) file->size,
+                   (unsigned long int) file->time, node) <= 0)
       {
 	Log (1, "%s: %s", s, strerror (errno));
 	fclose (f);
@@ -266,8 +270,8 @@ static int find_tmp_name (char *s, TFILE *file, STATE *state, BINKD_CONFIG *conf
 	for (i = 0; i < state->nallfa; i++)
 	  if (!ftnaddress_cmp (&fa, state->fa + i))
 	    break;
-	if (file->size == (off_t) atol (w[1]) &&
-	    (file->time & ~1) == (atol (w[2]) & ~1) &&
+	if (file->size == (off_t) strtoul (w[1], NULL, 10) &&
+	    (file->time & ~1) == (time_t) (strtoul (w[2], NULL, 10) & ~1) &&
 	    i < state->nallfa)
 	{ /* non-destructive skip file from busy aka */
 	  if (i >= state->nfa)
