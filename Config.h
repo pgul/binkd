@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10.2.12  2003/10/16 06:09:20  gul
+ * Auto increase patchlevel, set 0.9.5p6-stable
+ * Removed erroneous tag binkd-0_9_5-stable from files
+ * which exists only in current branch
+ *
  * Revision 2.10.2.11  2003/10/16 06:08:50  gul
  * Auto increase patchlevel, set 0.9.5p5-stable
  * Removed erroneous tag binkd-0_9_5-stable from files
@@ -123,7 +128,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.5p5-stable"
+#define MYVER "0.9.5p6-stable"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
