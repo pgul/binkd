@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.36  2003/10/13 08:48:10  stas
+ * Implement true NT service stop sequence
+ *
  * Revision 2.35  2003/10/10 05:30:17  stas
  * Initialize variable (fix)
  *
@@ -207,6 +210,18 @@ BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
   return fResult;
 }
 
+/* wrapper to call exitfunc() in separate thread
+ * serviceexitproc() must be used in parameter of _beginthread()
+ */
+__cdecl void serviceexitproc(void *arg)
+{
+  Log(10,"serviceexitproc()");
+  exitfunc();
+/*  ReportStatusToSCMgr(SERVICE_STOPPED, NO_ERROR, 0); *//* exitfunc() kill thread and this line don't executed */
+}
+
+/* Service control handler. Called by system's SCM
+ */
 static void WINAPI ServiceCtrl(DWORD dwCtrlCode)
 {
   switch(dwCtrlCode)
@@ -216,7 +231,10 @@ static void WINAPI ServiceCtrl(DWORD dwCtrlCode)
     Log(1, "Interrupted by service stop");
 /*    SigHandler(CTRL_SERVICESTOP_EVENT); */ /* Only report to log "Interrupted by service stop" */
 /*    exit(0); */ /* Produce SCM error "109" */
-    sstat.dwCurrentState = SERVICE_STOPPED;
+    if( BEGINTHREAD(&serviceexitproc,0,NULL) != -1 )
+      return;
+    else
+      exit(0);   /* may be need print message to log about error? */
   case SERVICE_CONTROL_INTERROGATE:
   default:
     break;
@@ -238,10 +256,10 @@ void atServiceExitBegins(void)
 /* Service-specific cleanup procedure. Not an thread-safe!
  * Must be set in first call of atexit().
  */
-void atServiceExit(void)
+void atServiceExitEnds(void)
 {
   char *sp;
-  Log(10,"atServiceExit()");
+  Log(10,"atServiceExitEnds()");
 
   if(!IsNT() || !isService())
     return;
@@ -277,7 +295,7 @@ static void ServiceStart()
   strcat(sp, srvname);
   strcat(sp, reg_path_suffix);
 
-  atexit(atServiceExit);
+  atexit(atServiceExitEnds);
   for(;;)
   {
     if(RegOpenKey(HKEY_LOCAL_MACHINE, sp, &hk)!=ERROR_SUCCESS)
@@ -354,8 +372,6 @@ static void WINAPI ServiceMain(DWORD argc,LPSTR* args)
       ServiceStart();
     }
   }
-/*  if(sshan)
-    atServiceExit();*/
   exit(0);
 }
 

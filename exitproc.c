@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.32  2003/10/13 08:48:09  stas
+ * Implement true NT service stop sequence
+ *
  * Revision 2.31  2003/10/08 10:30:34  gul
  * Fixed debug logging (thx to Alexander Reznikov)
  *
@@ -139,6 +142,10 @@
 #ifdef BINKDW9X
 #include "nt/win9x.h"
 #endif
+#if defined(WIN32) && !defined(BINKDW9X)
+#include "nt/service.h"
+#include "nt/w32tools.h"
+#endif
 
 int binkd_exit;
 
@@ -181,6 +188,16 @@ void close_srvmgr_socket(void)
 void exitfunc (void)
 {
   BINKD_CONFIG *config;
+#if defined(WIN32) && !defined(BINKDW9X)
+  static int exitfunc_called_flag=0; 
+
+  if(exitfunc_called_flag)
+  { /* prevent double call exitfunc() at NT service stop sequence */
+    Log(10, "exitfunc() repeated call, return from exitfunc()");
+    return;
+  }
+  exitfunc_called_flag=(IsNT() && isService());
+#endif
 
 #if defined(WITH_PERL) && defined(HAVE_FORK)
   if (perl_skipexitfunc) return;

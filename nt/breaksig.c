@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.20  2003/10/13 08:48:10  stas
+ * Implement true NT service stop sequence
+ *
  * Revision 2.19  2003/10/11 17:31:27  stas
  * cosmetics (indent nt/breaksig.c)
  *
@@ -177,27 +180,6 @@ SigHandler (DWORD SigType)
   return (FALSE);
 }
 
-/*--------------------------------------------------------------------*/
-/*    BOOL SigHandlerExit(DWORD SigType)                              */
-/*                                                                    */
-/*    Signal handler, exit(0) after (SigHandler()==FALSE) call        */
-/*    For "manual" call only, not for OS signal handlers              */
-/*--------------------------------------------------------------------*/
-
-BOOL
-SigHandlerExit (DWORD SigType)
-{
-  Log (10, "SigHandlerExit(%lu)", SigType);
-  if (SigHandler (SigType) == FALSE)
-    {
-#if !defined(BINKDW9X)
-      if (!isService ())
-#endif
-	exit (0);
-    }
-
-  return TRUE;
-}
 
 #if !defined(BINKDW9X)
 /*--------------------------------------------------------------------*/
@@ -210,10 +192,6 @@ SigHandlerNT (DWORD SigType)
   Log (10, "SigHandlerNT(%lu)", SigType);
   if (SigHandler (SigType) == FALSE)
     {
-      if (isService ())
-	{
-	  ReportStatusToSCMgr (SERVICE_STOP_PENDING, NO_ERROR, 0);
-	}
       exit (0);
     }
   return TRUE;
