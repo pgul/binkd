@@ -1,3 +1,7 @@
+2004/11/07 09:26:41 1.0a-427 gul
+!README.FIX,2.46,2.47 binkd.c,2.89,2.90 binkd.cfg,2.46,2.47 readcfg.c,2.78,2.79 readcfg.h,2.32,2.33
+New config options zlib-dll and bzlib2-dll
+
 2004/11/05 14:44:30 1.0a-426 gul
 client.c,2.56,2.57
 Client manager did not reload config on change
