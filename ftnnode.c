@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.26  2003/11/21 19:39:59  stream
+ * Initial support for "-noproxy" node option
+ *
  * Revision 2.25  2003/10/29 21:08:38  gul
  * Change include-files structure, relax dependences
  *
@@ -169,7 +172,7 @@ static void sort_nodes (BINKD_CONFIG *config)
  */
 static void add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
 	      char *obox, char *ibox, int NR_flag, int ND_flag,
-	      int MD_flag, int restrictIP, int HC_flag, BINKD_CONFIG *config)
+	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, BINKD_CONFIG *config)
 {
   int cn;
   FTN_NODE *pn = NULL; /* avoid compiler warning */
@@ -193,7 +196,7 @@ static void add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flv
     pn->obox_flvr = 'f';
     pn->NR_flag = NR_OFF;
     pn->ND_flag = ND_OFF;
- /*   pn->NP_flag = NP_OFF; */
+    pn->NP_flag = NP_OFF;
     pn->MD_flag = MD_USE_OLD;
     pn->HC_flag = HC_USE_OLD;
     pn->restrictIP = RIP_OFF;
@@ -210,8 +213,8 @@ static void add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flv
     pn->NR_flag = NR_flag;
   if (ND_flag != ND_USE_OLD)
     pn->ND_flag = ND_flag;
-/*  if (NP_flag != NP_USE_OLD)
-    pn->NP_flag = NP_flag; */
+  if (NP_flag != NP_USE_OLD)
+    pn->NP_flag = NP_flag;
   if (HC_flag != HC_USE_OLD)
     pn->HC_flag = HC_flag;
 
@@ -246,11 +249,11 @@ static void add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flv
 
 void add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
 	      char *obox, char *ibox, int NR_flag, int ND_flag,
-	      int MD_flag, int restrictIP, int HC_flag, BINKD_CONFIG *config)
+	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, BINKD_CONFIG *config)
 {
   locknodesem();
   add_node_nolock(fa, hosts, pwd, obox_flvr, obox, ibox, NR_flag, ND_flag,
-                  MD_flag, restrictIP, HC_flag, config);
+                  MD_flag, restrictIP, HC_flag, NP_flag, config);
   releasenodesem();
 }
 
@@ -301,14 +304,14 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
     on->ND_flag=np->ND_flag;
     on->MD_flag=np->MD_flag;
     on->ND_flag=np->ND_flag;
-/*  on->NP_flag=np->NP_flag;  */
+    on->NP_flag=np->NP_flag;
     on->HC_flag=np->HC_flag;
     on->restrictIP=np->restrictIP;
     return on;
   }
 
   add_node_nolock(fa, np->hosts, NULL, np->obox_flvr, np->obox, np->ibox,
-       np->NR_flag, np->ND_flag, np->MD_flag, np->restrictIP, np->HC_flag, config);
+       np->NR_flag, np->ND_flag, np->MD_flag, np->restrictIP, np->HC_flag, np->NP_flag, config);
   sort_nodes (config);
   memcpy (&n.fa, fa, sizeof (FTN_ADDR));
   return search_for_node(&n, config);
@@ -393,7 +396,8 @@ int poll_node (char *s, BINKD_CONFIG *config)
     Log (4, "creating a poll for %s (`%c' flavour)", buf, POLL_NODE_FLAVOUR);
     locknodesem();
     if (!get_node_info_nolock (&target, config))
-      add_node_nolock (&target, "*", 0, '-', 0, 0, 0, 0, 0, 0, 0, config);
+      add_node_nolock (&target, "*", NULL, '-', NULL, NULL, NR_USE_OLD, ND_USE_OLD,
+                       MD_USE_OLD, RIP_USE_OLD, HC_USE_OLD, NP_USE_OLD, config);
     releasenodesem();
     return create_poll (&target, POLL_NODE_FLAVOUR, config);
   }

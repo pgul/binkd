@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/11/21 19:39:59  stream
+ * Initial support for "-noproxy" node option
+ *
  * Revision 2.1  2003/10/29 21:08:38  gul
  * Change include-files structure, relax dependences
  *
@@ -76,7 +79,7 @@ struct _FTN_NODE
   int MD_flag;
   int HC_flag;
   int restrictIP;
-  /* int NP_flag; */                      /* no proxy */
+  int NP_flag;                         /* no proxy */
 
   time_t hold_until;
   int busy;			       /* 0=free, 'c'=.csy, other=.bsy */

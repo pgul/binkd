@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2003/11/21 19:39:59  stream
+ * Initial support for "-noproxy" node option
+ *
  * Revision 2.15  2003/10/29 21:08:38  gul
  * Change include-files structure, relax dependences
  *
@@ -113,7 +116,7 @@ FTN_NODE *get_node_info (FTN_ADDR *fa, BINKD_CONFIG *config);
  */
 void add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
 	      char *obox, char *ibox, int NR_flag, int ND_flag,
-	      int MD_flag, int restrictIP, int HC_flag, BINKD_CONFIG *config);
+	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, BINKD_CONFIG *config);
 
 #define NR_ON        1
 #define NR_OFF       0
@@ -135,6 +138,10 @@ void add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
 #define HC_ON        1
 #define HC_OFF      -1
 #define HC_USE_OLD   0		       /* Use old value, default value */
+
+#define NP_ON       1
+#define NP_OFF      0
+#define NP_USE_OLD -1		       /* Use old value */
 
 /*
  * Iterates through nodes while func() == 0.

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.60  2003/11/21 19:39:59  stream
+ * Initial support for "-noproxy" node option
+ *
  * Revision 2.59  2003/10/29 21:08:39  gul
  * Change include-files structure, relax dependences
  *
@@ -1098,7 +1101,7 @@ static int passwords (KEYWORD *key, int wordcount, char **words)
       {
         exp_ftnaddress (&fa, work_config.pAddr, work_config.nAddr, work_config.pDomains.first);
         add_node (&fa, NULL, password, '-', NULL, NULL,
-                  NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, HC_USE_OLD /*, NP_USE_OLD */, &work_config);
+                  NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, HC_USE_OLD, NP_USE_OLD, &work_config);
       }
     }
   }
@@ -1201,8 +1204,7 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
   char *w[ARGNUM], *tmp;
   int   i, j;
   int   NR_flag = NR_USE_OLD, ND_flag = ND_USE_OLD, HC_flag = HC_USE_OLD,
-        MD_flag = MD_USE_OLD, restrictIP = RIP_USE_OLD;
-  /* int   NP_flag = NP_USE_OLD; */
+        MD_flag = MD_USE_OLD, NP_flag = NP_USE_OLD, restrictIP = RIP_USE_OLD;
   FTN_ADDR fa;
 
   memset(w, 0, sizeof(w)); /* init by NULL's */
@@ -1241,9 +1243,8 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
         HC_flag = HC_ON;
       else if (STRICMP (tmp, "-nohc") == 0)
         HC_flag = HC_OFF;
-/*    else if (STRICMP (tmp, "-noproxy") == 0)
+      else if (STRICMP (tmp, "-noproxy") == 0)
         NP_flag = NP_ON;
- */
       else
         return ConfigError("%s: unknown option for `node' keyword", tmp);
     }
@@ -1271,7 +1272,7 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
   check_dir_path (w[5]);
 
   add_node (&fa, w[1], w[2], (char)(w[3] ? w[3][0] : '-'), w[4], w[5],
-            NR_flag, ND_flag, MD_flag, restrictIP, HC_flag /*, NP_flag*/, &work_config);
+            NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, &work_config);
 
   return 1;
 #undef ARGNUM
@@ -1731,17 +1732,18 @@ static int print_node_info_1 (FTN_NODE *fn, void *arg)
 
   UNUSED_ARG(arg);
   ftnaddress_to_str (szfa, &fn->fa);
-  printf("\n    %-20.20s %s %s %c %s %s%s%s%s%s%s%s%s%s",
+  printf("\n    %-20.20s %s %s %c %s %s%s%s%s%s%s%s%s%s%s",
          szfa, fn->hosts ? fn->hosts : "-", fn->pwd,
          fn->obox_flvr, fn->obox ? fn->obox : "-",
          fn->ibox ? fn->ibox : "-",
-         (fn->NR_flag == NR_ON) ? " -nr" : "",
-         (fn->ND_flag == ND_ON) ? " -nd" : "",
-         (fn->ND_flag == MD_ON) ? " -md" : "",
+         (fn->NR_flag == NR_ON)  ? " -nr" : "",
+         (fn->ND_flag == ND_ON)  ? " -nd" : "",
+         (fn->ND_flag == MD_ON)  ? " -md" : "",
          (fn->ND_flag == MD_OFF) ? " -nomd" : "",
-         (fn->HC_flag == HC_ON) ? " -hc" : "",
+         (fn->HC_flag == HC_ON)  ? " -hc" : "",
          (fn->HC_flag == HC_OFF) ? " -nohc" : "",
-         (fn->restrictIP == RIP_ON) ? " -ip" : "",
+         (fn->NP_flag == NP_ON)  ? " -noproxy" : "",
+         (fn->restrictIP == RIP_ON)  ? " -ip" : "",
          (fn->restrictIP == RIP_SIP) ? " -sip" : "");
   return 0;
 }
