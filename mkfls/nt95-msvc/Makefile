@@ -1,31 +1,39 @@
 # Microsoft Visual C++ Makefile
 # $Id$
 #
-# Usage: nmake [DEBUG=1] [BINKD9X=1]
+# Usage: nmake [DEBUG=1] [DLLRTL=1] [BINKD9X=1]
 #
 
+!ifdef DLLRTL
+RTLSUFFIX=-dll
+RTLTYPE=D
+!else
+RTLTYPE=T
+RTLSUFFIX=
+!endif
+
 !ifdef BINKD9X
-BINKDEXE=  binkd9x
+BINKDEXE=  binkd9x$(RTLSUFFIX)
 BINKD9X_DEFINES= -D "_WINDOWS" -D "BINKDW9X"
 BINKD9X_SUBSYSTEM= windows
 OUTDIRSUFFIX= -w9x
 !else
-BINKDEXE=  binkd
+BINKDEXE=  binkd$(RTLSUFFIX)
 BINKD9X_DEFINES= -D"_CONSOLE"
 BINKD9X_SUBSYSTEM= console
 OUTDIRSUFFIX=
 !endif
 
 !ifndef DEBUG
-CFLAGS=    -nologo -MT  -W3 -GX -Ox -c
+CFLAGS=    -nologo -M$(RTLTYPE)  -W3 -GX -Ox -c
 CDEBUG=
-OUTDIR=    .\Release$(OUTDIRSUFFIX)
+OUTDIR=    .\Release$(OUTDIRSUFFIX)$(RTLSUFFIX)
 BINKDSBR=
 LDEBUG=
 !else
-CFLAGS=    -nologo -MTd -W3 -Gm -GX -ZI -Od -c
+CFLAGS=    -nologo -M$(RTLTYPE)d -W3 -Gm -GX -ZI -Od -c
 CDEBUG=    -D"_DEBUG"
-OUTDIR=    .\Debug$(OUTDIRSUFFIX)
+OUTDIR=    .\Debug$(OUTDIRSUFFIX)$(RTLSUFFIX)
 BINKDSBR=  -FR"$(OUTDIR)\\"
 LDEBUG=    /incremental:yes /map:"$(OUTDIR)\$(BINKDEXE).map" /debug
 !endif
