@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.60  2003/05/17 15:33:51  gul
+ * Improve logging
+ *
  * Revision 2.59  2003/05/15 06:08:46  gul
  * Crypt bug with asymmetric secure settings
  *
@@ -969,7 +972,7 @@ static int ADR (STATE *state, char *s, int sz)
       }
       if (ipok == 1)
       { /* matched */
-	ip_verified = 1;
+	ip_verified = 2;
       }
       else if (ipok == 0)
       { /* unresolvable */
@@ -1065,6 +1068,10 @@ static int ADR (STATE *state, char *s, int sz)
     msg_send2 (state, M_ERR, "Bad source IP", 0);
     return 0;
   }
+  else if (ip_verified == 2)
+    Log (4, "Source IP matched");
+  else
+    Log (5, "Source IP not checked");
 
   if (!state->to)
   {
