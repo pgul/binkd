@@ -83,7 +83,7 @@ ZLIB_CDEFS= $(ZLIB_CDEFS) -DWITH_BZLIB2
 !endif
 !ifdef ZLIBDL
 ZLIB_CDEFS= $(ZLIB_CDEFS) -DZLIBDL
-ZLIBDL_OBJDS = $(OUTDIR)\zlibdl.obj
+ZLIBDL_OBJS = $(OUTDIR)\zlibdl.obj
 !else
 ! if defined(ZLIB)
 ZLIB_COPT= -I"$(ZLIB_SRC)"
