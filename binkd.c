@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.37  2003/06/13 03:10:07  hbrew
+ * Correct standalone/service logging for binkd9x.
+ *
  * Revision 2.36  2003/06/12 12:04:10  gul
  * Code cleanup
  *
@@ -338,6 +341,10 @@ struct polls{
 #ifdef WIN32
 enum serviceflags service_flag = w32_noservice;  /* install, uninstall, start, stop, restart wnt/w9x service */
 char *service_name = NULL;
+#ifdef BINKDW9X
+extern int w9x_service;                /* Win9x service flag */
+extern char *srvname;                  /* Win9x service name */
+#endif
 #ifndef BINKDW9X
 int tray_flag = 0;                     /* minimize to tray */
 #endif
@@ -712,8 +719,13 @@ int main (int argc, char *argv[], char *envp[])
 
   print_args (tmp, sizeof (tmp), argv + 1);
 #ifdef WIN32
+#ifdef BINKDW9X
+  if(w9x_service)
+    Log (4, "BEGIN service '%s', " MYNAME "/" MYVER "%s%s", srvname, get_os_string(), tmp);
+#else
   if(service_flag==w32_run_as_service)
     Log (4, "BEGIN service '%s', " MYNAME "/" MYVER "%s%s", service_name, get_os_string(), tmp);
+#endif
   else
     Log (4, "BEGIN standalone, " MYNAME "/" MYVER "%s%s", get_os_string(), tmp);
 #else
