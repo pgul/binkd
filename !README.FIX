@@ -522,3 +522,6 @@ NT/95:  ctrl-c problems fixed
 	New config option "share" - shared aka definition
 	(patch from Igor Krassikov 2:463/59).
 
+	New config option check-pkthdr, link options -hc, -nohc -
+	check pkt src addr (val khokhlov <val@vk.kiev.ua>).
+
