@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2002/10/03 10:23:26  gul
+ * Check fprintf() & fclose() retcodes
+ *
  * Revision 2.5  2002/07/22 19:38:23  gul
  * overwrite minor fix
  *
@@ -110,12 +113,24 @@ static int creat_tmp_name (char *s, char *file, size_t size,
       if ((f = fopen (s, "w")) == 0)
       {
 	Log (1, "%s: %s", s, strerror (errno));
+	delete (s);
 	return 0;
       }
       ftnaddress_to_str (node, from);
-      fprintf (f, "%s %li %li %s\n",
-	       file, (long int) size, (long int) time, node);
-      fclose (f);
+      if (fprintf (f, "%s %li %li %s\n",
+	           file, (long int) size, (long int) time, node) <= 0)
+      {
+	Log (1, "%s: %s", s, strerror (errno));
+	fclose (f);
+	delete (s);
+	return 0;
+      }
+      if (fclose (f))
+      {
+	Log (1, "%s: %s", s, strerror (errno));
+	delete (s);
+	return 0;
+      }
       break;
     }
     *t = 0;
