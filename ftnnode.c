@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22  2003/09/14 12:29:32  gul
+ * Optimize a bit
+ *
  * Revision 2.21  2003/09/08 16:39:39  stream
  * Fixed race conditions when accessing array of nodes in threaded environment
  * ("jumpimg node structures")
@@ -139,9 +142,7 @@ void nodes_deinit(void)
  */
 static int node_cmp (FTN_NODE **pa, FTN_NODE **pb)
 {
-  FTN_NODE *a = *pa;
-  FTN_NODE *b = *pb;
-  return ftnaddress_cmp (&a->fa, &b->fa);
+  return ftnaddress_cmp (&(*pa)->fa, &(*pb)->fa);
 }
 
 /*
