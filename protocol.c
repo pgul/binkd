@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.38  2003/03/04 09:50:58  gul
+ * Cosmetics changes
+ *
  * Revision 2.37  2003/03/03 20:16:32  gul
  * Fixed bug in previous patch
  *
@@ -1989,7 +1992,10 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
     return;
 
   if (getpeername (socket, (struct sockaddr *) & peer_name, &peer_name_len) == -1)
+  {
     Log (1, "getpeername: %s", TCPERR ());
+    memset(&peer_name, 0, sizeof (peer_name));
+  }
 
   lockhostsem();
   if (to && current_addr)
@@ -2006,7 +2012,10 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
   releasehostsem();
 
   if (getsockname (socket, (struct sockaddr *) & peer_name, &peer_name_len) == -1)
-    Log (1, "getpeername: %s", TCPERR ());
+  {
+    Log (1, "getsockname: %s", TCPERR ());
+    memset(&peer_name, 0, sizeof (peer_name));
+  }
   else 
     state.our_ip=peer_name.sin_addr.s_addr;
 
