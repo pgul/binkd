@@ -15,6 +15,14 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.118  2003/08/18 07:29:41  val
+ * Auto increase patchlevel, set 0.9.6a-105
+ * multiple changes:
+ * - perl error handling made via fork/thread
+ * - on_log() perl hook
+ * - perl: msg_send(), on_send(), on_recv()
+ * - unless using threads define log buffer via xalloc()
+ *
  * Revision 2.117  2003/08/17 19:07:12  gul
  * Auto increase patchlevel, set 0.9.6a-104
  * Fix typo
@@ -502,7 +510,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-104"
+#define MYVER "0.9.6a-105"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
