@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.91  2004/11/09 07:04:22  gul
+ * Syntax error in previous patch
+ *
  * Revision 2.90  2004/11/07 07:26:35  gul
  * New config options zlib-dll and bzlib2-dll
  *
@@ -865,7 +868,7 @@ int main (int argc, char *argv[], char *envp[])
     else
       Log (6, "%s loaded successfully", current_config->zlib_dll);
   } else
-    Log (work_config.zrules ? 3 : 5, "zlib-dll not defined, GZ compression disabled");
+    Log (current_config->zrules ? 3 : 5, "zlib-dll not defined, GZ compression disabled");
 #endif
 #if defined(WITH_BZLIB2) && defined(ZLIBDL)
   if (current_config->bzlib2_dll[0]) {
@@ -874,7 +877,7 @@ int main (int argc, char *argv[], char *envp[])
     else
       Log (6, "%s loaded successfully", current_config->bzlib2_dll);
   } else
-    Log (work_config.zrules
+    Log (current_config->zrules
 #ifdef WITH_ZLIB
          && !zlib_loaded
 #endif
