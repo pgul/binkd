@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2001/07/28 17:26:26  gul
+ * Avoid compiler warnings
+ *
  * Revision 2.1  2001/06/19 15:49:13  da
  * *** empty log message ***
  *
@@ -84,7 +87,7 @@ int h_connect(int *so, struct sockaddr_in *name)
 {
 	int ntlm = 0;
 	char *ntlmsp = NULL;
-	int i, err, connected=0;
+	int i, err = 0, connected = 0;
 	struct sockaddr_in sin;
 #ifdef HAVE_THREADS
 	struct hostent he;

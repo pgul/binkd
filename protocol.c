@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2001/07/28 17:26:26  gul
+ * Avoid compiler warnings
+ *
  * Revision 2.9  2001/07/28 09:56:39  gul
  * NR-mode bugfix
  *
@@ -1750,7 +1753,7 @@ static void banner (STATE *state)
 static int start_file_transfer (STATE *state, FTNQ *file)
 {
   struct stat sb;
-  FILE *f;
+  FILE *f = NULL;
   int action = -1;
 
   if (state->out.f)
