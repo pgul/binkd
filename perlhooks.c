@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.41  2003/11/19 18:07:20  gul
+ * Use foreach_node() for fill %node hash
+ *
  * Revision 2.40  2003/10/30 10:57:46  gul
  * Change inb_done arguments, optimize a bit
  *
@@ -185,6 +188,7 @@
 #include "tools.h"
 #include "ftnaddr.h"
 #include "ftnq.h"
+#include "ftnnode.h"
 #include "readflo.h"
 #include "iphdr.h"
 #include "protoco2.h"
@@ -1210,6 +1214,30 @@ int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
   return 1;
 }
 
+static int add_node_to_hv(FTN_NODE *node, void *hv)
+{
+  HV *hv2;
+  SV *sv;
+  char  buf[FTN_ADDR_SZ];
+
+  hv2 = newHV();
+  VK_ADD_HASH_str(hv2, sv, "hosts", node->hosts);
+  VK_ADD_HASH_str(hv2, sv, "pwd", node->pwd);
+  VK_ADD_HASH_str(hv2, sv, "ibox", node->ibox);
+  VK_ADD_HASH_str(hv2, sv, "obox", node->obox);
+  buf[0] = node->obox_flvr; buf[1] = 0;
+  VK_ADD_HASH_str(hv2, sv, "obox_flvr", buf);
+  VK_ADD_HASH_int(hv2, sv, "NR", node->NR_flag);
+  VK_ADD_HASH_int(hv2, sv, "ND", node->ND_flag);
+  VK_ADD_HASH_int(hv2, sv, "MD", node->MD_flag);
+  VK_ADD_HASH_int(hv2, sv, "HC", node->HC_flag);
+  VK_ADD_HASH_int(hv2, sv, "IP", node->restrictIP);
+  sv = newRV_noinc( (SV*)hv2 );
+  ftnaddress_to_str(buf, &(node->fa));
+  VK_ADD_HASH_sv((HV *)hv, sv, buf);
+  return 0;
+}
+
 /* set config vars to root perl */
 void perl_setup(BINKD_CONFIG *cfg) {
   SV 	*sv;
@@ -1360,23 +1388,7 @@ void perl_setup(BINKD_CONFIG *cfg) {
   /* node */
   hv = perl_get_hv("node", TRUE);
   hv_clear(hv);
-  for (i = 0; i < cfg->nNod; i++) {
-    hv2 = newHV();
-    VK_ADD_HASH_str(hv2, sv, "hosts", cfg->pNodArray[i]->hosts);
-    VK_ADD_HASH_str(hv2, sv, "pwd", cfg->pNodArray[i]->pwd);
-    VK_ADD_HASH_str(hv2, sv, "ibox", cfg->pNodArray[i]->ibox);
-    VK_ADD_HASH_str(hv2, sv, "obox", cfg->pNodArray[i]->obox);
-    buf[0] = cfg->pNodArray[i]->obox_flvr; buf[1] = 0;
-    VK_ADD_HASH_str(hv2, sv, "obox_flvr", buf);
-    VK_ADD_HASH_int(hv2, sv, "NR", cfg->pNodArray[i]->NR_flag);
-    VK_ADD_HASH_int(hv2, sv, "ND", cfg->pNodArray[i]->ND_flag);
-    VK_ADD_HASH_int(hv2, sv, "MD", cfg->pNodArray[i]->MD_flag);
-    VK_ADD_HASH_int(hv2, sv, "HC", cfg->pNodArray[i]->HC_flag);
-    VK_ADD_HASH_int(hv2, sv, "IP", cfg->pNodArray[i]->restrictIP);
-    sv = newRV_noinc( (SV*)hv2 );
-    ftnaddress_to_str(buf, &(cfg->pNodArray[i]->fa));
-    VK_ADD_HASH_sv(hv, sv, buf);
-  }
+  foreach_node(add_node_to_hv, hv, cfg);
   Log(LL_DBG2, "perl_setup(): %%node done");
 }
 
