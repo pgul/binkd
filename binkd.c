@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.36  2003/06/12 12:04:10  gul
+ * Code cleanup
+ *
  * Revision 2.35  2003/06/11 07:44:21  gul
  * Cosmetics
  *
@@ -364,11 +367,9 @@ char *parseargs (int argc, char *argv[])
           *s='\0';
         }else{
           Log (0, "%s: parenthness mismatched in parameter '%s'", argv[0], argv[i]);
-          usage();        /* Todo: send message to event log */
         }
       }else{
-        Log(0, "%s: illegal parameter!", argv[0]);
-        usage();
+        Log(0, "%s: illegal parameter '%s'!", argv[0], argv[i]);
       }
       break; /* skip command line processing */
     }
@@ -378,7 +379,7 @@ char *parseargs (int argc, char *argv[])
     {
       s = argv[i] + 1;
 
-      do
+      while (*s)
       {
 	switch (*s)
 	  {
@@ -409,7 +410,6 @@ char *parseargs (int argc, char *argv[])
 	    case 't': /* service control/query */
               if ((service_flag != w32_noservice) && (service_flag != w32_run_as_service)) {
                 Log (0, "%s: '-t' command line switch can't mixed with '-i', '-u' and other '-t'", argv[0]);
-                usage();
               }
               switch (*(++s)){
               case '(':  /* -t(servicename) */
@@ -430,7 +430,6 @@ char *parseargs (int argc, char *argv[])
                 }
                 else{
                   Log (0, "%s: '-t': invalid argument '%s'", argv[0], s);
-                  usage();
                 }
                 break;
               case 'r':
@@ -439,12 +438,10 @@ char *parseargs (int argc, char *argv[])
                   s+=7;
                 }else{
                   Log (0, "%s: '-t': invalid argument '%s'", argv[0], s);
-                  usage();
                 }
                 break;
               default:
                 Log (0, "%s: '-t': invalid argument '%s'", argv[0], s);
-                usage();
               }
 
               switch ( *s ){
@@ -480,7 +477,6 @@ char *parseargs (int argc, char *argv[])
                 || service_flag==w32_stopservice
                  ){
                 Log (0, "%s: '-i' command line switch can't mixed with '-i', '-t' and other '-u'", argv[0]);
-                usage();
               }
               switch ( *++s ){
               case '(':
@@ -493,7 +489,6 @@ char *parseargs (int argc, char *argv[])
                   s=st+1;
                 }else{
                   Log (0, "%s: '-i': parenthness mismatched in argument '%s'", argv[0], s);
-                  usage();
                 }
                 if(!service_flag)
                   service_flag = w32_installservice;
@@ -514,7 +509,6 @@ char *parseargs (int argc, char *argv[])
                 || service_flag==w32_stopservice
                  ){
                 Log (0, "%s: '-u' command line switch can't mixed with '-i', '-t' and other '-u'", argv[0]);
-                usage();
               }
               switch ( *++s ){
               case '(':
@@ -527,7 +521,6 @@ char *parseargs (int argc, char *argv[])
                   s=st+1;
                 }else{
                   Log (0, "%s: '-u': parenthness mismatched in argument '%s'", argv[0], s);
-                  usage();
                 }
                 if(!service_flag)
                   service_flag = w32_uninstallservice;
@@ -597,12 +590,9 @@ char *parseargs (int argc, char *argv[])
 	    default:  /* unknown parameter/option */
 	      Log (0, "%s: -%c: unknown command line switch", argv[0], *s);
 
-	    case 0:   /* call without parameters */
-	      usage ();
 	  }
 	++s;
       }
-      while (*s);
   BREAK_WHILE:;
     }
     else if (!cfgfile)
@@ -693,10 +683,8 @@ int main (int argc, char *argv[], char *envp[])
     printf ("Binkd " MYVER " (" __DATE__ " " __TIME__ "%s)\n", get_os_string ());
     exit (0);
   }
-  else if(!configpath){
+  else if (argc > 1)
     Log (0, "%s: invalid command line: config name must be specified", argv[0]);
-    usage();
-  }
   else
     usage ();
 
