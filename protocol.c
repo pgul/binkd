@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.98  2003/08/17 08:12:05  gul
+ * Fix typo
+ *
  * Revision 2.97  2003/08/16 09:47:25  gul
  * Autodetect tzoff if not specified
  *
@@ -1166,7 +1169,7 @@ static int ADR (STATE *state, char *s, int sz)
     free (w);
   }
 
-  /* set expected pasword on outgoing session
+  /* set expected password on outgoing session
    * for drop remote AKAs with another passwords */
   if (state->to)
     memcpy (state->expected_pwd, state->to->pwd, sizeof (state->expected_pwd));
@@ -1294,7 +1297,7 @@ static int ADR (STATE *state, char *s, int sz)
                strcmp(state->expected_pwd, n.pwd))
       {
 	if (state->to)
-	  Log (2, "inconsistent pwd settings for this node, aka %d dropped", szFTNAddr);
+	  Log (2, "inconsistent pwd settings for this node, aka %s dropped", szFTNAddr);
 	else
 	{ /* drop incoming session with M_ERR "Bad password" */
 	  Log (1, "inconsistent pwd settings for this node");
