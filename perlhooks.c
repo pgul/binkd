@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.32  2003/10/22 14:24:51  stas
+ * Remove obsolete defines
+ *
  * Revision 2.31  2003/10/20 12:08:07  gul
  * Minor bugfix in perl error handling under win32
  *
@@ -245,15 +248,6 @@
 
 #ifdef DEBUG
 #  undef DEBUG
-#endif
-
-#ifdef __MINGW32__
-#undef stat
-#undef fstat
-#undef open
-#undef close
-#undef read
-#undef write
 #endif
 
 #include <EXTERN.h>

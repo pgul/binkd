@@ -109,12 +109,6 @@
 #endif
 
 #ifdef __MINGW32__
-#define open  _open
-#define close _close
-#define read  _read
-#define write _write
-#define stat  _stat
-#define fstat _fstat
 #define sleep(sec) _sleep((sec)*1000ul)
 #define snprintf  _snprintf
 #define vsnprintf _vsnprintf
