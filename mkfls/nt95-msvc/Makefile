@@ -171,7 +171,7 @@ BINKDTYPE=$(BINKDTYPE), zlib
 !ifndef ZLIB_LIB
 ZLIB_LIB=zlib.lib
 !endif
-LIBS=$(LIBS) ZLIB_LIB
+LIBS=$(LIBS) $(ZLIB_LIB)
 !else
 BINKDNAME=$(BINKDNAME)-zlibdl
 OUTDIR=$(OUTDIR)-zlibdl
@@ -199,7 +199,7 @@ BINKDTYPE=$(BINKDTYPE), bzlib2
 !ifndef BZLIB2_LIB
 BZLIB2_LIB=libbz2.lib
 !endif
-LIBS=$(LIBS) BZLIB2_LIB
+LIBS=$(LIBS) $(BZLIB2_LIB)
 !else
 BINKDNAME=$(BINKDNAME)-bzlib2dl
 OUTDIR=$(OUTDIR)-bzlib2dl
