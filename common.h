@@ -13,6 +13,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/06/09 13:27:28  stas
+ * New command line parser
+ *
  * Revision 2.3  2003/05/01 09:55:01  gul
  * Remove -crypt option, add global -r option (disable crypt).
  *
@@ -41,6 +44,19 @@ int del_socket(SOCKET sockfd);
 void rel_grow_handles(int nh);
 #else
 #define rel_grow_handles(nh)
+#endif
+
+#ifdef WIN32
+enum serviceflags{
+   w32_noservice=0,
+   w32_installservice=1,
+   w32_uninstallservice=-1,
+   w32_startservice=2,
+   w32_stopservice=-2,
+   w32_restartservice=3,
+   w32_queryservice=4,
+   w32_run_as_service=-4
+ };
 #endif
 
 /*

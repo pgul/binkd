@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.31  2003/06/09 13:27:28  stas
+ * New command line parser
+ *
  * Revision 2.30  2003/05/10 00:30:36  hbrew
  * binkd9x: -u option now support '--all' service name (uninstall all services).
  * Unneeded spaces cleanup.
@@ -206,6 +209,8 @@ int pidcmgr = 0;		       /* pid for clientmgr */
 int pidsmgr = 0;		       /* pid for server */
 SOCKET inetd_socket = 0;
 
+char *configpath = NULL;               /* Config file name */
+
 #ifdef HAVE_FORK
 static void chld (int signo)
 {
@@ -297,7 +302,9 @@ void usage (void)
 }
 
 /* Command line flags */
+#ifndef WIN32
 int inetd_flag = 0;		       /* Run from inetd (-i) */
+#endif
 #ifdef BINKD_DAEMONIZE
 int daemon_flag = 0;		       /* Run as daemon (-D) */
 #endif
@@ -311,44 +318,53 @@ int checkcfg_flag = 0;		       /* exit(3) on config change (-C) */
 int no_MD5 = 0;			       /* disable MD5 flag (-m) */
 int no_crypt = 0;		       /* disable CRYPT (-r) */
 
-#ifdef BINKDW9X
-int binkd_main (int argc, char *argv[], char *envp[])
-#else
-int main (int argc, char *argv[], char *envp[])
+struct polls{
+  char *addr;
+  struct polls *next;
+} *psPolls = NULL;                     /* Create polls (-P) */
+
+#ifdef WIN32
+enum serviceflags service_flag = w32_noservice;  /* install, uninstall, start, stop, restart wnt/w9x service */
+char *service_name = NULL;
+#ifndef BINKDW9X
+int tray_flag = 0;                     /* minimize to tray */
 #endif
-{
-  char tmp[128];
+#endif
+
+/* Parce and check command line parameters. Return config file name or NULL
+ * On error prints usage information and exit (see usage() function)
+ */
+char *parceargs (int argc, char *argv[]){
+  char *cfgfile=NULL;
+  char *s=NULL, *st;
   int i;
-/* Config file name */
-  char *config = NULL;
-  char **saved_argv;
-  int saved_argc;
-#if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
-  int  nochdir;
-#endif
-
-  tzset();
-#if defined(WIN32) && !defined(BINKDW9X)
-  service(argc, argv, envp);
-#endif
-  /* save argv as setproctitle() under some systems will change it */
-  saved_argv = mkargv (argc, argv);
-  saved_argc = argc;
-
-  InitSem (&hostsem);
-  InitSem (&resolvsem);
-  InitSem (&varsem);
-  InitEventSem (&eothread);
-  InitEventSem (&exitcmgr);
-#ifdef OS2
-  InitSem (&fhsem);
-#endif
+  struct polls *psP;
 
   for (i = 1; i < argc; ++i)
   {
+#if defined(WIN32)
+    if (argv[i][0] == '\001'){ /* binkd called as NT Service */
+      service_flag = w32_run_as_service;
+      i++;
+      if(argv[i] && argv[i][0]=='-' && argv[i][1]=='('){
+        service_name = strdup(argv[i]+2);
+        if( (s=strchr(service_name,')')) ){
+          *s='\0';
+        }else{
+          Log (0, "%s: parenthness mismatched in parameter '%s'", argv[0], argv[i]);
+          usage();        /* Todo: send message to event log */
+        }
+      }else{
+        Log(0, "%s: illegal parameter!", argv[0]);
+        usage();
+      }
+      break; /* skip command line processing */
+    }
+    else
+#endif
     if (argv[i][0] == '-')
     {
-      char *s = argv[i] + 1;
+      s = argv[i] + 1;
 
       do
       {
@@ -371,39 +387,192 @@ int main (int argc, char *argv[], char *envp[])
 	      inetd_flag = 1;
 	      break;
 #endif
-#if defined(WIN32) && !defined (BINKDW9X)
+#if defined(WIN32)
+#if !defined (BINKDW9X)
 	    case 'T':
-	    case 't':
+	      tray_flag = 1;
 	      break;
 #endif
-	    case 'P':
-	      if (argv[i][2] == 0)
+
+	    case 't': /* service control/query */
+              if ((service_flag != w32_noservice) && (service_flag != w32_run_as_service)) {
+                Log (0, "%s: '-t' command line switch can't mixed with '-i', '-u' and other '-t'", argv[0]);
+                usage();
+              }
+              switch (*(++s)){
+              case '(':  /* -t(servicename) */
+              case '\0': /* -t */
+                if (!service_flag) service_flag = w32_queryservice; /* if not service (prevent overwrite) */
+                break;
+              case 'q':  /* -tq or -tq(servicename) */
+                service_flag = w32_queryservice;
+                break;
+              case 's':
+                if(strncmp(s,"start",5)==0){
+                  service_flag = w32_startservice;
+                  s+=5;
+                }
+                else if(strncmp(s,"stop",4)==0){
+                  service_flag = w32_stopservice;
+                  s+=4;
+                }
+                else{
+                  Log (0, "%s: '-t': invalid argument '%s'", argv[0], s);
+                  usage();
+                }
+                break;
+              case 'r':
+                if(strncmp(s,"restart",7)==0){
+                  service_flag = w32_restartservice;
+                  s+=7;
+                }else{
+                  Log (0, "%s: '-t': invalid argument '%s'", argv[0], s);
+                  usage();
+                }
+                break;
+              default:
+                Log (0, "%s: '-t': invalid argument '%s'", argv[0], s);
+                usage();
+              }
+
+              switch ( *s ){
+              case '(':
+                if( (st=strchr(s,')')) ){
+                  if (service_flag != w32_run_as_service){ /* skip if run as service*/
+                    if (service_name){ /* prevent overwrite service name */
+                      Log(0, "%s: '%s': service name specified before, can't overwrite!", argv[0], argv[i]);
+                      usage();
+                    }else{
+                      *st='\0';
+                      service_name = strdup(s+1);
+                      *st=')';
+                    }
+                  }
+                  s=st+1;
+                }else{
+                  Log (0, "%s: '-t': parenthness mismatched in argument '%s'", argv[0], s);
+                  usage();
+                }
+              case '\0':
+                continue;
+              }
+	      break;
+
+	    case 'i': /* install service */
+              if (service_flag == w32_run_as_service) break;
+              if ( service_flag==w32_installservice
+                || service_flag==w32_uninstallservice
+                || service_flag==w32_queryservice
+                || service_flag==w32_startservice
+                || service_flag==w32_restartservice
+                || service_flag==w32_stopservice
+                 ){
+                Log (0, "%s: '-i' command line switch can't mixed with '-i', '-t' and other '-u'", argv[0]);
+                usage();
+              }
+              switch ( *++s ){
+              case '(':
+                if( (st=strchr(s,')')) ){
+                  if (!service_flag){ /* prevent overwrite service name */
+                    *st='\0';
+                    service_name = strdup(s+1);
+                    *st=')';
+                  }
+                  s=st+1;
+                }else{
+                  Log (0, "%s: '-i': parenthness mismatched in argument '%s'", argv[0], s);
+                  usage();
+                }
+                if(!service_flag)
+                  service_flag = w32_installservice;
+              case '\0':
+                if(!service_flag)
+                  service_flag = w32_installservice;
+                continue;
+              }
+	      break;
+
+	    case 'u': /* uninstall service */
+              if (service_flag == w32_run_as_service) break;
+              if ( service_flag==w32_installservice
+                || service_flag==w32_uninstallservice
+                || service_flag==w32_queryservice
+                || service_flag==w32_startservice
+                || service_flag==w32_restartservice
+                || service_flag==w32_stopservice
+                 ){
+                Log (0, "%s: '-u' command line switch can't mixed with '-i', '-t' and other '-u'", argv[0]);
+                usage();
+              }
+              switch ( *++s ){
+              case '(':
+                if( (st=strchr(s,')')) ){
+                  if (!service_flag){ /* prevent overwrite service name */
+                    *st='\0';
+                    service_name = strdup(s+1);
+                    *st=')';
+                  }
+                  s=st+1;
+                }else{
+                  Log (0, "%s: '-u': parenthness mismatched in argument '%s'", argv[0], s);
+                  usage();
+                }
+                if(!service_flag)
+                  service_flag = w32_uninstallservice;
+              case '\0':
+                if(!service_flag)
+                  service_flag = w32_uninstallservice;
+                continue;
+              }
+	      break;
+#endif
+
+	    case 'P': /* create poll to node */
+	      if (*(++s) == 0)
 	      {
 		++i;
 		if (argv[i] == 0)
 		  Log (0, "%s: -P: missing requred argument", argv[0]);
-	      }
+		else{
+		  psP=psPolls;
+		  psPolls = malloc(sizeof(psPolls));
+                  psPolls->next = psP;
+                  psPolls->addr = argv[i];
+		}
+              }else{
+		  psP=psPolls;
+		  psPolls = malloc(sizeof(psPolls));
+                  psPolls->next = psP;
+                  psPolls->addr = s;
+              }
 	      goto BREAK_WHILE;
-	    case 'p':
+
+	    case 'p': /* run clients and exit */
 	      poll_flag = client_flag = 1;
 	      break;
-	    case 'q':
+
+	    case 'q': /* quiet */
 	      quiet_flag = 1;
 	      break;
-	    case 's':
+
+	    case 's': /* run server only */
 	      server_flag = 1;
 	      break;
-	    case 'm':
+
+	    case 'm': /* MD5 off */
 	      no_MD5 = 1;
 	      /* fallthrough */
-	    case 'r':
+
+	    case 'r': /* CRYPT off */
 	      no_crypt = 1;
 	      break;
-	    case 'v':
+
+	    case 'v': /* verbose */
 	      ++verbose_flag;
 	      break;
+
 #ifdef BINKD_DAEMONIZE
-	    case 'D':
+	    case 'D': /* run as unix daemon */
 	      daemon_flag = 1;
 	      /* remove this switch from saved_argv */
 	      { int j;
@@ -414,11 +583,14 @@ int main (int argc, char *argv[], char *envp[])
 	      }
 	      break;
 #endif
-	    case 'h':
+
+	    case 'h': /* display command line help */
 	      usage();
-	    default:
+
+	    default:  /* unknown parameter/option */
 	      Log (0, "%s: -%c: unknown command line switch", argv[0], *s);
-	    case 0:
+
+	    case 0:   /* call without parameters */
 	      usage ();
 	  }
 	++s;
@@ -426,11 +598,42 @@ int main (int argc, char *argv[], char *envp[])
       while (*s);
   BREAK_WHILE:;
     }
-    else if (!config)
+    else if (!cfgfile)
     {
-      config = argv[i];
+      cfgfile = argv[i];
     }
   }
+
+  return cfgfile;
+}
+
+#ifdef BINKDW9X
+int binkd_main (int argc, char *argv[], char *envp[])
+#else
+int main (int argc, char *argv[], char *envp[])
+#endif
+{
+  char tmp[128];
+  char **saved_argv;
+  int saved_argc;
+#if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
+  int  nochdir;
+#endif
+
+  tzset();
+
+  /* save argv as setproctitle() under some systems will change it */
+  saved_argv = mkargv (argc, argv);
+  saved_argc = argc;
+
+  configpath = parceargs(argc, argv);
+
+#if defined(WIN32) && !defined(BINKDW9X)
+  if(service(argc, argv, envp) && service_flag!=w32_run_as_service){
+    Log(0, "Windows NT service error");
+    exit(-1);
+  }
+#endif
 
   if (poll_flag && server_flag)
     Log (0, "-p and -s cannot be used together");
@@ -438,6 +641,16 @@ int main (int argc, char *argv[], char *envp[])
   /* No command line options: run both client and server */
   if (!client_flag && !server_flag)
     client_flag = server_flag = 1;
+
+
+  InitSem (&hostsem);
+  InitSem (&resolvsem);
+  InitSem (&varsem);
+  InitEventSem (&eothread);
+  InitEventSem (&exitcmgr);
+#ifdef OS2
+  InitSem (&fhsem);
+#endif
 
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
   if (inetd_flag)
@@ -460,8 +673,8 @@ int main (int argc, char *argv[], char *envp[])
   /* Init for ftnnode.c */
   nodes_init ();
 
-  if (config)
-    readcfg (config);
+  if (configpath)
+    readcfg (configpath);
   else if (verbose_flag)
   {
 #if defined(WIN32) && defined(BINKDW9X)
@@ -471,13 +684,12 @@ int main (int argc, char *argv[], char *envp[])
     printf ("Binkd " MYVER " (" __DATE__ " " __TIME__ "%s)\n", get_os_string ());
     exit (0);
   }
-  else if (argc == 1)
-    usage ();
-  else
-  {
+  else if(!configpath){
     Log (0, "%s: invalid command line: config name must be specified", argv[0]);
-    exit (1);
+    usage();
   }
+  else
+    usage ();
 
   if (quiet_flag)
   {
@@ -502,8 +714,14 @@ int main (int argc, char *argv[], char *envp[])
     }
 
   print_args (tmp, sizeof (tmp), argc - 1, argv + 1);
+#ifdef WIN32
+  if(service_flag==w32_run_as_service)
+    Log (4, "BEGIN service '%s', " MYNAME "/" MYVER "%s%s", service_name, get_os_string(), tmp);
+  else
+    Log (4, "BEGIN standalone, " MYNAME "/" MYVER "%s%s", get_os_string(), tmp);
+#else
   Log (4, "BEGIN, " MYNAME "/" MYVER "%s%s", get_os_string(), tmp);
-
+#endif
   if (sock_init ())
     Log (0, "sock_init: %s", TCPERR ());
 
@@ -523,14 +741,15 @@ int main (int argc, char *argv[], char *envp[])
   signal (SIGCHLD, chld);
 #endif
 
-  for (i = 1; i < argc; ++i)
-    if (argv[i][0] == '-' && argv[i][1] == 'P')
-    {
-      if (argv[i][2] == 0)
-	poll_node (argv[++i]);
-      else
-	poll_node (argv[i] + 2);
+  { /* Create polls and release polls list */
+    struct polls *psP;
+    while(psPolls){
+      poll_node (psPolls->addr);
+      psP = psPolls;
+      psPolls = psPolls->next;
+      free(psP);
     }
+  }
 
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
   if (inetd_flag)
@@ -621,5 +840,8 @@ binkdrestart:
 
   servmgr (0);
 
+#ifdef WIN32
+  if(service_name) free(service_name);
+#endif
   return 0;
 }
