@@ -937,12 +937,12 @@ because of the described console features in the systems.
 
         29. I Miss a Chat in BinkD And I Want To Synchronize Time!
 
-    You may use talk, icq or irc (or even Gadu-Gadu) for chatting. If you 
-can start BinkD then all the programs mentioned here and many other ones 
+    You may use talk, icq or irc (or even Gadu-Gadu) for chatting. If you
+can start BinkD then all the programs mentioned here and many other ones
 may use the same channel. You may chat as much as you like.
 
-    And there are special utilities for synchronizing time via IP, for 
-example ntpdate. Unlike mailers such utilities take time from the precise 
+    And there are special utilities for synchronizing time via IP, for
+example ntpdate. Unlike mailers such utilities take time from the precise
 time servers.
 
 
@@ -1005,10 +1005,10 @@ international BINKD (in English).  Please look for them at echomail hubs :).
 
         A4. And When Will BinkD Do ... ?
 
-    Maybe it will do it some time in the future. And maybe not. You may wait 
-until the feature you wish will be implemented or you may "fix" it yourself: 
-the source code is open. Please do not forget to send your patch to the 
-developers, it will be possibly included in the main development branch and 
+    Maybe it will do it some time in the future. And maybe not. You may wait
+until the feature you wish will be implemented or you may "fix" it yourself:
+the source code is open. Please do not forget to send your patch to the
+developers, it will be possibly included in the main development branch and
 for sure it will be put to the Web site or the FTP archive.
 
 
