@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.9  2003/06/05 11:40:19  stas
+ * Cosmetics
+ *
  * Revision 2.8  2003/06/05 11:16:56  stas
  * Fix warning; More accuracy errors strings list maintnance
  *
@@ -207,7 +210,7 @@ const char *errorfromlist(int err){
     if( el->code==err )
       return el->text;
 
-  if(!err_sem_init++){ InitSem(&err_sem); }
+  if(!err_sem_init){ err_sem_init=1; InitSem(&err_sem); }
 
   if( !LockSem(&err_sem) ){
     if(sel!=errlist)          /* List changed, check again */
@@ -337,7 +340,7 @@ const char *tcperr (int errnum) {
      Str = "{10053} An established connection was aborted by the software in your host machine";
      break;
   case 10054:
-/*     Str = "{10054} Connection reset by peer]f*/
+/*     Str = "{10054} Connection reset by peer";*/
      Str = "{10054} An existing connection was forcibly closed by the remote host";
      break;
   case 10055:
