@@ -1,3 +1,4 @@
+#define VAL_STYLE
 /*
  *  protocol.c -- binkp implementation
  *
@@ -15,6 +16,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.121  2003/09/16 06:38:44  val
+ * correct IP checking algorithms (gul's one is buggy), correct get_defnode_info()
+ *
  * Revision 2.120  2003/09/15 21:10:09  gul
  * Fix remote IP check logic
  *
@@ -1277,7 +1281,13 @@ static char * add_shared_akas(char * s, BINKD_CONFIG *config)
 
 static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 {
-  int i, j, main_AKA_ok = 0, ip_verified = 0;
+  int i, j, main_AKA_ok = 0;
+#ifndef VAL_STYLE
+  int ip_verified = 0;
+#else
+  enum { CHECK_OFF, CHECK_NA, CHECK_OK, CHECK_WRONG } ip_check;
+  enum { FOUND_NONE, FOUND_UNRES, FOUND_ALL } ip_found;
+#endif
   char *w;
   FTN_ADDR fa;
   FTN_NODE *pn;
@@ -1339,6 +1349,10 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 
     free (w);
 
+#ifdef VAL_STYLE
+    ip_check = CHECK_OFF;
+#endif
+
     if (!fa.domain[0])
       strcpy (fa.domain, get_matched_domain(fa.z, config->pAddr, config->nAddr, config));
 
@@ -1350,7 +1364,10 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
         && (state->to == 0 || (!config->proxy[0] && !config->socks[0]))
 #endif
         )
-    { int i, ipok = 0, rc;
+    { int i, rc;
+#ifndef VAL_STYLE
+      int ipok = 0;
+#endif
       struct hostent *hp;
       struct in_addr defaddr;
       char **cp;
@@ -1359,10 +1376,16 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
       struct sockaddr_in sin;
       socklen_t si;
 
+#ifdef VAL_STYLE
+      ip_found = FOUND_NONE; ip_check = CHECK_NA;
+#endif
+
       si = sizeof (struct sockaddr_in);
       if (getpeername (state->s, (struct sockaddr *) &sin, &si) == -1)
       { Log (1, "Can't getpeername(): %s", TCPERR());
+#ifndef VAL_STYLE
         ipok = 2;
+#endif
       }
 
       for (i = 1; pn->hosts &&
@@ -1385,27 +1408,52 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 	  {
 	    releaseresolvsem();
 	    Log (1, "%s: unknown host", host);
+#ifdef VAL_STYLE
+            /*ip_found = FOUND_UNRES;*/
+#endif
 	    continue;
 	  }
+#ifdef VAL_STYLE
+          /*if (!hp->h_addr_list) ip_found = FOUND_UNRES;*/
+#endif
 	  for (cp = hp->h_addr_list; cp && *cp; cp++)
+#ifndef VAL_STYLE
 	    if (((struct in_addr *) * cp)->s_addr == sin.sin_addr.s_addr)
 	    {
 	      ipok = 1;
 	      break;
 	    } else if (ipok == 0)
 	      ipok = -1; /* resolved and not match */
+#else
+          {
+            if (ip_found == FOUND_NONE) ip_found = FOUND_ALL;
+            if (((struct in_addr *) * cp)->s_addr == sin.sin_addr.s_addr) {
+              ip_check = CHECK_OK; break;
+            }
+          }
+#endif
 	  releaseresolvsem();
 	}
 	else
 	{
+#ifndef VAL_STYLE
 	  if (defaddr.s_addr == sin.sin_addr.s_addr)
 	    ipok = 1;
 	  else if (ipok == 0)
 	    ipok = -1;  /* resolved and not match */
+#else
+          if (ip_found == FOUND_NONE) ip_found = FOUND_ALL;
+          if (defaddr.s_addr == sin.sin_addr.s_addr) ip_check = CHECK_OK;
+#endif
 	}
+#ifndef VAL_STYLE
 	if (ipok == 1)
+#else
+        if (ip_check == CHECK_OK)
+#endif
 	  break;
       }
+#ifndef VAL_STYLE
       if (ipok == 1)
       { /* matched */
 	ip_verified = 2;
@@ -1430,11 +1478,28 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 	  continue;
 	}
       }
+#else
+      if (ip_check != CHECK_OFF && ip_check != CHECK_OK 
+          /*&& (ip_found == FOUND_ALL || pn->restrictIP == 2)*/
+          && (ip_found != FOUND_NONE || pn->restrictIP == 2)
+         ) ip_check = CHECK_WRONG;
+      if (ip_check == CHECK_WRONG && pn->pwd && strcmp(pn->pwd, "-") && state->to == 0) {
+        Log (1, "addr: %s (not from allowed remote IP, aborted)", szFTNAddr);
+        msg_send2 (state, M_ERR, "Bad source IP", 0);
+        return 0;
+      }
+      else if (ip_check == CHECK_WRONG) {
+        Log (2, "addr: %s (not from allowed remote IP, disabled)", szFTNAddr);
+        continue;
+      }
+#endif
     }
+#ifndef VAL_STYLE
     else if (pn)
     { /* no check ip -> reset restrict */
       ip_verified = 1;
     }
+#endif
 
     if (state->expected_pwd[0] && pn)
     {
@@ -1460,7 +1525,15 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 
     if (bsy_add (&fa, F_BSY, config))
     {
+#ifndef VAL_STYLE
       Log (2, "addr: %s", szFTNAddr);
+#else
+      char *s;
+      if (ip_check == CHECK_OK) s = "remote IP ok";
+      else if (ip_check == CHECK_OFF) s = "remote IP unchecked";
+      else s = "remote IP can't be verified";
+      Log (2, "addr: %s (%s)", szFTNAddr, s);
+#endif
       if (state->nfa == 0)
 	setproctitle ("%c %s [%s]",
 		      state->to ? 'o' : 'i',
@@ -1521,6 +1594,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
     bad_try (&state->to->fa, "Remote has no needed AKA", BAD_AKA, config);
     return 0;
   }
+#ifndef VAL_STYLE
   if (ip_verified < 0)
   { /* strict IP check and no address resolved */
     Log (1, "Remote IP check failed");
@@ -1531,6 +1605,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
     Log (4, "Remote IP matched");
   else if (state->to == 0)
     Log (5, "Remote IP not checked");
+#endif
 
   if (!state->to)
   {
