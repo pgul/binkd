@@ -34,6 +34,7 @@
     24. Что означает диагностика "send: TCP/IP error (-10000)", как это лечить?
     25. Argus (Radius) и binkd: ошибка Argus "Aborting due to carrier loss"
     26. В названии аутбаунда - символ комментария и binkd не видит каталог.
+    27. Есть ли возможность запуска приложения в binkd по событию?
     A1. Обнаружил баг в binkd!
     A2. Как связаться с разработчиками.
     A3. Хочу сразу узнавать об изменениях в binkd!
@@ -818,7 +819,7 @@ Argus (и вслед за ним Radius) не соблюдает совместимость с протоколом binkp:
 пробела и решетки (" #") или табуляции и решетки. Примеры ниже.
 
     Нет комментария:
-    temp-inbound c:\\fido\\temp#this_is_not_comment_but_directory_name
+    temp-inbound c:\\fido\\temp#this_is_not_a_comment_but_a_directory_name
 
     Комментарий:
     inbound c:\\fido\\in #это комментарий, потому что есть пробел перед "#"

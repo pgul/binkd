@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of Nov 19 2003
+        Version of Jan 05 2004
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -34,9 +34,11 @@ from Russian by Michael Dukelsky 2:5020/1042.
     23. How Does "domain ... alias-for ..." In The Configuration File Work?
     24. What Does "send: TCP/IP error (-10000)" Mean and How To Cure It?
     25. Argus (Radius) and BinkD: Argus Error "Aborting due to carrier loss"
-    26. I Have Found a Bug in BinkD!
-    27. I Want To Talk To Developers.
-    28. I Want To Get Information About Changes In BinkD Immediately!
+    26. The Outbound Name Has a Comment Char and Binkd Doesn't See It
+    27. Is There a Possibility to Start an Application On an Event From BinkD?
+    A1. I Have Found a Bug in BinkD!
+    A2. I Want To Talk To Developers.
+    A3. I Want To Get Information About Changes In BinkD Immediately!
 
 
 ----------------------------------------------------------------------------
@@ -857,7 +859,47 @@ should inform the remote of aborting the session, for example in such a way:
 ----------------------------------------------------------------------------
 
 
-        26. I Have Found a Bug in BinkD!
+        26. The Outbound Name Has a Comment Char and Binkd Doesn't See It
+
+    If BinkD is configured in a working system where Bink/+ is used and the
+outbound path contains "#" character which is a comment character for BinkD
+the character should be escaped by a backslash in the BinkD configuration
+file for BinkD to interpret it correctly.
+
+    domain fidonet c:\\fido\\\#out
+    inbound-nonsecure c:\\fido\\unsec\#in
+    inbound c:\\fido\\\#in
+
+    It is not necessary to escape the character in the version 1.0 starting
+with the snapshot 1.0a-317 because a beginning of a comment is now the
+sequence of either a space and the pound character (" #") or a tab and the
+pound character.  See the examples below.
+
+    There is no comment:
+    temp-inbound c:\\fido\\temp#this_is_not_a_comment_but_a_directory_name
+
+    There is a comment here:
+    inbound c:\\fido\\in #this is a comment since there is a space before "#"
+
+
+----------------------------------------------------------------------------
+
+
+        27. Is There a Possibility to Start an Application On an Event From BinkD?
+
+    If time events are discussed then no, there is not and there will never
+be.  There are diverse schedulers for controlling such events and they are
+included in the distribution packages of modern operating systems.
+
+    As to an event of receiving a file it is implemented long ago (starting
+with the version 0.9). See tokens "exec" and "flag" in the configuration
+file.
+
+
+----------------------------------------------------------------------------
+
+
+        A1. I Have Found a Bug in BinkD!
 
     Try to refresh your BinkD version (it is possible that the bug has
 already been fixed).  If it did not help please write to developers:
@@ -875,7 +917,7 @@ piece of detailed log (loglevel more than 5).
 ----------------------------------------------------------------------------
 
 
-        27. I Want To Talk To Developers
+        A2. I Want To Talk To Developers
 
     Dmitry Malov who is the author of the first BinkD versions does not
 develop it any more now.  During the years 2000-2003 the project is
@@ -897,7 +939,7 @@ He also writes the most part of the code.
 ----------------------------------------------------------------------------
 
 
-        28. I Want To Get Information About Changes In BinkD Immediately!
+        A3. I Want To Get Information About Changes In BinkD Immediately!
 
     Please subscribe to the mailing list binkd-diffs@happy.kiev.ua: the
 changes in the sources are sent here (you may also test patches for errors).
