@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of November 06 2004
+        Version of November 09 2004
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -70,6 +70,8 @@ from Russian by Michael Dukelsky 2:5020/1042.
       (Russia, Alexander Gladchenko 2:5080/111, refreshes at 22:00 UTC)
     ftp://cube.sut.ru/pub/mirror/binkd/
       (Russia, Dmitriy Yermakov 2:5030/1115)
+    http://binkd.spb.ru
+      (Russia, Andrey Ostanovsky 2:5030/1957)
 
     Beta versions:
     Public CVS
@@ -81,8 +83,8 @@ from Russian by Michael Dukelsky 2:5020/1042.
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co binkd
        Retrieve the latest sources of the binkd 0.9.5-stable branch:
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_5-stable binkd
-       Retrieve the sources of the binkd 0.9.6-release:
-       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_6 binkd
+       Retrieve the sources of the binkd 0.9.8-release:
+       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_8 binkd
        Retrieve the sources of the binkd 0.9.7-release:
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_7 binkd
        

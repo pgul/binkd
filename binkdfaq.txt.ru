@@ -66,6 +66,8 @@
       (Россия, Alexander Gladchenko 2:5080/111, обновляется в 22:00 UTC)
     ftp://cube.sut.ru/pub/mirror/binkd/
       (Россия, Dmitriy Yermakov 2:5030/1115)
+    http://binkd.spb.ru
+      (Россия, Andrey Ostanovsky 2:5030/1957)
 
     Бэты:
     Публичный CVS
@@ -78,8 +80,8 @@
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co binkd
        Получить последние исходники ветки binkd 0.9.5-stable:
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_5-stable binkd
-       Получить исходники binkd 0.9.6-release:
-       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_6 binkd
+       Получить исходники binkd 0.9.8-release:
+       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_8 binkd
        Получить исходники binkd 0.9.7-release:
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_7 binkd
 
