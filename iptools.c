@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/02/22 12:12:33  gul
+ * Cleanup sources
+ *
  * Revision 2.1  2003/02/22 11:45:41  gul
  * Do not resolve hosts if proxy or socks5 using
  *
@@ -45,6 +48,7 @@
 #include "iptools.h"
 #include "tools.h"
 #include "readcfg.h"
+#include "sem.h"
 
 /*
  * Finds ASCIIZ address
@@ -154,22 +158,19 @@ struct hostent *find_host(char *host, struct hostent *he, char **alist)
   {
     /* If not a raw ip address, try nameserver */
     Log (5, "resolving `%s'...", host);
-#ifdef HAVE_THREADS
-    LockSem(&hostsem);
-#endif
+    lockhostsem();
     if ((hp = gethostbyname(host)) == NULL)
     {
       Log(1, "%s: unknown host", host);
-#ifdef HAVE_THREADS
-      ReleaseSem(&hostsem);
-#endif
+      releasehostsem();
       return NULL;
     }
 #ifdef HAVE_THREADS
     copy_hostent(he, hp);
-    ReleaseSem(&hostsem);
-    return he;
+    hp = he;
 #endif
+    releasehostsem();
+    return hp;
   }
   /* Raw ip address, fake */
   hp = he;

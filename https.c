@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/02/22 12:12:33  gul
+ * Cleanup sources
+ *
  * Revision 2.4  2003/02/22 11:45:41  gul
  * Do not resolve hosts if proxy or socks5 using
  *
@@ -41,13 +44,9 @@
 #include "tools.h"
 #include "https.h"
 #include "iptools.h"
+#include "sem.h"
 #ifdef NTLM
 #include "ntlm/helpers.h"
-#endif
-
-#ifdef HAVE_THREADS
-#include "sem.h"
-extern MUTEXSEM hostsem;
 #endif
 
 static char b64t[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -303,14 +302,10 @@ int h_connect(int so, char *host)
 
 				buf[0]=4;
 				buf[1]=1;
-#ifdef HAVE_THREADS
-				LockSem(&hostsem);
-#endif
+				lockhostsem();
 				Log (4, port == oport ? "trying %s..." : "trying %s:%u...",
 				     inet_ntoa(*((struct in_addr *)*cp)), port);
-#ifdef HAVE_THREADS
-				ReleaseSem(&hostsem);
-#endif
+				releasehostsem();
 				buf[2]=(unsigned char)((port>>8)&0xFF);
 				buf[3]=(unsigned char)(port&0xFF);
 				memcpy(buf+4, *cp, 4);

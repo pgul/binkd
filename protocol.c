@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22  2003/02/22 12:12:34  gul
+ * Cleanup sources
+ *
  * Revision 2.21  2003/02/22 11:45:41  gul
  * Do not resolve hosts if proxy or socks5 using
  *
@@ -160,16 +163,9 @@
 #include "assert.h"
 #include "binlog.h"
 #include "setpttl.h"
+#include "sem.h"
 #include "md5b.h"
 #include "crypt.h"
-
-#ifdef HAVE_THREADS
-#include "sem.h"
-extern MUTEXSEM hostsem;
-#ifdef OS2
-extern void rel_grow_handles(int nh);
-#endif
-#endif
 
 extern int no_MD5;
 
@@ -271,9 +267,7 @@ static int deinit_protocol (STATE *state)
     free (state->fa);
   if (state->MD_challenge)
 	free (state->MD_challenge);
-#if defined(HAVE_THREADS) && defined(OS2)
   rel_grow_handles(-state->nfa);
-#endif
   Log (6, "binkp deinit done...");
   return 0;
 }
@@ -823,15 +817,11 @@ static int ADR (STATE *state, char *s, int sz)
 	{
 	  /* If not a raw ip address, try nameserver */
 	  Log (5, "resolving `%s'...", host);
-#ifdef HAVE_THREADS
-	  LockSem(&hostsem);
-#endif
+	  lockhostsem();
 	  if ((hp = gethostbyname (host)) == NULL)
 	  {
 	    Log (1, "%s: unknown host", host);
-#ifdef HAVE_THREADS
-	    ReleaseSem(&hostsem);
-#endif
+	    releasehostsem();
 	    continue;
 	  }
 	  for (cp = hp->h_addr_list; cp && *cp; cp++)
@@ -840,9 +830,7 @@ static int ADR (STATE *state, char *s, int sz)
 	      ipok = 1;
 	      break;
 	    }
-#ifdef HAVE_THREADS
-	  ReleaseSem(&hostsem);
-#endif
+	  releasehostsem();
 	}
 	else
 	{
@@ -871,9 +859,7 @@ static int ADR (STATE *state, char *s, int sz)
 		      state->peer_name);
       state->fa = xrealloc (state->fa, sizeof (FTN_ADDR) * ++state->nallfa);
       ++state->nfa;
-#if defined(HAVE_THREADS) && defined(OS2)
       rel_grow_handles(1);
-#endif
       for (j = state->nallfa - 1; j >= state->nfa; j--)
 	memcpy (state->fa + j, state->fa + j - 1, sizeof (FTN_ADDR));
       memcpy (state->fa + state->nfa - 1, &fa, sizeof (FTN_ADDR));
@@ -1958,9 +1944,7 @@ void protocol (SOCKET socket, FTN_NODE *to)
   if (getpeername (socket, (struct sockaddr *) & peer_name, &peer_name_len) == -1)
     Log (1, "getpeername: %s", TCPERR ());
 
-#ifdef HAVE_THREADS
-  LockSem(&hostsem);
-#endif
+  lockhostsem();
 #ifdef HTTPS
   if (to && to->current_addr)
     state.peer_name = to->current_addr;
@@ -1974,9 +1958,7 @@ void protocol (SOCKET socket, FTN_NODE *to)
   Log (2, "session with %s (%s)",
        state.peer_name,
        inet_ntoa (peer_name.sin_addr));
-#ifdef HAVE_THREADS
-  ReleaseSem(&hostsem);
-#endif
+  releasehostsem();
 
   if (getsockname (socket, (struct sockaddr *) & peer_name, &peer_name_len) == -1)
     Log (1, "getpeername: %s", TCPERR ());

@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2003/02/22 12:12:34  gul
+ * Cleanup sources
+ *
  * Revision 2.0  2001/01/10 12:12:39  gul
  * Binkd is under CVS again
  *
@@ -106,5 +109,11 @@ int branch (void (*) (void *), void *, size_t);
  * from signal handler (Under NT)
  */
 void exitfunc (void);
+
+#if defined(OS2) && defined(HAVE_THREADS)
+void rel_grow_handles(int nh);
+#else
+#define rel_grow_handles(nh)
+#endif
 
 #endif

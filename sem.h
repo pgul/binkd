@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2003/02/22 12:12:34  gul
+ * Cleanup sources
+ *
  * Revision 2.0  2001/01/10 12:12:39  gul
  * Binkd is under CVS again
  *
@@ -98,6 +101,18 @@ int _ReleaseSem (void *);
 #define ReleaseSem(vpSem) _ReleaseSem(vpSem)
 #else
 #define ReleaseSem(vpSem)		    /* Do Nothing */
+#endif
+
+#ifdef HAVE_THREADS
+extern MUTEXSEM hostsem;
+#define lockhostsem()		LockSem(&hostsem)
+#define releasehostsem()	Release(&hostsem)
+#ifdef OS2
+extern MUTEXSEM fhsem;
+#endif
+#else
+#define lockhostsem()
+#define releasehostsem()
 #endif
 
 #endif

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/02/22 12:12:34  gul
+ * Cleanup sources
+ *
  * Revision 2.4  2002/11/12 16:55:58  gul
  * Run as service under win9x
  *
@@ -85,14 +88,7 @@
 #include "sys.h"
 #include "assert.h"
 #include "setpttl.h"
-
-#ifdef HAVE_THREADS
 #include "sem.h"
-extern MUTEXSEM hostsem;
-#ifdef OS2
-extern void rel_grow_handles(int nh);
-#endif
-#endif
 
 int n_servers = 0;
 int ext_rand = 0;
@@ -123,10 +119,8 @@ void serv (void *arg)
   Log (5, "downing server...");
   soclose (h);
   free (arg);
-#ifdef HAVE_THREADS
-#ifdef OS2
   rel_grow_handles (-6);
-#endif
+#ifdef HAVE_THREADS
   --n_servers;
   _endthread();
 #endif
@@ -262,28 +256,20 @@ accepterr:
     }
     else
     { char host[MAXHOSTNAMELEN + 1];
-#if defined(HAVE_THREADS) && defined(OS2)
       rel_grow_handles (6);
-#endif
 
       ext_rand=rand();
-#ifdef HAVE_THREADS
-      LockSem(&hostsem);
-#endif
+      lockhostsem();
       Log (3, "incoming from %s (%s)",
 	   get_hostname(&client_addr, host, sizeof(host)),
 	   inet_ntoa (client_addr.sin_addr));
-#ifdef HAVE_THREADS
-      ReleaseSem(&hostsem);
-#endif
+      releasehostsem();
 
       /* Creating a new process for the incoming connection */
       ++n_servers;
       if ((pid = branch (serv, (void *) &new_sockfd, sizeof (new_sockfd))) < 0)
       {
-#if defined(HAVE_THREADS) && defined(OS2)
         rel_grow_handles (-6);
-#endif
 	--n_servers;
 	Log (1, "cannot branch out");
         sleep(1);

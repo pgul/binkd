@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/02/22 12:12:33  gul
+ * Cleanup sources
+ *
  * Revision 2.2  2002/05/10 17:46:06  gul
  * passwords file usage bugfix
  *
@@ -45,10 +48,6 @@
 
 #if defined(HAVE_THREADS) || defined(AMIGA)
 static MUTEXSEM LSem;
-#endif
-
-#ifdef HAVE_THREADS
-extern MUTEXSEM hostsem;
 #endif
 
 int nNod = 0;
@@ -101,13 +100,9 @@ FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on)
 
   for (i=1; get_host_and_port(i, host, &port, np->hosts, fa)==1; i++)
   {
-#ifdef HAVE_THREADS
-    LockSem(&hostsem);
-#endif
+    lockhostsem();
     he=gethostbyname(host);
-#ifdef HAVE_THREADS
-    ReleaseSem(&hostsem);
-#endif
+    releasehostsem();
     if (!he) continue;
     sprintf (host+strlen(host), ":%d", port);
     i=0;

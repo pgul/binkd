@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/02/22 12:12:33  gul
+ * Cleanup sources
+ *
  * Revision 2.3  2003/02/22 11:45:41  gul
  * Do not resolve hosts if proxy or socks5 using
  *
@@ -84,17 +87,10 @@
 #include "bsy.h"
 #include "assert.h"
 #include "setpttl.h"
+#include "sem.h"
 
 #ifdef HTTPS
 #include "https.h"
-#endif
-
-#ifdef HAVE_THREADS
-#include "sem.h"
-extern MUTEXSEM hostsem;
-#ifdef OS2
-extern MUTEXSEM fhsem;
-#endif
 #endif
 
 int checkcfg (void);
@@ -193,15 +189,11 @@ void clientmgr (void *arg)
 	  bsy_test (&r->fa, F_BSY) &&
 	  bsy_test (&r->fa, F_CSY))
       {
-#if defined(HAVE_THREADS) && defined(OS2)
         rel_grow_handles (6);
-#endif
 	++n_clients;
 	if ((pid = branch (call, (void *) r, sizeof (*r))) < 0)
 	{
-#if defined(HAVE_THREADS) && defined(OS2)
           rel_grow_handles (-6);
-#endif
 	  --n_clients;
 	  Log (1, "cannot branch out");
           SLEEP(1);
@@ -268,18 +260,14 @@ static int call0 (FTN_NODE *node)
     }
     if (!isdigit(*sport))
     { struct servent *se;
-#ifdef HAVE_THREADS
-      LockSem(&hostsem);
-#endif
+      lockhostsem();
       if ((se = getservbyname(sport, "tcp")) == NULL)
       {
 	Log(2, "Port %s not found, try default %d", sp, proxy[0] ? 3128 : 1080);
 	sin.sin_port = htons(proxy[0] ? 3128 : 1080);
       } else
 	sin.sin_port = se->s_port;
-#ifdef HAVE_THREADS
-      ReleaseSem(&hostsem);
-#endif
+      releasehostsem();
     }
     else
       sin.sin_port = htons(atoi(sp));
@@ -324,9 +312,7 @@ static int call0 (FTN_NODE *node)
 	return 0;
       }
       sin.sin_addr = *((struct in_addr *) * cp);
-#ifdef HAVE_THREADS
-      LockSem(&hostsem);
-#endif
+      lockhostsem();
 #ifdef HTTPS
       if (proxy[0] || socks[0])
       {
@@ -347,9 +333,7 @@ static int call0 (FTN_NODE *node)
 	Log (4, port == oport ? "trying %s..." : "trying %s:%u...",
 	     inet_ntoa (sin.sin_addr), (unsigned) port);
 #endif
-#ifdef HAVE_THREADS
-      ReleaseSem(&hostsem);
-#endif
+      releasehostsem();
       if (bindaddr[0])
       {
         struct sockaddr_in src_sin;
@@ -431,10 +415,8 @@ static void call (void *arg)
     bsy_remove (&node->fa, F_CSY);
   }
   free (arg);
-#ifdef HAVE_THREADS
-#ifdef OS2
   rel_grow_handles(-6);
-#endif
+#ifdef HAVE_THREADS
   --n_clients;
   _endthread();
 #endif
