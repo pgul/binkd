@@ -1,3 +1,7 @@
+2004/11/09 09:04:33 1.0a-430 gul
+binkd.c,2.90,2.91
+Syntax error in previous patch
+
 2004/11/07 15:52:46 1.0a-429 stream
 client.c,2.57,2.58 readcfg.h,2.33,2.34
 Automatically rescan outbound after reload of configuration
