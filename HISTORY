@@ -1,3 +1,7 @@
+2004/09/02 11:56:45 1.0a-394 val
+protoco2.h,2.20,2.21 protocol.c,2.155,2.156 readcfg.c,2.67,2.68 readcfg.h,2.29,2.30
+bandwidth limiting config parameter 'limit-rate'
+
 2004/08/30 11:05:39 1.0a-393 val
 protoco2.h,2.19,2.20 protocol.c,2.154,2.155
 bandwidth limiting code [experimental]
