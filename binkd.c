@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.18  2003/03/03 09:43:07  gul
+ * Cosmetics changes
+ *
  * Revision 2.17  2003/03/01 17:42:32  gul
  * Added tzset() call to main() start
  *
@@ -202,7 +205,7 @@ void usage (void)
 #elif defined(WIN32)
 	  "T%s"
 #endif          
-	  "pqsvmh] [-Pnode] config"
+	  "pqsvmh] [-P node] config"
 #ifdef OS2
 	  " [socket]"
 #endif
