@@ -510,7 +510,7 @@ BinkD was started in client-only mode (-c command line option).
 by the command
     kill -HUP `cat /var/run/binkd.pid`
 
-    In the version 0.9.6 configuration file is re-read automatically if
+    In the version 1.0 configuration file is re-read automatically if
 changed. Binkd tests on changes at every 'rescan-delay' seconds.
 
 

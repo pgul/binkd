@@ -517,8 +517,8 @@ NT/95:  ctrl-c problems fixed
 	NR- and ND-modes can be asymmetric now, options -nr and -nd
 	sets mode only for receiving files from this node.
 
-0.9.6
------
+1.0
+---
 	New config option "share" - shared aka definition
 	(patch from Igor Krassikov 2:463/59).
 
