@@ -1,3 +1,7 @@
+2004/08/03 23:47:24 1.0a-382 gul
+tools.c,2.62,2.63 tools.h,2.26,2.27
+Use localtime_r() and gmtime_r() if exists
+
 2004/08/03 23:06:17 1.0a-381 gul
 client.c,2.52,2.53
 Remove unneeded longjump from signal handler
