@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2001/11/07 17:01:12  gul
+ * Check size of buffer in strnzcpy()
+ *
  * Revision 2.3  2001/10/23 08:33:44  gul
  * Change filename (not ext) in incoming *.req if already exists
  *
@@ -471,6 +474,7 @@ char *strwipe (char *s)
  */
 char *strnzcpy (char *dst, const char *src, size_t len)
 {
+  if (len <= 0) return dst;
   dst[len - 1] = 0;
   return strncpy (dst, src, len - 1);
 }
