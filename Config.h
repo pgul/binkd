@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67  2003/07/16 15:09:22  stas
+ * Auto increase patchlevel, set 0.9.6a-56
+ * Fix NT services to use getopt(). Improve logging for service
+ *
  * Revision 2.66  2003/07/16 15:08:51  stas
  * Auto increase patchlevel, set 0.9.6a-55
  * Fix NT services to use getopt(). Improve logging for service
@@ -277,7 +281,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-55"
+#define MYVER "0.9.6a-56"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
