@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.18  2003/09/05 08:33:58  gul
+ * Fix work with proxy under OS/2
+ *
  * Revision 2.17  2003/08/26 21:01:10  gul
  * Fix compilation under unix
  *
@@ -139,9 +142,9 @@ int h_connect(int so, char *host, BINKD_CONFIG *config)
 #ifdef NTLM
 	char *ntlmsp = NULL;
 #endif
-	int i;
+	int i, n;
 	struct hostent he, *hp;
-	char buf[8192], *pbuf;
+	char buf[1024], *pbuf;
 	char *sp, *sauth, **cp;
 	struct in_addr defaddr;
 	unsigned port;
@@ -202,8 +205,14 @@ int h_connect(int so, char *host, BINKD_CONFIG *config)
 		}
 		buf[i++]='\r';
 		buf[i++]='\n';
-		send(so, buf, i, 0);
-		for(i=0;i<sizeof(buf);i++)
+		if (send(so, buf, i, 0) < 0)
+		{
+			Log(4, "Send to proxy error: %s", TCPERR());
+			SetTCPError(PR_ERROR);
+			return 1;
+		}
+		Log(10, "sent proxy sockfd %d request: %s", so, buf);
+		for(i=0; i<sizeof(buf); i++)
 		{
 			struct timeval tv;
 			fd_set fds;
@@ -211,14 +220,21 @@ int h_connect(int so, char *host, BINKD_CONFIG *config)
 			FD_SET(so, &fds);
 			tv.tv_sec=config->nettimeout;
 			tv.tv_usec=0;
-			if(select(so+1,&fds,NULL,&fds,config->nettimeout>0?&tv:NULL)<1)
+			if ((n=select(so+1, &fds, NULL, NULL, config->nettimeout > 0 ? &tv : NULL)) < 1)
 			{
-				Log(4, "proxy timeout...");
+				if (n<0)
+					Log(4, "proxy error: %s", TCPERR());
+				else
+					Log(4, "proxy timeout...");
 				SetTCPError(PR_ERROR);
 				return 1;
 			}
-			if(recv(so, buf+i, 1, 0)<1) {
-				Log(2, "Connection closed by proxy...");
+			if ((n=recv(so, buf+i, 1, 0)) < 1)
+			{
+				if (n<0)
+					Log(2, "Proxy error: %s", TCPERR());
+				else
+					Log(2, "Connection closed by proxy...");
 				SetTCPError(PR_ERROR);
 				return 1;
 			}
@@ -392,16 +408,21 @@ int h_connect(int so, char *host, BINKD_CONFIG *config)
 				FD_SET(so, &fds);
 				tv.tv_sec=config->nettimeout;
 				tv.tv_usec=0;
-				if (select(so+1, &fds, NULL, &fds, config->nettimeout>0?&tv:NULL)<1)
+				if ((n=select(so+1, &fds, NULL, NULL, config->nettimeout > 0 ? &tv : NULL)) < 1)
 				{
-					Log(4, "socks timeout...");
+					if (n<0)
+						Log(4, "socks error: %s", TCPERR());
+					else
+						Log(4, "socks timeout...");
 					if (sauth) free(sauth);
 					free_hostent(hp);
 					SetTCPError(PR_ERROR);
 					return 1;
 				}
-				if (recv(so, buf+i, 1, 0)<1) {
-					Log(2, "connection closed by socks server...");
+				if ((n=recv(so, buf+i, 1, 0))<1) {
+					if (n<0)
+						Log(2, "socks error: %s", TCPERR());
+						Log(2, "connection closed by socks server...");
 					if (sauth) free(sauth);
 					free_hostent(hp);
 					SetTCPError(PR_ERROR);
