@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.61  2003/08/28 01:28:52  hbrew
+ * Fix typo
+ *
  * Revision 2.60  2003/08/26 22:18:47  gul
  * Fix compilation under w32-mingw and os2-emx
  *
@@ -353,7 +356,7 @@ void usage (void)
 #if defined(WIN32)
 	  " [-S name]"
 #if defined(BINKDW9X)
-          " [t cmd]"
+          " [-t cmd]"
 #endif
 #endif
 	  " config"
