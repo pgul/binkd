@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.46  2004/08/04 13:28:59  gul
+ * Fix compiler warning
+ *
  * Revision 2.45  2004/07/23 11:40:06  gul
  * Fix compilation warning
  *
@@ -1519,7 +1522,7 @@ static void setup_session(STATE *state, int lvl) {
   /* lvl 2 */
   if (lvl >= 2 && state->perl_set_lvl < 2) {
     int secure;
-    unsigned long netsize, filessize;
+    uintmax_t netsize, filessize;
     if (state->state_ext != P_NA) secure = state->state_ext;
       else secure = state->state;
     VK_ADD_intz(sv, "secure", secure);
@@ -1527,8 +1530,8 @@ static void setup_session(STATE *state, int lvl) {
     VK_ADD_str (sv, "sysop", state->sysop);
     VK_ADD_str (sv, "location", state->location);
     q_get_sizes (state->q, &netsize, &filessize);
-    VK_ADD_intz(sv, "traf_mail", netsize);
-    VK_ADD_intz(sv, "traf_file", filessize);
+    VK_ADD_intz(sv, "traf_mail", (IV)netsize);
+    VK_ADD_intz(sv, "traf_file", (IV)filessize);
     hv = perl_get_hv("opt", TRUE);
     hv_clear(hv);
     VK_ADD_HASH_intz(hv, sv, "ND", state->ND_flag);
