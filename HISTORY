@@ -1,3 +1,7 @@
+2004/01/03 20:14:43 1.0a-339 stas
+w32tools.h,2.8,2.9
+Two macroses: IsNTService and Is9xService
+
 2004/01/03 20:10:12 1.0a-338 stas
 tray.c,2.10,2.11
 Fix typo
