@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22  2003/08/28 07:35:54  gul
+ * Cosmetics in log
+ *
  * Revision 2.21  2003/08/26 22:18:48  gul
  * Fix compilation under w32-mingw and os2-emx
  *
@@ -257,7 +260,7 @@ int find_tmp_name (char *s, char *file, off_t size,
 	}
 	else if (config->kill_dup_partial_files && i < nfa)
 	{
-	  Log (4, "dup partial file (%s):", w[0]);
+	  Log (5, "dup partial file %s removed", w[0]);
 	  remove_hr (s);
 	}
       }
