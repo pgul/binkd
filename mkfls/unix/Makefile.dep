@@ -76,6 +76,6 @@ set_key.o: ntlm/set_key.c ntlm/des_locl.h ntlm/des.h
 perlhooks.o: perlhooks.c sys.h readcfg.h Config.h iphdr.h ftnaddr.h \
   ftndom.h ftnnode.h tools.h getw.h readflo.h prothlp.h ftnq.h protocol.h \
   protoco2.h sem.h perlhooks.h
-zlibdl.o: zlibdl.c zlibdl.h \
+compress.o: compress.c zlibdl.h \
   compress.h tools.h getw.h readcfg.h Config.h \
   iphdr.h sys.h ftnaddr.h ftndom.h ftnnode.h
