@@ -1,3 +1,7 @@
+2003/10/24 17:19:32 1.0a-276 val
+perlhooks.c,2.33,2.34
+missing OS/2 code for PERLDL improvements added
+
 2003/10/24 09:41:13 1.0a-275
  val
 zlibdl.h,2.15,2.16
