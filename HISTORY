@@ -1,3 +1,7 @@
+2005/04/05 10:31:48 1.0a-442 gul
+sys.h,2.22,2.23
+Fixed bug in have_intmax_t detection
+
 2005/03/30 20:35:33 1.0a-441 stream
 binkd.cfg,2.48,2.49 client.c,2.59,2.60
 Finally implemented '-noproxy' node option.
