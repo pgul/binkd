@@ -115,8 +115,8 @@ dnl -------------------------------------------------------------------------
 dnl Optional features
 
 AC_ARG_WITH(debug,
-            [  --with-debug            produce debug info (default no)],
-            [CFLAGS="-g -DDEBUG $CFLAGS"], [CFLAGS="-O2 $CFLAGS"])
+            [  --with-debug[=nofork]   produce debug info (default no)],
+            do_debug=$withval, do_debug=no)
 
 AC_ARG_WITH(https,
             [  --with-https            https support (default no)],
@@ -138,6 +138,21 @@ case x$do_ntlm in
    AC_DEFINE(NTLM)
    AC_DEFINE(HTTPS)
    OPT_SRC="https.c ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c"
+   ;;
+esac
+
+case x$do_debug in
+  xyes)
+   CFLAGS="-g -DDEBUG $CFLAGS"
+   ;;
+  xno)
+   CFLAGS="-O2 $CFLAGS"
+   ;;
+  xnofork)
+   CFLAGS="-g -DDEBUG -DDEBUGCHILD $CFLAGS"
+   ;;
+  *)
+   AC_MSG_WARN([Unknown debug option $do_debug ignored])
    ;;
 esac
 

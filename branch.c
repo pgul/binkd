@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/10/04 20:46:56  gul
+ * New configure --with-debug=nofork option, DEBUGCHILD macro
+ *
  * Revision 2.9  2003/09/21 17:51:08  gul
  * Fixed PID in logfile for perl stderr handled messages in fork version.
  *
@@ -103,7 +106,7 @@ int branch (register void (*F) (void *), register void *arg, register size_t siz
   else
     arg = 0;
 
-#if defined(HAVE_FORK) && !defined(AMIGA) && !defined(DEBUG)
+#if defined(HAVE_FORK) && !defined(AMIGA) && !defined(DEBUGCHILD)
 again:
   if (!(rc = fork ()))
   {
@@ -125,7 +128,7 @@ again:
   }
 #endif
 
-#if defined(HAVE_THREADS) && !defined(DEBUG)
+#if defined(HAVE_THREADS) && !defined(DEBUGCHILD)
   if ((rc = BEGINTHREAD (F, STACKSIZE, arg)) < 0)
   {
     Log (1, "_beginthread: %s", strerror (errno));
@@ -149,7 +152,7 @@ again:
   }
 #endif
 
-#if defined(DOS) || defined(DEBUG)
+#if defined(DOS) || defined(DEBUGCHILD)
   rc = 0;
   F (arg);
 #endif
