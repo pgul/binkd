@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.39  2003/03/04 13:10:39  gul
+ * Do not report errors when threads exits by exitfunc
+ *
  * Revision 2.38  2003/03/04 09:50:58  gul
  * Cosmetics changes
  *
@@ -220,6 +223,7 @@
 #include "crypt.h"
 
 extern int no_MD5;
+extern int binkd_exit;
 
 static char *scommand[] = {"NUL", "ADR", "PWD", "FILE", "OK", "EOB",
                            "GOT", "ERR", "BSY", "GET", "SKIP"};
@@ -434,7 +438,8 @@ static int send_block (STATE *state)
       if (TCPERRNO != TCPERR_WOULDBLOCK && TCPERRNO != TCPERR_AGAIN)
       {
 	state->io_error = 1;
-	Log (1, "send: %s", TCPERR ());
+	if (!binkd_exit)
+	  Log (1, "send: %s", TCPERR ());
 	if (state->to)
 	  bad_try (&state->to->fa, TCPERR ());
 	return 0;
@@ -1608,7 +1613,8 @@ static int recv_block (STATE *state)
     else
     {
       state->io_error = 1;
-      Log (1, "recv: %s", TCPERR ());
+      if (!binkd_exit)
+	Log (1, "recv: %s", TCPERR ());
       if (state->to)
 	bad_try (&state->to->fa, TCPERR ());
       return 0;
@@ -2118,7 +2124,8 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
       else if (no < 0)
       {
 	state.io_error = 1;
-	Log (1, "select: %s (args: %i %i)", TCPERR (), socket, tv.tv_sec);
+	if (!binkd_exit)
+	  Log (1, "select: %s (args: %i %i)", TCPERR (), socket, tv.tv_sec);
 	if (to)
 	  bad_try (&to->fa, TCPERR ());
 	break;
