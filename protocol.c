@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.86  2003/07/06 08:32:31  gul
+ * Decrease logging about link status changes
+ *
  * Revision 2.85  2003/07/06 06:48:25  gul
  * Using state->out.fa bugfix
  *
@@ -1765,15 +1768,26 @@ static int ND_set_status(char *status, FTN_ADDR *fa, STATE *state)
   { Log(8, "ND_set_status: unknown address for '%s'", status);
     return 0;
   }
-  Log(4, "Set link status with %u:%u/%u.%u to '%s'",
-      fa->z, fa->net, fa->node, fa->p, status ? status : "");
   ftnaddress_to_filename (buf, fa);
   if (*buf=='\0') return 0;
   strnzcat(buf, ".stc", sizeof(buf));
   if (!status || !*status)
-    return (unlink(buf) && errno != ENOENT) ? 0 : 1;
+  {
+    if (unlink(buf) == 0)
+    { Log(5, "Clean link status for %u:%u/%u.%u",
+          fa->z, fa->net, fa->node, fa->p);
+      return 1;
+    }
+    if (errno != ENOENT)
+    { Log(1, "Can't unlink %s: %s!\n", buf, strerror(errno));
+      return 0;
+    }
+    return 1;
+  }
   else
   {
+    Log(5, "Set link status for %u:%u/%u.%u to '%s'",
+        fa->z, fa->net, fa->node, fa->p, status);
     f=fopen(buf, "w");
     if (f==NULL)
     { Log(1, "Can't write to %s: %s", buf, strerror(errno));
