@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.117  2003/08/17 19:07:12  gul
+ * Auto increase patchlevel, set 0.9.6a-104
+ * Fix typo
+ *
  * Revision 2.116  2003/08/17 10:38:57  gul
  * Auto increase patchlevel, set 0.9.6a-103
  * Return semaphoring for log and binlog
@@ -498,7 +502,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-103"
+#define MYVER "0.9.6a-104"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
