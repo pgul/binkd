@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.55  2003/08/24 16:55:07  hbrew
+ * Fix memory allocation for polls
+ *
  * Revision 2.54  2003/08/21 15:40:34  gul
  * Change building commandline for service under win32
  * (patch by Alexander Reznikov)
@@ -541,7 +544,7 @@ char *parseargs (int argc, char *argv[])
 	    case 'P': /* create poll to node */
 	      if (rerun) break;
 	      psP=psPolls;
-	      psPolls = malloc(sizeof(psPolls));
+	      psPolls = malloc(sizeof(struct polls));
               psPolls->next = psP;
               psPolls->addr = optarg;
 	      break;
