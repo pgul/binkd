@@ -1,3 +1,7 @@
+2003/10/10 08:30:20 1.0a-231 stas
+service.c,2.34,2.35
+Initialize variable (fix)
+
 2003/10/09 20:26:17 1.0a-230 stas
 service.c,2.33,2.34
 Unload icon after use (if loaded from file)
