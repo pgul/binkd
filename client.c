@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.47  2003/09/22 09:54:41  gul
+ * Screen output semaphoring, prevent mixing output from threads
+ *
  * Revision 2.46  2003/09/21 17:51:08  gul
  * Fixed PID in logfile for perl stderr handled messages in fork version.
  *
@@ -301,7 +304,9 @@ static int do_client(BINKD_CONFIG *config, int *pq_empty)
     *pq_empty = !q_not_empty (config);
     if (config->printq)
     {
+      LockSem (&lsem);
       q_list (my_stderr, SCAN_LISTED, config);
+      ReleaseSem (&lsem);
       Log (-1, "idle\r");
     }
   }

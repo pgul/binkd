@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.125  2003/09/22 09:54:41  gul
+ * Screen output semaphoring, prevent mixing output from threads
+ *
  * Revision 2.124  2003/09/19 13:54:30  gul
  * undef VAL_STYLE ip check by default
  *
@@ -837,9 +840,11 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
 #endif
 	if (config->percents && state->out.size > 0)
 	{
+	  LockSem(&lsem);
 	  printf ("%-20.20s %3.0f%%\r", state->out.netname,
 		  100.0 * ftell (state->out.f) / (float) state->out.size);
 	  fflush (stdout);
+	  ReleaseSem(&lsem);
 	}
       }
       else
@@ -2524,9 +2529,11 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
 	}
 	if (config->percents && state->in.size > 0)
 	{
+	  LockSem(&lsem);
 	  printf ("%-20.20s %3.0f%%\r", state->in.netname,
 		  100.0 * ftell (state->in.f) / (float) state->in.size);
 	  fflush (stdout);
+	  ReleaseSem(&lsem);
 	}
 	if ((off_t) ftell (state->in.f) == state->in.size)
 	{

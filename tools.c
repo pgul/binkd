@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.52  2003/09/22 09:54:41  gul
+ * Screen output semaphoring, prevent mixing output from threads
+ *
  * Revision 2.51  2003/09/21 17:34:27  gul
  * Change perl stderr handling for thread vertions,
  * some small changes.
@@ -540,6 +543,7 @@ void Log (int lev, char *s,...)
     LockSem(&lsem);
     fprintf (my_stderr, "%30.30s\r%c %02d:%02d [%u] %s%s", " ", ch,
          tm.tm_hour, tm.tm_min, (unsigned) PID (), buf, (lev >= 0) ? "\n" : "");
+    fflush (my_stderr);
     ReleaseSem(&lsem);
     if (lev < 0)
       return;
