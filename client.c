@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.24  2003/03/11 14:11:01  gul
+ * Bugfix
+ *
  * Revision 2.23  2003/03/11 11:42:23  gul
  * Use event semaphores for exit threads
  *
@@ -137,12 +140,12 @@
 #endif
 
 #include "Config.h"
+#include "sys.h"
 #include "client.h"
 #include "readcfg.h"
 #include "iphdr.h"
 #include "common.h"
 #include "iptools.h"
-#include "sys.h"
 #include "ftnq.h"
 #include "tools.h"
 #include "protocol.h"
@@ -378,7 +381,6 @@ static int call0 (FTN_NODE *node)
       }
       sin.sin_port = htons(port);
     }
-    sin.sin_family = hp->h_addrtype;
 
     /* Trying... */
 
@@ -391,6 +393,7 @@ static int call0 (FTN_NODE *node)
       }
       add_socket(sockfd);
       sin.sin_addr = *((struct in_addr *) * cp);
+      sin.sin_family = hp->h_addrtype;
       lockhostsem();
 #ifdef HTTPS
       if (proxy[0] || socks[0])
@@ -408,10 +411,9 @@ static int call0 (FTN_NODE *node)
 	sprintf(host+strlen(host), ":%u", port);
       }
       else
-#else
+#endif
 	Log (4, port == oport ? "trying %s..." : "trying %s:%u...",
 	     inet_ntoa (sin.sin_addr), (unsigned) port);
-#endif
       releasehostsem();
       if (bindaddr[0])
       {
