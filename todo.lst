@@ -31,3 +31,4 @@
 - put session time in "done" line
 - send-hold-on-outgoing option
 - argus-compatible freq (M_NUL "FREQ")
+- select() bug on win9x: 100% cpu load on sending file
