@@ -56,6 +56,15 @@ from Russian by Michael Dukelsky 2:5020/1042.
     Beta versions:
     Public CVS
        :pserver:binkd@cvs.happy.kiev.ua:/cvs , module binkd, empty password
+       Command examples.
+       Login to cvs server:
+       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs login
+       Retrieve the latest sources of current branch:
+       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co binkd
+       Retrieve the latest sources of binkd 0.9.5-stable branch:
+       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_5-stable binkd
+       Retrieve the sources of the binkd 0.9.5-release:
+       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_5-release binkd
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/snapshot (main)
     ftp://ftp.grumbler.org/pub/binkd/current (the mirror is refreshed
                                               at 23:50 UTC+5)
@@ -662,7 +671,7 @@ included into the CVS source tree.
     BinkD 0.9.2/dos sources:
     http://www.doe.carleton.ca/~nsoveiko/fido/binkd/0.9.2/
 
-    The sources and binaries of binkd 0.9.2/dos and binkd 0.9.5/dos (they may
+    The sources and binaries of binkd 0.9.2/dos and binkd 0.9.5a/dos (they may
 be not the latest):
     http://www.n451.z2.fidonet.net/binkd/
 

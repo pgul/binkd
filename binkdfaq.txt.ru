@@ -53,6 +53,15 @@
     Бэты:
     Публичный CVS
        :pserver:binkd@cvs.happy.kiev.ua:/cvs , модуль binkd, пароль пустой
+       Примеры команд.
+       Залогиниться на сервер cvs:
+       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs login
+       Получить последние исходники ветки current:
+       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co binkd
+       Получить последние исходники ветки binkd 0.9.5-stable:
+       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_5-stable binkd
+       Получить исходники binkd 0.9.5-release:
+       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_5-release binkd
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/snapshot (основной)
     ftp://ftp.grumbler.org/pub/binkd/current (зеркало, обновляется 23:50 UTC+5)
 
@@ -617,7 +626,7 @@ windows и os/2 - первые две строки, в юникс-версиях остальные):
 официально (и включен в дерево исходников на CVS).
     Исходники binkd 0.9.2/dos:
     http://www.doe.carleton.ca/~nsoveiko/fido/binkd/0.9.2/
-    Исходники и бинарники binkd 0.9.2/dos и binkd 0.9.5/dos (не самые свежие):
+    Исходники и бинарники binkd 0.9.2/dos и binkd 0.9.5a/dos (не самые свежие):
     http://www.n451.z2.fidonet.net/binkd/
     Свежие исходники - на CVS.
 
