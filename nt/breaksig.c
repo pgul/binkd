@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.12  2003/10/06 17:42:27  stas
+ * (Prevent compiler warning.) Remove type convertion at SetConsoleCtrlHandler() call
+ *
  * Revision 2.11  2003/10/05 07:37:47  stas
  * Fix NT service exit (don't hang service on receive CTRL_SERVICESTOP_EVENT)
  *
@@ -159,7 +162,7 @@ BOOL SigHandler(DWORD SigType) {
 /*    Signal handler, exit(0) after (SigHandler()==FALSE) call        */
 /*--------------------------------------------------------------------*/
 
-BOOL SigHandlerExit(DWORD SigType) {
+static BOOL CALLBACK SigHandlerExit(DWORD SigType) {
    Log(8, "SigHandlerExit(%lu)", SigType);
    if (SigHandler(SigType)==FALSE)
    {
@@ -167,6 +170,14 @@ BOOL SigHandlerExit(DWORD SigType) {
    }
 
    return TRUE;
+}
+
+/*--------------------------------------------------------------------*/
+/*  Wrapper for SigHandlerExit() to prevent mingw compiler warnings   */
+/*--------------------------------------------------------------------*/
+
+void SigExit(DWORD SigType) {
+  SigHandlerExit(SigType);
 }
 
 /*--------------------------------------------------------------------*/
@@ -180,7 +191,7 @@ int set_break_handlers (void) {
 #if BINKDW9X
    CreateWin9xThread((PHANDLER_ROUTINE) &SigHandler);
 #else
-   if (SetConsoleCtrlHandler((PHANDLER_ROUTINE) &SigHandlerExit, TRUE) != TRUE) {
+   if (SetConsoleCtrlHandler(&SigHandlerExit, TRUE) != TRUE) {
       return (0);
    }
 #endif

@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.28  2003/10/06 17:42:27  stas
+ * (Prevent compiler warning.) Remove type convertion at SetConsoleCtrlHandler() call
+ *
  * Revision 2.27  2003/10/06 17:16:47  stas
  * (Cosmetics) Rename tcperr() to w32err() for win32/win9x versions
  *
@@ -182,7 +185,7 @@ static void WINAPI ServiceCtrl(DWORD dwCtrlCode)
   {
   case SERVICE_CONTROL_STOP:
     ReportStatusToSCMgr(SERVICE_STOP_PENDING, NO_ERROR, 0);
-    SigHandlerExit(CTRL_SERVICESTOP_EVENT);
+    SigExit(CTRL_SERVICESTOP_EVENT);
     return;
   case SERVICE_CONTROL_INTERROGATE:
   default:
