@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/02/22 19:30:22  gul
+ * Fix compiler warning
+ *
  * Revision 2.4  2003/02/22 12:12:33  gul
  * Cleanup sources
  *
@@ -226,7 +229,7 @@ static int call0 (FTN_NODE *node)
 {
   int sockfd = INVALID_SOCKET;
   struct hostent he;
-  struct hostent *hp;
+  struct hostent *hp = NULL; /* prevent compiler warning */
   struct sockaddr_in sin;
   char **cp;
   char szDestAddr[FTN_ADDR_SZ + 1];
