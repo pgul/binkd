@@ -1,3 +1,7 @@
+2004/10/26 18:46:47 1.0a-414 gul
+readcfg.c,2.75,2.76
+Process option skipmask for backward compatibility
+
 2004/10/25 20:04:59 1.0a-413 gul
 ftnnode.c,2.34,2.35 readcfg.c,2.74,2.75 readcfg.h,2.31,2.32
 Process passwords file after all, independent of its place in config.
