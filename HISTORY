@@ -1,3 +1,7 @@
+2003/09/05 09:49:08 0.9.6a-155 val
+binkd.c,2.61,2.62 client.c,2.43,2.44 perlhooks.c,2.19,2.20 perlhooks.h,2.4,2.5 protocol.c,2.112,2.113 server.c,2.31,2.32
+Perl support restored after config reloading patch
+
 2003/09/05 09:44:07 0.9.6a-154 val
 protocol.c,2.111,2.112
 Argus-style freq's (M_NUL FREQ) support, not tested yet
