@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.39  2004/11/07 13:20:13  stream
+ * Lock config of server manager so it can be safely reloaded in SIGHUP
+ *
  * Revision 2.38  2004/08/04 19:51:40  gul
  * Change SIGCHLD handling, make signal handler more clean,
  * prevent occasional hanging (mutex deadlock) under linux kernel 2.6.
@@ -242,8 +245,6 @@ static void serv (void *arg)
 
 /*
  * Server manager.
- * Warning!!! This function expected to be run in "main" thread,
- * NOT by branch()'ing!!!
  */
 
 static int do_server(BINKD_CONFIG *config)
@@ -375,6 +376,7 @@ static int do_server(BINKD_CONFIG *config)
 void servmgr (void)
 {
   int status;
+  BINKD_CONFIG *config;
 
   srand(time(0));
   setproctitle ("server manager");
@@ -396,7 +398,9 @@ void servmgr (void)
     if ((sockfd = socket (AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
       Log (0, "servmgr socket(): %s", TCPERR ());
 
-    status = do_server(current_config);
+    config = lock_current_config();
+    status = do_server(config);
+    unlock_config_structure(config);
 
     soclose(sockfd);
     sockfd = INVALID_SOCKET;
