@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.4.2.3  2003/07/07 01:01:13  hbrew
+ * Remove unused parameter 'type' from win9x_service_control()
+ *
  * Revision 2.4.2.2  2003/06/17 15:48:01  stas
  * Prevent service operations on incompatible OS (NT and 9x)
  *
@@ -86,7 +89,7 @@ extern int quiet_flag;
 int binkd_main(int argc, char **argv, char **envp);
 int win9x_service_cmdline(int argc, char **argv, char **envp);
 void win9x_service_un_install(int type, int argc, char **argv, char **envp);
-void win9x_service_control(int type);
+void win9x_service_control(void);
 
 int W32_CheckOS(unsigned long PlatformId); /* see TCPErr.c */
 
@@ -195,7 +198,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
         if (r == 't')
         {
-                win9x_service_control(r);
+                win9x_service_control();
                 return 0;
         }
 
@@ -575,7 +578,7 @@ void win9x_free_services_list(binkd_win9x_srvlst *srvlst)
   free(srvlst);
 }
 
-void win9x_service_control(int type)
+void win9x_service_control(void)
 {
   int i, mode;
   binkd_win9x_srvlst *srvlst;
