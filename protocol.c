@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.49  2003/04/04 13:54:28  gul
+ * Bugfix in localtime detection
+ *
  * Revision 2.48  2003/04/02 13:12:57  gul
  * Try to use workaround for buggy windows time functions (timezone)
  *
@@ -1832,6 +1835,7 @@ static void banner (STATE *state)
   safe_localtime (&t, &tm);
   tm.tm_isdst = 0;
   tz = (int)(((long)mktime(&tm)-(long)gt)/60);
+  safe_localtime (&t, &tm);
 
 #if 0
   sprintf (szLocalTime, "%s, %2d %s %d %02d:%02d:%02d %c%02d%02d (%s)",
