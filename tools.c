@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2002/03/20 15:31:19  gul
+ * ftrans bugfix
+ *
  * Revision 2.8  2002/03/20 14:32:14  gul
  * Bugfix in ftrans
  *
@@ -591,41 +594,46 @@ int touch (char *file, time_t t)
  */
 char *ed (char *s, char *a, char *b, unsigned int *size)
 {
-   int i, j;
+   int i, j, sr;
    unsigned int sz;
    int len_a=a?strlen(a):0;
    int len_b=b?strlen(b):0;
    char *r=s;
    
-   if((!len_a)||(!s)) return r;
-   if(!size) 
+   if ((!len_a) || (!s)) return r;
+   if (!size) 
    {
      sz=strlen(s)+1;
      r=xstrdup(s);
    }
    else sz=*size;
-   for(i=j=0;i<(int)strlen(r);i++)
+   sr=strlen(r);
+   for (i=j=0; i<sr; i++)
    {
-     if(tolower(r[i])!=tolower(a[j++]))
+     if (tolower(r[i])!=tolower(a[j]))
      {
+       i-=j;
        j=0;
        continue;
      }
-     if(a[j]) continue;
-     if(strlen(r)-len_a+len_b>=sz)
+     j++;
+     if (a[j]) continue;
+     if (sr-len_a+len_b>=sz)
      {
-       if(len_b<64) sz+=64;
+       if (len_b<64) sz+=64;
        else sz+=len_b;
        r=xrealloc(r, sz);
      }
      i-=len_a-1;
-     memmove(r+i+len_b, r+i+len_a, strlen(r+i+len_a)+1);
-     if(len_b)
+     if (len_a!=len_b)
+       memmove(r+i+len_b, r+i+len_a, sr-i-len_a+1);
+     if (len_b)
        memcpy(r+i, b, len_b);
      j=0;
      i+=len_b-1;
+     sr+=len_b-len_a;
    }
-   if(size) *size=sz;
+   if (size) *size=sz;
    return r;
 }
 
