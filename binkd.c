@@ -3,7 +3,7 @@
  *
  *  binkd.c is a part of binkd project
  *
- *  Copyright (C) 1996-1998  Dima Maloff, 5047/13
+ *  Copyright (C) 1996-2002  Dima Maloff 5047/13 and others
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2002/07/22 19:48:30  gul
+ * Update usage
+ *
  * Revision 2.6  2001/11/07 13:46:20  gul
  * bugfix (added saved_argc)
  *
@@ -187,7 +190,7 @@ void usage ()
 	  "  -m       disable CRAM-MD5 authorization\n"
 	  "  -h       print this help\n"
 	  "\n"
-	  "Copyright (c) 1996-2001 Dima Maloff and others.\n"
+	  "Copyright (c) 1996-2002 Dima Maloff and others.\n"
 	  "\n"
     "This program is free software; you can redistribute it and/or modify\n"
     "it under the terms of the GNU General Public License as published by\n"
