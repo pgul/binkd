@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.33  2003/03/01 20:49:21  gul
+ * Fix spelling
+ *
  * Revision 2.32  2003/03/01 18:29:52  gul
  * Change size_t to off_t for file sizes and offsets
  *
@@ -1060,7 +1063,7 @@ static int PWD (STATE *state, char *pwd, int sz)
       if((bad_pwd)&&(state->MD_flag))
       {
         msg_send2(state, M_ERR, "You must support MD5", 0);
-        Log(1, "Caller not supported MD5");
+        Log(1, "Caller does not support MD5");
         return 0;
       }
       if((sp=MD_buildDigest(state->expected_pwd, state->MD_challenge))!=NULL)
