@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.44  2003/08/19 10:13:15  gul
+ * Change Log() semaphoring
+ *
  * Revision 2.43  2003/08/18 15:44:51  stream
  * New function last_slash(): Return pointer to last directory separator
  * in file name, or NULL if no path present.
@@ -461,24 +464,13 @@ void Log (int lev, char *s,...)
   static int first_time = 1;
   static const char *month[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
                                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-  static char buf[1024];
+#ifndef HAVE_THREADS
+  static
+#endif
+  char buf[1024];
   int ok = 1;
   va_list ap;
-#ifdef HAVE_THREADS
-  static int locktid=-1;
-  int locked = 0;
 
-  /* lock, possible reenter from perl via onlog() */
-  if (varsem) {
-    LockSem(&varsem);
-    if (locktid != (int) PID()) {
-      LockSem(&lsem);
-      locktid = (int) PID();
-      locked = 1;
-    }
-    ReleaseSem(&varsem);
-  }
-#endif
   /* make string in buffer */
   va_start(ap, s);
   vsnprintf(buf, sizeof(buf), s, ap);
@@ -506,18 +498,12 @@ void Log (int lev, char *s,...)
 #endif
      )
   {
+    LockSem(&lsem);
     fprintf (stderr, "%30.30s\r%c %02d:%02d [%u] %s%s", " ", ch,
          tm.tm_hour, tm.tm_min, (unsigned) PID (), buf, (lev >= 0) ? "\n" : "");
+    ReleaseSem(&lsem);
     if (lev < 0)
-    {
-#ifdef HAVE_THREADS
-      if (locked) {
-        locktid = -1;
-        ReleaseSem(&lsem);
-      }
-#endif
       return;
-    }
   }
 
   if (lev <= loglevel && *logpath)
@@ -525,6 +511,7 @@ void Log (int lev, char *s,...)
     FILE *logfile = 0;
     int i;
 
+    LockSem(&lsem);
     for (i = 0; logfile == 0 && i < 10; ++i)
     {
       logfile = fopen (logpath, "a");
@@ -540,6 +527,7 @@ void Log (int lev, char *s,...)
     }
     else
       fprintf (stderr, "Cannot open %s: %s!\n", logpath, strerror (errno));
+    ReleaseSem(&lsem);
   }
 #ifdef WIN32
 #ifdef BINKDW9X
@@ -585,13 +573,6 @@ void Log (int lev, char *s,...)
   }
 #endif
 } /* if (ok) */
-
-#ifdef HAVE_THREADS
-  if (locked) {
-    locktid = -1;
-    ReleaseSem(&lsem);
-  }
-#endif
 
   if (lev == 0)
     exit (1);
