@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2003/03/04 09:56:00  gul
+ * Fix threads compilation
+ *
  * Revision 2.13  2003/03/03 23:41:20  gul
  * Try to resolve problem with active threads while exitproc running
  *
@@ -129,11 +132,12 @@ static void call (void *arg);
 
 int n_clients = 0;
 
+extern int binkd_exit;
+
 #ifdef HAVE_FORK
 
 static jmp_buf jmpbuf;
 extern int connect_timeout;
-extern int binkd_exit;
 
 static void chld (int signo)
 {
