@@ -1,3 +1,7 @@
+2003/12/24 02:37:28 1.0a-311 gul
+perlhooks.c,2.41,2.42
+Fixed mingw with PERLDL compilation
+
 2003/12/24 02:36:45 1.0a-310 gul
 Config.h,2.331,2.332 sys.h,2.15,2.16
 Move system-dependent macros from Config.h to sys.h,
