@@ -18,7 +18,7 @@
 #ifndef _Config_h
 #define _Config_h
 
-#if defined(HAVE_FORK) + defined(HAVE_THREADS) != 1
+#if defined(HAVE_FORK) + defined(HAVE_THREADS) + defined(DOS) != 1
 #error You must defined either HAVE_FORK either HAVE_THREADS!
 #endif
 
