@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2001/09/14 07:24:20  gul
+ * bindaddr works on outgoing connections now
+ *
  * Revision 2.2  2001/07/28 17:26:26  gul
  * Avoid compiler warnings
  *
@@ -86,7 +89,9 @@ static int enbase64(char *data, int size, char *p)
 int h_connect(int *so, struct sockaddr_in *name)
 {
 	int ntlm = 0;
+#ifdef NTLM
 	char *ntlmsp = NULL;
+#endif
 	int i, err = 0, connected = 0;
 	struct sockaddr_in sin;
 #ifdef HAVE_THREADS
@@ -151,6 +156,15 @@ int h_connect(int *so, struct sockaddr_in *name)
 				soclose(*so);
 				if((*so=socket(hp->h_addrtype, SOCK_STREAM, 0))==INVALID_SOCKET)
 					break;
+				if (bindaddr[0])
+				{
+					struct sockaddr_in src_sin;
+					memset(&src_sin, 0, sizeof(src_sin));
+					src_sin.sin_addr.s_addr = inet_addr(bindaddr);
+					src_sin.sin_family = AF_INET;
+					if (bind(*so, (struct sockaddr *)&src_sin, sizeof(src_sin)))
+						Log(4, "bind: %s", TCPERR());
+				}
 			}
 #ifdef HAVE_THREADS
 			if (hp->h_addr_list && hp->h_addr_list[0])
@@ -350,6 +364,15 @@ int h_connect(int *so, struct sockaddr_in *name)
 					soclose(*so);
 					if((*so=socket(hp->h_addrtype, SOCK_STREAM, 0))==INVALID_SOCKET)
 						break;
+					if (bindaddr[0])
+					{
+						struct sockaddr_in src_sin;
+						memset(&src_sin, 0, sizeof(src_sin));
+						src_sin.sin_addr.s_addr = inet_addr(bindaddr);
+						src_sin.sin_family = AF_INET;
+						if (bind(*so, (struct sockaddr *)&src_sin, sizeof(src_sin)))
+							Log(4, "bind: %s", TCPERR());
+					}
 				}
 #ifdef HAVE_THREADS
 				if (hp->h_addr_list && hp->h_addr_list[0])

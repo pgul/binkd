@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2001/09/14 07:24:20  gul
+ * bindaddr works on outgoing connections now
+ *
  * Revision 2.0  2001/01/10 12:12:37  gul
  * Binkd is under CVS again
  *
@@ -306,6 +309,15 @@ static int call0 (FTN_NODE *node)
 #ifdef HAVE_THREADS
       ReleaseSem(&hostsem);
 #endif
+      if (bindaddr[0])
+      {
+        struct sockaddr_in src_sin;
+        memset(&src_sin, 0, sizeof(src_sin));
+        src_sin.sin_addr.s_addr = inet_addr(bindaddr);
+        src_sin.sin_family = AF_INET;
+        if (bind(sockfd, (struct sockaddr *)&src_sin, sizeof(src_sin)))
+          Log(4, "bind: %s", TCPERR());
+      }
 #ifdef HAVE_FORK
       if (connect_timeout)
       {
