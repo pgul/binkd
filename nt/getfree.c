@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.7  2003/12/31 10:06:05  stas
+ * Fix getfree for very large disks and for mounted partitions
+ *
  * Revision 2.6  2003/08/26 22:18:49  gul
  * Fix compilation under w32-mingw and os2-emx
  *
@@ -67,6 +70,7 @@
 
 #include "../readcfg.h"
 #include "../tools.h"
+#include "w32tools.h"
 
 /*--------------------------------------------------------------------*/
 /*                         Global definitions                         */
@@ -82,13 +86,33 @@
 
 
 unsigned long getfree (char *path) {
-char RPN[MAXPATHLEN];	/* root path  */
-char *pRPN;             /* Pointer to Root path */
-DWORD SPC;				/* sectors per cluster */
-DWORD BPS;				/* bytes per sector    */
-DWORD FC;				/* number of free clusters  */
-DWORD TNC;				/* total number of clusters */
-BOOL rc;
+ { /*  w95OSR2, wNT, ... */
+
+  BOOL (WINAPI* pGetDiskFreeSpaceEx)( LPCTSTR, PULARGE_INTEGER,
+                              PULARGE_INTEGER, PULARGE_INTEGER );
+  ULARGE_INTEGER i64FreeBytesToCaller, i64TotalBytes, i64FreeBytes;
+
+  pGetDiskFreeSpaceEx = GetProcAddress( GetModuleHandle("kernel32.dll"),
+                           "GetDiskFreeSpaceExA");
+
+  if (pGetDiskFreeSpaceEx)
+  {
+    if( pGetDiskFreeSpaceEx (path,
+                (PULARGE_INTEGER)&i64FreeBytesToCaller,
+                (PULARGE_INTEGER)&i64TotalBytes,
+                (PULARGE_INTEGER)&i64FreeBytes)
+      ) return i64FreeBytesToCaller.u.HighPart? 0xFFFFFFFF:i64FreeBytesToCaller.u.LowPart;
+  }
+ }
+
+ { /* w95 4.0.950 */
+  char RPN[MAXPATHLEN];	/* root path  */
+  char *pRPN;             /* Pointer to Root path */
+  DWORD SPC;				/* sectors per cluster */
+  DWORD BPS;				/* bytes per sector    */
+  DWORD FC;				/* number of free clusters  */
+  DWORD TNC;				/* total number of clusters */
+  BOOL rc;
 
   pRPN = RPN;
   if (isalpha(path[0]) && path[1] == ':' ) {
@@ -128,4 +152,5 @@ BOOL rc;
     else
       return (unsigned long) (FC / (1024 / (BPS * SPC)));
   }
+ }
 }
