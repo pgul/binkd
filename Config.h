@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.76  2003/07/17 04:32:18  hbrew
+ * Auto increase patchlevel, set 0.9.6a-65
+ * Fix "No prototype found for 'isdigit'" warning.
+ *
  * Revision 2.75  2003/07/17 03:08:23  hbrew
  * Auto increase patchlevel, set 0.9.6a-64
  * Fix uninstall of binkd9x service
@@ -315,7 +319,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-64"
+#define MYVER "0.9.6a-65"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
