@@ -11,13 +11,19 @@ CFLAGS=
 
 dnl Checks for header files.
 AC_CHECK_HEADERS(unistd.h io.h)
-AC_CHECK_HEADERS(sys/vfs.h sys/statfs.h sys/statvfs.h sys/param.h sys/mount.h)
+AC_CHECK_HEADERS(sys/vfs.h sys/statfs.h sys/statvfs.h sys/param.h)
 AC_CHECK_HEADERS(arpa/inet.h sys/ioctl.h sys/time.h)
+AC_CHECK_HEADERS(sys/mount.h,,,
+[[#ifdef HAVE_SYS_PARAM_H
+#  include <sys/param.h>
+#endif
+]])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 
 dnl Checks for library functions.
 AC_CHECK_FUNCS(snprintf vsyslog waitpid statvfs statfs uname daemon setsid)
+AC_CHECK_FUNCS(sigprocmask)
 
 dnl Checks for libraries.
 AC_CHECK_FUNC(socket)
