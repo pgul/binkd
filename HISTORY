@@ -1,3 +1,7 @@
+2004/01/04 18:01:11 1.0a-348 stas
+w32tools.c,2.15,2.16
+Fix service name convertion: now Service Display Name may be content a comma
+
 2004/01/04 17:51:08 1.0a-347 stas
 w32tools.c,2.14,2.15
 Fix service name convertion: now Service Display Name (parameter of the '-S' command line option) may be content a '\' and '/' characters
