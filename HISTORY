@@ -1,3 +1,7 @@
+2004/01/02 18:02:25 1.0a-325 stas
+tray.c,2.7,2.8
+Show icon in the top left corner of the binkd window. Thanks to Alexander Reznikov <homebrewer@yandex.ru>
+
 2004/01/02 17:46:45 1.0a-324 stas
 tray.c,2.6,2.7
 Load tray icon from compiled resource
