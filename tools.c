@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2001/11/08 14:04:12  gul
+ * bugfix
+ *
  * Revision 2.4  2001/11/07 17:01:12  gul
  * Check size of buffer in strnzcpy()
  *
@@ -474,7 +477,6 @@ char *strwipe (char *s)
  */
 char *strnzcpy (char *dst, const char *src, size_t len)
 {
-  if (len <= 0) return dst;
   dst[len - 1] = 0;
   return strncpy (dst, src, len - 1);
 }
@@ -483,6 +485,7 @@ char *strnzcat (char *dst, const char *src, size_t len)
 {
   int x = strlen (dst);
 
+  if (len <= x) return dst;
   return strnzcpy (dst + x, src, len - x);
 }
 
