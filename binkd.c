@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.76  2004/01/03 11:16:57  stas
+ * Remove the obsoleted rerun variable
+ *
  * Revision 2.75  2003/12/26 20:11:32  gul
  * Add -d commandline switch - dump parsed config and exit;
  * remove 'debugcfg' config token.
@@ -517,10 +520,7 @@ const char *optstring = "CchmP:pqrsvd-:?"
 char *parseargs (int argc, char *argv[])
 {
   char *cfgfile=NULL;
-  int i, curind, rerun = 0;
-
-  /* rerun will be removed when reconfig-on-fly feature will be added */
-  if (getenv("BINKD_RERUN")) rerun = 1;
+  int i, curind;
 
   curind = 1;
   while ((i = getopt(argc, argv, optstring)) != -1)
@@ -558,7 +558,7 @@ char *parseargs (int argc, char *argv[])
 #endif
 
 	    case 't': /* service control/query */
-	      if (rerun) break;
+	      if (isService()) break;
               if ((service_flag != w32_noservice)) {
                 Log (0, "%s: '-t' command line switch can't mixed with '-i', '-u' and other '-t'", extract_filename(argv[0]));
               }
@@ -579,7 +579,7 @@ char *parseargs (int argc, char *argv[])
 	      service_name = strdup (optarg);
 	      break;
 	    case 'i': /* install service */
-	      if (rerun) break;
+	      if (isService()) break;
               if ( service_flag==w32_installservice
                 || service_flag==w32_uninstallservice
                 || service_flag==w32_queryservice
@@ -593,7 +593,7 @@ char *parseargs (int argc, char *argv[])
 	      break;
 
 	    case 'u': /* uninstall service */
-	      if (rerun) break;
+	      if (isService()) break;
               if ( service_flag==w32_installservice
                 || service_flag==w32_uninstallservice
                 || service_flag==w32_queryservice
@@ -608,7 +608,6 @@ char *parseargs (int argc, char *argv[])
 #endif
 
 	    case 'P': /* create poll to node */
-	      if (rerun) break;
               {
                 struct maskchain new_entry;
 
@@ -646,7 +645,7 @@ char *parseargs (int argc, char *argv[])
 
 #ifdef BINKD_DAEMONIZE
 	    case 'D': /* run as unix daemon */
-	      if (!rerun) daemon_flag = 1;
+	      daemon_flag = 1;
 	      break;
 #endif
 
@@ -832,8 +831,6 @@ int main (int argc, char *argv[], char *envp[])
       Log (0, "error parsing Perl script %s", current_config->perl_script);
   }
 #endif
-
-  if (!getenv("BINKD_RERUN")) putenv("BINKD_RERUN=1");
 
 #ifdef HAVE_FORK
   signal (SIGCHLD, chld);
