@@ -26,6 +26,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.4  2003/04/02 13:12:57  gul
+ * Try to use workaround for buggy windows time functions (timezone)
+ *
  * Revision 2.3  2003/03/31 19:35:16  gul
  * Clean semaphores usage
  *
@@ -152,7 +155,7 @@ void TLogStat (char *status, STATE *state)
 		TS.fFReceive = state->files_rcvd;
 		TS.fFSent = state->files_sent;
 		TS.fSTime = state->start_time + tzoff;
-		TS.fLTime = time(NULL) - state->start_time;
+		TS.fLTime = safe_time() - state->start_time;
 		if (STRICMP(status, "OK") != 0) {
 			TS.fStatus |= 3;
 		}
@@ -196,7 +199,7 @@ void FDLogStat (STATE *state)
 	if (!state->fa || ((state->to && !fdouthist[0]) || (!state->to && !fdinhist[0])))
             return; /* nothing to do */
 
-	time (&t);
+	t = safe_time();
 	std.TimeStart = (u32)(state->start_time + tzoff);
 	std.TimeEnd = (u32)(t + tzoff);
 	std.Zone = state->fa->z;

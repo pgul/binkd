@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2003/04/02 13:12:57  gul
+ * Try to use workaround for buggy windows time functions (timezone)
+ *
  * Revision 2.15  2003/03/31 20:28:24  gul
  * safe_localtime() and safe_gmtime() functions
  *
@@ -488,7 +491,7 @@ void process_hld (FTN_ADDR *fa, char *path)
     if (f)
       fclose (f);
 
-    if (node->hold_until <= time (0))
+    if (node->hold_until <= safe_time())
     {
       node->hold_until = 0;
       delete (path);
@@ -936,7 +939,7 @@ static int qn_not_empty (FTN_NODE *fn, void *arg)
 {
   qn_not_empty_arg *a = (qn_not_empty_arg *) arg;
 
-  if (!fn->busy && strcmp (fn->hosts, "-") && fn->hold_until < time (0))
+  if (!fn->busy && strcmp (fn->hosts, "-") && fn->hold_until < safe_time())
   {
     if (a->maxflvr != MAXFLVR (fn->mail_flvr, MAXFLVR (fn->files_flvr, a->maxflvr)))
     {
@@ -1098,7 +1101,7 @@ void bad_try (FTN_ADDR *fa, const char *error)
   if (tries > 0 && ++nbad >= (unsigned) tries)
   {
     nok = nbad = 0;
-    hold_node (fa, time (0) + hold);
+    hold_node (fa, safe_time() + hold);
   }
   write_try (fa, &nok, &nbad, (char *) error);
 }

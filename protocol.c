@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.48  2003/04/02 13:12:57  gul
+ * Try to use workaround for buggy windows time functions (timezone)
+ *
  * Revision 2.47  2003/03/31 20:28:24  gul
  * safe_localtime() and safe_gmtime() functions
  *
@@ -290,7 +293,7 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to)
   TF_ZERO (&state->flo);
   TF_ZERO (&state->in_complete);
   state->ND_addr.z = -1;
-  state->start_time = time (NULL);
+  state->start_time = safe_time();
   state->evt_queue = NULL;
   Log (6, "binkp init done, socket # is %i", state->s);
   return 1;
@@ -1220,13 +1223,13 @@ static int start_file_recv (STATE *state, char *args, int sz)
       Log (2, "rcvd: %s (%li, %.2f CPS, %s)", state->in_complete.netname,
 	   (long) state->in_complete.size,
 	   (double) (state->in_complete.size) /
-	   (time (0) == state->in_complete.start ?
-	                1 : (time (0) - state->in_complete.start)), szAddr);
+	   (safe_time() == state->in_complete.start ?
+	                1 : (safe_time() - state->in_complete.start)), szAddr);
       TF_ZERO (&state->in_complete);
     }
     if (state->in.f == 0)
     {
-      state->in.start = time (0);
+      state->in.start = safe_time();
       strnzcpy (state->in.netname, argv[0], MAX_NETNAME);
       state->in.size = atol (argv[1]);
       state->in.time = atol (argv[2]);
@@ -1568,8 +1571,8 @@ static int GOT (STATE *state, char *args, int sz)
 	  Log (2, "sent: %s (%li, %.2f CPS, %s)", state->sent_fls[n].path,
 	       (long) state->sent_fls[n].size,
 	       (double) (state->sent_fls[n].size) /
-	       (time (0) == state->sent_fls[n].start ?
-		1 : (time (0) - state->sent_fls[n].start)), szAddr);
+	       (safe_time() == state->sent_fls[n].start ?
+		1 : (safe_time() - state->sent_fls[n].start)), szAddr);
 	  if (status)
 	  {
 	    if (state->off_req_sent)
@@ -1626,8 +1629,8 @@ static int EOB (STATE *state, char *buf, int sz)
     Log (2, "rcvd: %s (%li, %.2f CPS, %s)", state->in_complete.netname,
          (long) state->in_complete.size,
          (double) (state->in_complete.size) /
-         (time (0) == state->in_complete.start ?
-                      1 : (time (0) - state->in_complete.start)), szAddr);
+         (safe_time() == state->in_complete.start ?
+                      1 : (safe_time() - state->in_complete.start)), szAddr);
     TF_ZERO (&state->in_complete);
   }
   return 1;
@@ -1760,8 +1763,8 @@ static int recv_block (STATE *state)
 	    Log (2, "rcvd: %s (%li, %.2f CPS, %s)", state->in.netname,
 	         (long) state->in.size,
 	         (double) (state->in.size) /
-	         (time (0) == state->in.start ?
-		  1 : (time (0) - state->in.start)), szAddr);
+	         (safe_time() == state->in.start ?
+		  1 : (safe_time() - state->in.start)), szAddr);
 	  }
 	  msg_sendf (state, M_GOT, "%s %li %li",
 		     state->in.netname,
@@ -1822,7 +1825,7 @@ static void banner (STATE *state)
   msg_send2 (state, M_NUL, "NDL ", nodeinfo);
 
   tzset();
-  time (&t);
+  t = safe_time();
   safe_gmtime (&t, &tm);
   tm.tm_isdst = 0;
   gt = mktime(&tm);
@@ -1966,7 +1969,7 @@ static int start_file_transfer (STATE *state, FTNQ *file)
   state->out.time = sb.st_mtime;
   state->waiting_for_GOT = 0;
   Log(9, "Dont waiting for M_GOT");
-  state->out.start = time (0);
+  state->out.start = safe_time();
   netname (state->out.netname, &state->out);
   if (ispkt(state->out.netname) && state->out.size <= 60)
   {
@@ -2206,7 +2209,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
   if (to && state.r_skipped_flag && hold_skipped > 0)
   {
     Log (2, "holding skipped mail for %li sec", (long) hold_skipped);
-    hold_node (&to->fa, time (0) + hold_skipped);
+    hold_node (&to->fa, safe_time() + hold_skipped);
   }
 
   Log (4, "session closed, quitting...");

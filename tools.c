@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22  2003/04/02 13:12:57  gul
+ * Try to use workaround for buggy windows time functions (timezone)
+ *
  * Revision 2.21  2003/03/31 22:47:22  gul
  * remove workaround for msvc localtime() bug
  *
@@ -294,21 +297,101 @@ int create_sem_file (char *name)
 #include <malloc.h>		       /* for _heapchk() */
 #endif
 
-#if defined(HAVE_THREADS) || defined(AMIGA)
-MUTEXSEM LSem = 0;
-#endif
+struct tm *safe_gmtime(time_t *t, struct tm *tm)
+{
+  threadsafe(memcpy(tm, gmtime(t), sizeof(*tm)));
+  return tm;
+}
 
+#ifdef WIN32
+#include <windows.h>
+
+static void stime_to_tm(const SYSTEMTIME *stime, struct tm *tm)
+{
+  tm->tm_year = stime->wYear-1900;
+  tm->tm_mon  = stime->wMonth-1;
+  tm->tm_mday = stime->wDay;
+  tm->tm_wday = stime->wDayOfWeek;
+  tm->tm_hour = stime->wHour;
+  tm->tm_min  = stime->wMinute;
+  tm->tm_sec  = stime->wSecond;
+}
+
+static void tm_to_stime(const struct tm *tm, SYSTEMTIME *stime)
+{
+  stime->wYear         = tm->tm_year+1900;
+  stime->wMonth        = tm->tm_mon+1;
+  stime->wDay          = tm->tm_mday;
+  stime->wDayOfWeek    = tm->tm_wday;
+  stime->wHour         = tm->tm_hour;
+  stime->wMinute       = tm->tm_min;
+  stime->wSecond       = tm->tm_sec;
+  stime->wMilliseconds = 0;
+}
+
+static int safe_cmptime(const struct tm *tm1, const struct tm *tm2)
+{
+  if (tm1->tm_year > tm2->tm_year) return  1;
+  if (tm1->tm_year < tm2->tm_year) return -1;
+  if (tm1->tm_mon  > tm2->tm_mon ) return  1;
+  if (tm1->tm_mon  < tm2->tm_mon ) return -1;
+  if (tm1->tm_mday > tm2->tm_mday) return  1;
+  if (tm1->tm_mday < tm2->tm_mday) return -1;
+  if (tm1->tm_hour > tm2->tm_hour) return  1;
+  if (tm1->tm_hour < tm2->tm_hour) return -1;
+  return 0;
+}
+
+time_t safe_time(void)
+{
+  /* gmtime(t) should be SystemTime */
+  SYSTEMTIME stime;
+  struct tm utctm, tm;
+  time_t t;
+  int i;
+
+  GetSystemTime(&stime);
+  stime_to_tm(&stime, &utctm);
+  t = time(NULL);
+  t -= (t-utctm.tm_sec)%60;
+  for (i=0; i<24; i++) {
+    safe_gmtime(&t, &tm);
+    if (tm.tm_hour == utctm.tm_hour) return t;
+    t += safe_cmptime(&tm, &utctm) > 0 ? -3600 : 3600;
+  }
+  return t;
+}
+
+struct tm *safe_localtime(time_t *t, struct tm *tm)
+{
+  FILETIME utcftime, localftime;
+  SYSTEMTIME stime;
+
+  safe_gmtime(t, tm);
+  /* convert gmtime to localtime */
+  tm_to_stime(tm, &stime);
+  SystemTimeToFileTime(&stime, &utcftime);
+  FileTimeToLocalFileTime(&utcftime, &localftime);
+  FileTimeToSystemTime(&localftime, &stime);
+  stime_to_tm(&stime, tm);
+  return tm;
+}
+#else
 struct tm *safe_localtime(time_t *t, struct tm *tm)
 {
   threadsafe(memcpy(tm, localtime(t), sizeof(*tm)));
   return tm;
 }
 
-struct tm *safe_gmtime(time_t *t, struct tm *tm)
+time_t safe_time(void)
 {
-  threadsafe(memcpy(tm, gmtime(t), sizeof(*tm)));
-  return tm;
+  return time(NULL);
 }
+#endif
+
+#if defined(HAVE_THREADS) || defined(AMIGA)
+MUTEXSEM LSem = 0;
+#endif
 
 void Log (int lev, char *s,...)
 {
@@ -326,7 +409,7 @@ void Log (int lev, char *s,...)
     InitSem (&LSem);
   }
 
-  time (&t);
+  t = safe_time();
   safe_localtime (&t, &tm);
 
   if (lev <= conlog

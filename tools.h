@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2003/04/02 13:12:58  gul
+ * Try to use workaround for buggy windows time functions (timezone)
+ *
  * Revision 2.7  2003/03/31 22:47:22  gul
  * remove workaround for msvc localtime() bug
  *
@@ -207,5 +210,6 @@ char *makeinboundcase (char *s);
  */
 struct tm *safe_localtime(time_t *t, struct tm *tm);
 struct tm *safe_gmtime(time_t *t, struct tm *tm);
+time_t safe_time(NULL);
 
 #endif
