@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.142  2003/08/24 18:06:01  hbrew
+ * Auto increase patchlevel, set 0.9.6a-129
+ * Update for previous patch
+ *
  * Revision 2.141  2003/08/24 17:28:33  hbrew
  * Auto increase patchlevel, set 0.9.6a-128
  * Fix work with sighandler on win32
@@ -610,7 +614,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-128"
+#define MYVER "0.9.6a-129"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
