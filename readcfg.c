@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30  2003/06/30 22:48:36  hbrew
+ * Allow to override -ip, -sip, -md, -nomd in add_node()
+ *
  * Revision 2.29  2003/06/12 08:30:57  val
  * check pkt header feature, see keyword 'check-pkthdr'
  *
@@ -620,7 +623,7 @@ static void passwords (KEYWORD *key, char *s)
     for(w=buf;(w[0])&&(!isspace(w[0]));w++);
     w[0]=0;
     if (!add_node (&fa, NULL, buf, '-', NULL, NULL,
-                   NR_USE_OLD, ND_USE_OLD, 0, 0, HC_USE_OLD))
+                   NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, HC_USE_OLD))
       Log (0, "%s: add_node() failed", w[0]);
   }
   fclose(in);
@@ -734,8 +737,9 @@ static void read_node_info (KEYWORD *key, char *s)
 {
 #define ARGNUM 6
   char *w[ARGNUM], *tmp;
-  int i, j, NR_flag = NR_USE_OLD, ND_flag = ND_USE_OLD, HC_flag = HC_USE_OLD;
-  int MD_flag = 0, restrictIP = 0;
+  int i, j;
+  int NR_flag = NR_USE_OLD, ND_flag = ND_USE_OLD, HC_flag = HC_USE_OLD,
+      MD_flag = MD_USE_OLD, restrictIP = RIP_USE_OLD;
   FTN_ADDR fa;
 
   memset (w, 0, sizeof (w));
@@ -758,9 +762,9 @@ static void read_node_info (KEYWORD *key, char *s)
       if (tmp[1] != '\0')
       {
         if (STRICMP (tmp, "-md") == 0)
-          MD_flag = 1;
+          MD_flag = MD_ON;
         else if (STRICMP (tmp, "-nomd") == 0)
-          MD_flag = (-1);
+          MD_flag = MD_OFF;
         else if (STRICMP (tmp, "-nr") == 0)
 	  NR_flag = NR_ON;
 	else if (STRICMP (tmp, "-nd") == 0)
@@ -769,9 +773,9 @@ static void read_node_info (KEYWORD *key, char *s)
 	  ND_flag = ND_ON;
 	}
 	else if (STRICMP (tmp, "-ip") == 0)
-	  restrictIP = 1; /* allow matched or unresolvable */
+	  restrictIP = RIP_ON;  /* allow matched or unresolvable */
 	else if (STRICMP (tmp, "-sip") == 0)
-	  restrictIP = 2; /* allow only resolved and matched */
+	  restrictIP = RIP_SIP; /* allow only resolved and matched */
 	else if (STRICMP (tmp, "-crypt") == 0)
 	  Log (1, "%s: %i: obsolete %s option ignored", path, line, tmp);
         /* val: pkt header check: -hc force on, -nohc force off */

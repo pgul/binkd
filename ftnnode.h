@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2003/06/30 22:48:36  hbrew
+ * Allow to override -ip, -sip, -md, -nomd in add_node()
+ *
  * Revision 2.10  2003/06/20 10:37:02  val
  * Perl hooks for binkd - initial revision
  *
@@ -141,17 +144,26 @@ int add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
 	      char *obox, char *ibox, int NR_flag, int ND_flag,
 	      int MD_flag, int restrictIP, int HC_flag);
 
-#define NR_ON       1
-#define NR_OFF      0
-#define NR_USE_OLD -1		       /* Use old value */
+#define NR_ON        1
+#define NR_OFF       0
+#define NR_USE_OLD  -1		       /* Use old value */
 
-#define ND_ON       1
-#define ND_OFF      0
-#define ND_USE_OLD -1		       /* Use old value */
+#define ND_ON        1
+#define ND_OFF       0
+#define ND_USE_OLD  -1		       /* Use old value */
 
-#define HC_ON       1
-#define HC_OFF     -1
-#define HC_USE_OLD  0                  /* Use old value, default value */
+#define MD_ON        1
+#define MD_OFF      -1
+#define MD_USE_OLD   0		       /* Use old value, default value */
+
+#define RIP_ON       1
+#define RIP_OFF      0
+#define RIP_SIP      2		       /* Strict IP check (-sip) */
+#define RIP_USE_OLD -1		       /* Use old value */
+
+#define HC_ON        1
+#define HC_OFF      -1
+#define HC_USE_OLD   0		       /* Use old value, default value */
 
 /*
  * Iterates through nodes while func() == 0.

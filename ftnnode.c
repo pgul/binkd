@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2003/06/30 22:48:36  hbrew
+ * Allow to override -ip, -sip, -md, -nomd in add_node()
+ *
  * Revision 2.14  2003/06/20 10:37:02  val
  * Perl hooks for binkd - initial revision
  *
@@ -158,19 +161,18 @@ static int add_node_nolock(FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
     pNod[cn].obox_flvr = 'f';
     pNod[cn].NR_flag = NR_OFF;
     pNod[cn].ND_flag = ND_OFF;
-    pNod[cn].MD_flag = 0;
+    pNod[cn].MD_flag = MD_USE_OLD;
     pNod[cn].HC_flag = HC_USE_OLD;
-    pNod[cn].restrictIP = 0;
+    pNod[cn].restrictIP = RIP_OFF;
 
     /* We've broken the order... */
     nNodSorted = 0;
   }
 
-  if(!pNod[cn].MD_flag) 
+  if (MD_flag != MD_USE_OLD)
     pNod[cn].MD_flag = MD_flag;
-  if(!pNod[cn].restrictIP) 
+  if (restrictIP != RIP_USE_OLD) 
     pNod[cn].restrictIP = restrictIP;
-
   if (NR_flag != NR_USE_OLD)
     pNod[cn].NR_flag = NR_flag;
   if (ND_flag != ND_USE_OLD)
