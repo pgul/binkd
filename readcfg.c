@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.29  2003/06/12 08:30:57  val
+ * check pkt header feature, see keyword 'check-pkthdr'
+ *
  * Revision 2.28  2003/06/12 08:21:43  val
  * 'skipmask' is replaced with 'skip', which allows more skipping features
  *
@@ -230,6 +233,8 @@ int prescan = 0;
 enum inbcasetype inboundcase = INB_SAVE;
 int connect_timeout = 0;
 struct conflist_type *config_list = NULL;
+addrtype pkthdr_type = 0;
+char *pkthdr_bad = NULL;
 #ifdef AMIGADOS_4D_OUTBOUND
 int aso = 0;
 #endif
@@ -272,6 +277,7 @@ static void read_rfrule (KEYWORD *, char *);
 static void read_mask (KEYWORD *key, char *s);
 static void read_inboundcase (KEYWORD *, char *);
 static void read_skip(KEYWORD *, char *);
+static void read_check_pkthdr(KEYWORD *, char *);
 
 /* Helper functions for shared akas implementation */
 static void read_shares (KEYWORD *, char *);
@@ -356,6 +362,8 @@ KEYWORD keywords[] =
 
   /* shared akas definitions */
   {"share", read_shares, 0, 0, 0},
+  /* check pkt header keyword */
+  {"check-pkthdr", read_check_pkthdr, NULL, 0, 0},
 
 #ifdef AMIGADOS_4D_OUTBOUND
   {"aso", read_bool, &aso, 0, 0},
@@ -612,7 +620,7 @@ static void passwords (KEYWORD *key, char *s)
     for(w=buf;(w[0])&&(!isspace(w[0]));w++);
     w[0]=0;
     if (!add_node (&fa, NULL, buf, '-', NULL, NULL,
-                   NR_USE_OLD, ND_USE_OLD, 0, 0))
+                   NR_USE_OLD, ND_USE_OLD, 0, 0, HC_USE_OLD))
       Log (0, "%s: add_node() failed", w[0]);
   }
   fclose(in);
@@ -726,7 +734,7 @@ static void read_node_info (KEYWORD *key, char *s)
 {
 #define ARGNUM 6
   char *w[ARGNUM], *tmp;
-  int i, j, NR_flag = NR_USE_OLD, ND_flag = ND_USE_OLD;
+  int i, j, NR_flag = NR_USE_OLD, ND_flag = ND_USE_OLD, HC_flag = HC_USE_OLD;
   int MD_flag = 0, restrictIP = 0;
   FTN_ADDR fa;
 
@@ -766,6 +774,11 @@ static void read_node_info (KEYWORD *key, char *s)
 	  restrictIP = 2; /* allow only resolved and matched */
 	else if (STRICMP (tmp, "-crypt") == 0)
 	  Log (1, "%s: %i: obsolete %s option ignored", path, line, tmp);
+        /* val: pkt header check: -hc force on, -nohc force off */
+        else if (STRICMP (tmp, "-hc") == 0)
+          HC_flag = HC_ON;
+        else if (STRICMP (tmp, "-nohc") == 0)
+          HC_flag = HC_OFF;
 	else
 	  Log (0, "%s: %i: %s: unknown option for `node' keyword", path, line, tmp);
       }
@@ -796,7 +809,7 @@ static void read_node_info (KEYWORD *key, char *s)
   check_dir_path (w[5]);
 
   if (!add_node (&fa, w[1], w[2], (char)(w[3] ? w[3][0] : '-'), w[4], w[5],
-		 NR_flag, ND_flag, MD_flag, restrictIP))
+		 NR_flag, ND_flag, MD_flag, restrictIP, HC_flag))
     Log (0, "%s: add_node() failed", w[0]);
 
   for (i = 0; i < ARGNUM; ++i)
@@ -1057,6 +1070,25 @@ static void read_skip (KEYWORD *key, char *s)
   }
   if (i <= 3)
     Log (0, "%s: %i: the syntax is incorrect", path, line);
+}
+/* check-pkthdr [all|secure|unsecure|listed|unlisted] <ext> */
+static void read_check_pkthdr (KEYWORD *key, char *s)
+{
+  char *w;
+
+  if ( (w = getword(s, 2)) == NULL) {
+    Log (0, "%s: %i: the syntax is incorrect", path, line);
+    return;
+  }
+
+  if ((pkthdr_type = parse_addrtype(w)) != 0) {
+    if ( (w = getword(s, 3)) == NULL ) {
+      Log (0, "%s: %i: the syntax is incorrect", path, line);
+      return;
+    }
+  }
+
+  pkthdr_bad = (w[0] == '.') ? w+1 : w;
 }
 
 static void read_bool (KEYWORD *key, char *s)

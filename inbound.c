@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2003/06/12 08:30:57  val
+ * check pkt header feature, see keyword 'check-pkthdr'
+ *
  * Revision 2.13  2003/06/10 07:43:35  gul
  * sdelete() - reliable delete file (wait for lock)
  *
@@ -334,6 +337,101 @@ int inb_reject (char *netname, off_t size,
   }
 }
 
+/* val: check if pkt header is one of the session aka */
+int check_pkthdr(int nfa, FTN_ADDR *from, char *netname, char *tmp_name, 
+                 char *real_name) {
+  FTN_NODE *node;
+  FILE *PKT;
+  int i, check = 0, listed = 0, secure = 0;
+  short cz = -1, cn = -1, cf = -1, cp = -1;
+  struct {
+      short onode;
+      short dnode;
+      short year, mon, day, hour, min, sec, baud;
+      short pkt_ver;
+      short onet;
+      short dnet;
+      unsigned char pcode_lo;
+      unsigned char rev_hi;
+      char pwd[8];
+      short qmail_ozone;
+      short qmail_dzone;
+      short aux_net;
+      unsigned char cwv_hi, cwv_lo;
+      unsigned char pcode_hi;
+      unsigned char rev_lo;
+      unsigned char cw_lo, cw_hi;
+      short ozone;
+      short dzone;
+      short opoint;
+      short dpoint;
+  } buf;
+  /* ext not defined - no check */
+  if (pkthdr_bad == NULL) return 1;
+  /* lookup in node records */
+  for (i = 0; i < nfa; i++)
+    if ( (node = get_node_info(from+i)) != NULL ) {
+      if (node->fa.z > 0) listed = 1;
+      if (strcmp(node->pwd, "-") != 0) secure = 1;
+      /* no check is forced */
+      if (node->HC_flag == HC_OFF) return 1;
+      /* check is on for one aka */
+      else if (node->HC_flag == HC_ON) check = 1;
+    }
+  /* consider default values, if check is not forced */
+  if (!check && 
+       ( (pkthdr_type == 0) ||
+         (pkthdr_type == A_PROT && !secure) ||
+         (pkthdr_type == A_UNPROT && secure) ||
+         (pkthdr_type == A_LST && !listed) ||
+         (pkthdr_type == A_UNLST && listed) )
+     ) return 1;
+  /* parse pkt header */
+  check = 0;
+  if ( (PKT = fopen(tmp_name, "rb")) == NULL )
+      Log (1, "can't open file %s: %s, header check failed for %s", tmp_name, strerror (errno), netname);
+  else if (fread(&buf, sizeof(buf), 1, PKT) < 1)
+      Log (1, "file %s read error: %s, header check failed for %s", tmp_name, strerror (errno), netname);
+  else if (buf.pkt_ver != 2)
+      Log (1, "pkt %s version is %d, expected 2; header check failed", netname, buf.pkt_ver);
+  else {
+    cf = buf.onode;
+    cn = buf.onet;
+    /* qmail, zmail - not point-aware */
+    if (buf.pcode_lo == 0x29 || buf.pcode_lo == 0x35) cz = buf.qmail_ozone;
+    /* type 2 (fsc-39), 2+ */
+    else if (buf.cw_lo & 2) {
+      cz = buf.ozone;
+      cp = buf.opoint;
+      if (buf.cw_lo == buf.cwv_lo && buf.cw_hi == buf.cwv_hi) {
+        if (buf.opoint && cn == -1) cn = buf.aux_net;
+      }
+    }
+    check = 1;
+    Log (5, "pkt addr is %d:%d/%d.%d for %s", cz, cn, cf, cp, netname);
+    /* do check */
+    for (i = 0; i < nfa; i++)
+      if ( (cz < 0 || (from+i)->z == cz) &&
+           (cn < 0 || (from+i)->net == cn ) && 
+           ( (from+i)->node == cf ) &&
+           (cp < 0 || (from+i)->p == cp) ) {
+                                             if (PKT != NULL) fclose(PKT);
+                                             return 1;                 
+                                           }
+  }
+  if (PKT != NULL) fclose(PKT);
+  /* change pkt ext to bad */
+  if (check) Log (1, "bad pkt addr: %d:%d/%d.%d (file %s)", cz, cn, cf, cp, netname);
+  i = strlen(real_name); check = 0;
+  while (i > 0 && real_name[--i] != '.') check++;
+  if (i > 0) {
+    int len = strlen(pkthdr_bad)+1;
+    if (len > check) len = check;
+    memcpy(real_name+i+1, pkthdr_bad, len);
+  }
+  return 0;
+}
+
 /*
  * File is complete, rename it to it's realname. 1=ok, 0=failed.
  * Sets realname[MAXPATHLEN]
@@ -387,6 +485,8 @@ int inb_done (char *netname, off_t size, time_t time,
     /* ditto for arcmail -- mff */
     if (ispkt (netname) || istic (netname) || isarcmail (netname) || isreq (netname))
       s -= 4;
+    /* val: check pkt file header */
+    if (ispkt (netname)) check_pkthdr(nfa, from, netname, tmp_name, real_name);
 
     if (touch (tmp_name, time) != 0)
       Log (1, "touch %s: %s", tmp_name, strerror (errno));

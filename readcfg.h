@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2003/06/12 08:30:57  val
+ * check pkt header feature, see keyword 'check-pkthdr'
+ *
  * Revision 2.11  2003/06/12 08:21:43  val
  * 'skipmask' is replaced with 'skip', which allows more skipping features
  *
@@ -84,6 +87,9 @@
 #define MAXLOCATIONNAME 120
 #define MAXNODEINFO 120
 
+/* val: enum for checks */
+typedef enum { A_ALL=-1, A_LST=1, A_UNLST=2, A_PROT=4, A_UNPROT=8 } addrtype;
+
 extern int nAddr;
 extern FTN_ADDR *pAddr;
 extern int iport;
@@ -130,6 +136,8 @@ extern int deletedirs;
 extern int havedefnode;
 extern int connect_timeout;
 extern int syslog_facility;
+extern addrtype pkthdr_type;
+extern char *pkthdr_bad;
 #ifdef MAILBOX
 /* FileBoxes dir */
 extern char tfilebox[MAXPATHLEN + 1];
@@ -154,8 +162,6 @@ extern struct maskchain
     struct maskchain *next;
     char *mask;
   } *overwrite;
-/* val: enum for checks */
-typedef enum { A_ALL=-1, A_LST=1, A_UNLST=2, A_PROT=4, A_UNPROT=8 } addrtype;
 /* val: struct for skipmask */
 extern struct skipchain
   {

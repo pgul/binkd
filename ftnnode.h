@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2003/06/12 08:30:57  val
+ * check pkt header feature, see keyword 'check-pkthdr'
+ *
  * Revision 2.8  2003/05/01 09:55:01  gul
  * Remove -crypt option, add global -r option (disable crypt).
  *
@@ -86,6 +89,7 @@ struct _FTN_NODE
   int NR_flag;
   int ND_flag;
   int MD_flag;
+  int HC_flag;
   int restrictIP;
 
   time_t hold_until;
@@ -128,7 +132,7 @@ FTN_NODE *get_node (FTN_ADDR *fa, FTN_NODE *node);
  */
 int add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
 	      char *obox, char *ibox, int NR_flag, int ND_flag,
-	      int MD_flag, int restrictIP);
+	      int MD_flag, int restrictIP, int HC_flag);
 
 #define NR_ON       1
 #define NR_OFF      0
@@ -137,6 +141,10 @@ int add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
 #define ND_ON       1
 #define ND_OFF      0
 #define ND_USE_OLD -1		       /* Use old value */
+
+#define HC_ON       1
+#define HC_OFF     -1
+#define HC_USE_OLD  0                  /* Use old value, default value */
 
 /*
  * Iterates through nodes while func() == 0.
