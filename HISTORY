@@ -1,3 +1,7 @@
+2004/01/01 00:01:35 1.0a-320 stas
+tray.c,2.5,2.6
+Initialise variable
+
 2003/12/31 12:06:09 1.0a-319 stas
 getfree.c,2.6,2.7
 Fix getfree for very large disks and for mounted partitions
