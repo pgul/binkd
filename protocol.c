@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.18  2003/01/28 16:14:05  gul
+ * Bugfix: binkd did not remove lo-files with empty lines
+ *
  * Revision 2.17  2003/01/16 13:35:26  gul
  * Fixed crash on bad incoming packets
  *
@@ -573,8 +576,9 @@ static int remove_from_spool (STATE *state, char *flopath,
       curr_offset = ftell (flo);
       if (!fgets (buf, MAXPATHLEN, flo))
 	break;
-      for (i = strlen (buf) - 1; i > 0 && isspace (buf[i]); --i)
+      for (i = strlen (buf) - 1; i >= 0 && isspace (buf[i]); --i)
 	buf[i] = 0;
+      if (buf[0] == '\0') continue;
 
       if (file && (!strcmp (file, buf) ||
 		 ((*buf == '^' || *buf == '#') && !strcmp (file, buf + 1))))
