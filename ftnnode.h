@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.3  2003/02/22 15:53:46  gul
  * Bugfix with locking array of nodes in multithread version
  *
@@ -84,13 +89,13 @@ struct _FTN_NODE
 /*
  * Call this before all others functions from this file.
  */
-void nodes_init ();
+void nodes_init (void);
 
 /*
  * Lock and release pNod array
  */
-void locknodesem ();
-void releasenodesem ();
+void locknodesem (void);
+void releasenodesem (void);
 
 /*
  * Return up/downlink info by fidoaddress. 0 == node not found

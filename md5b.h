@@ -56,7 +56,7 @@ typedef unsigned long int UINT4;
 #else
 #error Cannot find type for 32-bit integer!
 #endif
-#else // default, no configure and Makefile UINT16_TYPE defines
+#else /* default, no configure and Makefile UINT16_TYPE defines */
 /* UINT2 defines a two byte word */
 typedef unsigned short int UINT2;
 /* UINT4 defines a four byte word */

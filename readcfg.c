@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.18  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.17  2003/02/23 16:31:21  gul
  * Add "-sip" option in node string.
  * Change "-ip" check logic.
@@ -319,7 +324,7 @@ KEYWORD keywords[] =
 #define TEST(var) if (!*var) Log (0, "%s: "#var" should be defined", path)
 
 void readcfg0 (char *_path);
-void debug_readcfg ();
+void debug_readcfg (void);
 
 /* Check for (personal) outbox pointed to (common) outbound */
 static int check_outbox(char *obox)
@@ -938,7 +943,7 @@ static void read_flag_exec_info (KEYWORD *key, char *s)
     else if (key->option1 == 'e')
       body = &(tmp->command);
     else
-      continue; // should never happens
+      continue; /* should never happens */
     *body = path;
     if (**body == '!')
     {
@@ -957,7 +962,7 @@ static void read_flag_exec_info (KEYWORD *key, char *s)
   }
 }
 
-void debug_readcfg ()
+void debug_readcfg (void)
 {
   int i;
   char buf[80];

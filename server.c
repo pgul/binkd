@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.5  2003/02/22 12:12:34  gul
  * Cleanup sources
  *
@@ -126,7 +131,7 @@ void serv (void *arg)
 #endif
 }
 
-int checkcfg ()
+int checkcfg (void)
 {
   struct stat sb;
   struct conflist_type *pc;

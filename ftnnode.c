@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.5  2003/02/22 15:53:45  gul
  * Bugfix with locking array of nodes in multithread version
  *
@@ -63,17 +68,17 @@ static int nNodSorted = 0;
 /*
  * Call this before all others functions from this file.
  */
-void nodes_init ()
+void nodes_init (void)
 {
   InitSem (&LSem);
 }
 
-void locknodesem ()
+void locknodesem (void)
 {
   LockSem (&LSem);
 }
 
-void releasenodesem ()
+void releasenodesem (void)
 {
   ReleaseSem (&LSem);
 }
@@ -89,7 +94,7 @@ static int node_cmp (FTN_NODE *a, FTN_NODE *b)
 /*
  * Sorts pNod array. Must NOT be called if LSem is locked!
  */
-static void sort_nodes ()
+static void sort_nodes (void)
 {
   qsort (pNod, nNod, sizeof (FTN_NODE), (int (*) (const void *, const void *)) node_cmp);
   nNodSorted = 1;

@@ -14,6 +14,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.2  2001/09/24 10:31:39  gul
  * Build under mingw32
  *
@@ -664,7 +669,7 @@ int service(int argc, char **argv, char **envp)
   return argc;
 }
 
-int checkservice()
+int checkservice(void)
 {
   if(res_checkservice) return res_checkservice;
   if(service_main(0)) return res_checkservice=(-1);

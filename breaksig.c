@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.0  2001/01/10 12:12:37  gul
  * Binkd is under CVS again
  *
@@ -53,7 +58,7 @@ static void exitsig (int arg)
 }
 
 /* Set up break handler, set up exit list if needed */
-int set_break_handlers ()
+int set_break_handlers (void)
 {
   atexit (exitfunc);
 

@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.0  2001/01/10 12:12:38  gul
  * Binkd is under CVS again
  *
@@ -72,7 +77,7 @@
 #endif
 
 #if defined(IBMTCPIP)
-const char *tcperr ();
+const char *tcperr (void);
 
   #define TCPERR() tcperr()
   #define TCPERRNO (sock_errno())
@@ -84,7 +89,7 @@ const char *tcperr ();
   #define TCPERR_AGAIN EAGAIN
   #define sock_deinit()
 #elif defined(WIN32)
-const char *tcperr ();
+const char *tcperr (void);
 
   #define TCPERR() tcperr()
   #define TCPERRNO (h_errno)

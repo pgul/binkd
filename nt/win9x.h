@@ -16,6 +16,11 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.3  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.2  2002/11/13 07:58:19  gul
  * Add CVS macros
  *
@@ -30,9 +35,9 @@ void CreateWin9xThread(PHANDLER_ROUTINE phandler);
 void DestroyWin9xThread();
 */
 
-// TempConsole
-void AllocTempConsole();
-void FreeTempConsole();
+/* TempConsole */
+void AllocTempConsole(void);
+void FreeTempConsole(void);
 #endif
 #endif
 

@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.9  2003/02/28 08:53:38  gul
  * Fixed proxy usage
  *
@@ -191,7 +196,7 @@ void clientmgr (void *arg)
       if (printq)
 	Log (-1, "scan\r");
       q_scan (SCAN_LISTED);
-      q_empty = !q_not_empty (SCAN_LISTED);
+      q_empty = !q_not_empty ();
       if (printq)
       {
 	q_list (stderr, SCAN_LISTED);
@@ -220,7 +225,7 @@ void clientmgr (void *arg)
       }
       else
       {
-	if (poll_flag && n_clients <= 0 && q_not_empty (SCAN_LISTED) == 0)
+	if (poll_flag && n_clients <= 0 && q_not_empty () == 0)
 	{
 	  Log (4, "the queue is empty, quitting...");
 	  break;

@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.13  2003/02/22 20:19:54  gul
  * Update copyrightes, 2002->2003
  *
@@ -159,7 +164,7 @@ static void hup (int signo)
 }
 #endif
 
-void usage ()
+void usage (void)
 {
 #if defined(WIN32) && !defined(BINKDW9X)
 	char *s=NULL;
@@ -479,7 +484,7 @@ int main (int argc, char *argv[], char *envp[])
 		 else
 		 {
 			nochdir = 1;
-		 	// Log (6, "Run with relative path, will not chdir to /");
+		 	/* Log (6, "Run with relative path, will not chdir to /"); */
 		 }
 
 		 if (binkd_daemonize(nochdir) < 0)

@@ -14,6 +14,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.1  2003/02/13 19:44:45  gul
  * Change \r\n -> \n
  *
@@ -32,14 +37,16 @@
 #include <stdlib.h>
 
 typedef struct dirent {
-   // char        d_dta[ 21 ];            /* disk transfer area */
-   // char        d_attr;                 /* file's attribute */
-   // unsigned short int d_time;          /* file's time */
-   // unsigned short int d_date;          /* file's date */
-   // long        d_size;                 /* file's size */
-    char        d_name[_MAX_PATH+1];  /* file's name */
-   // unsigned short d_ino;               /* serial number (not used) */
-   // char        d_first;                /* flag for 1st time */
+   char        d_name[_MAX_PATH+1];  /* file's name */
+#if 0
+   char        d_dta[ 21 ];            /* disk transfer area */
+   char        d_attr;                 /* file's attribute */
+   unsigned short int d_time;          /* file's time */
+   unsigned short int d_date;          /* file's date */
+   long        d_size;                 /* file's size */
+   unsigned short d_ino;               /* serial number (not used) */
+   char        d_first;                /* flag for 1st time */
+#endif
 
    struct _finddata_t _dt;
    char               _mask[_MAX_PATH+1];

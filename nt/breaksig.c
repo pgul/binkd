@@ -24,6 +24,11 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.3  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.2  2002/11/12 16:55:59  gul
  * Run as service under win9x
  *
@@ -123,7 +128,7 @@ BOOL SigHandler(DWORD SigType) {
    }
    exitfunc();
 #ifdef BINKDW9X
-   ExitProcess(0); // Sometime binkd9x exit incorrectly (may be others threads still work)
+   ExitProcess(0); /* Sometime binkd9x exit incorrectly (may be others threads still work) */
 #endif
    return (FALSE);
 }
@@ -134,7 +139,7 @@ BOOL SigHandler(DWORD SigType) {
 /*    Set signal handler                                              */
 /*--------------------------------------------------------------------*/
 
-int set_break_handlers () {
+int set_break_handlers (void) {
    atexit (exitfunc);
 #if BINKDW9X
    CreateWin9xThread((PHANDLER_ROUTINE) &SigHandler);

@@ -58,7 +58,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-//#include "opensslconf.h"
+/* #include "opensslconf.h" */
 #include "md4.h"
 
 #ifndef MD4_LONG_LOG2

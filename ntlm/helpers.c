@@ -107,59 +107,59 @@ int ntlm_encrypt(char *passw, int idx, unsigned char *nonce, unsigned char *lm_r
 }
 
 typedef struct {
-        char    protocol[8];     // 'N', 'T', 'L', 'M', 'S', 'S', 'P', '\0'
-        char    type;            // 0x01
+        char    protocol[8];     /* 'N', 'T', 'L', 'M', 'S', 'S', 'P', '\0' */
+        char    type;            /* 0x01 */
         char    zero1[3];
-        unsigned short   flags;           // 0xb203
+        unsigned short   flags;  /* 0xb203 */
         char    zero2[2];
 
-        short   dom_len1;         // domain string length
-        short   dom_len2;         // domain string length
-        short   dom_off;          // domain string offset
+        short   dom_len1;         /* domain string length */
+        short   dom_len2;         /* domain string length */
+        short   dom_off;          /* domain string offset */
         char    zero3[2];
 
-        short   host_len1;        // host string length
-        short   host_len2;        // host string length
-        short   host_off;         // host string offset (always 0x20)
+        short   host_len1;        /* host string length */
+        short   host_len2;        /* host string length */
+        short   host_off;         /* host string offset (always 0x20) */
         char    zero4[2];
 
-        char    host_dom[1000];  // host string (ASCII) domain string (ASCII)
+        char    host_dom[1000];  /* host string (ASCII) domain string (ASCII) */
 } Type1message;
 
 typedef struct {
-        char    protocol[8];     // 'N', 'T', 'L', 'M', 'S', 'S', 'P', '\0'
-        char    type;            // 0x03
+        char    protocol[8];     /* 'N', 'T', 'L', 'M', 'S', 'S', 'P', '\0' */
+        char    type;            /* 0x03 */
         char    zero1[3];
 
-        short   lm_resp_len;     // LanManager response length (always 0x18)
-        short   lm_resp_len1;    // LanManager response length (always 0x18)
-        short   lm_resp_off;     // LanManager response offset
+        short   lm_resp_len;     /* LanManager response length (always 0x18) */
+        short   lm_resp_len1;    /* LanManager response length (always 0x18) */
+        short   lm_resp_off;     /* LanManager response offset */
         char    zero2[2];
 
-        short   nt_resp_len;     // NT response length (always 0x18)
-        short   nt_resp_len1;    // NT response length (always 0x18)
-        short   nt_resp_off;     // NT response offset
+        short   nt_resp_len;     /* NT response length (always 0x18) */
+        short   nt_resp_len1;    /* NT response length (always 0x18) */
+        short   nt_resp_off;     /* NT response offset */
         char    zero3[2];
 
-        short   dom_len;         // domain string length
-        short   dom_len1;        // domain string length
-        short   dom_off;         // domain string offset (always 0x40)
+        short   dom_len;         /* domain string length */
+        short   dom_len1;        /* domain string length */
+        short   dom_off;         /* domain string offset (always 0x40) */
         char    zero4[2];
 
-        short   user_len;        // username string length
-        short   user_len1;       // username string length
-        short   user_off;        // username string offset
+        short   user_len;        /* username string length */
+        short   user_len1;       /* username string length */
+        short   user_off;        /* username string offset */
         char    zero5[2];
 
-        short   host_len;        // host string length
-        short   host_len1;       // host string length
-        short   host_off;        // host string offset
+        short   host_len;        /* host string length */
+        short   host_len1;       /* host string length */
+        short   host_off;        /* host string offset */
         char    zero6[6];
 
-        short   msg_len;         // message length
+        short   msg_len;         /* message length */
         char    zero7[2];
 
-        unsigned short   flags;           // 0x8201
+        unsigned short   flags;  /* 0x8201 */
         char    zero8[2];
 
         char    data[1024];

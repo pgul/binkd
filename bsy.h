@@ -2,6 +2,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.0  2001/01/10 12:12:37  gul
  * Binkd is under CVS again
  *
@@ -19,7 +24,7 @@ typedef unsigned char bsy_t;
 
 /*
  */
-void bsy_init();
+void bsy_init(void);
 
 /*
  * Test & add a busy-flag. 1 -- ok, 0 -- failed
@@ -38,12 +43,12 @@ void bsy_remove(FTN_ADDR *fa, bsy_t bt);
 /*
  * For exitlist...
  */
-void bsy_remove_all();
+void bsy_remove_all(void);
 
 /*
  * Touchs all our .bsy's if needed
  */
-void bsy_touch ();
+void bsy_touch (void);
 #define BSY_TOUCH_DELAY 60
 
 #endif

@@ -69,7 +69,7 @@
 
 #define DES_LONG unsigned long
 #define DES_LONG_SIZE "long"
-//#include "opensslconf.h" /* DES_LONG */
+/* #include "opensslconf.h" */ /* DES_LONG */
 
 #if defined(VMS) && !defined(__DECC)
 # define OPENSSL_EXTERN globalref
@@ -78,7 +78,7 @@
 # define OPENSSL_EXTERN extern
 # define OPENSSL_GLOBAL
 #endif
-//#include "e_os2.h"	/* OPENSSL_EXTERN */
+/* #include "e_os2.h" */	/* OPENSSL_EXTERN */
 
 #ifdef  __cplusplus
 extern "C" {

@@ -14,6 +14,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.1  2003/02/13 19:44:45  gul
  * Change \r\n -> \n
  *
@@ -23,5 +28,5 @@
  *
  */
 
-int checkservice();
+int checkservice(void);
 int service(int argc, char **argv, char **envp);

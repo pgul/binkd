@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.5  2003/02/28 19:40:47  gul
  * Outbound scan bugfix if defnode used
  *
@@ -915,7 +920,7 @@ static int qn_not_empty (FTN_NODE *fn, void *arg)
   return 0;
 }
 
-FTN_NODE *q_not_empty ()
+FTN_NODE *q_not_empty (void)
 {
   qn_not_empty_arg arg;
 
@@ -930,7 +935,7 @@ FTN_NODE *q_not_empty ()
     return 0;
 }
 
-FTN_NODE *q_next_node ()
+FTN_NODE *q_next_node (void)
 {
   FTN_NODE *fn = q_not_empty ();
 

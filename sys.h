@@ -17,6 +17,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.1  2003/02/22 12:12:34  gul
  * Cleanup sources
  *
@@ -56,7 +61,7 @@
   #include <dos.h>
   #include <process.h>
   #if defined(OS2)
-    int gettid ();
+    int gettid (void);
     #define PID() gettid()
   #elif defined(WIN32)
     #define PID() ((int)(0xffff & GetCurrentThreadId()))
@@ -97,7 +102,7 @@ unsigned long getfree (char *path);
 /*
  * Set up break handler, set up exit list if needed
  */
-int set_break_handlers ();
+int set_break_handlers (void);
 
 /*
  * Runs a new thread or forks

@@ -6,6 +6,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.1  2002/05/11 08:37:32  gul
  * Added token deletedirs
  *
@@ -54,17 +59,17 @@ struct _BSY_ADDR
 
 BSY_ADDR *bsy_list = 0;
 
-void bsy_init ()
+void bsy_init (void)
 {
   InitSem (&sem);
 }
 
-void bsy_deinit ()
+void bsy_deinit (void)
 {
   CleanSem (&sem);
 }
 
-static BSY_ADDR *bsy_get_free_cell ()
+static BSY_ADDR *bsy_get_free_cell (void)
 {
   BSY_ADDR *lst;
 
@@ -182,7 +187,7 @@ void bsy_remove (FTN_ADDR *fa0, bsy_t bt)
 /*
  * For exitlist...
  */
-void bsy_remove_all ()
+void bsy_remove_all (void)
 {
   char buf[MAXPATHLEN + 1], *p;
   BSY_ADDR *bsy;
@@ -216,7 +221,7 @@ void bsy_remove_all ()
 /*
  * Touchs all our .bsy's if needed
  */
-void bsy_touch ()
+void bsy_touch (void)
 {
   static time_t last_touch = 0;
 

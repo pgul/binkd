@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.2  2002/05/06 19:25:40  gul
  * new keyword inboundCase in config
  *
@@ -119,7 +124,7 @@ int create_empty_sem_file (char *s);
 
 /*
  */
-unsigned long rnd ();
+unsigned long rnd (void);
 
 /*
  * Makes all dirs in the path
@@ -158,7 +163,7 @@ int trunc (char *);
 /*
  * Get the string with OS name/version
  */
-char *get_os_string ();
+char *get_os_string (void);
 
 /*
  * Test netnames against some wildcards

@@ -14,6 +14,11 @@
 /* $Id$
  *
  * $Log$
+ * Revision 2.2  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.1  2003/02/22 12:56:00  gul
  * Do not give unsecure mail to secuse link when send-if-pwd
  *
@@ -101,13 +106,13 @@ FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n);
 /*
  * 0 = the queue is empty.
  */
-FTN_NODE *q_not_empty ();
+FTN_NODE *q_not_empty (void);
 
 /*
  * Selects a node to make the next call. (It's alost like
  * q_not_empty(), but it will never select a node twice)
  */
-FTN_NODE *q_next_node ();
+FTN_NODE *q_next_node (void);
 
 /*
  * Selects from q the next file for fa (Returns a pointer to a q element)

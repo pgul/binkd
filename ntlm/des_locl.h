@@ -68,7 +68,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//#include "opensslconf.h"
+/* #include "opensslconf.h" */
 
 #ifndef MSDOS
 #if !defined(VMS) || defined(__DECC)

@@ -8,6 +8,11 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.2  2003/02/28 20:39:09  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.1  2001/10/27 08:31:30  gul
  * minor fix
  *
@@ -109,7 +114,7 @@ typedef unsigned int	*pt_entry_t;
 # endif
 
 # ifndef SPT_PADCHAR
-//#  define SPT_PADCHAR	' '
+/*#  define SPT_PADCHAR	' ' */
 #  define SPT_PADCHAR	'\0'
 # endif
 

@@ -24,6 +24,11 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.4  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.3  2001/09/24 10:31:39  gul
  * Build under mingw32
  *
@@ -74,32 +79,32 @@
 
 
 unsigned long getfree (char *path) {
-char RPN[MAXPATHLEN];	// root path 
-char *pRPN;             // Pointer to Root path
-DWORD SPC;				// sectors per cluster 
-DWORD BPS;				// bytes per sector 
-DWORD FC;				// number of free clusters  
-DWORD TNC;				// total number of clusters  
+char RPN[MAXPATHLEN];	/* root path  */
+char *pRPN;             /* Pointer to Root path */
+DWORD SPC;				/* sectors per cluster */
+DWORD BPS;				/* bytes per sector    */
+DWORD FC;				/* number of free clusters  */
+DWORD TNC;				/* total number of clusters */
 BOOL rc;
 
   pRPN = RPN;
   if (isalpha(path[0]) && path[1] == ':' ) {
-	  // Drive letter
+	  /* Drive letter */
 	  RPN[0] = path[0];
 	  RPN[1] = ':';
 	  RPN[2] = '\\';
 	  RPN[3] = '\0';
   } else if (path[0] == '\\' && path[1] == '\\') {
-	  // UNC path
+	  /* UNC path */
 	  int i;
       RPN[0] = '\\';
 	  RPN[1] = '\\';
 	  i = 2;
-	  // copy server name....
+	  /* copy server name.... */
       do {
 		  RPN[i] = path[i];
 	  } while (path[i++] != '\\');
-      // .... and share name
+      /* .... and share name */
       do {
 		  RPN[i] = path[i];
 	  } while (path[i++] != '\\');
@@ -107,7 +112,7 @@ BOOL rc;
       RPN[i] = '\0';
 
   } else {
-	  // Current Drive
+	  /* Current Drive */
 	  pRPN = NULL;
   }
   rc = GetDiskFreeSpace(pRPN,&SPC,&BPS,&FC,&TNC);

@@ -16,6 +16,11 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.3  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.2  2002/11/13 07:58:19  gul
  * Add CVS macros
  *
@@ -23,7 +28,7 @@
  */
 
 #ifdef BINKDW9X
-//
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <conio.h>
@@ -71,18 +76,20 @@ int win9x_service_cmdline(int argc, char **argv, char **envp);
 void win9x_service_un_install(int type, int argc, char **argv, char **envp);
 void win9x_service_control(int type);
 
-// win9x service support :) :(
+/* win9x service support :) :( */
 typedef DWORD (WINAPI* RSPType)(DWORD, DWORD);
 RSPType RegisterServiceProcess;
-//DWORD WINAPI RegisterServiceProcess(DWORD dwProcessId,    // process identifier
-//                                    DWORD dwServiceType); // type of service
+#if 0
+DWORD WINAPI RegisterServiceProcess(DWORD dwProcessId,  /* process identifier */
+                                    DWORD dwServiceType); /* type of service */
+#endif
 #if !defined(RSP_SIMPLE_SERVICE)
 #define RSP_SIMPLE_SERVICE 0x00000001
-//  Registers the process as a simple service process.
+/*  Registers the process as a simple service process. */
 #endif
 #if !defined(RSP_UNREGISTER_SERVICE)
 #define RSP_UNREGISTER_SERVICE 0x00000000
-//  Unregisters the process as a service process.
+/*  Unregisters the process as a service process. */
 #endif
 
 
@@ -163,7 +170,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         if (r == 0)
                 return binkd_main(__argc, __argv, environ);
 
-// Running as Win9x service (r == 1)
+/* Running as Win9x service (r == 1) */
         for (sp = __argv[0]+strlen(__argv[0])-1;sp>__argv[0];sp--)
                 if ((sp[0] == '\\')||(sp[0] == '/'))
                 {
@@ -281,7 +288,7 @@ void DestroyWin9xThread()
 }
 */
 
-// Win9x service
+/* Win9x service */
 
 int win9x_checkservice(char *srvname)
 {
@@ -410,7 +417,7 @@ int win9x_service_start(char *name)
   return k!=0;
 }
 
-int win9x_check_name_all() // Maniac :)
+int win9x_check_name_all(void) /* Maniac :) */
 {
   int prefixlen = strlen(Win9xServPrefix);
   int suffixlen = strlen(Win9xAllSuffix);
@@ -488,8 +495,10 @@ void win9x_service_control(int type)
 
   prefixlen = strlen(Win9xServPrefix);
 
-//  if (!s_control) // View status of service(s)
-//  {
+#if 0
+  if (!s_control) /* View status of service(s) */
+  {
+#endif
   if (!s_quiet)  AllocTempConsole();
 
   if (!s_control)
@@ -583,7 +592,7 @@ void win9x_service_un_install(int type, int argc, char **argv, char **envp)
    return;
   }
 
-// type == 'i'
+/* type == 'i' */
 
   k = 1;
   if (RegOpenKey(HKEY_LOCAL_MACHINE, Win9xRegServ, &hk)!=ERROR_SUCCESS)
@@ -659,8 +668,8 @@ void win9x_service_un_install(int type, int argc, char **argv, char **envp)
   return;
 }
 
-// TempConsole
-void AllocTempConsole()
+/* TempConsole */
+void AllocTempConsole(void)
 {
         if (s_console)
                 return;
@@ -685,7 +694,7 @@ void AllocTempConsole()
         }
 }
 
-void FreeTempConsole()
+void FreeTempConsole(void)
 {
         HANDLE in;
         int hCrt;
@@ -717,5 +726,4 @@ void FreeTempConsole()
         s_console = 0;
 }
 
-//
 #endif        

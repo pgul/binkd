@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2003/02/28 20:39:08  gul
+ * Code cleanup:
+ * change "()" to "(void)" in function declarations;
+ * change C++-style comments to C-style
+ *
  * Revision 2.12  2002/11/14 09:46:59  gul
  * Minor BINKDW9X fix
  *
@@ -214,7 +219,7 @@ int mkpath (char *s)
   return mkpath0 (path);
 }
 
-unsigned long rnd ()
+unsigned long rnd (void)
 {
   static int i;
 
@@ -701,7 +706,7 @@ int trunc (char *path)
 #include <sys/utsname.h>
 #endif
 
-char *get_os_string ()
+char *get_os_string (void)
 {
   static char os[80];
 
