@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.20  2003/02/13 19:31:56  gul
+ * Ignore non-MD5 challanges
+ *
  * Revision 2.19  2003/01/29 20:53:34  gul
  * Assume default domain for remote 4D address
  *
@@ -715,7 +718,7 @@ static int NUL (STATE *state, char *buf, int sz)
 	state->crypt_flag |= THEY_CRYPT;  /* They want crypt mode */
         Log(2, "Remote requests CRYPT mode");
       }
-      if (!strncmp(w, "CRAM-", 5) && !no_MD5 &&
+      if (!strncmp(w, "CRAM-MD5-", 9) && !no_MD5 &&
           state->to && (state->to->MD_flag>=0))
       {
         Log(2, "Remote requests MD mode");
