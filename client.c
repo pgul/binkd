@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.33  2003/04/18 08:30:33  hbrew
+ * Fix memory fault when use proxy. Path from Stas Degteff 2:5080/102
+ *
  * Revision 2.32  2003/04/06 13:50:11  gul
  * dos sleep() realization
  *
@@ -489,8 +492,12 @@ badtry:
         soclose (sockfd);
         sockfd = INVALID_SOCKET;
       }
-      else if (port == oport)
-        *strchr(host, ':') = '\0';
+      else if (port == oport) {
+        char *pp;
+        if( (pp = strchr(host, ':')) ){
+          *pp = '\0';
+        }
+      }
     }
 #endif
   }
