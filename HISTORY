@@ -1,3 +1,7 @@
+2003/10/14 10:20:42 1.0a-238 gul
+readcfg.h,2.24,2.25
+Fixed typo
+
 2003/10/13 11:48:42 1.0a-237 stas
 exitproc.c,2.31,2.32
 Implement true NT service stop sequence
