@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2003/03/31 19:35:16  gul
+ * Clean semaphores usage
+ *
  * Revision 2.10  2003/03/11 11:42:23  gul
  * Use event semaphores for exit threads
  *
@@ -126,6 +129,15 @@ void exitfunc (void)
   bsy_remove_all ();
   sock_deinit ();
   BinLogDeInit ();
+  nodes_deinit ();
+  CleanSem (&hostsem);
+  CleanSem (&varsem);
+  if (LSem) CleanSem (&LSem);
+  CleanEventSem (&eothread);
+  CleanEventSem (&exitcmgr);
+#ifdef OS2
+  CleanSem (&fhsem);
+#endif
   if (*pid_file && pidsmgr == (int) getpid ())
     delete (pid_file);
 }

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2003/03/31 19:35:16  gul
+ * Clean semaphores usage
+ *
  * Revision 2.6  2003/03/11 00:04:25  gul
  * Use patches for compile under MSDOS by MSC 6.0 with IBMTCPIP
  *
@@ -93,6 +96,11 @@ struct _FTN_NODE
  * Call this before all others functions from this file.
  */
 void nodes_init (void);
+
+/*
+ * Call this before exit to free resources.
+ */
+void nodes_deinit (void);
 
 /*
  * Lock and release pNod array

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.17  2003/03/31 19:35:16  gul
+ * Clean semaphores usage
+ *
  * Revision 2.16  2003/03/31 18:22:12  gul
  * Use snprintf() instead of sprintf()
  *
@@ -279,11 +282,12 @@ int create_sem_file (char *name)
 #include <malloc.h>		       /* for _heapchk() */
 #endif
 
+#if defined(HAVE_THREADS) || defined(AMIGA)
+MUTEXSEM LSem = 0;
+#endif
+
 void Log (int lev, char *s,...)
 {
-#if defined(HAVE_THREADS) || defined(AMIGA)
-  static MUTEXSEM LSem;
-#endif
   static int first_time = 1;
   char timebuf[60];
   time_t t;

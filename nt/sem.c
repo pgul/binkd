@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.3  2003/03/31 19:35:17  gul
+ * Clean semaphores usage
+ *
  * Revision 2.2  2003/03/11 11:42:23  gul
  * Use event semaphores for exit threads
  *
@@ -86,7 +89,7 @@ int _InitSem(void *vpSem) {
 }
 
 /*--------------------------------------------------------------------*/
-/*    int CleanSem(void)                                              */
+/*    int CleanSem(void *)                                            */
 /*                                                                    */
 /*    Clean Semaphores.                                               */
 /*--------------------------------------------------------------------*/
@@ -97,7 +100,7 @@ int _CleanSem(void *vpSem) {
 }
 
 /*--------------------------------------------------------------------*/
-/*    int LockSem(void)                                               */
+/*    int LockSem(void *)                                             */
 /*                                                                    */
 /*    Wait & lock semaphore                                           */
 /*--------------------------------------------------------------------*/
@@ -112,7 +115,7 @@ int _LockSem(void *vpSem) {
 }
 
 /*--------------------------------------------------------------------*/
-/*    int ReleaseSem(void)                                            */
+/*    int ReleaseSem(void *)                                          */
 /*                                                                    */
 /*    Release Semaphore.                                              */
 /*--------------------------------------------------------------------*/
@@ -124,7 +127,7 @@ int _ReleaseSem(void *vpSem) {
 }
 
 /*--------------------------------------------------------------------*/
-/*    int InitEventSem(void)                                          */
+/*    int InitEventSem(void *)                                        */
 /*                                                                    */
 /*    Initialise Event Semaphores.                                    */
 /*--------------------------------------------------------------------*/
@@ -140,7 +143,7 @@ int _InitEventSem(void *vpSem) {
 }
 
 /*--------------------------------------------------------------------*/
-/*    int PostSem(void)                                               */
+/*    int PostSem(void *)                                             */
 /*                                                                    */
 /*    Post Event Semaphores.                                          */
 /*--------------------------------------------------------------------*/
@@ -151,7 +154,7 @@ int _PostSem(void *vpSem) {
 }
 
 /*--------------------------------------------------------------------*/
-/*    int WaitSem(void)                                               */
+/*    int WaitSem(void *, int)                                        */
 /*                                                                    */
 /*    Wait Event Semaphores.                                          */
 /*--------------------------------------------------------------------*/
@@ -159,6 +162,17 @@ int _PostSem(void *vpSem) {
 int _WaitSem(void *vpSem, int timeout) {
    if (WaitForSingleObject(EvtSem, timeout * 1000l) == WAIT_TIMEOUT)
       return -1;
+   return(0);
+}
+
+/*--------------------------------------------------------------------*/
+/*    int CleanEventSem(void *)                                       */
+/*                                                                    */
+/*    Clean Event Semaphores.                                         */
+/*--------------------------------------------------------------------*/
+
+int _CleanEventSem(void *vpSem) {
+   CloseHandle(EvtSem);
    return(0);
 }
 

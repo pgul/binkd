@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2003/03/31 19:35:16  gul
+ * Clean semaphores usage
+ *
  * Revision 2.6  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -58,7 +61,7 @@
 #include "readcfg.h"
 
 #if defined(HAVE_THREADS) || defined(AMIGA)
-static MUTEXSEM LSem;
+static MUTEXSEM NSem;
 #endif
 
 static int nNod = 0;
@@ -70,17 +73,22 @@ static int nNodSorted = 0;
  */
 void nodes_init (void)
 {
-  InitSem (&LSem);
+  InitSem (&NSem);
 }
 
 void locknodesem (void)
 {
-  LockSem (&LSem);
+  LockSem (&NSem);
 }
 
 void releasenodesem (void)
 {
-  ReleaseSem (&LSem);
+  ReleaseSem (&NSem);
+}
+
+void nodes_deinit(void)
+{
+  if (NSem) CleanSem (&NSem);
 }
 
 /*
@@ -92,7 +100,7 @@ static int node_cmp (FTN_NODE *a, FTN_NODE *b)
 }
 
 /*
- * Sorts pNod array. Must NOT be called if LSem is locked!
+ * Sorts pNod array. Must NOT be called if NSem is locked!
  */
 static void sort_nodes (void)
 {

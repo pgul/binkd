@@ -26,6 +26,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.3  2003/03/31 19:35:16  gul
+ * Clean semaphores usage
+ *
  * Revision 2.2  2003/03/11 09:21:29  gul
  * Fixed OS/2 Watcom compilation
  *
@@ -75,7 +78,7 @@
 /*--------------------------------------------------------------------*/
 
 #if defined(HAVE_THREADS) || defined(AMIGA)
-static MUTEXSEM LSem;		/* =0 removed */
+static MUTEXSEM BLSem;		/* =0 removed */
 #endif
 
 /*--------------------------------------------------------------------*/
@@ -85,7 +88,7 @@ static MUTEXSEM LSem;		/* =0 removed */
 /*--------------------------------------------------------------------*/
 
 void BinLogInit(void) {
-	InitSem(&LSem);
+	InitSem(&BLSem);
 }
 
 /*--------------------------------------------------------------------*/
@@ -95,7 +98,7 @@ void BinLogInit(void) {
 /*--------------------------------------------------------------------*/
 
 void BinLogDeInit(void) {
-	CleanSem(&LSem);
+	CleanSem(&BLSem);
 }
 
 /*--------------------------------------------------------------------*/
@@ -228,9 +231,9 @@ void FDLogStat (STATE *state)
 
 void BinLogStat (char *status, STATE *state)
 {
-  LockSem (&LSem);
+  LockSem (&BLSem);
   TLogStat (status, state);
   FDLogStat (state);
-  ReleaseSem (&LSem);
+  ReleaseSem (&BLSem);
 }
 

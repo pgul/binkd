@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2003/03/31 19:35:16  gul
+ * Clean semaphores usage
+ *
  * Revision 2.6  2003/03/26 13:53:28  gul
  * Fix OS/2 compilation
  *
@@ -111,6 +114,12 @@ int _PostSem (void *);
 
 int _WaitSem (void *, int);
 
+/*
+ *    Clean Event Semaphores.
+ */
+
+int _CleanEventSem (void *);
+
 #if defined(HAVE_THREADS) || defined(AMIGA)
 #define InitSem(vpSem) _InitSem(vpSem)
 #define CleanSem(vpSem) _CleanSem(vpSem)
@@ -119,6 +128,7 @@ int _WaitSem (void *, int);
 #define InitEventSem(vpSem) _InitEventSem(vpSem)
 #define PostSem(vpSem) _PostSem(vpSem)
 #define WaitSem(vpSem, sec) _WaitSem(vpSem, sec)
+#define CleanEventSem(vpSem) _CleanEventSem(vpSem)
 #else		/* Do nothing */
 #define InitSem(vpSem)
 #define CleanSem(vpSem)
@@ -127,6 +137,7 @@ int _WaitSem (void *, int);
 #define InitEventSem(vpSem)
 #define PostSem(vpSem)
 #define WaitSem(vpSem, sec)
+#define CleanEventSem(vpSem)
 #endif
 
 #ifdef HAVE_THREADS
@@ -134,6 +145,7 @@ extern MUTEXSEM hostsem;
 extern MUTEXSEM varsem;
 extern EVENTSEM eothread;
 extern EVENTSEM exitcmgr;
+extern EVENTSEM LSem;
 #define lockhostsem()		LockSem(&hostsem)
 #define releasehostsem()	ReleaseSem(&hostsem)
 #define threadsafe(exp)		LockSem(&varsem); exp; ReleaseSem(&varsem)

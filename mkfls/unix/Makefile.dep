@@ -2,7 +2,7 @@ md5b.o: md5b.c tools.h getw.h sys.h md5b.h prothlp.h ftnq.h Config.h \
   ftnaddr.h ftnnode.h iphdr.h readcfg.h ftndom.h protoco2.h
 binkd.o: binkd.c Config.h sys.h iphdr.h common.h readcfg.h ftnaddr.h \
   ftndom.h ftnnode.h server.h client.h tools.h getw.h bsy.h protocol.h \
-  assert.h binlog.h setpttl.h unix/daemonize.h reapchld.inc
+  assert.h binlog.h setpttl.h sem.h unix/daemonize.h reapchld.inc
 readcfg.o: readcfg.c Config.h common.h iphdr.h sys.h readcfg.h ftnaddr.h \
   ftndom.h ftnnode.h tools.h getw.h ftnq.h srif.h prothlp.h protoco2.h \
   iptools.h assert.h readflo.h

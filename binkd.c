@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.25  2003/03/31 19:35:16  gul
+ * Clean semaphores usage
+ *
  * Revision 2.24  2003/03/11 11:42:23  gul
  * Use event semaphores for exit threads
  *
@@ -155,6 +158,7 @@
 #include "assert.h"
 #include "binlog.h"
 #include "setpttl.h"
+#include "sem.h"
 #ifdef UNIX
 #include "unix/daemonize.h"
 #endif
@@ -486,14 +490,13 @@ int main (int argc, char *argv[], char *envp[])
 
 #ifdef HAVE_FORK
   signal (SIGCHLD, chld);
-#elif defined(HAVE_THREADS)
+#endif
   InitSem (&hostsem);
   InitSem (&varsem);
-  InitEventSem(&eothread);
-  InitEventSem(&exitcmgr);
+  InitEventSem (&eothread);
+  InitEventSem (&exitcmgr);
 #ifdef OS2
   InitSem (&fhsem);
-#endif
 #endif
 
   for (i = 1; i < argc; ++i)
