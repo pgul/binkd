@@ -68,6 +68,7 @@
 #endif
 
 #define DES_LONG unsigned long
+#define DES_LONG_SIZE "long"
 //#include "opensslconf.h" /* DES_LONG */
 
 #if defined(VMS) && !defined(__DECC)

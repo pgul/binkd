@@ -64,12 +64,6 @@ OPENSSL_GLOBAL const char *DES_version="DES";
 
 const char *des_options(void)
 	{
-	static int init=1;
-	static char buf[32];
-
-	if (init)
-		{
-		const char *size;
 #ifdef DES_PTR
   #define PTR "ptr"
 #else
@@ -90,17 +84,16 @@ const char *des_options(void)
 #else
   #define UNROLL "4"
 #endif
-		if (sizeof(DES_LONG) != sizeof(long))
-			size = "int";
-		else
-			size = "long";
-		sprintf(buf, "des(" PTR "," RISC "," UNROLL ",%s)", size);
-		init=0;
+#ifndef DES_LONG_SIZE
+  #define SIZE "long"
+#else
+  #define SIZE DES_LONG_SIZE
+#endif
+	return "des(" PTR "," RISC "," UNROLL "," SIZE ")";
 #undef PTR
 #undef RISC
 #undef UNROLL
-		}
-	return(buf);
+#undef SIZE
 	}
 		
 
