@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.60  2005/03/30 17:35:28  stream
+ * Finally implemented '-noproxy' node option.
+ *
  * Revision 2.59  2005/03/28 10:15:13  val
  * manage proxy/socks via perl-hook on_call()
  *
@@ -247,6 +250,7 @@
 
 #include "readcfg.h"
 #include "client.h"
+#include "ftnnode.h"
 #include "ftnaddr.h"
 #include "common.h"
 #include "iptools.h"
@@ -466,6 +470,9 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   char host[MAXHOSTNAMELEN + 5 + 1];       /* current host/port */
   unsigned short port;
   const char *save_err;
+#ifdef HTTPS
+  int use_proxy;
+#endif
 
 #ifdef WITH_PERL
   if (!perl_on_call(node, config)) {
@@ -480,7 +487,8 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   memset(&sin, 0, sizeof(sin));
 
 #ifdef HTTPS
-  if (config->proxy[0] || config->socks[0])
+  use_proxy = (node->NP_flag != NP_ON) && (config->proxy[0] || config->socks[0]);
+  if (use_proxy)
   {
     char *sp, *sport;
     strncpy(host, config->proxy[0] ? config->proxy: config->socks, sizeof(host));
@@ -529,7 +537,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       continue;
     }
 #ifdef HTTPS
-    if (!config->proxy[0] && !config->socks[0]) /* don't resolve if proxy or socks specified */
+    if (!use_proxy) /* don't resolve if proxy or socks specified */
 #endif
     {
       if ((hp = find_host(host, &he, &defaddr)) == NULL)
@@ -556,7 +564,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       sin.sin_family = hp->h_addrtype;
       lockhostsem();
 #ifdef HTTPS
-      if (config->proxy[0] || config->socks[0])
+      if (use_proxy)
       {
 	char *sp = strchr(host, ':');
 	if (sp) *sp = '\0';
@@ -624,12 +632,12 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
     }
 #ifdef HAVE_THREADS
 #ifdef HTTPS
-    if (!config->proxy[0] && !config->socks[0])
+    if (!use_proxy)
 #endif
       free_hostent(hp);
 #endif
 #ifdef HTTPS
-    if (sockfd != INVALID_SOCKET && (config->proxy[0] || config->socks[0])) {
+    if (sockfd != INVALID_SOCKET && use_proxy) {
       if (h_connect(sockfd, host, config) != 0) {
         if (!binkd_exit)
           bad_try (&node->fa, TCPERR (), BAD_CALL, config);
@@ -647,7 +655,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 #endif
   }
 #if defined(HAVE_THREADS) && defined(HTTPS)
-  if (config->proxy[0] || config->socks[0])
+  if (use_proxy)
     free_hostent(hp);
 #endif
 
