@@ -7,3 +7,5 @@
 - do not kill attaches (save and ignore) if drive missing (unmounted)
 - no incoming calls under BeOS (file locking problem)
 - no syslog support under BeOS
+- MB-mode, MPWD-mode (FSP-1011)
+- charsets support, unicode
