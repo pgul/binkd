@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.10  2004/10/29 13:05:05  stas
+ * Add diagnostic about free space great 4Tb (win32 only)
+ *
  * Revision 2.9  2004/01/02 15:31:30  stas
  * Fix the minfree token usage and fix getfree() on Win >w95
  *
@@ -108,7 +111,14 @@ unsigned long getfree (char *path) {
                 (PULARGE_INTEGER)&i64FreeBytesToCaller,
                 (PULARGE_INTEGER)&i64TotalBytes,
                 (PULARGE_INTEGER)&i64FreeBytes)
-      ) return i64FreeBytesToCaller.u.HighPart? ULONG_MAX:(unsigned long)(i64FreeBytesToCaller.QuadPart>>10 & ULONG_MAX);
+      ) {
+
+      if( i64FreeBytesToCaller.u.HighPart > 0 ) {
+        Log( 6, "GetDiskFreeSpaceEx() returns too big value (%lu*2^32) and getfree() is return ULONG_MAX (%lu)",i64FreeBytesToCaller.u.HighPart,ULONG_MAX);
+        return ULONG_MAX;
+      }
+      return (unsigned long)(i64FreeBytesToCaller.QuadPart>>10 & ULONG_MAX);
+    }
   }
  }
 
