@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 1.8  2004/03/29 16:26:00  stas
+ * use different icons for window and for systray
+ *
  * Revision 1.7  2004/01/19 08:51:35  hbrew
  * Change icon ID to 1
  *
@@ -50,7 +53,8 @@
 LANGUAGE 0x0, 0x0 /* LANG_NEUTRAL, SUBLANG_NEUTRAL */
 #pragma code_page(1251)
 
-1 ICON "nt/binkd.ico"
+1 ICON "nt/binkd32x32.ico"
+2 ICON "nt/binkd32x32blue.ico"
 
 VS_VERSION_INFO VERSIONINFO
   FILEVERSION MAJOR, MINOR, 0, PATCHLEVEL

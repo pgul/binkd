@@ -20,6 +20,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.19  2004/03/29 16:26:00  stas
+ * use different icons for window and for systray
+ *
  * Revision 2.18  2004/01/19 08:51:35  hbrew
  * Change icon ID to 1
  *
@@ -324,7 +327,7 @@ MUTEXSEM iconsem;
  */
 HICON LoadBinkdIcon(void)
 {
-  static HICON hi=NULL;
+  static HICON hi=NULL,hwi=NULL; /* hi - for tray icon; hwi - for window icon */
 
   LockSem(&iconsem);
 
@@ -351,11 +354,17 @@ HICON LoadBinkdIcon(void)
     Log(12,"Icon for systray is loaded from %s", BINKD_ICON_FILE);
 
   /* Load icon from resource */
-  if (!hi)
   { HMODULE hModule;
     if( (hModule = GetModuleHandle(NULL)) )
-      hi = LoadImage( hModule, MAKEINTRESOURCE(1), IMAGE_ICON,
-                      0, 0, LR_SHARED | LR_LOADTRANSPARENT);
+    {
+      if (!hi)
+      {
+        hi = LoadImage( hModule, MAKEINTRESOURCE(1), IMAGE_ICON,
+                        0, 0, LR_SHARED | LR_LOADTRANSPARENT);
+      }
+      hwi = LoadImage( hModule, MAKEINTRESOURCE(2), IMAGE_ICON,
+                        0, 0, LR_SHARED | LR_LOADTRANSPARENT);
+    }
   }
 
   /* Load standard icon "?" */
@@ -364,9 +373,12 @@ HICON LoadBinkdIcon(void)
       hi = LoadIcon(NULL, IDI_INFORMATION);
   }
 
-  /* Set icon of window */
-  SendMessage(mwnd, WM_SETICON, ICON_SMALL, (LPARAM)hi);
-  SendMessage(mwnd, WM_SETICON, ICON_BIG,   (LPARAM)hi);
+  if (hwi)
+  {
+    /* Set icon of window */
+    SendMessage(mwnd, WM_SETICON, ICON_SMALL, (LPARAM)hwi);
+    SendMessage(mwnd, WM_SETICON, ICON_BIG,   (LPARAM)hwi);
+  }
 
   ReleaseSem(&iconsem);
   return hi;
