@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2002/12/10 22:05:29  gul
+ * binkd/win32 bugfix
+ *
  * Revision 2.9  2002/11/13 07:49:27  gul
  * Fix typo
  *
@@ -291,6 +294,7 @@ int main (int argc, char *argv[], char *envp[])
 #endif
 #if defined(WIN32) && !defined (BINKDW9X)
 	    case 'T':
+	    case 't':
 	      break;
 #endif
 	    case 'P':
