@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.51  2003/07/06 10:34:29  gul
+ * Auto increase patchlevel, set 0.9.6a-40
+ * Migrate workaround of 100% CPU load with winsock from stable branch
+ *
  * Revision 2.50  2003/07/06 10:18:59  gul
  * Auto increase patchlevel, set 0.9.6a-39
  * Increase loglevel for "Watinig for M_GOT" message
@@ -207,7 +211,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-39"
+#define MYVER "0.9.6a-40"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
