@@ -841,10 +841,6 @@ session;
 should inform the remote of aborting the session, for example in such a way:
     M_ERR "DES encription required"
 
-    For such a session not to hang from the BinkD side, a workaround was
-implemented starting with version 0.9.5 producing such a log entry:
-    rerror: ENC DES/CBC 559 (Encrypted session not supported)
-
 
 ----------------------------------------------------------------------------
 
