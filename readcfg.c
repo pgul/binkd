@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2002/12/17 14:02:22  gul
+ * change strcasecmp -> STRICMP
+ *
  * Revision 2.10  2002/12/17 13:00:44  gul
  * Fix previous patch
  *
@@ -313,7 +316,7 @@ static int check_outbox(char *obox)
       if (obox==strstr(obox, pd->path))
       {
         s = obox+strlen(pd->path);
-        if ((*s == '\\' || *s == '/') && strcasecmp(s+1, pd->dir) == 0)
+        if ((*s == '\\' || *s == '/') && STRICMP(s+1, pd->dir) == 0)
           return 1;
       }
 #else
