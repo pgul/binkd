@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.70  2003/10/20 19:17:52  gul
+ * Print optional compiled-in extensions by -vv command-line switch
+ *
  * Revision 2.69  2003/10/19 12:21:46  gul
  * Stream compression
  *
@@ -742,6 +745,39 @@ int main (int argc, char *argv[], char *envp[])
 #endif
 
     printf ("Binkd " MYVER " (" __DATE__ " " __TIME__ "%s)\n", get_os_string ());
+    if (verbose_flag>1) {
+      printf ("Optional extensions:\n");
+#ifdef WITH_ZLIB
+      printf ("	ZLIB\n");
+#endif
+#ifdef WITH_BZLIB2
+      printf ("	BZLIB2\n");
+#endif
+#ifdef ZLIBDL
+      printf ("	ZLIBDL\n");
+#endif
+#ifdef WITH_PERL
+      printf ("	PERL\n");
+#endif
+#ifdef PERLDL
+      printf ("	PERLDL\n");
+#endif
+#ifdef HTTPS
+      printf ("	HTTPS\n");
+#endif
+#ifdef NTLM
+      printf ("	NTLM\n");
+#endif
+#ifdef AMIGADOS_4D_OUTBOUND
+      printf ("	AMIGADOS_4D_OUTBOUND\n");
+#endif
+#ifdef DEBUG
+      printf ("	DEBUG\n");
+#endif
+#ifdef DEBUGCHILD
+      printf (" DEBUGCHILD\n");
+#endif
+    }
     exit (0);
   }
   else if (argc > 1)

@@ -25,7 +25,7 @@
 - debugcfg -> to commandline
 - compression:
   - configurable dll paths
-  - no-compression node switch, remove zallow keyword
+  - no-compression node switch, remove zaccept keyword
   - NZ option for M_GET command - disable compression
 ? ssl
 ? true multibatch mode
