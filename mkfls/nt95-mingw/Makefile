@@ -23,12 +23,12 @@ NTLM_SRC=ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_k
 SRCS=binkd.c readcfg.c tools.c ftnaddr.c ftnq.c client.c server.c protocol.c bsy.c inbound.c nt/breaksig.c branch.c nt/sem.c  ftndom.c ftnnode.c nt/getfree.c srif.c pmatch.c readflo.c prothlp.c iptools.c run.c binlog.c exitproc.c getw.c xalloc.c setpttl.c https.c md5b.c crypt.c nt/TCPErr.c nt/WSock.c $(NT_SERVICE) $(NTLM_SRC) $(BINKD9X_SRC)
 OBJS=${SRCS:.c=.o}
 
-all: binkd.exe
+all: $(BINKDEXE)
 
 .c.o:
 	$(CC) -c $(CFLAGS) -o $*.o $*.c
 
-binkd.exe: $(OBJS)
+$(BINKDEXE): $(OBJS)
 	$(CC) $(BINKD9X_SUBSYSTEM) $(CFLAGS) -o $(BINKDEXE) $(OBJS) -lwsock32
 
 install: all clean
