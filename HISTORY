@@ -1,3 +1,7 @@
+2003/11/21 21:40:07 1.0a-300 stream
+btypes.h,2.1,2.2 ftnnode.c,2.25,2.26 ftnnode.h,2.15,2.16 readcfg.c,2.59,2.60
+Initial support for "-noproxy" node option
+
 2003/11/20 19:56:56 1.0a-299 gul
 bsy.c,2.9,2.10
 Delete empty zone outbound directories with "deletedirs"
