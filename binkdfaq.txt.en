@@ -1,0 +1,780 @@
+        BinkD FAQ
+
+        Frequently Asked Questions on FTN Mailer Binkd
+        Version at Aug 28 2003
+
+    This list of Frequently Asked Questions was compiled from the questions
+that were asked in the Russian echo conference RU.BINKD. Some part of
+the answers is based on the developers' recommendations. Please send
+your comments and updates to Stas Degteff 2:5080/102. This list was
+translated from Russian by Michael Dukelsky 2:5020/1042.
+
+    01. Where Can One Take a Fresh BinkD Version?
+    02. What Is BinkD?
+    03. BinkP Protocol.
+    04. What Is fidonet.net Domain and Why Is It Necessary?
+    05. BinkD Doesn't Connect. What Should I Do?
+    06. How Can BinkD Work via HTTP-proxy?
+    07. How Can BinkD Work via SOCKS-proxy?
+    08. IP-Point: How Can I Make BinkD to Get My Mail From My Bossnode?
+    09. "start_file_transfer: .: Permission denied" Error.
+    10. BinkD/win and Dial-up: Dialing-up and Disconnecting Automatically.
+    10. I Have Changed BinkD Configuration File On-The-Fly. When Will It Be Reloaded?
+    11. How Can BinkD Work With T-mail/IP?
+    12. Is There At Least One Log Analyzer Under Unix?
+    13. BinkD Connects Too Slowly Though I Have a High-Speed LAN.
+    14. Why Does BinkD Not Understand Command Line Options When I Start It From inetd?
+    15. Can One Make a File Request From BinkD?
+    16. How Can I Add BinkD To a Fidonet Box Working With a Modem?
+    17. Flags Are Not Created On Receiving a File, Programs Do Not Start.
+    18. 'skipmask' Keyword Does Not Work.
+    19. BinkD Under DOS.
+    20. BinkD Under Windows 3.x.
+    21. Different FTN Domains in BinkD.
+    22. How Does "domain ... alias-for ..." In The Configuration File Work?
+    23. I Have Found a Bug in BinkD!
+    24. I Want To Talk To Developers.
+    25. I Want To Get Information About Changes In BinkD Immediately!
+
+
+----------------------------------------------------------------------------
+
+
+        Where Can One Take a Fresh BinkD Version, Documentation, FAQ etc.?
+
+    Fileecho AFTNBINKD.
+
+    In Internet:
+
+    Release versions (Pavel Gulchouck 2:463/68):
+    ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/
+    The mirror by Matt Bedynek 1:106/1
+    ftp://fido.thunderdome.ws/pub/mirror/binkd/
+
+    Beta versions:
+    Public CVS
+       :pserver:binkd@cvs.happy.kiev.ua:/cvs , module binkd, empty password
+    ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/snapshot (main)
+    ftp://ftp.grumbler.org/pub/binkd/current (the mirror is refreshed
+                                              at 23:50 UTC+5)
+    Documentation, log analyzers etc.:
+    http://www.doe.carleton.ca/~nsoveiko/fido/binkd/
+
+    Log analyzer by val khokhlov (perl):
+    http://www.vk.kiev.ua/create/soft.html#bnkds
+
+    Man page, binkp description, binaries etc. (Stas Degteff 2:5080/102):
+    http://binkd.grumbler.org/
+
+    This FAQ list:
+    http://binkd.grumbler.org/binkdfaq.shtml.en (or .txt.en)
+
+
+
+----------------------------------------------------------------------------
+
+
+        What Is Binkd?
+
+    Binkd is a fidonet mailer working via Internet and using binkp protocol
+(FSP-1011). This protocol is also supported by such mailers as Argus
+(win32; RitLabs; http://www.ritlabs.com), BForce (unix), Internet Rex
+program (DOS/W32/OS2) and BeeMail (win32; Stephen Proffitt, 1:105/10;
+http://beemail.gexonline.net/)
+
+    Binkd features:
+    - freeware, open source
+    - there are versions for Unix (linux, freebsd, SCO, ...), OS/2 (native
+      & EMX), Windows NT & Windows 95
+    - it can work as daemon in Unix and as service in Windows NT/2000
+    - simple TCP-connection (data integrity is supported at TCP level)
+    - BSO (bink-style outbound)
+    - LBSO (Long BSO)
+    - there is a variant with ASO (Amiga-style outbound) support, it is
+      distributed in a form of patches (see support servers)
+    - path translation in ?LO files (it is used when the outbound resides
+      on a net drive)
+    - personal fileboxes for each node for the files to send and to receive
+    - T-mail-style and The Brake!-style fileboxes are supported
+    - translation of a FTN-address into a domain name (*.fidonet.net) is
+      supported
+    - a password file in the style of T-mail, Bink/+ is supported beginning
+      with version 0.9.4
+    - file requests using SRIF are supported
+    - a flag on receiving files (using a template) may be created
+    - a program on receiving files (using a template) may be started
+    - receiving files (using a template) may be refused beginning with
+      version 0.9.4
+    - working via a HTTP or SOCKS proxy server (beginning with version
+      0.9.3.https)
+    - password encryption (MD5) beginning with 0.9.4 release
+    - traffic encryption beginning with version 0.9.5
+    - the remote node IP-address check for an incoming connection is
+      supported beginning with version 0.9.5
+
+
+----------------------------------------------------------------------------
+
+
+        Binkp Protocol
+
+    The name Binkp means Binkd protocol. It is described in FSP-1011 (FIDOnet
+standard proposal) and port 24554 is assigned for binkp in RFC-1700
+(request for comments, issued by IANA).
+
+    The file tansfer protocol using two-way TCP connection is developed for FTN
+mailer BinkD. On default port 24554 is used.
+
+    There are two versions of the protocol: 1.0 and 1.1. They are backwards
+compatible.  The main difference of version 1.1 is in a possibility of
+making a FREQ during a session.  Besides that binkp 1.1 has at present NR
+option (non-reliable mode dealing with a non-reliable channel) and ND
+option (no dupes mode protecting against repeated file transmission), MD5
+(password hashing), CRYPT (traffic encryption).
+
+    Protocol version 1.1 is supported by BinkD and Internet Rex (version 2.24
+and later), version 1.0 is implemented in Argus (Binkp is implemented there
+with addition of FREQ processing technique of its own).
+
+    One can find the protocol description in Russian (cp866) here:
+http://binkd.grumbler.org/binkp.txt
+
+
+----------------------------------------------------------------------------
+
+
+        What Is fidonet.net Domain and Why Is It Necessary?
+
+    'fidonet.net' is the domain registered for FTN-address to Internet domain
+name translation. It is used primarily at Binkp connections. The address
+1:2/3.4 is translated to the domain name p4.f3.n2.z1.fidonet.net; after
+that binkd (or another IP mailer) obtains the node IP-address by means of
+the operating system. If the domain name exists one can try to set a
+connection.
+
+    Hence the fidonet.net domain policy was compiled: a domain name in the
+fidonet.net zone may be granted to the nodes that are present in the
+nodelist and responding at port 24554 using the binkp protocol twenty four
+hours a day.
+
+
+----------------------------------------------------------------------------
+
+
+        BinkD Doesn't Connect. What Should I Do?
+
+    1. Using telnet command please check whether the remote node responds at
+port 24554.  If a connection is not set check whether your computer is
+connected to the net at this moment (using ping command). If the checks are
+successful then check Binkd configuration. Increasing the loglevel to 6 or
+more can help here.
+
+
+    Here are some examples for node 2:5080/68:
+
+    1.1.
+    (The control characters are removed from the telnet reply and it is
+broken down to lines for the sake of convinience)
+
+    m:\>telnet f68.n5080.z2.fidonet.net 24554
+
+    -.OPT CRAM-MD5-593e3e5411515fc1cf75816bb74e41d0-SYS Academ
+    -ZYZ Alexei Kuklin-LOC Ekaterinburg, Russia-NDL 115200,TCP,BINKP,HUB
+    -%TIME Tue, 20 Feb 2001 15:25:20 +0500- VER binkd/0.9.4/Win32 binkp/1.1
+    - 2:5080/68@fidonet-OPT ND
+
+    M:\>ping f68.n5080.z2.fidonet.net
+
+    Pinging fido68.imp.uran.ru [195.19.130.68] with 32 bytes of data:
+
+    Reply from 195.19.130.68: bytes=32 time=505ms TTL=122
+    Reply from 195.19.130.68: bytes=32 time=555ms TTL=122
+    Reply from 195.19.130.68: bytes=32 time=406ms TTL=122
+    Reply from 195.19.130.68: bytes=32 time=372ms TTL=122
+
+    The node works. Check your Binkd configuration. Maybe the timeout is too
+small (it is the time necessary for setting up a connection, it can be
+evaluated using the delay before response in telnet).
+
+    Another case: telnet connects but ping says "Request timed out".
+
+    M:\>ping f68.n5080.z2.fidonet.net
+
+    Pinging fido68.imp.uran.ru [195.19.130.68] with 32 bytes of data:
+
+    Request timed out.
+    Request timed out.
+    Request timed out.
+    Request timed out.
+
+    It means that ICMP messages are forbidden somewhere between your nodes.
+That does not influence binkd performance.
+
+
+
+    1.2.
+
+    M:\>ping f68.n5080.z2.fidonet.net
+
+    Unknown host f68.n5080.z2.fidonet.net
+
+    Such a reply means that your computer could not find a DNS entry for the
+node.  Check the DNS configuration in your system. If it is correct make
+shure the DNS server works and the remote node address is correct.
+
+
+
+    1.3.
+
+    If ping replies positively but telnet cannot set up a connection it is
+possible that binkd is not started at the remote node currently. Try to ask
+the node's sysop whether his/her binkd is started. If it is started and can
+connect to other nodes then access to port 25554 is denied by the firewall
+of your net. Try to start Binkd via a proxy server (see "How can binkd work
+via HTTP-proxy" and "How can binkd work via SOCKS-proxy").
+
+
+    1.4.
+
+    M:\>ping -w 5000 f68.n5080.z2.fidonet.net
+
+    Pinging fido68.imp.uran.ru [195.19.130.68] with 32 bytes of data:
+
+    Reply from 195.19.130.68: bytes=32 time=3674ms TTL=122
+    Request timed out.
+    Reply from 195.19.130.68: bytes=32 time=4232ms TTL=122
+    Request timed out.
+
+    Telnet sometimes connects to port 24554 but more often it does not.
+
+
+    The node works but the link channel between the partners is overloaded or
+too slow.  Because of that binkd connects not at every try (some IP packets
+are lost) or it does not connect at all (the time to wait the remote node
+reply is too small).  You cannot get it over in the first case because the
+packets are lost in their way and you cannot improve it. In the second case
+one should increase timeouts in the BinkD configuration file (the values
+are in seconds):
+
+    timeout 60
+    connect-timeout 300
+    call-delay 60
+
+    If increasing the values does not help then change your uplink.
+
+
+    1.5.
+    Telnet does not connect to the port 24554 and the remote host does not
+reply to ping.
+
+    The node does not reply. Possible variants are:
+
+    1 - your computer or the remote node is disconnected from the internet at
+the moment or routing is corrupt (the line is broken, power supply is
+switched off, some of the internet providers carries out maintenance work
+etc.) so please make several tries later.
+
+    2 - your computer is in Intranet and getting out to the internet is
+possible only via a proxy server. See "How can binkd work via HTTP-proxy",
+"How can binkd work via SOCKS-proxy".
+
+
+----------------------------------------------------------------------------
+
+
+        How Can BinkD Work via HTTP-proxy?
+
+    It is not a rare case when users go out to the internet from their
+corporate LAN exclusively via the proxy server based at the only computer
+connected to the internet. Thus BinkD cannot make a direct connection to
+the remote node and one must use the proxy server.  Proxy servers support
+was included in versions 0.9.3.https, 0.9.4 and later ones.
+
+    One can use BinkD via a HTTP proxy only if CONNECT host 24554 command is
+allowed in the proxy server or the CONNECT command is allowed for all
+remote ports.  The command is usually used for secure HTTP protocol (URLs
+of the "HTTPS://..." type), it is also known as S-HTTP. Because of that
+such a proxy is quite often referred as a HTTPS proxy.
+
+    If BinkD reports of an authorization error then the necessary command is
+prohibited in the proxy configuration or it is allowed for the port 443
+only (that is inessential for us).
+
+    Suppose the connected to the Internet computer has the IP address
+192.168.0.1 in its LAN and the proxy server at the computer responds on
+port 3128. Here is the line in BinkD configuration file necessary for
+working via the HTTP proxy.
+
+    1. A proxy server without user authorization (no login and password are
+demanded):
+
+    proxy 192.168.0.1:3128
+
+    2. A proxy server with user authorization (it is necessary to type login
+and password, e.g. login "user", password "password"):
+
+    proxy 192.168.0.1:3128/user/password
+
+    3. Microsoft proxy server with NTLM protocol of user authorization (one
+must be inside a domain).  Suppose login is "user", password is "password",
+the user computer is "host" and the domain name is "ntdomain":
+
+    proxy 192.168.0.1:3128/user/password/host/ntdomain
+
+    If the proxy server administrator has allowed connection only to some
+selected ports (usually to port 443) then BinkD reports "Connection
+rejected by proxy". Here is an example:
+
+      31 Mar 16:48:43 [59987] BEGIN, binkd/0.9.3/SOCKS/HTTPS -p BINKD.CFG
+      31 Mar 16:48:43 [59987] clientmgr started
+    + 31 Mar 16:48:43 [40423] call to 2:5000/44@fidonet
+      31 Mar 16:48:43 [40423] trying 195.209.235.3, port 24554...
+      31 Mar 16:48:43 [40423] connected to proxy.osu.ru:24554
+      31 Mar 16:48:44 [40423] Connection rejected by proxy (HTTP/1.0 403 Forbidden)
+    ? 31 Mar 16:48:44 [40423] unable to connect: {13} Permission denied
+
+    In such a case you may try to use http tunnelling for instance with httport
+(one can take it at http://www.htthost.com/).
+
+
+----------------------------------------------------------------------------
+
+
+        How Can BinkD Work via SOCKS-proxy?
+
+    It is not a rare case when users go out to the internet from their
+corporate LAN exclusively via the proxy server based at the only computer
+connected to the internet. Thus BinkD cannot make a direct connection to
+the remote node and one must use the proxy server. Proxy servers support
+was included in version 0.9.4 and the later ones.
+
+    BinkD works with a SOCKS proxy version 4 and 5. The first one does not
+demand an authorization (no login and password), the second one demand it
+as a rule.
+
+    Suppose the connected to the Internet computer has the IP address
+192.168.0.1 in its LAN and the SOCKS server at the computer responds on
+port 1080. Here is the line in BinkD configuration file necessary for
+working via the SOCKS proxy.
+
+    1. A SOCKS server without user authorization (no login and password are
+demanded):
+
+    socks 192.168.0.1:1080
+
+    2. A proxy server with user authorization (it is necessary to type login
+and password, e.g. login "user", password "password"):
+
+    socks 192.168.0.1:1080/user/password
+
+
+----------------------------------------------------------------------------
+
+
+        IP-Point: How Can I Make BinkD to Get My Mail From My Bossnode (Uplink)?
+
+    Make a poll using the command line option -P:
+
+    binkd -P1:2/3 binkd.cfg
+
+    Usually they want BinkD to exit after the session is finished. One can
+use the command line option -p:
+
+    binkd -p -P1:2/3 binkd.cfg
+
+    If BinkD does not exit for a long time after the session has been finished
+then decrease the value of rescan-delay (and sometimes the value of
+timeout).
+
+
+----------------------------------------------------------------------------
+
+
+        "start_file_transfer: .: Permission denied" Error
+
+    You get the message when BinkD cannot open a file for sending indicated in
+some *.?lo file. Most likely the file has a line containing only "."
+because the poll has been made by a command of the type
+
+    echo . >> xxxxyyyy.flo
+
+    (you should change it to "type nul >> xxxxyyyy.flo" or
+"cd . >> xxxxyyyy.flo")
+
+
+----------------------------------------------------------------------------
+
+
+        BinkD/win and Dial-up: Dialing-up and Disconnecting Automatically
+
+    The problem is to configure the fidonet box in such a way that BinkD would
+initiate a telephone call to your Internet provider, get your mail and
+disconnect.
+
+    The solutions:
+
+    1st Solution
+
+    Configure automatic connection and timeout in the dial-up connection
+properties (idle time before hanging up). It is convinient to use a
+non-standard software for dialing-up (Advanced Dialer and others). You
+should start BinkD with a command line option -p periodically (and possibly
+-Paddress for BinkD to make a poll to the address).
+
+    binkd -p -P1:2/3.4  binkd.cfg
+
+
+    2nd Solution
+
+    Use the command line option -p and the batch file where first Remote Access
+Service (RAS) is started then BinkD is started and after BinkD exits RAS is
+stopped.
+
+    Two variants, for Windows NT and for Windows 2000:
+    === binkdpoll1.cmd
+    rasdial Connection
+    binkd -p binkd.cfg
+    rasdial Connection /disconnect
+    ===
+
+    === binkdpoll2.cmd
+    net start "remote access service"
+    net start "remote access auto service"
+    binkd -p binkd.cfg
+    net stop "remote access auto service"
+    net stop "remote access service"
+    ===
+
+    3rd Solution (The Best One For Win9x)
+
+    Use the command line options -p ¨ -Paddress and control connection with a
+non-standard dial-up software (for example dialerp).  This solution is the
+most reliable one (especially if the modem connection to your Internet
+provider is bad) due to the fact that dialerp can start some indicated
+programs at setting the connection.  Here is the batch file you should
+start in the 'Execute' parameter of the dialerp configuration file:
+
+    ====
+    binkd -p -P1:2/3.4  binkd.cfg
+    dialerp BREAK *
+    ====
+
+    The question you may now ask: Where can I take dialerp? The answer is: Ask
+the author (Alexander Vedjakin, 2:5020/540) or look for it in fileecho
+archives and in ftp/http.
+
+
+    In any case you should set a small value for 'rescan-delay' parameter in
+the BinkD configuration file. Binkd would exit faster.
+
+    === binkd.cfg
+    # Outbound rescans period (sec)
+    rescan-delay 2
+    ===
+
+
+----------------------------------------------------------------------------
+
+
+        I Have Changed BinkD Configuration File On-The-Fly. When Will It Be Reloaded?
+
+    Beginning with the version 0.9.1 BinkD could feel that its configuration
+file changed. It exited with code 3 if it had been started with option -C.
+Modification time was checked after each ingoing session. Here is the batch
+file for starting BinkD versions 0.9.1-0.9.3 and 0.9.4/w32:
+
+    ====
+    :aaa
+    binkd -C binkd.cfg
+    if errorlevel 4 goto end
+    if errorlevel 3 goto aaa
+    :end
+    ====
+
+    In the versions 0.9.4/unix and /os2-emx (and in these ones only) BinkD
+restarts automatically if it is started with -C command line option.
+Besides that beginning with version 0.9.4 the files included into the
+configuration file with the help of 'include' keyword are tested not only
+on incoming sessions but also in every 'rescan-delay' seconds.
+
+    If you install BinkD 0.9.4/w32 as a Windows NT service you should use it
+with -C command line option.  Then BinkD re-reads its configuration file.
+
+    Before version 0.9.4 changes in the configuration file were not tested if
+BinkD was started in client-only mode (-c command line option).
+
+    In the version 0.9.5/unix configuration file is re-read on SIGHUP signal by
+the command
+    kill -HUP `cat /var/run/binkd.pid`
+
+    In the version 0.9.6 configuration file is re-read automatically if
+changed. Binkd tests on changes at every 'rescan-delay' seconds.
+
+
+----------------------------------------------------------------------------
+
+
+        How Can BinkD Work With T-mail/IP?
+
+    There is no way to do it. The protocols differ in essence: BinkD uses BinkP
+protocol whereas T-mail/IP uses EMSI etc.
+
+
+----------------------------------------------------------------------------
+
+
+        Is There At Least One Log Analyzer Under Unix?
+
+    There exist many Perl scripts. For example here:
+
+    binkdstat version 0.1 beta4  6.01.2002
+    Statistics generator for BinkD
+    (c) Dmitry Sergienko, 2:464/910@fidonet, trooper@unity.net 14.08.2000
+    http://www.unity.net/~trooper/fido/binkdstat
+
+    You can find several different generators at Nick Soveiko's site:
+http://www.doe.carleton.ca/~nsoveiko/fido/binkd/statistics_generators/
+
+
+----------------------------------------------------------------------------
+
+
+        BinkD Connects Too Slowly (~20 Seconds) Though I Have a High-Speed LAN
+
+    It is possible that 'backresolv' parameter is on (for logging the remote
+host domain name) and DNS is not configured.
+
+    The simplest solution is to comment the 'backresolv' out in the
+configuration file.  Configuring DNS is a more complex solution.
+
+
+----------------------------------------------------------------------------
+
+
+        Why Does BinkD Not Understand Command Line Options When I Start It From
+    inetd?
+
+    You should use the program name as the first parameter in inetd.conf (it
+may be any line for BinkD), the second and the following parameters are the
+command line options (-iqs etc.) and the last parameter is the
+configuration file full path:
+
+    binkp stream tcp nowait root /usr/fido/binkd binkd -isq /usr/fido/binkd.cfg
+
+    If you do not use -q option the you should switch console output off
+(comment 'printq', 'percents', 'conlog' out).
+
+
+----------------------------------------------------------------------------
+
+
+        Can One Make a File Request From BinkD?
+
+    It's a piece of cake! Configure BinkD for calling an external file request
+processor supporting SRIF (e.g. Allfix). Please read the "!SRIF.TXT" file
+and the comment to 'exec' in the configuration file.
+
+    Here are the examples of lines in configuration file for DOS-based OS and
+for *nix (you should use regular expressions in the latter case):
+
+    exec "\\ftn\\allfix\\allfix.exe RP -SRIF *S" *.req
+
+    exec "/ftn/bin/tmafreq *S" *.[rR][eE][qQ]
+
+
+----------------------------------------------------------------------------
+
+
+        How Can I Add BinkD To a Fidonet Box Working With a Modem?
+
+    You must configure your modem mailer and tosser for BSO (binkley-style
+outbound) mode so that all of them including BinkD would have the same
+inbound directories (and also the same outbound directories). If your
+mailer can work with AMA (arcmail-attach) only you have to change your
+mailer.
+
+
+----------------------------------------------------------------------------
+
+
+        Flags Are Not Created On Receiving a File, Programs Do Not Start
+
+    For sure you have a wrong template in the configuration file. You have to
+use it this way (the first two lines are for Windows and OS/2, the rest are
+for the Unix-like OS):
+
+    flag m:\\ftn\\flg\\pntseg.flg m:\\\\ftn\\\\inbound\\\\sec\\\\pntstr*.*
+    flag m:\\ftn\\flg\\toss.flg *.su? *.mo? *.tu? *.we? *.th? *.fr? *.sa? *.pkt
+
+    exec "/usr/local/bin/ftrack -c /fido/conf/ftrack" *.[Pp][Kk][Tt]
+    flag "/ftn/flg/echo-in" /ftn/inboundsec/*.[Ss][Uu][0-9A-Za-z]
+    flag "/ftn/flg/echo-in" /ftn/inboundsec/*.[Mm][Oo][0-9A-Za-z]
+    flag "/ftn/flg/echo-in" /ftn/inboundsec/*.[Tt][Uu][0-9A-Za-z]
+    flag "/ftn/flg/echo-in" /ftn/inboundsec/*.[Ww][Ee][0-9A-Za-z]
+    flag "/ftn/flg/echo-in" /ftn/inboundsec/*.[Tt][Hh][0-9A-Za-z]
+    flag "/ftn/flg/echo-in" /ftn/inboundsec/*.[Ff][Rr][0-9A-Za-z]
+    flag "/ftn/flg/echo-in" /ftn/inboundsec/*.[Ss][Aa][0-9A-Za-z]
+    flag "/ftn/flg/fech-in" /ftn/inboundsec/*.[Tt][Ii][Cc]
+
+    You must use the full path with four slashes for the file to receive or the
+template should start with an asterisk character. You must use two slashes
+for the flag file.
+
+    You must use the full path because using a filename without path means the
+event of receiving the file in the current directory and not in the inbound
+directory. If a template begins with "*" then it means "any directory".
+(and since all the files are received in one of the inbound directories it
+works for both password protected and for unprotected sessions).
+
+    In a UNIX-like OS you should take into account that filenames are case
+sensitive. Please use regular expressions in templates.
+
+
+----------------------------------------------------------------------------
+
+
+        'skipmask' Keyword Does Not Work
+
+    A filename is compared without path and case sensitive when 'skipmask' is
+used.
+
+
+----------------------------------------------------------------------------
+
+
+        BinkD Under DOS
+
+    Victor Pashkevich (2:451/30) has ported BinkD 0.9.2 for MS DOS. Since March
+2003 the latest ported version is officially supported and it is included
+into the CVS source tree.
+
+    BinkD 0.9.2/dos sources:
+    http://www.doe.carleton.ca/~nsoveiko/fido/binkd/0.9.2/
+
+    The sources and binaries of binkd 0.9.2/dos and binkd 0.9.5/dos (they may
+be not the latest):
+    http://www.n451.z2.fidonet.net/binkd/
+
+    The latest sources are on the CVS server.
+
+    The DOS version has the feature of not supporting a net and every possible
+implementation uses one of the IP stacks developed by an independant
+producer. The implementation by Victor Pashkevich works with the drivers of
+IBM TCP/IP version 2.1 only. One can find them here:
+
+    http://www.ibm.com
+    http://binkd.grumbler.org/tcpdos21.rar
+    ftp://ftp.grumbler.org/pub/tcpdos/tcpdos21.rar
+
+    You may also make a file request for tcpdos21.rar from 2:5080/102.
+
+    Besides everybody may port BinkD for the version of IP drivers for DOS
+he/she has :-). The sources are in the Internet and in the fileecho (see
+"Where Can One Take a Fresh BinkD Version?")
+
+
+----------------------------------------------------------------------------
+
+
+        BinkD Under Windows 3.x
+
+    Sergey Zharsky (zharik@usa.net) ported binkd 0.9.2 for Windows 3.x using
+Trumpet Winsock.
+
+    The sources and the binaries:
+    http://www.doe.carleton.ca/~nsoveiko/fido/binkd/0.9.2/
+
+
+----------------------------------------------------------------------------
+
+
+        Different FTN Domains in BinkD
+
+    Suppose there are two domains (with different zone numbers though it does
+not matter).  Mail can be successfully sent to the first domain but not to
+the second one.
+
+    domain fidonet c:\\ftn\\outbound\\fido 2
+    domain omeganet c:\\ftn\\outbound\\omega 11
+    address 2:5070/222@fidonet 11:58/6@omeganet
+
+    One must configure not the default zone for 'domain' keyword but the zone
+that should not be added to the outbound name (i.e. for the zone denoted in
+the 'domain' line outbound extensions are not treated).
+
+    If your tosser created bundles for omeganet in omega directory then you
+should write 11.  But since it creates them in omega.00b (or how do you
+name it?) you should write 2 this way:
+
+    domain fidonet c:\\ftn\\outbound\\fido 2
+    domain omeganet c:\\ftn\\outbound\\omega 2
+    address 2:5070/222@fidonet 11:58/6@omeganet
+
+
+----------------------------------------------------------------------------
+
+
+        How Does "domain ... alias-for ..." In The Configuration File Work?
+
+    An alias is taken into consideration when the remote site address is
+analyzed.
+
+    Example:
+    domain fidonet.net alias-for fidonet
+
+    'fidonet.net' in the remote site address will be changed to 'fidonet' and
+address 1:2/3.4@fidonet.net will be dealt with as 1:2/3.4@fidonet.
+
+
+----------------------------------------------------------------------------
+
+
+        I Have Found a Bug in BinkD!
+
+    Try to refresh your BinkD version (it is possible that the bug has already
+been fixed).  If it did not help please write to developers:
+
+    binkd-bugs@happy.kiev.ua
+    Pavel Gulchouck 2:463/68
+
+    Mailing list binkd-dev@happy.kiev.ua
+
+    In your message please describe in detail the situation when the error
+happens. Please do not forget to mention your BinkD version and to cite a
+piece of detailed log (loglevel more than 5).
+
+
+----------------------------------------------------------------------------
+
+
+        I Want To Talk To Developers
+
+    Dmitry Malov who is the author of the first BinkD versions does not develop
+it any more now.  Beginning with year 2000-2001 the project is coordinated
+by Pavel Gulchouck 2:463/68 (Pavel Gulchouck <gul@gul.kiev.ua>). He also
+writes the most part of the code.
+
+    There is a mailing list for developers and testers:
+
+    binkd-dev@happy.kiev.ua.
+
+    To subscribe to it write a message:
+
+    To: majordomo@happy.kiev.ua
+    Subject:
+
+    subscribe binkd-dev
+
+
+----------------------------------------------------------------------------
+
+
+        I Want To Get Information About Changes In BinkD Immediately!
+
+    Please subscribe to the mailing list binkd-diffs@happy.kiev.ua: the
+changes in the sources are sent here (you may also test patches for errors).
+You may read how to subscribe in the previous answer.
+
+    For discussion binkd, dialogue of the users and developers exist two 
+FIDOnet echomail conferences: russian RU.BINKD and BINKD (international,
+english). Search on echomail hubs :).
