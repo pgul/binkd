@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12.2.2  2003/08/28 07:38:09  gul
+ * Cosmetics in log
+ *
  * Revision 2.12.2.1  2003/08/27 06:46:37  gul
  * Migrate from stable branch:
  * remove partial if received part more then total size,
@@ -235,7 +238,7 @@ int find_tmp_name (char *s, char *file, off_t size,
 	}
 	else if (kill_dup_partial_files && i < nfa)
 	{
-	  Log (4, "dup partial file (%s):", w[0]);
+	  Log (5, "dup partial file %s removed", w[0]);
 	  remove_hr (s);
 	}
       }
