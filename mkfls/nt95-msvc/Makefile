@@ -48,7 +48,7 @@ LDEBUG=    /incremental:yes /map:"$(OUTDIR)\$(BINKDEXE).map" /debug
 !endif
 
 !ifdef DEBUGCHILD
-DEBUGCHILD_CDEFS=-D"CDEBUGCHILD"
+DEBUGCHILD_CDEFS= -D"DEBUGCHILD"
 !endif
 
 !ifdef PERL
