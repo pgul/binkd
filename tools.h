@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.27  2004/08/03 20:46:46  gul
+ * Use localtime_r() and gmtime_r() if exists
+ *
  * Revision 2.26  2004/01/08 13:07:40  val
  * use new pkt header parsing function in check-pkthdr, remove older function
  *
@@ -285,9 +288,18 @@ char *makeinboundcase (char *s, enum inbcasetype inbcase);
 /*
  * Thread-safe localtime & gmtime functions
  */
-struct tm *safe_localtime(time_t *t, struct tm *tm);
-struct tm *safe_gmtime(time_t *t, struct tm *tm);
+#ifdef WIN32
 time_t safe_time(void);
+#else
+#define safe_time()		time(NULL)
+#endif
+#ifdef HAVE_LOCALTIME_R
+#define safe_localtime(t, tm)	localtime_r(t, tm)
+#define safe_gmtime(t, tm)	gmtime_r(t, tm)
+#else
+struct tm *safe_gmtime(time_t *t, struct tm *tm);
+struct tm *safe_localtime(time_t *t, struct tm *tm);
+#endif
 int tz_off(time_t t, int tzoff);
 
 

@@ -18,7 +18,7 @@ dnl Checks for typedefs, structures, and compiler characteristics.
 
 dnl Checks for library functions.
 AC_CHECK_FUNCS(snprintf vsnprintf vsyslog waitpid statvfs statfs uname)
-AC_CHECK_FUNCS(daemon setsid getopt)
+AC_CHECK_FUNCS(daemon setsid getopt localtime_r)
 
 dnl Checks for libraries.
 AC_CHECK_FUNC(socket)
@@ -115,7 +115,7 @@ dnl -------------------------------------------------------------------------
 dnl Optional features
 
 AC_ARG_WITH(debug,
-            [  --with-debug[=nofork]   produce debug info (default no)],
+            [  --with-debug[[=nofork]]   produce debug info (default no)],
             do_debug=$withval, do_debug=no)
 
 AC_ARG_WITH(https,
@@ -222,7 +222,7 @@ case x$do_perl in
 esac
 
 AC_ARG_WITH(zlib,
-            [  --with-zlib[=path]      zlib compression (default auto)],
+            [  --with-zlib[[=path]]      zlib compression (default auto)],
             [do_zlib=$withval], 
             [do_zlib=auto])
 
@@ -285,7 +285,7 @@ if test ".$do_zlib" != ".no" ; then
 fi
 
 AC_ARG_WITH(bzip2,
-            [  --with-bzip2[=path]     bzip2 compression (default auto)],
+            [  --with-bzip2[[=path]]     bzip2 compression (default auto)],
             [do_bzip2=$withval], 
             [do_bzip2=auto])
 

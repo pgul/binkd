@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.63  2004/08/03 20:46:46  gul
+ * Use localtime_r() and gmtime_r() if exists
+ *
  * Revision 2.62  2004/02/07 14:06:06  hbrew
  * Macros: RTLDLL-->RTLSTATIC, BINKDW9X-->BINKD9X
  *
@@ -439,11 +442,13 @@ int create_sem_file (char *name, int errloglevel)
 #include <malloc.h>		       /* for _heapchk() */
 #endif
 
+#ifndef HAVE_LOCALTIME_R
 struct tm *safe_gmtime(time_t *t, struct tm *tm)
 {
   threadsafe(memcpy(tm, gmtime(t), sizeof(*tm)));
   return tm;
 }
+#endif
 
 #ifdef WIN32
 #include <windows.h>
@@ -503,7 +508,10 @@ time_t safe_time(void)
   }
   return t;
 }
+#endif
 
+#if !defined(HAVE_LOCALTIME_R)
+#ifdef WIN32
 struct tm *safe_localtime(time_t *t, struct tm *tm)
 {
   FILETIME utcftime, localftime;
@@ -524,11 +532,7 @@ struct tm *safe_localtime(time_t *t, struct tm *tm)
   threadsafe(memcpy(tm, localtime(t), sizeof(*tm)));
   return tm;
 }
-
-time_t safe_time(void)
-{
-  return time(NULL);
-}
+#endif
 #endif
 
 void InitLog(int loglevel, int conlog, char *logpath, void *first)
