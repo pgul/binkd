@@ -1,3 +1,7 @@
+2004/01/07 12:13:30 1.0a-350 gul
+binkd.c,2.82,2.83
+Fix usage output
+
 2004/01/04 18:55:04 1.0a-349 stas
 service.c,2.50,2.51 w32tools.h,2.10,2.11 win9x.c,2.25,2.26
 Move declarations of the 'binkd_main' into one place (nt/w32tools.h)
