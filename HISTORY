@@ -1,3 +1,7 @@
+2004/11/22 17:51:20 1.0a-437 stas
+readcfg.c,2.80,2.81
+Change error level to -1 for the config file parameter error (binkd/w32 will display message box with error message)
+
 2004/11/21 14:18:32 1.0a-436 val
 protoco2.h,2.21,2.22 protocol.c,2.165,2.166
 bandwidth limiting code is now implemented for receiving too
