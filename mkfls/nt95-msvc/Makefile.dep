@@ -5,6 +5,7 @@ $(OUTDIR)\binkd.obj: \
 	"bsy.h" \
 	"client.h" \
 	"common.h" \
+	"confopt.h" \
 	"ftnaddr.h" \
 	"ftndom.h" \
 	"ftnnode.h" \
@@ -22,7 +23,7 @@ $(OUTDIR)\binkd.obj: \
 	"perlhooks.h" \
 !endif
 !ifdef ZLIB
-        "compress.h" \
+	"compress.h" \
 !endif
 	"nt\service.h" \
 	"nt\win9x.h" \
