@@ -1,3 +1,7 @@
+2003/11/19 20:07:24 1.0a-297 gul
+perlhooks.c,2.40,2.41
+Use foreach_node() for fill %node hash
+
 2003/11/17 03:03:31 1.0a-296 hbrew
 confopt.h,2.2,2.3 tools.c,2.56,2.57
 Fix BINKDW9X macro
