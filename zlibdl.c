@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2004/01/08 12:46:01  val
+ * correct macrodef for msvc (_msc_ver instead of __msc__)
+ *
  * Revision 2.14  2003/10/29 21:08:40  gul
  * Change include-files structure, relax dependences
  *
@@ -54,7 +57,7 @@
 
 #ifdef WIN32
 #include <windows.h>
-#ifdef __MSC__
+#ifdef _MSC_VER
 #pragma optimize("", off)
 #endif
 #endif

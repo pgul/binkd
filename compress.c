@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2004/01/08 12:46:01  val
+ * correct macrodef for msvc (_msc_ver instead of __msc__)
+ *
  * Revision 2.3  2003/12/10 11:12:10  gul
  * Minor fix in decompression deinit
  *
@@ -42,7 +45,7 @@
  *
  */
 
-#if defined(ZLIBDL) && defined(__MSC__)
+#if defined(ZLIBDL) && defined(_MSC_VER)
 #pragma optimize("", off)
 #endif
 
