@@ -1,13 +1,18 @@
 # $Id$
 #
 
-# Usage: make [DEBUG=1] [BINKD9X=1] [PERL=1] [PERLDL=1] [ZLIB=1] [BZLIB2=1]
-#             [DEBUGCHILD=1]
+# Usage: make [DEBUG=1] [BINKD9X=1] [PERL=1] [PERLDL=1]
+#             [ZLIB=1] [BZLIB2=1] [ZLIBDL=1] [DEBUGCHILD=1]
 #
 #
 
 #PERL_BASE=c:/Perl
 #PERL_LIB=perl58
+
+#ZLIB_BASE=../zlib
+#ZLIB_LIB=z
+#BZLIB2_BASE=../bzip2
+#BZLIB2_LIB=bz2
 
 CC=gcc
 
@@ -114,21 +119,54 @@ endif
 
 ifdef ZLIB
 CDEFS+= -DWITH_ZLIB
+ZLIB_BZLIB2=1
+
+ifndef ZLIBDL
+ifdef ZLIB_BASE
+C_DIRS+= -I "$(ZLIB_BASE)"
+L_DIRS+= -L "$(ZLIB_BASE)"
+endif
+ifndef ZLIB_LIB
+ZLIB_LIB=z
+endif
+LIBS+= -l"$(ZLIB_LIB)"
+BINKDNAME:=$(BINKDNAME)-zlib
+OUTDIR:=$(OUTDIR)-zlib
+BINKDTYPE:=$(BINKDTYPE), zlib
+else
 BINKDNAME:=$(BINKDNAME)-zlibdl
 OUTDIR:=$(OUTDIR)-zlibdl
 BINKDTYPE:=$(BINKDTYPE), zlibdl
-ZLIB_BZLIB2=1
 endif
+endif
+
 ifdef BZLIB2
 CDEFS+= -DWITH_BZLIB2
+ZLIB_BZLIB2=1
+
+ifndef ZLIBDL
+ifdef BZLIB2_BASE
+C_DIRS+= -I "$(BZLIB2_BASE)"
+L_DIRS+= -L "$(BZLIB2_BASE)"
+endif
+ifndef BZLIB2_LIB
+BZLIB2_LIB=bz2
+endif
+LIBS+= -l"$(BZLIB2_LIB)"
+BINKDNAME:=$(BINKDNAME)-bzlib2
+OUTDIR:=$(OUTDIR)-bzlib2
+BINKDTYPE:=$(BINKDTYPE), bzlib2
+else
 BINKDNAME:=$(BINKDNAME)-bzlib2dl
 OUTDIR:=$(OUTDIR)-bzlib2dl
 BINKDTYPE:=$(BINKDTYPE), bzlib2dl
-ZLIB_BZLIB2=1
+endif
 endif
 
 ifdef ZLIB_BZLIB2
+ifdef ZLIBDL
 CDEFS+= -DZLIBDL
+endif
 SRCS+= zlibdl.c
 endif
 
@@ -149,6 +187,20 @@ ifdef PERL
 	@echo "perlincl   : $(PERL_INCL)"
 ifndef PERLDL
 	@echo "perllib    : $(PERL_LIB)"
+endif
+endif
+ifndef ZLIBDL
+ifdef ZLIB
+ifdef ZLIB_BASE
+	@echo "zlibincl   : $(ZLIB_BASE)"
+endif
+	@echo "zliblib    : $(ZLIB_LIB)"
+endif
+ifdef BZLIB2
+ifdef BZLIB2_BASE
+	@echo "bzlib2incl : $(BZLIB2_BASE)"
+endif
+	@echo "bzlib2lib  : $(BZLIB2_LIB)"
 endif
 endif
 	@echo "-----------------------------------------------------------"
