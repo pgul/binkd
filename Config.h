@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10.2.15  2003/10/28 06:02:25  gul
+ * Set version tag 0.9.6
+ *
  * Revision 2.10.2.14  2003/10/24 17:31:55  stas
  * Auto increase patchlevel, set 0.9.5p8-stable
  * Fix pathnames in #include statements
@@ -136,7 +139,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.5p8-stable"
+#define MYVER "0.9.6"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
