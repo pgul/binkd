@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.120  2003/09/15 21:10:09  gul
+ * Fix remote IP check logic
+ *
  * Revision 2.119  2003/09/15 06:57:09  val
  * compression support via zlib: config keywords, improvements, OS/2 code
  *
@@ -1406,28 +1409,29 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
       if (ipok == 1)
       { /* matched */
 	ip_verified = 2;
-      }
-      else if (ipok == 0)
-      { /* unresolvable */
-	if (pn->restrictIP == 2 && ip_verified == 0) /* strict */
-	  ip_verified = -1;
-      } else
-      { /* not matched */
+      } else if (ipok<0 || pn->restrictIP == 2)
+      { /* not matched or unresolvable with strict check */
 	if (pn->pwd && strcmp(pn->pwd, "-") && state->to == 0)
 	{
-	  Log (1, "addr: %s (not from allowed remote address)", szFTNAddr);
+	  if (ipok == 0)
+	    Log (1, "addr: %s (unresolvable)", szFTNAddr);
+	  else
+	    Log (1, "addr: %s (not from allowed remote address)", szFTNAddr);
 	  msg_send2 (state, M_ERR, "Bad source IP", 0);
 	  return 0;
 	} else
 	{ /* drop unsecure AKA with bad IP-addr */
 	  if (ip_verified == 0)
 	    ip_verified = -1;
-	  Log(2, "Addr %s dropped - not from allowed IP", szFTNAddr);
+	  if (ipok == 0)
+	    Log(2, "Addr %s dropped - unresolvable IP", szFTNAddr);
+	  else
+	    Log(2, "Addr %s dropped - not from allowed IP", szFTNAddr);
 	  continue;
 	}
       }
     }
-    else
+    else if (pn)
     { /* no check ip -> reset restrict */
       ip_verified = 1;
     }
