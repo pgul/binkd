@@ -1,3 +1,7 @@
+2003/09/25 09:41:46 0.9.6a-194 val
+protoco2.h,2.14,2.15 zlibdl.c,2.5,2.6 zlibdl.h,2.7,2.8
+fix compilation under win32
+
 2003/09/25 01:14:10 0.9.6a-193 hbrew
 zlibdl.h,2.6,2.7
 Fix cvs macro
