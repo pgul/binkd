@@ -1,3 +1,7 @@
+2003/11/20 19:56:56 1.0a-299 gul
+bsy.c,2.9,2.10
+Delete empty zone outbound directories with "deletedirs"
+
 2003/11/20 18:21:21 1.0a-298 gul
 protocol.c,2.140,2.141
 Bugfix in sending ND-status with compression
