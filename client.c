@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.36  2003/04/25 12:51:18  gul
+ * Fix diagnostics on exit
+ *
  * Revision 2.35  2003/04/22 22:26:17  gul
  * Fix previous patch
  *
@@ -480,8 +483,11 @@ badtry:
       alarm(0);
       signal(SIGALRM, SIG_DFL);
 #endif
-      Log (1, "unable to connect: %s", TCPERR ());
-      bad_try (&node->fa, TCPERR ());
+      if (!binkd_exit)
+      {
+	Log (1, "unable to connect: %s", TCPERR ());
+	bad_try (&node->fa, TCPERR ());
+      }
       del_socket(sockfd);
       soclose (sockfd);
       sockfd = INVALID_SOCKET;
@@ -495,7 +501,8 @@ badtry:
 #ifdef HTTPS
     if (sockfd != INVALID_SOCKET && (proxy[0] || socks[0])) {
       if (h_connect(sockfd, host) != 0) {
-        bad_try (&node->fa, TCPERR ());
+	if (!binkd_exit)
+          bad_try (&node->fa, TCPERR ());
         del_socket(sockfd);
         soclose (sockfd);
         sockfd = INVALID_SOCKET;
