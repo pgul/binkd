@@ -1,3 +1,7 @@
+2003/08/28 10:35:57 0.9.6a-151 gul
+inbound.c,2.21,2.22
+Cosmetics in log
+
 2003/08/28 04:28:56 0.9.6a-150 hbrew
 binkd.c,2.60,2.61
 Fix typo
