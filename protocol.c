@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.161  2004/10/18 15:16:32  gul
+ * Minor bugfix (patch from Victor Levenets <aq@takas.lt>)
+ *
  * Revision 2.160  2004/10/01 09:55:06  gul
  * Fixed memory leak
  * (Reported by Victor Levenets <aq@takas.lt>)
@@ -3220,7 +3223,7 @@ static void banner (STATE *state, BINKD_CONFIG *config)
   if ((!no_MD5) && (!state->to) &&
       ((state->MD_challenge=MD_getChallenge(NULL, state))!=NULL))
   {  /* Answering side MUST send CRAM message as a very first M_NUL */
-    char s[MD5_DIGEST_LEN*2+15]; /* max. length of opt string */
+    char s[MD_CHALLENGE_LEN*2+15]; /* max. length of opt string */
     strcpy(s, "OPT ");
     MD_toString(s+4, state->MD_challenge[0], state->MD_challenge+1);
     state->MD_flag=1;
