@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2003/03/10 10:57:45  gul
+ * Extern declarations moved to header files
+ *
  * Revision 2.14  2003/03/05 13:21:51  gul
  * Fix warnings
  *
@@ -132,14 +135,11 @@
 #include "assert.h"
 #include "Config.h"
 #include "sys.h"
+#include "common.h"
 #include "tools.h"
 #include "readdir.h"		       /* for [sys/]utime.h */
 #include "readcfg.h"
 #include "sem.h"
-
-#if defined(WIN32) && !defined(BINKDW9X)
-extern int isService;
-#endif
 
 /*
  * Lowercase the string
@@ -275,21 +275,8 @@ int create_sem_file (char *name)
 void Log (int lev, char *s,...)
 {
 #if defined(HAVE_THREADS) || defined(AMIGA)
-
   static MUTEXSEM LSem;
-
 #endif
-#if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
-
-  extern int syslog_facility;
-
-#endif
-#if defined(UNIX) || defined(OS2) || defined(AMIGA)
-
-  extern int inetd_flag;
-
-#endif
-
   static int first_time = 1;
   char timebuf[60];
   time_t t;

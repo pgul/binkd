@@ -27,6 +27,9 @@ documentation and/or software.
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/03/10 10:57:45  gul
+ * Extern declarations moved to header files
+ *
  * Revision 2.4  2003/03/05 13:21:50  gul
  * Fix warnings
  *
@@ -416,7 +419,6 @@ MDcaddr_t         digest;              /* caller digest to be filled in */
         MD5Final(digest, &context);          /* finish up 2nd pass */
 }
 /* ---------------------------------------------------------- */
-extern int ext_rand;
 static void getrand(unsigned char *res, int len, STATE *rnd)
 {
   MDcaddr_t digest;

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2003/03/10 10:57:45  gul
+ * Extern declarations moved to header files
+ *
  * Revision 2.8  2003/03/10 10:39:23  gul
  * New include file common.h
  *
@@ -120,6 +123,7 @@ extern enum inbcasetype { INB_SAVE,INB_UPPER,INB_LOWER,INB_MIXED } inboundcase;
 extern int deletedirs;
 extern int havedefnode;
 extern int connect_timeout;
+extern int syslog_facility;
 #ifdef MAILBOX
 /* FileBoxes dir */
 extern char tfilebox[MAXPATHLEN + 1];

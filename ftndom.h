@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/03/10 10:57:45  gul
+ * Extern declarations moved to header files
+ *
  * Revision 2.1  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -43,6 +46,8 @@ struct _FTN_DOMAIN
   FTN_DOMAIN *alias4;
   FTN_DOMAIN *next;
 };
+
+extern FTN_DOMAIN *pDomains;
 
 /*
  * 0 == domain not found

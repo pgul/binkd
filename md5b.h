@@ -27,6 +27,9 @@ documentation and/or software.
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/03/10 10:57:45  gul
+ * Extern declarations moved to header files
+ *
  * Revision 2.3  2003/03/05 13:21:50  gul
  * Fix warnings
  *
@@ -104,6 +107,7 @@ typedef unsigned char MDcaddr_t[MD5_DIGEST_LEN];
 #include "ftnnode.h"
 #include "iphdr.h"
 #include "protoco2.h"
+#include "server.h"
 
 unsigned char *MD_getChallenge(char *src, STATE *st);
 char *MD_buildDigest(char *pw, unsigned char *challenge);

@@ -13,6 +13,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/03/10 10:57:45  gul
+ * Extern declarations moved to header files
+ *
  * Revision 2.1  2003/03/10 10:34:52  gul
  * *** empty log message ***
  *
@@ -68,5 +71,7 @@ extern int pidsmgr;		/* pid for server */
 extern int no_MD5;
 extern int server_flag, client_flag;
 extern int poll_flag;
+extern int inetd_flag;
+extern int isService;
 
 #endif

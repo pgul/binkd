@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2003/03/10 10:57:45  gul
+ * Extern declarations moved to header files
+ *
  * Revision 2.10  2003/03/05 13:21:50  gul
  * Fix warnings
  *
@@ -156,8 +159,6 @@ FTNQ *q_scan (FTNQ *q)
 {
   char *s;
   char buf[MAXPATHLEN + 1], outb_path[MAXPATHLEN + 1];
-
-  extern FTN_DOMAIN *pDomains;
   FTN_DOMAIN *curr_domain;
 
   for (curr_domain = pDomains; curr_domain; curr_domain = curr_domain->next)
