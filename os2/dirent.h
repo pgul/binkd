@@ -16,9 +16,11 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.2  2003/03/01 20:31:59  gul
+ * dos2unix EOL
+ *
  * Revision 2.1  2003/03/01 20:26:36  gul
  * *** empty log message ***
- *
  *
  */
 
