@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.106  2003/08/24 19:42:08  gul
+ * Get FTN-domain from matched zone in exp_ftnaddress()
+ *
  * Revision 2.105  2003/08/24 18:54:30  gul
  * Bugfix in timeout check on win32
  *
@@ -1227,7 +1230,7 @@ static int ADR (STATE *state, char *s, int sz)
     free (w);
 
     if (!fa.domain[0])
-      strcpy (fa.domain, get_def_domain()->name);
+      strcpy (fa.domain, get_matched_domain(fa.z, pAddr, nAddr));
 
     ftnaddress_to_str (szFTNAddr, &fa);
     pn = get_node(&fa, &n);

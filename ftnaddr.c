@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/08/24 19:42:08  gul
+ * Get FTN-domain from matched zone in exp_ftnaddress()
+ *
  * Revision 2.4  2003/08/18 07:35:08  val
  * multiple changes:
  * - hide-aka/present-aka logic
@@ -151,10 +154,6 @@ int parse_ftnaddress (char *s, FTN_ADDR *fa)
     strcpy (fa->domain, (d = get_domain_info (token[i + 1].s)) ?
 	    (d->alias4 ? d->alias4->name : d->name) : token[i + 1].s);
     i += 2;
-    /* val: set default zone for a domain */
-    if (fa->z == -1) {
-      fa->z = (d ? (d->alias4 ? *(d->alias4->z) : *(d->z)) : pAddr[0].z);
-    }
   }
 
   if (token_type (token[i]) != T_NULL ||
@@ -192,14 +191,17 @@ void exp_ftnaddress (FTN_ADDR *fa)
 {
   if (!pAddr)
     Log (0, "you should define your address right after domains");
-  if (fa->z == -1)
-    fa->z = pAddr[0].z;
+  if (fa->z == -1) {
+    /* val: set default zone for a domain */
+    FTN_DOMAIN *d = get_domain_info(fa->domain);
+    fa->z = (d ? (d->alias4 ? *(d->alias4->z) : *(d->z)) : pAddr[0].z);
+  }
   if (fa->net == -1)
     fa->net = pAddr[0].net;
   if (fa->node == -1)
     fa->node = pAddr[0].node;
   if (fa->domain[0] == 0)
-    strcpy (fa->domain, pAddr[0].domain);
+    strcpy (fa->domain, get_matched_domain(fa->z, pAddr, nAddr));
 }
 
 int ftnaddress_cmp (FTN_ADDR *a, FTN_ADDR *b)

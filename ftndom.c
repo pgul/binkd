@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/08/24 19:42:08  gul
+ * Get FTN-domain from matched zone in exp_ftnaddress()
+ *
  * Revision 2.1  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -47,6 +50,24 @@ FTN_DOMAIN *get_domain_info (char *domain_name)
     if (!STRICMP (curr->name, domain_name))
       return curr;
   return 0;
+}
+
+char *get_matched_domain (int zone, FTN_ADDR *pAddr, int nAddr)
+{
+  FTN_DOMAIN *curr;
+  char *p = NULL;
+  int n;
+
+  /* Is it default zone for a domain? */
+  for (curr = pDomains; curr; curr = curr->next)
+    if (!curr->alias4 && curr->z[0] == zone)
+      p = curr->name; /* use last match in chain, first match in config order */
+  if (p) return p;
+  /* Do we have an AKA with this zone? */
+  for (n = 0; n < nAddr; n++)
+    if (zone == pAddr[n].z)
+      return pAddr[n].domain;
+  return pAddr[0].domain;
 }
 
 /*

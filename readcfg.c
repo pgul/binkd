@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.44  2003/08/24 19:42:08  gul
+ * Get FTN-domain from matched zone in exp_ftnaddress()
+ *
  * Revision 2.43  2003/08/23 15:51:51  stream
  * Implemented common list routines for all linked records in configuration
  *
@@ -932,7 +935,7 @@ static int read_aka_list (KEYWORD *key, int wordcount, char **words)
       //if (work_config.pDomains.first == NULL)
       if (!pDomains)
         return ConfigError("at least one domain must be defined first");
-      strcpy (a->domain, get_def_domain (/*&work_config*/)->name);
+      strcpy (a->domain, get_matched_domain(fa.z, pAddr, nAddr));
     }
     ++nAddr;
   }
