@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2003/10/24 06:41:11  val
+ * ZLIBDL fix to restore linking with MSVC (bzlib2 still crashes)
+ *
  * Revision 2.15  2003/10/23 21:16:09  gul
  * Fix MSVC bzlib2 ZLIBDL compilation
  *
@@ -44,60 +47,55 @@
 /* ---------------- zlib stuff --------------- */
 #ifdef WITH_ZLIB
 
-#ifdef ZLIBDL
 #ifdef WIN32
 #define WINDOWS  1
-#ifdef VISUALCPP
-#define ZEXP __stdcall
-#else
 #define ZLIB_DLL 1
-#endif
-#endif
-
-#ifndef ZEXP
-#define ZEXP
-#endif
-
-#define deflateInit_	(ZEXP *dl_deflateInit_)
-#define deflate		(ZEXP *dl_deflate)
-#define deflateEnd	(ZEXP *dl_deflateEnd)
-#define inflateInit_	(ZEXP *dl_inflateInit_)
-#define inflate		(ZEXP *dl_inflate)
-#define inflateEnd	(ZEXP *dl_inflateEnd)
 #endif
 
 #include "zconf.h"
 #include "zlib.h"
+
+#define deflateInit_	(*dl_deflateInit_)
+#define deflate		(*dl_deflate)
+#define deflateEnd	(*dl_deflateEnd)
+#define inflateInit_	(*dl_inflateInit_)
+#define inflate		(*dl_inflate)
+#define inflateEnd	(*dl_inflateEnd)
+
+extern int (*dl_deflateInit_)();
+extern int (*dl_deflate)();
+extern int (*dl_deflateEnd)();
+extern int (*dl_inflateInit_)();
+extern int (*dl_inflate)();
+extern int (*dl_inflateEnd)();
 
 #endif /* WITH_ZLIB */
 
 /* ---------------- bzlib2 stuff --------------- */
 #ifdef WITH_BZLIB2
 
-#ifdef ZLIBDL
-
 #ifdef WIN32
 #define _WIN32    1
+#define BZLIB_DLL 1
 #define BZ_IMPORT 1
-#define BZ2_bzCompressInit	dl_BZ2_bzCompressInit
-#define BZ2_bzCompress		dl_BZ2_bzCompress
-#define BZ2_bzCompressEnd	dl_BZ2_bzCompressEnd
-#define BZ2_bzDecompressInit	dl_BZ2_bzDecompressInit
-#define BZ2_bzDecompress	dl_BZ2_bzDecompress
-#define BZ2_bzDecompressEnd	dl_BZ2_bzDecompressEnd
-#else
+#endif
+
+#include <stdio.h>
+#include "bzlib.h"
+
 #define BZ2_bzCompressInit	(*dl_BZ2_bzCompressInit)
 #define BZ2_bzCompress		(*dl_BZ2_bzCompress)
 #define BZ2_bzCompressEnd	(*dl_BZ2_bzCompressEnd)
 #define BZ2_bzDecompressInit	(*dl_BZ2_bzDecompressInit)
 #define BZ2_bzDecompress	(*dl_BZ2_bzDecompress)
 #define BZ2_bzDecompressEnd	(*dl_BZ2_bzDecompressEnd)
-#endif
 
-#endif
-
-#include <stdio.h>
-#include "bzlib.h"
+extern int (*dl_BZ2_bzCompressInit)();
+extern int (*dl_BZ2_bzCompress)();
+extern int (*dl_BZ2_bzCompressEnd)();
+extern int (*dl_BZ2_bzDecompressInit)();
+extern int (*dl_BZ2_bzDecompress)();
+extern int (*dl_BZ2_bzDecompressEnd)();
 
 #endif /* WITH_BZLIB */
 
