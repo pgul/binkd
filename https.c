@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2003/03/01 18:16:04  gul
+ * Use HAVE_SYS_TIME_H macro
+ *
  * Revision 2.8  2003/02/28 08:53:38  gul
  * Fixed proxy usage
  *
@@ -47,6 +50,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
 #include "Config.h"
 #include "readcfg.h"
 #include "sys.h"

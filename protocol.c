@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.31  2003/03/01 18:16:04  gul
+ * Use HAVE_SYS_TIME_H macro
+ *
  * Revision 2.30  2003/03/01 15:55:02  gul
  * Current outgoing address is now attibute of session, but not node
  *
@@ -170,6 +173,9 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
 
 #include "Config.h"
 #include "sys.h"
