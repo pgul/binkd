@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.86  2004/01/07 21:40:46  stas
+ * Options -i and -u is marked deprecated for win32
+ *
  * Revision 2.85  2004/01/07 13:12:29  gul
  * Update 2003->2004 in copyright notices
  *
@@ -428,11 +431,8 @@ void usage (void)
 #endif
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
 	  "i"
-#elif defined(WIN32)
-	  "iu"
-#if !defined(BINKDW9X)
+#elif defined(WIN32) && !defined(BINKDW9X)
           "T"
-#endif
 #endif
 	  "pqrsvmh] [-P node]"
 #if defined(WIN32)
@@ -451,14 +451,10 @@ void usage (void)
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
 	  "  -i       run from inetd\n"
 #elif defined(BINKDW9X)
-	  "  -i       install Win9x service\n"
-	  "  -u       UNinstall Win9x service\n"
 	  "  -t cmd   (start|stop|restart|status|install|uninstall) service(s)\n"
 	  "  -S name  set Win9x service name, all - use all services\n"
 #elif defined(WIN32)
 	  "  -T       minimize to Tray\n"
-	  "  -i       install WindowsNT service\n"
-	  "  -u       UNinstall WindowsNT service\n"
 	  "  -t cmd   (start|stop|restart|status|install|uninstall) service\n"
 	  "  -S name  set WindowsNT service name\n"
 #endif
@@ -600,6 +596,7 @@ char *parseargs (int argc, char *argv[])
 	      service_name = strdup (optarg);
 	      break;
 	    case 'i': /* install service */
+	      Log(1,"Warning: switch \"-i\" is deprecated, use \"-t install\" instead");
 	      if (isService()) break;
               if ( service_flag==w32_installservice
                 || service_flag==w32_uninstallservice
@@ -614,6 +611,7 @@ char *parseargs (int argc, char *argv[])
 	      break;
 
 	    case 'u': /* uninstall service */
+	      Log(1,"Warning: switch \"-u\" is deprecated, use \"-t uninstall\" instead");
 	      if (isService()) break;
               if ( service_flag==w32_installservice
                 || service_flag==w32_uninstallservice
