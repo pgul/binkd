@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.34  2003/04/22 20:13:49  gul
+ * Fixed possible premature exit in -p mode
+ *
  * Revision 2.33  2003/04/18 08:30:33  hbrew
  * Fix memory fault when use proxy. Path from Stas Degteff 2:5080/102
  *
@@ -243,6 +246,7 @@ void clientmgr (void *arg)
 {
   int pid;
   int q_empty = 1;
+  int n_cl = n_clients;
 
 #ifdef HAVE_FORK
   pidcmgr = 0;
@@ -265,6 +269,7 @@ void clientmgr (void *arg)
       q_free (SCAN_LISTED);
       if (printq)
 	Log (-1, "scan\r");
+      n_cl = n_clients;
       q_scan (SCAN_LISTED);
       q_empty = !q_not_empty ();
       if (printq)
@@ -296,7 +301,7 @@ void clientmgr (void *arg)
       }
       else
       {
-	if (poll_flag && n_clients <= 0 && q_not_empty () == 0)
+	if (poll_flag && n_cl <= 0 && q_not_empty () == 0)
 	{
 	  Log (4, "the queue is empty, quitting...");
 	  break;
