@@ -1,3 +1,7 @@
+2003/10/06 09:30:38 1.0a-207 val
+binkd.cfg,2.27,2.28 zlibdl.c,2.6,2.7
+zlib code fix
+
 2003/10/05 18:06:39 1.0a-206 hbrew
 dirent.h,1.1,1.2 getfree.c,1.1,1.2
 '\r\n' --> '\n'
