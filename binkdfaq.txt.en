@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of July 07 2004
+        Version of September 16 2004
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -39,6 +39,8 @@ from Russian by Michael Dukelsky 2:5020/1042.
     28. What Is the Difference Between BinkD/w32 and BinkD/w9x?
     29. I Miss a Chat in BinkD And I Want To Synchronize Time!
     30. BinkD Receives an Incoming Call Only After an Outgoing One.
+    31. "start_file_transfer: ECHO is off.: No such file or directory" Error.
+    32. How to Create a Poll Correctly.
     A1. I Have Found a Bug in BinkD!
     A2. I Want To Talk To Developers.
     A3. I Want To Get Information About Changes In BinkD Immediately!
@@ -977,6 +979,54 @@ NT service and start it from another service or start it as a usual program
 or stop using such a firewall.
 
 
+----------------------------------------------------------------------------
+
+
+        31. "start_file_transfer: ECHO is off.: No such file or directory" Error.
+
+    One may see the following in the log file:
+    ? 10 Sep 20:37:23 [1664] start_file_transfer: ECHO is on.: No such file
+or directory
+
+    Such a situation may occur when you have created a poll with the command
+    echo >> 12345678.ilo
+
+    The above mentioned line in the log file is the message from the echo 
+command on its current status of the output to the screen. See question 32 
+on how to correctly create a poll. See also question 09.
+
+
+----------------------------------------------------------------------------
+
+
+        32. How to Create a Poll Correctly.
+
+    To create a poll in BSO one should create an empty file NNNNMMMM.ilo,
+NNNNMMMM.clo, NNNNMMMM.dlo or NNNNMMMM.flo. The filename consists of the
+hexadecimal net number (first 4 characters), the hexadecimal node number
+(the characters from 5 to 8), the dot, the flavor attribute character
+(i = immediate, c = crash, d = direct, f = normal) and two characters "lo".
+
+    Certainly you should not create the file, if it already exists. Moreover
+you should not overwrite it to avoid losing your mail.
+
+    The most universal command (it works under DOS, Windows, OS/2, UNIX 
+clones, CP/M and many others) is
+
+    cd . >>NNNNMMMM.flo
+
+    Such a command also works under DOS, Windows, OS/2:
+
+    type nul >>NNNNMMMM.flo
+
+    You may choose one of the following commands for UNIX clones:
+
+    touch NNNNMMMM.flo
+    echo -n "" >>NNNNMMMM.flo
+    >>NNNNMMMM.flo
+    cat /dev/null >>NNNNMMMM.flo
+    
+    
 ----------------------------------------------------------------------------
 
 
