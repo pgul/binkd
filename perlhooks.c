@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.50  2004/11/19 15:58:45  gul
+ * Add dynamic load function used by new errors handler
+ *
  * Revision 2.49  2004/11/19 14:59:38  gul
  * Typo in new perl errors handler
  *
@@ -261,6 +264,9 @@
 # define Perl_sv_setpvn			(*dl_Perl_sv_setpvn)
 # define Perl_av_undef			(*dl_Perl_av_undef)
 # define Perl_hv_fetch			(*dl_Perl_hv_fetch)
+# define Perl_eval_pv			(*dl_Perl_eval_pv)
+# define Perl_newRV			(*dl_Perl_newRV)
+# define Perl_sv_free			(*dl_Perl_sv_free)
 #ifdef OS2
 # define PL_errgv			(*dl_PL_errgv)
 # define PL_stack_sp			(*dl_PL_stack_sp)
@@ -270,6 +276,8 @@
 # define PL_markstack_max		(*dl_PL_markstack_max)
 # define PL_tmps_ix			(*dl_PL_tmps_ix)
 # define PL_tmps_floor			(*dl_PL_tmps_floor)
+# define PL_diehook			(*dl_PL_diehook)
+# define PL_warnhook			(*dl_PL_warnhook)
 # define Perl_sv_setpvf			(*dl_Perl_sv_setpvf)
 # define perl_get_sv			(*dl_perl_get_sv)
 # define perl_get_av			(*dl_perl_get_av)
@@ -298,6 +306,8 @@
 # define Perl_Tscopestack_ix_ptr	(*dl_Perl_Tscopestack_ix_ptr)
 # define Perl_Tmarkstack_ptr    	(*dl_Perl_Tmarkstack_ptr)
 # define Perl_TXpv_ptr			(*dl_Perl_TXpv_ptr)
+# define Perl_Idiehook_ptr		(*dl_Perl_Idiehook_ptr)
+# define Perl_Iwarnhook_ptr		(*dl_Perl_Iwarnhook_ptr)
 # define boot_DynaLoader		(*dl_boot_DynaLoader)
 #endif
 #endif
@@ -314,7 +324,11 @@
 #ifndef get_sv
 #  define get_sv perl_get_sv
 #endif
-  
+
+#ifndef eval_pv
+#  define eval_pv perl_eval_pv
+#endif
+
 #ifndef newSVuv
 #  define newSVuv newSViv
 #endif
@@ -399,6 +413,9 @@ PERL_CALLCONV void	(*dl_Perl_save_int)(pTHX_ int* intp);
 PERL_CALLCONV IV	(*dl_Perl_sv_2iv)(pTHX_ SV* sv);
 PERL_CALLCONV void	(*dl_Perl_av_undef)(pTHX_ AV* ar);
 PERL_CALLCONV void	(*dl_Perl_sv_setpvf_nocontext)(SV* sv, const char* pat, ...)
+PERL_CALLCONV SV*       (*dl_Perl_eval_pv)(pTHX_ const char* p, I32 croak_on_error);
+PERL_CALLCONV SV*       (*dl_Perl_newRV)(pTHX_ SV* pref);
+PERL_CALLCONV void      (*dl_Perl_sv_free)(pTHX_ SV* sv);
 #ifdef CHECK_FORMAT
  __attribute__((format(printf,2,3)))
 #endif
@@ -415,6 +432,9 @@ PERL_CALLCONV XPV** (*dl_Perl_TXpv_ptr)(pTHXo);
 PERL_CALLCONV SV*** (*dl_Perl_Tstack_base_ptr)(pTHXo);
 PERL_CALLCONV I32** (*dl_Perl_Tmarkstack_ptr_ptr)(pTHXo);
 PERL_CALLCONV SV*** (*dl_Perl_Tstack_sp_ptr)(pTHXo);
+PERL_CALLCONV SV**  (*dl_Perl_Idiehook_ptr)(pTHXo);
+PERL_CALLCONV SV**  (*dl_Perl_Iwarnhook_ptr)(pTHXo);
+
 PERL_CALLCONV void (*dl_boot_DynaLoader)(pTHXo_ CV* cv);
 */
 /* below is the prototype with typedef:
@@ -495,6 +515,9 @@ VK_MAKE_DFL(void, dl_Perl_save_int, (pTHX_ int* intp));
 
 VK_MAKE_DFL(IV, dl_Perl_sv_2iv, (pTHX_ SV* sv));
 VK_MAKE_DFL(void, dl_Perl_av_undef, (pTHX_ AV* ar));
+VK_MAKE_DFL(SV*, dl_Perl_eval_pv, (pTHX_ const char* p, I32 croak_on_error));
+VK_MAKE_DFL(SV*, dl_Perl_newRV, (pTHX_ SV* pref));
+VK_MAKE_DFL(void, dl_Perl_sv_free, (pTHX_ SV* sv));
 
 #ifdef OS2
 VK_MAKE_DFL(void, dl_Perl_sv_setpvf, (SV* sv, const char* pat, ...));
@@ -511,6 +534,8 @@ SV** *dl_PL_stack_base;
 I32* *dl_PL_markstack_max;
 I32  *dl_PL_tmps_ix;
 I32  *dl_PL_tmps_floor;
+SV*  *dl_PL_diehook;
+SV*  *dl_PL_warnhook;
 OS2_Perl_data_t *dl_OS2_Perl_data;
 #else
 VK_MAKE_DFL(CV*, dl_Perl_get_cv, (pTHX_ _Const char* name, I32 create));
@@ -528,6 +553,8 @@ VK_MAKE_DFL(I32*, dl_Perl_Ttmps_ix_ptr, (pTHXo));
 VK_MAKE_DFL(I32*, dl_Perl_Ttmps_floor_ptr, (pTHXo));
 VK_MAKE_DFL(I32**, dl_Perl_Tmarkstack_ptr, (pTHXo));
 VK_MAKE_DFL(XPV**, dl_Perl_TXpv_ptr, (pTHXo));
+VK_MAKE_DFL(SV**, dl_Perl_Idiehook_ptr, (pTHXo));
+VK_MAKE_DFL(SV**, dl_Perl_Iwarnhook_ptr, (pTHXo));
 VK_MAKE_DFL(void, dl_boot_DynaLoader, (pTHXo_ CV* cv));
 
 VK_MAKE_DFL(void*, dl_Perl_get_context, (void));
@@ -591,6 +618,9 @@ struct perl_dlfunc { void **f; char *name; } perl_dlfuncs[] = {
   VK_MAKE_DLFUNC(Perl_save_int),
   VK_MAKE_DLFUNC(Perl_sv_2iv),
   VK_MAKE_DLFUNC(Perl_av_undef),
+  VK_MAKE_DLFUNC(Perl_eval_pv),
+  VK_MAKE_DLFUNC(Perl_newRV),
+  VK_MAKE_DLFUNC(Perl_sv_free),
 #ifdef OS2
   VK_MAKE_DLFUNC(perl_get_cv),
   VK_MAKE_DLFUNC(perl_get_sv),
@@ -605,6 +635,8 @@ struct perl_dlfunc { void **f; char *name; } perl_dlfuncs[] = {
   VK_MAKE_DLFUNC(PL_markstack_max),
   VK_MAKE_DLFUNC(PL_tmps_ix),
   VK_MAKE_DLFUNC(PL_tmps_floor),
+  VK_MAKE_DLFUNC(PL_diehook),
+  VK_MAKE_DLFUNC(PL_warnhook),
   VK_MAKE_DLFUNC(OS2_Perl_data),
   VK_MAKE_DLFUNC(Perl_sv_setpvf),
 #else
@@ -629,6 +661,8 @@ struct perl_dlfunc { void **f; char *name; } perl_dlfuncs[] = {
   VK_MAKE_DLFUNC(Perl_Tscopestack_ix_ptr),
   VK_MAKE_DLFUNC(Perl_Tmarkstack_ptr),
   VK_MAKE_DLFUNC(Perl_TXpv_ptr),
+  VK_MAKE_DLFUNC(Perl_Idiehook_ptr),
+  VK_MAKE_DLFUNC(Perl_Iwarnhook_ptr),
   VK_MAKE_DLFUNC(boot_DynaLoader),
 #endif
   { NULL, NULL }
