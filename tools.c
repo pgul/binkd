@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19  2003/03/31 21:27:12  gul
+ * Avoid infinite recursion
+ *
  * Revision 2.18  2003/03/31 20:28:24  gul
  * safe_localtime() and safe_gmtime() functions
  *
@@ -348,8 +351,8 @@ void Log (int lev, char *s,...)
 
   if (first_time == 1)
   {
-    InitSem (&LSem);
     first_time = 2;
+    InitSem (&LSem);
   }
 
   time (&t);
@@ -379,7 +382,7 @@ void Log (int lev, char *s,...)
     FILE *logfile = 0;
     int i;
 
-    LockSem (&LSem);
+    if (lev > 0) LockSem (&LSem);
     for (i = 0; logfile == 0 && i < 10; ++i)
     {
       logfile = fopen (logpath, "a");
@@ -401,7 +404,7 @@ void Log (int lev, char *s,...)
     }
     else
       fprintf (stderr, "Cannot open %s: %s!\n", logpath, strerror (errno));
-    ReleaseSem (&LSem);
+    if (lev > 0) ReleaseSem (&LSem);
   }
 #ifdef WIN32
 #ifdef BINKDW9X
