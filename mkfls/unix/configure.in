@@ -39,7 +39,9 @@ AC_CHECK_SIZEOF(long, 0)
 dnl check for socklen_t
 dnl 
 AC_MSG_CHECKING(for socklen_t)
-AC_TRY_COMPILE([#include <sys/socket.h>], [socklen_t i;], AC_DEFINE(HAVE_SOCKLEN_T) AC_MSG_RESULT(yes), AC_MSG_RESULT(no), AC_MSG_RESULT(cross-compiling. No assumptions made))
+AC_TRY_COMPILE([#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>], [socklen_t i;], AC_DEFINE(HAVE_SOCKLEN_T) AC_MSG_RESULT(yes), AC_MSG_RESULT(no), AC_MSG_RESULT(cross-compiling. No assumptions made))
 
 dnl -------------------------------------------------------------------------
 dnl Signal handling
