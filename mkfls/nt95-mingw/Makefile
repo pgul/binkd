@@ -11,7 +11,7 @@
 
 #ZLIB_BASE=../zlib
 #ZLIB_LIB=z
-#BZLIB2_BASE=../bzip2
+#BZLIB2_BASE=../bzlib2
 #BZLIB2_LIB=bz2
 
 # =============================================================================
