@@ -1,3 +1,7 @@
+2004/11/21 14:18:32 1.0a-436 val
+protoco2.h,2.21,2.22 protocol.c,2.165,2.166
+bandwidth limiting code is now implemented for receiving too
+
 2004/11/21 13:55:44 1.0a-435 val
 readcfg.c,2.79,2.80
 remove old commented code for limit-rate debug output
