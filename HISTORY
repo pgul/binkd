@@ -1,3 +1,7 @@
+2003/10/20 01:44:19 1.0a-255 gul
+protocol.c,2.132,2.133 tools.h,2.22,2.23 xalloc.c,2.3,2.4
+Add xstrcat(), use dynamic strings for OPT
+
 2003/10/20 01:02:40 1.0a-254 gul
 zlibdl.c,2.9,2.10
 OS/2 ZLIBDL fix
