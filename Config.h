@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.106  2003/08/14 07:42:40  val
+ * Auto increase patchlevel, set 0.9.6a-93
+ * vsnprintf() function, taken from libsasl sources
+ *
  * Revision 2.105  2003/08/14 07:40:08  val
  * Auto increase patchlevel, set 0.9.6a-92
  * migrate from vfprintf() to vsnprintf() in Log(), new keyword `nolog'
@@ -454,7 +458,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-92"
+#define MYVER "0.9.6a-93"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
