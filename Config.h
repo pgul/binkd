@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2003/03/11 00:04:25  gul
+ * Use patches for compile under MSDOS by MSC 6.0 with IBMTCPIP
+ *
  * Revision 2.8  2003/03/10 12:16:53  gul
  * Use HAVE_DOS_H macro
  *
@@ -71,8 +74,10 @@
   #ifndef MAXPATHLEN
     #define MAXPATHLEN PATH_MAX
   #endif
-#elif defined (IBMC)
-  #include <stdlib.h>
+#elif defined (IBMC) || defined(__MSC__)
+  #ifndef _MAX_PATH
+    #include <stdlib.h>
+  #endif
   #ifndef MAXPATHLEN
     #define MAXPATHLEN _MAX_PATH
   #endif
@@ -90,7 +95,7 @@
 
 /* Environment */
 #define MAX_ENV_VAR_NAME 256
-#if defined(OS2) || defined(WIN32)
+#if defined(OS2) || defined(WIN32) || defined(DOS)
   #define PATH_SEPARATOR "\\"
 #else
   #define PATH_SEPARATOR "/"
@@ -100,7 +105,7 @@
 #define DEF_PORT 24554
 #define DEF_TIMEOUT (5*60)
 #define MIN_BLKSIZE 128
-#define MAX_BLKSIZE 0x7fff                  /* Don't change! */
+#define MAX_BLKSIZE 0x7fffu                 /* Don't change! */
 #define DEF_BLKSIZE (4*1024u)
 #define MAX_NETNAME 255
 
@@ -117,7 +122,7 @@
 #ifndef O_BINARY
   #define O_BINARY 0
 #endif
-#if defined(__WATCOMC__) || defined(VISUALCPP) || defined(__MINGW32__) || defined(IBMC)
+#if defined(__WATCOMC__) || defined(VISUALCPP) || defined(__MINGW32__) || defined(IBMC) || defined(__MSC__)
   #define MKDIR(s) mkdir(s)
 #else
   #define MKDIR(s) mkdir(s, 0755)
@@ -129,6 +134,8 @@
     #define OS "Win32"
   #elif defined(OS2)
     #define OS "OS2"
+  #elif defined(DOS)
+    #define OS "DOS"
   #endif
 #endif
 

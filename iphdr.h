@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/03/11 00:04:25  gul
+ * Use patches for compile under MSDOS by MSC 6.0 with IBMTCPIP
+ *
  * Revision 2.5  2003/03/10 18:16:10  gul
  * Define socklen_t for win32
  *
@@ -54,6 +57,10 @@
 #endif
 
 #if !defined(WIN32)
+  #if defined(IBMTCPIPDOS)
+    #include <sys/tcptypes.h>
+  #endif
+
   #include <netinet/in.h>
   #include <netdb.h>			    /* One of these two should have
 					     * MAXHOSTNAMELEN */
@@ -103,6 +110,19 @@ const char *tcperr (void);
   #define TCPERR_WOULDBLOCK EWOULDBLOCK
   #define TCPERR_AGAIN EAGAIN
   #define sock_deinit()
+#elif defined(IBMTCPIPDOS)
+const char *tcperr (void);
+
+  #define TCPERR() tcperr()
+  #define TCPERRNO (tcperrno)
+  #include <stdio.h>
+  #include <sys/errno.h>
+  #undef ENAMETOOLONG
+  #undef ENOTEMPTY
+  #define TCPERR_WOULDBLOCK EWOULDBLOCK
+  #define TCPERR_AGAIN EAGAIN
+  #define sock_deinit()
+  typedef int socklen_t;
 #elif defined(WIN32)
 const char *tcperr (void);
 
@@ -114,6 +134,7 @@ const char *tcperr (void);
   #define sock_init() WinsockIni()
   #define sock_deinit() WinsockClean()
   #define soclose(h) closesocket(h)
+  typedef int socklen_t;
 #else
   #include <errno.h>
   #define TCPERR() strerror(errno)
@@ -123,10 +144,6 @@ const char *tcperr (void);
   #define sock_init() 0
   #define sock_deinit()
   #define soclose(h) close(h)
-#endif
-
-#if defined(WIN32)
-  typedef int socklen_t;
 #endif
 
 #if !defined(WIN32)

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22  2003/03/11 00:04:25  gul
+ * Use patches for compile under MSDOS by MSC 6.0 with IBMTCPIP
+ *
  * Revision 2.21  2003/03/10 15:57:52  gul
  * Fixed segfault on unresolvable host
  *
@@ -126,7 +129,7 @@
 #include <dos.h>
 #endif
 #include <process.h>
-#else
+#elif !defined(DOS)
 #error Must define either HAVE_FORK or HAVE_THREADS!
 #endif
 
@@ -172,6 +175,14 @@ void SLEEP (time_t s)
 {
   while (s-- > 0 && !binkd_exit)
     sleep(1);
+}
+#elif defined(__MSC__)
+void SLEEP (time_t s)
+{
+  struct timeval tv;
+  tv.tv_sec = s;
+  tv.tv_usec = 0;
+  select(0, NULL, NULL, NULL, &tv);
 }
 #elif defined(VOID_SLEEP) || !defined(HAVE_FORK)
 #define SLEEP(x) sleep(x)
@@ -500,5 +511,7 @@ static void call (void *arg)
 #ifdef HAVE_THREADS
   threadsafe(--n_clients);
   _endthread();
+#elif defined(DOS)
+  --n_clients;
 #endif
 }

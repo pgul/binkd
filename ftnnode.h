@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/03/11 00:04:25  gul
+ * Use patches for compile under MSDOS by MSC 6.0 with IBMTCPIP
+ *
  * Revision 2.5  2003/03/01 15:55:02  gul
  * Current outgoing address is now attibute of session, but not node
  *
@@ -132,7 +135,7 @@ int add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
 /*
  * Iterates through nodes while func() == 0.
  */
-int foreach_node (int (*func) (FTN_NODE *, void *), void *);
+int foreach_node (int (*func) (FTN_NODE *fn, void *a2), void *a3);
 
 /*
  * Dump node list

@@ -126,7 +126,7 @@ void md4_block_data_order (MD4_CTX *c, const void *p,int num);
  */
 #endif
 
-#include "md32_common.h"
+#include "md32_com.h"
 
 /*
 #define	F(x,y,z)	(((x) & (y))  |  ((~(x)) & (z)))

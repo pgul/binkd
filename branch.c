@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/03/11 00:04:25  gul
+ * Use patches for compile under MSDOS by MSC 6.0 with IBMTCPIP
+ *
  * Revision 2.3  2003/03/10 12:16:53  gul
  * Use HAVE_DOS_H macro
  *
@@ -44,11 +47,11 @@
 #error You cannot define both HAVE_FORK and HAVE_THREADS!
 #endif
 
-#if !defined(HAVE_FORK) && !defined(HAVE_THREADS)
+#if !defined(HAVE_FORK) && !defined(HAVE_THREADS) && !defined(DOS)
 #error Must define either HAVE_FORK or HAVE_THREADS!
 #endif
 
-#ifdef HAVE_THREADS
+#if defined(HAVE_THREADS) || defined(DOS)
 #ifdef HAVE_DOS_H
 #include <dos.h>
 #endif
@@ -138,6 +141,11 @@ again:
   {
     Log (1, "ix_vfork: %s", strerror (errno));
   }
+#endif
+
+#ifdef DOS
+  rc = 0;
+  F (arg);
 #endif
 
   return rc;

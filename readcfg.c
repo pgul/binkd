@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22  2003/03/11 00:04:26  gul
+ * Use patches for compile under MSDOS by MSC 6.0 with IBMTCPIP
+ *
  * Revision 2.21  2003/03/10 10:57:45  gul
  * Extern declarations moved to header files
  *
@@ -229,8 +232,8 @@ struct _KEYWORD
   const char *key;
   void (*callback) (KEYWORD *key, char *s);
   void *var;
-  int option1;
-  int option2;
+  long option1;
+  long option2;
 };
 
 static void passwords (KEYWORD *, char *);
@@ -252,7 +255,7 @@ static void read_syslog_facility (KEYWORD *, char *);
 
 #endif
 
-#define DONT_CHECK 0x7fffffff
+#define DONT_CHECK 0x7fffffffl
 
 KEYWORD keywords[] =
 {

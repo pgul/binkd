@@ -16,6 +16,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/03/11 00:04:26  gul
+ * Use patches for compile under MSDOS by MSC 6.0 with IBMTCPIP
+ *
  * Revision 2.4  2003/03/10 12:16:53  gul
  * Use HAVE_DOS_H macro
  *
@@ -40,7 +43,7 @@
 
 #if defined(__WATCOMC__)
 #include <sys/utime.h>
-#elif defined(VISUALCPP) || defined(IBMC)
+#elif defined(VISUALCPP) || defined(IBMC) || defined(__MSC__)
 #include <direct.h>
 #include <sys/utime.h>
 #elif defined(__MINGW32__)
@@ -57,6 +60,10 @@
 
 #if defined(IBMC) || defined(__WATCOMC__)
 #include "os2/dirent.h"
+#endif
+
+#if defined(__MSC__)
+#include "dos/dirent.h"
 #endif
 
 #endif
