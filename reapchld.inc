@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/12/26 21:31:45  gul
+ * Report exit code or signal number of exited processes
+ *
  * Revision 2.3  2003/09/21 17:34:27  gul
  * Change perl stderr handling for thread vertions,
  * some small changes.
@@ -34,7 +37,10 @@
 #endif
   {
     if (pidcmgr && pid == pidcmgr) {
-      Log (0, "client manager (pid=%u) exited, retcode %u", pid, status);
+      if (WIFSIGNALED(status))
+        Log (0, "client manager (pid=%u) exited by signal %u", pid, WTERMSIG(status));
+      else
+        Log (0, "client manager (pid=%u) exited, retcode %u", pid, WEXITSTATUS(status));
       exit(4);
     }
 #ifdef CHILDCOUNT
@@ -45,7 +51,10 @@
 #endif
       CHILDCOUNT--;
 #endif
-    Log (4, "rc(%i)=%i", pid, status);
+    if (WIFSIGNALED(status))
+      Log (2, "process %u exited by signal %u", pid, WTERMSIG(status));
+    else
+      Log (4, "rc(%u)=%u", pid, WEXITSTATUS(status));
   }
 
 #ifdef SYS5SIGNALS
