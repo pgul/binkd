@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.64  2003/07/12 18:22:08  gul
+ * Auto increase patchlevel, set 0.9.6a-53
+ * Fix typo in comment
+ *
  * Revision 2.63  2003/07/12 18:06:45  gul
  * Auto increase patchlevel, set 0.9.6a-52
  * Fixed node output on debugcfg
@@ -265,7 +269,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-52"
+#define MYVER "0.9.6a-53"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
