@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2003/02/22 14:30:18  gul
+ * Make nNod var static
+ *
  * Revision 2.11  2003/02/21 16:47:57  gul
  * Remove <socks.h> file and USE_SOCKS macro
  *
@@ -238,8 +241,6 @@ int quiet_flag = 0;		       /* Be quiet (-q) */
 int verbose_flag = 0;		       /* Be verbose / print version (-v) */
 int checkcfg_flag = 0;		       /* exit(3) on config change (-C) */
 int no_MD5 = 0;			       /* disable MD5 flag (-m) */
-
-extern int nNod;
 
 #ifdef BINKDW9X
 int binkd_main (int argc, char *argv[], char *envp[])

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/02/22 14:30:18  gul
+ * Make nNod var static
+ *
  * Revision 2.3  2002/05/11 08:37:32  gul
  * Added token deletedirs
  *
@@ -103,6 +106,7 @@ extern char root_domain[MAXHOSTNAMELEN + 1];
 extern int prescan;
 extern enum inbcasetype { INB_SAVE,INB_UPPER,INB_LOWER,INB_MIXED } inboundcase;
 extern int deletedirs;
+extern int havedefnode;
 #ifdef MAILBOX
 /* FileBoxes dir */
 extern char tfilebox[MAXPATHLEN + 1];
