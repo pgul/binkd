@@ -1,3 +1,7 @@
+2003/11/17 03:03:31 1.0a-296 hbrew
+confopt.h,2.2,2.3 tools.c,2.56,2.57
+Fix BINKDW9X macro
+
 2003/11/09 05:45:50 1.0a-295 hbrew
 binkd.c,2.73,2.74
 Add -vv to help message
