@@ -190,10 +190,13 @@ case x$do_perl in
        OLD_CFLAGS=$CFLAGS
        LIBS="$LIBS $PERLLOPT"
        CFLAGS="$CFLAGS $PERLCOPT"
-       AC_TRY_LINK([
+       AC_TRY_RUN([
           #include <EXTERN.h>
           #include <perl.h>
-          #include <XSUB.h>],[perl_alloc()],
+          #include <XSUB.h>
+          int main(int argc, char** argv, char** env) {
+            return perl_alloc() ? 0 : 1;
+          }],
         AC_DEFINE(WITH_PERL) AC_MSG_RESULT(yes); OPT_SRC="$OPT_SRC perlhooks.c",
         AC_MSG_RESULT(no); CFLAGS=$OLD_CFLAGS; LIBS=$OLD_LIBS,
         AC_MSG_RESULT(cross-compiling. No assumptions made); CFLAGS=$OLD_CFLAGS; LIBS=$OLD_LIBS

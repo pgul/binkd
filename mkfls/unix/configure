@@ -2035,19 +2035,23 @@ echo "configure:2034: checking for working libperl" >&5
        OLD_CFLAGS=$CFLAGS
        LIBS="$LIBS $PERLLOPT"
        CFLAGS="$CFLAGS $PERLCOPT"
-       cat > conftest.$ac_ext <<EOF
-#line 2040 "configure"
+       if test "$cross_compiling" = yes; then
+  echo "$ac_t""cross-compiling. No assumptions made" 1>&6; CFLAGS=$OLD_CFLAGS; LIBS=$OLD_LIBS
+       
+else
+  cat > conftest.$ac_ext <<EOF
+#line 2044 "configure"
 #include "confdefs.h"
 
           #include <EXTERN.h>
           #include <perl.h>
           #include <XSUB.h>
-int main() {
-perl_alloc()
-; return 0; }
+          int main(int argc, char** argv, char** env) {
+            return perl_alloc() ? 0 : 1;
+          }
 EOF
-if { (eval echo configure:2050: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
-  rm -rf conftest*
+if { (eval echo configure:2054: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+then
   cat >> confdefs.h <<\EOF
 #define WITH_PERL 1
 EOF
@@ -2055,10 +2059,12 @@ EOF
 else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
-  rm -rf conftest*
+  rm -fr conftest*
   echo "$ac_t""no" 1>&6; CFLAGS=$OLD_CFLAGS; LIBS=$OLD_LIBS
 fi
-rm -f conftest*
+rm -fr conftest*
+fi
+
        ;;
    esac
    ;;
