@@ -10,7 +10,7 @@
 /*                             FIDONet 2:5020/79                      */
 /*                                                                    */
 /*  This program is  free software;  you can  redistribute it and/or  */
-/*  modify it  under  the terms of the GNU General Public License as  */ 
+/*  modify it  under  the terms of the GNU General Public License as  */
 /*  published  by the  Free Software Foundation; either version 2 of  */
 /*  the License, or (at your option) any later version. See COPYING.  */
 /*--------------------------------------------------------------------*/
@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.6.2.2  2003/10/24 17:31:51  stas
+ * Fix pathnames in #include statements
+ *
  * Revision 2.6.2.1  2003/08/05 05:38:43  hbrew
  * 'static const char rcsid[]' removed
  *
@@ -71,7 +74,7 @@
 /*                        Local include files                         */
 /*--------------------------------------------------------------------*/
 
-#include "..\tools.h"
+#include "../tools.h"
 
 /*--------------------------------------------------------------------*/
 /*                         Global definitions                         */
@@ -137,7 +140,7 @@ int _LockSem(void *vpSem) {
 /*--------------------------------------------------------------------*/
 
 int _ReleaseSem(void *vpSem) {
-   
+
    if (BsySem == 0) return (-1);
    ReleaseMutex(BsySem);
    return(0);

@@ -10,7 +10,7 @@
 /*                             FIDONet 2:5020/79                      */
 /*                                                                    */
 /*  This program is  free software;  you can  redistribute it and/or  */
-/*  modify it  under  the terms of the GNU General Public License as  */ 
+/*  modify it  under  the terms of the GNU General Public License as  */
 /*  published  by the  Free Software Foundation; either version 2 of  */
 /*  the License, or (at your option) any later version. See COPYING.  */
 /*--------------------------------------------------------------------*/
@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.4.2.2  2003/10/24 17:31:51  stas
+ * Fix pathnames in #include statements
+ *
  * Revision 2.4.2.1  2003/08/05 05:38:43  hbrew
  * 'static const char rcsid[]' removed
  *
@@ -63,13 +66,13 @@
 /*                        Local include files                         */
 /*--------------------------------------------------------------------*/
 
-#include "..\sys.h"
-#include "..\common.h"
-#include "..\tools.h"
-#include "..\iphdr.h"
-#include "..\bsy.h"
-#include "..\binlog.h"
-#include "..\readcfg.h"
+#include "../sys.h"
+#include "../common.h"
+#include "../tools.h"
+#include "../iphdr.h"
+#include "../bsy.h"
+#include "../binlog.h"
+#include "../readcfg.h"
 #ifdef BINKDW9X
 #include "win9x.h"
 #endif
