@@ -1,3 +1,9 @@
+2004/10/19 19:28:25 1.0a-410 gul
+inbound.c,2.32,2.33 inbound.h,2.6,2.7 protocol.c,2.161,2.162
+Do not remove complete received but not renamed partial files
+for prevent data loss in ND-mode.
+Remove all partial files for node after successfull session.
+
 2004/10/18 18:22:24 1.0a-409 gul
 client.c,2.54,2.55 common.h,2.12,2.13 exitproc.c,2.39,2.40 perlhooks.c,2.46,2.47 reapchld.inc,2.4,2.5 tools.c,2.63,2.64
 Change handle perl errors method
