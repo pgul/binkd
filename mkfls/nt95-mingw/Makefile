@@ -1,6 +1,6 @@
 # $Id$
 #
-ifeq ($(TERM),msys)
+ifeq ($(OSTYPE),msys)
 SHELL=sh.exe
 else
 SHELL=bash.exe
