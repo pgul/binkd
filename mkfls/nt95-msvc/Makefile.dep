@@ -1,4 +1,4 @@
-binkd.obj: \
+$(OUTDIR)\binkd.obj: \
 	"Config.h" \
 	"assert.h" \
 	"binlog.h" \
@@ -21,7 +21,7 @@ binkd.obj: \
 	"nt\win9x.h" \
 	"nt\wsock.h"
 
-binlog.obj: \
+$(OUTDIR)\binlog.obj: \
 	"Config.h" \
 	"assert.h" \
 	"binlog.h" \
@@ -39,13 +39,13 @@ binlog.obj: \
 	"tools.h" \
 	"nt\wsock.h"
 
-branch.obj: \
+$(OUTDIR)\branch.obj: \
 	"Config.h" \
 	"getw.h" \
 	"sys.h" \
 	"tools.h"
 
-bsy.obj: \
+$(OUTDIR)\bsy.obj: \
 	"Config.h" \
 	"assert.h" \
 	"bsy.h" \
@@ -62,7 +62,7 @@ bsy.obj: \
 	"nt\dirwin32.h" \
 	"nt\wsock.h"
 
-client.obj: \
+$(OUTDIR)\client.obj: \
 	"Config.h" \
 	"assert.h" \
 	"bsy.h" \
@@ -84,10 +84,10 @@ client.obj: \
 	"tools.h" \
 	"nt\wsock.h"
 
-crypt.obj: \
+$(OUTDIR)\crypt.obj: \
 	"crypt.h"
 
-exitproc.obj: \
+$(OUTDIR)\exitproc.obj: \
 	"Config.h" \
 	"binlog.h" \
 	"bsy.h" \
@@ -104,7 +104,7 @@ exitproc.obj: \
 	"server.h" \
 	"nt\wsock.h"
 
-ftnaddr.obj: \
+$(OUTDIR)\ftnaddr.obj: \
 	"Config.h" \
 	"ftnaddr.h" \
 	"ftndom.h" \
@@ -116,13 +116,13 @@ ftnaddr.obj: \
 	"tools.h" \
 	"nt\wsock.h"
 
-ftndom.obj: \
+$(OUTDIR)\ftndom.obj: \
 	"ftnaddr.h" \
 	"ftndom.h" \
 	"getw.h" \
 	"tools.h"
 
-ftnnode.obj: \
+$(OUTDIR)\ftnnode.obj: \
 	"Config.h" \
 	"assert.h" \
 	"ftnaddr.h" \
@@ -137,7 +137,7 @@ ftnnode.obj: \
 	"tools.h" \
 	"nt\wsock.h"
 
-ftnq.obj: \
+$(OUTDIR)\ftnq.obj: \
 	"Config.h" \
 	"assert.h" \
 	"ftnaddr.h" \
@@ -153,10 +153,10 @@ ftnq.obj: \
 	"nt\dirwin32.h" \
 	"nt\wsock.h"
 
-getw.obj: \
+$(OUTDIR)\getw.obj: \
 	"getw.h"
 
-https.obj: \
+$(OUTDIR)\https.obj: \
 	"Config.h" \
 	"ftnaddr.h" \
 	"ftndom.h" \
@@ -171,7 +171,7 @@ https.obj: \
 	"tools.h" \
 	"nt\wsock.h"
 
-inbound.obj: \
+$(OUTDIR)\inbound.obj: \
 	"Config.h" \
 	"common.h" \
 	"ftnaddr.h" \
@@ -188,7 +188,7 @@ inbound.obj: \
 	"nt\dirwin32.h" \
 	"nt\wsock.h"
 
-iptools.obj: \
+$(OUTDIR)\iptools.obj: \
 	"Config.h" \
 	"ftnaddr.h" \
 	"ftndom.h" \
@@ -202,7 +202,7 @@ iptools.obj: \
 	"tools.h" \
 	"nt\wsock.h"
 
-md5b.obj: \
+$(OUTDIR)\md5b.obj: \
 	"Config.h" \
 	"ftnaddr.h" \
 	"ftndom.h" \
@@ -219,7 +219,7 @@ md5b.obj: \
 	"tools.h" \
 	"nt\wsock.h"
 
-prothlp.obj: \
+$(OUTDIR)\prothlp.obj: \
 	"Config.h" \
 	"assert.h" \
 	"ftnaddr.h" \
@@ -236,7 +236,7 @@ prothlp.obj: \
 	"tools.h" \
 	"nt\wsock.h"
 
-protocol.obj: \
+$(OUTDIR)\protocol.obj: \
 	"Config.h" \
 	"assert.h" \
 	"binlog.h" \
@@ -265,7 +265,7 @@ protocol.obj: \
 	"tools.h" \
 	"nt\wsock.h"
 
-readcfg.obj: \
+$(OUTDIR)\readcfg.obj: \
 	"Config.h" \
 	"assert.h" \
 	"common.h" \
@@ -285,19 +285,19 @@ readcfg.obj: \
 	"tools.h" \
 	"nt\wsock.h"
 
-readflo.obj: \
+$(OUTDIR)\readflo.obj: \
 	"Config.h" \
 	"assert.h" \
 	"getw.h" \
 	"readflo.h" \
 	"tools.h"
 
-run.obj: \
+$(OUTDIR)\run.obj: \
 	"getw.h" \
 	"run.h" \
 	"tools.h"
 
-server.obj: \
+$(OUTDIR)\server.obj: \
 	"Config.h" \
 	"assert.h" \
 	"common.h" \
@@ -316,10 +316,10 @@ server.obj: \
 	"tools.h" \
 	"nt\wsock.h"
 
-setpttl.obj: \
+$(OUTDIR)\setpttl.obj: \
 	"setpttl.h"
 
-srif.obj: \
+$(OUTDIR)\srif.obj: \
 	"Config.h" \
 	"ftnaddr.h" \
 	"ftndom.h" \
@@ -336,7 +336,7 @@ srif.obj: \
 	"tools.h" \
 	"nt\wsock.h"
 
-tools.obj: \
+$(OUTDIR)\tools.obj: \
 	"Config.h" \
 	"assert.h" \
 	"common.h" \
@@ -353,15 +353,15 @@ tools.obj: \
 	"nt\dirwin32.h" \
 	"nt\wsock.h"
 
-xalloc.obj: \
+$(OUTDIR)\xalloc.obj: \
 	"getw.h" \
 	"tools.h"
 
-nt\WSock.obj: \
+$(OUTDIR)\WSock.obj: \
 	"getw.h" \
 	"tools.h"
 
-nt\breaksig.obj: \
+$(OUTDIR)\breaksig.obj: \
 	"Config.h" \
 	"binlog.h" \
 	"bsy.h" \
@@ -377,53 +377,53 @@ nt\breaksig.obj: \
 	"nt\win9x.h" \
 	"nt\wsock.h"
 
-nt\dirwin32.obj: \
+$(OUTDIR)\dirwin32.obj: \
 	"nt\dirwin32.h"
 
-nt\getfree.obj: \
+$(OUTDIR)\getfree.obj: \
 	"config.h" \
 	"getw.h" \
 	"tools.h"
 
-nt\sem.obj: \
+$(OUTDIR)\sem.obj: \
 	"getw.h" \
 	"tools.h"
 
-nt\service.obj: \
+$(OUTDIR)\service.obj: \
 	"Config.h" \
 	"getw.h" \
 	"tools.h" \
 	"nt\service.h"
 
-nt\win9x.obj: \
+$(OUTDIR)\win9x.obj: \
 	"Config.h" \
 	"getw.h" \
 	"tools.h" \
 	"nt\win9x.h"
 
-ntlm\des_enc.obj: \
+$(OUTDIR)\des_enc.obj: \
 	"ntlm\des.h" \
 	"ntlm\des_locl.h" \
 	"ntlm\ncbc_enc.c"
 
-ntlm\ecb_enc.obj: \
+$(OUTDIR)\ecb_enc.obj: \
 	"ntlm\des.h" \
 	"ntlm\des_locl.h" \
 	"ntlm\spr.h"
 
-ntlm\helpers.obj: \
+$(OUTDIR)\helpers.obj: \
 	"iphdr.h" \
 	"sys.h" \
 	"nt\wsock.h" \
 	"ntlm\des.h" \
 	"ntlm\md4.h"
 
-ntlm\md4_dgst.obj: \
+$(OUTDIR)\md4_dgst.obj: \
 	"ntlm\md32_com.h" \
 	"ntlm\md4.h" \
 	"ntlm\md4_locl.h"
 
-ntlm\set_key.obj: \
+$(OUTDIR)\set_key.obj: \
 	"ntlm\des.h" \
 	"ntlm\des_locl.h"
 
