@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of October 20 2004
+        Version of October 25 2004
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -60,8 +60,9 @@ from Russian by Michael Dukelsky 2:5020/1042.
 
     Release versions, log analyzers etc. (Pavel Gulchouck 2:463/68):
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/
-    The mirror by Matt Bedynek 1:106/1
-    ftp://fido.thunderdome.ws/pub/mirror/binkd/
+    The mirror
+    ftp://fido.thunderdome.ws/pub/mirror/binkd/  (by Matt Bedynek 1:106/1)
+    ftp://cheetah.itpark.com.ua/pub/fido/binkd/
 
     Beta versions:
     Public CVS
@@ -124,35 +125,35 @@ program (DOS/W32/OS2) and BeeMail (win32; Stephen Proffitt, 1:105/10;
 http://beemail.gexonline.net/)
 
     Binkd features:
-    - freeware, open source
+    - freeware, open source;
     - there are versions for Unix (linux, freebsd, SCO, ...), OS/2 (native
-      & EMX), Windows NT & Windows 95
-    - it can work as daemon in Unix and as service in Windows NT/2000
-    - simple TCP-connection (data integrity is supported at TCP level)
-    - BSO (bink-style outbound)
-    - LBSO (Long BSO)
-    - there is a variant with ASO (Amiga-style outbound) support, it is
-      distributed in a form of patches (see support servers)
+      & EMX), Windows NT/2000/XP and Windows 95/98/Me, Windows 3.x, DOS;
+    - it can work as daemon in Unix and as service in Windows NT/2000/XP,
+      there is a separate version for working as service in Windows 9x;
+    - simple TCP-connection (data integrity is supported at TCP level);
+    - BSO (bink-style outbound);
+    - LBSO (Long BSO);
+    - ASO (Amiga-style outbound);
     - path translation in ?LO files (it is used when the outbound resides
-      on a net drive)
-    - personal fileboxes for each node for the files to send and to receive
-    - T-mail-style and The Brake!-style fileboxes are supported
+      on a net drive);
+    - personal fileboxes for each node for the files to send and to receive;
+    - T-mail-style and The Brake!-style fileboxes are supported;
     - translation of a FTN-address into a domain name (*.fidonet.net) is
-      supported
+      supported;
     - a password file in the style of T-mail is supported starting with
       version 0.9.4 and a password file in the style of ifcico starting with
-      version 1.0
-    - file requests using SRIF are supported
-    - a flag on receiving files (using a template) may be created
-    - a program on receiving files (using a template) may be started
+      version 1.0;
+    - file requests using SRIF are supported;
+    - a flag on receiving files (using a template) may be created;
+    - a program on receiving files (using a template) may be started;
     - receiving files (using a template) may be refused starting with
-      version 0.9.4
+      version 0.9.4;
     - working via a HTTP or SOCKS proxy server (starting with version
-      0.9.3.https)
-    - password encryption (MD5) starting with 0.9.4 release
-    - traffic encryption starting with version 0.9.5
+      0.9.3.https);
+    - password encryption (MD5) starting with 0.9.4 release;
+    - traffic encryption starting with version 0.9.5;
     - the remote node IP-address check for an incoming connection is
-      supported starting with version 0.9.5
+      supported starting with version 0.9.5.
 
 
 ----------------------------------------------------------------------------
@@ -160,7 +161,7 @@ http://beemail.gexonline.net/)
 
         03. Binkp Protocol
 
-    The name Binkp means Binkd protocol. It is described in FSP-1011
+    The name Binkp means Binkd protocol. It is described in FSP-1018
 (FIDOnet standard proposal) and port 24554 is assigned for binkp in
 RFC-1700 (request for comments, issued by IANA).
 
