@@ -1,3 +1,7 @@
+2003/12/29 12:49:42 1.0a-317 gul
+getw.c,2.7,2.8 !README.FIX,2.36,2.37
+Comments in config now starts by "#" only if prev char is space
+
 2003/12/28 12:23:28 1.0a-316 gul
 protocol.c,2.145,2.146
 Print file offset on "receiving interrupted" log message
