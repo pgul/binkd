@@ -1,3 +1,7 @@
+2003/10/30 13:11:34 1.0a-292 gul
+protocol.c,2.139,2.140
+Drop incoming session if secure remote AKA is busy
+
 2003/10/30 12:57:48 1.0a-291 gul
 inbound.c,2.24,2.25 inbound.h,2.5,2.6 perlhooks.c,2.39,2.40 perlhooks.h,2.7,2.8 protocol.c,2.138,2.139
 Change inb_done arguments, optimize a bit
