@@ -1,3 +1,7 @@
+2003/10/06 19:54:53 1.0a-211 stas
+service.c,2.23,2.24
+(Prevent warnings.) Prepare to implement full service control
+
 2003/10/06 19:50:24 1.0a-210 stas
 service.h,2.7,2.8
 Drop excessive numeric values of enumeration in parameter and return values of service_main()
