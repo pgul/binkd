@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.61  2003/05/17 15:37:48  gul
+ * Improve logging
+ *
  * Revision 2.60  2003/05/17 15:33:51  gul
  * Improve logging
  *
@@ -989,6 +992,7 @@ static int ADR (STATE *state, char *s, int sz)
 	{ /* drop unsecure AKA with bad IP-addr */
 	  if (ip_verified == 0)
 	    ip_verified = -1;
+	  Log(2, "Addr %s dropped - not from allowed IP", szFTNAddr);
 	  continue;
 	}
       }
