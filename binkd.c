@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.47  2003/07/17 02:41:47  hbrew
+ * Compability with nt/service.c & nt/win9x.c.
+ * Usage "--service" options as win9x "run-as-service" flag.
+ *
  * Revision 2.46  2003/07/16 15:50:44  stas
  * Fix: restore "Minimise to tray"
  *
@@ -399,7 +403,7 @@ char *parseargs (int argc, char *argv[])
 
   curind = 1;
   while ((i = getopt(argc, argv,
-		"CchmP:pqrsv-"
+		"CchmP:pqrsv-:"
 #ifdef BINKD_DAEMONIZE
 		"D"
 #endif
@@ -413,7 +417,7 @@ char *parseargs (int argc, char *argv[])
 #if defined(BINKDW9X)
 		"t:"
 #endif
-		"ZiuS:"
+		"iuS:"
 #endif
 		  )) != -1)
   {
@@ -424,20 +428,13 @@ char *parseargs (int argc, char *argv[])
 	      if (!strcmp (argv[curind], "--help"))
 		usage ();
 	      else
-/* getopt() don't support GNU-style options
 #if defined (BINKDW9X)
 	      if (!strcmp (argv[curind], Win9xStartService))
 	        service_flag = w32_run_as_service;
 	      else
 #endif
-*/
 		Log (0, "%s: %s: unknown command line switch", extract_filename(argv[0]), argv[curind]);
 	      break;
-#if defined (BINKDW9X)
-	    case 'Z':
-	      service_flag = w32_run_as_service;
-	      break;
-#endif
 	    case 'C':
 	      checkcfg_flag = 1;
 	      break;
@@ -585,9 +582,7 @@ int main (int argc, char *argv[], char *envp[])
 }
 #endif
 
-#ifdef BINKDW9X
-int binkd_main (int argc, char *argv[], char *envp[])
-#elif defined(WIN32)
+#if defined(WIN32)
 int binkd_main (int argc, char *argv[], char *envp[])
 #else
 int main (int argc, char *argv[], char *envp[])
@@ -695,7 +690,11 @@ int main (int argc, char *argv[], char *envp[])
 
   print_args (tmp, sizeof (tmp), argv + 1);
 #ifdef WIN32
+#ifndef BINKDW9X
   if (isService)
+#else
+  if (service_flag==w32_run_as_service)
+#endif
     Log (4, "BEGIN service '%s', " MYNAME "/" MYVER "%s%s", service_name, get_os_string(), tmp);
   else
     Log (4, "BEGIN standalone, " MYNAME "/" MYVER "%s%s", get_os_string(), tmp);

@@ -16,6 +16,10 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.11  2003/07/17 02:41:48  hbrew
+ * Compability with nt/service.c & nt/win9x.c.
+ * Usage "--service" options as win9x "run-as-service" flag.
+ *
  * Revision 2.10  2003/07/07 18:38:25  hbrew
  * Fix gcc(mingw) warnings:
  *
@@ -85,8 +89,7 @@ DWORD SigType = -1;
 char *Win9xWindowClassName = "binkdWin9xHandler";
 char *Win9xRegServ = "Software\\Microsoft\\Windows\\CurrentVersion\\RunServices";
 char *Win9xServPrefix = "binkd9x-service";
-/* char *Win9xStartService = "--service"; */
-char *Win9xStartService = "-Z";
+char *Win9xStartService = "--service";
 
 #define WM_BINKD9XCOMMAND  WM_USER+50
 
@@ -424,13 +427,13 @@ int win9x_service_control_exec(char *tmp)
     }
     break;
   case w32_stopservice:
-    if (hwnd) SendMessage(hwnd, WM_BINKD9XCOMMAND, 254, 0);
+    if (hwnd) SendMessage(hwnd, WM_BINKD9XCOMMAND, CTRL_SERVICESTOP_EVENT, 0);
     if (!quiet_flag)  Log(-1, "%s: %s\n", tmp, hwnd?"stopped":"already stopped");
     break;
   case w32_restartservice:
     if (hwnd)
     {
-      SendMessage(hwnd, WM_BINKD9XCOMMAND, 255, 0);
+      SendMessage(hwnd, WM_BINKD9XCOMMAND, CTRL_SERVICERESTART_EVENT, 0);
       if (win9x_service_start(tmp))
       {
         if (!quiet_flag)  Log(-1, "%s: restarted\n", tmp);
