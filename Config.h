@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.69  2003/07/16 15:43:25  stas
+ * Auto increase patchlevel, set 0.9.6a-58
+ * Fix: restore -T option
+ *
  * Revision 2.68  2003/07/16 15:42:56  stas
  * Auto increase patchlevel, set 0.9.6a-57
  * Fix: restore -T option
@@ -285,7 +289,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-57"
+#define MYVER "0.9.6a-58"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
