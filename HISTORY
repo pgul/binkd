@@ -1,3 +1,7 @@
+2003/10/07 17:41:07 1.0a-219 stas
+breaksig.c,2.14,2.15 brw32sig.h,2.4,2.5 service.c,2.29,2.30 service.h,2.8,2.9
+Fix NT service shutdown
+
 2003/10/06 22:00:01 1.0a-218 stas
 breaksig.c,2.13,2.14 brw32sig.h,2.3,2.4 service.c,2.28,2.29
 Prevent double calls of ReportStatusToSCMgr(SERVICE_STOPPED,...) and double restart service
