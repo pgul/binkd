@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.8  2004/01/02 04:05:30  stas
+ * Fix warning (type convertion)
+ *
  * Revision 2.7  2003/12/31 10:06:05  stas
  * Fix getfree for very large disks and for mounted partitions
  *
@@ -84,15 +87,17 @@
 /*                           Local variables                          */
 /*--------------------------------------------------------------------*/
 
+typedef  BOOL (WINAPI* PGFDE)( LPCTSTR, PULARGE_INTEGER,
+                              PULARGE_INTEGER, PULARGE_INTEGER );
+
 
 unsigned long getfree (char *path) {
  { /*  w95OSR2, wNT, ... */
 
-  BOOL (WINAPI* pGetDiskFreeSpaceEx)( LPCTSTR, PULARGE_INTEGER,
-                              PULARGE_INTEGER, PULARGE_INTEGER );
+  PGFDE pGetDiskFreeSpaceEx;
   ULARGE_INTEGER i64FreeBytesToCaller, i64TotalBytes, i64FreeBytes;
 
-  pGetDiskFreeSpaceEx = GetProcAddress( GetModuleHandle("kernel32.dll"),
+  pGetDiskFreeSpaceEx = (PGFDE)GetProcAddress( GetModuleHandle("kernel32.dll"),
                            "GetDiskFreeSpaceExA");
 
   if (pGetDiskFreeSpaceEx)
