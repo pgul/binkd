@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.52  2003/12/06 00:27:23  gul
+ * Coredump on exit cmgr with DEBUGCHILD
+ *
  * Revision 2.51  2003/10/29 21:08:38  gul
  * Change include-files structure, relax dependences
  *
@@ -347,6 +350,7 @@ static int do_client(BINKD_CONFIG *config, int *pq_empty)
         Log (1, "cannot branch out");
         SLEEP(1);
       }
+#if !defined(DEBUGCHILD)
       else
       {
         Log (5, "started client #%i, id=%i", n_clients, pid);
@@ -354,6 +358,7 @@ static int do_client(BINKD_CONFIG *config, int *pq_empty)
         unlock_config_structure(config); /* Forked child has own copy */
 #endif
       }
+#endif
     }
     else
     {
