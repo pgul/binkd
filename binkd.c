@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.35  2003/06/11 07:44:21  gul
+ * Cosmetics
+ *
  * Revision 2.34  2003/06/10 19:15:25  gul
  * Also one commandline parser fix
  *
@@ -621,7 +624,7 @@ int main (int argc, char *argv[], char *envp[])
 #if defined(BINKD_DAEMONIZE)
   int  nochdir;
 #endif
-#if defined(HAVE_FORK) || defined(BINKD_DAEMONIZE)
+#if defined(HAVE_FORK)
   char **saved_argv;
 
   /* save argv as setproctitle() under some systems will change it */
@@ -773,7 +776,7 @@ int main (int argc, char *argv[], char *envp[])
 		 Log (0, "Only server can be run in the daemon mode");
 	 else
 	 {
-		 if (saved_argv[0][0] == '/')
+		 if (argv[0][0] == '/')
 			nochdir = 0;
 		 else
 		 {
