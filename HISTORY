@@ -1,3 +1,7 @@
+2004/11/05 14:25:08 1.0a-425 gul
+protocol.c,2.164,2.165
+hide-aka & present-aka did not work on outgoing sessions
+
 2004/11/05 09:45:24 1.0a-424 gul
 readcfg.c,2.77,2.78
 Bugfix in passwords and defnode processing logic
