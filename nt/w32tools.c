@@ -116,56 +116,67 @@ int build_service_arguments(char **asp, char sep)
     Log(0, "Error in GetModuleFileName()=%s\n", tcperr(GetLastError()) );
   }
 
-  size = strlen(pathname) + strlen(service_name) + strlen(configpath) +2 +11 +3*11; /* max: 11 options */
+  size = strlen(pathname) + strlen(service_name) + strlen(configpath) +14 +11 +3*11; /* max: 11 options */
   *asp=(char*)malloc(size);
   memset(*asp,sep,size-1);
+  size -= 4;
   (*asp)[size-1]='\0';
   len = sprintf(*asp, "%s%c-S%c\"%s\"", pathname, sep, sep, service_name);
   (*asp)[len++]=sep;
 #ifdef BINKD9X
-    memcpy(*asp+len,"-Z",2);
-    len+=3;
+    memcpy(*asp+len,"--service",9);
+    len+=10;
 #else
   if(tray_flag){
     memcpy(*asp+len,"-T",2);
     len+=3;
   }
 #endif
+  if(len>=size){ Log(0,"build_service_arguments() error: too long parameters list"); }
   if(server_flag){
     memcpy(*asp+len,"-s",2);
     len+=3;
   }
+  if(len>=size){ Log(0,"build_service_arguments() error: too long parameters list"); }
   if(client_flag){
     memcpy(*asp+len,"-c",2);
     len+=3;
   }
+  if(len>=size){ Log(0,"build_service_arguments() error: too long parameters list"); }
   if(poll_flag){
     memcpy(*asp+len,"-p",2);
     len+=3;
   }
+  if(len>=size){ Log(0,"build_service_arguments() error: too long parameters list"); }
   if(quiet_flag){
     memcpy(*asp+len,"-q",2);
     len+=3;
   }
+  if(len>=size){ Log(0,"build_service_arguments() error: too long parameters list"); }
   if(verbose_flag){
     memcpy(*asp+len,"-v",2);
     len+=3;
   }
+  if(len>=size){ Log(0,"build_service_arguments() error: too long parameters list"); }
   if(checkcfg_flag){
     memcpy(*asp+len,"-C",2);
     len+=3;
   }
+  if(len>=size){ Log(0,"build_service_arguments() error: too long parameters list"); }
   if(no_MD5){
     memcpy(*asp+len,"-m",2);
     len+=3;
   }
+  if(len>=size){ Log(0,"build_service_arguments() error: too long parameters list"); }
   if(no_crypt){
     memcpy(*asp+len,"-r",2);
     len+=3;
   }
+  if(len>=size){ Log(0,"build_service_arguments() error: too long parameters list"); }
   if(configpath){
     strcpy(*asp+len,configpath);
     len+=strlen(configpath)+1;
   }
+  (*asp)[len]='\0';
   return ++len;
 }

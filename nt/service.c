@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2003/07/18 12:35:59  stas
+ * Remove old code; add some checks; use new option '--service' for win9x
+ *
  * Revision 2.12  2003/07/18 10:30:34  stas
  * New functions: IsNT(), Is9x(); small code cleanup
  *
@@ -257,20 +260,10 @@ static DWORD srvtype = SERVICE_WIN32_OWN_PROCESS;
 static int service_main(int type)
 {
   SC_HANDLE sman=NULL, shan=NULL;
-  HINSTANCE hl;
   int i, rc=0;
 
-  if((!type)||(type==6))
-  {
-    hl=LoadLibrary(libname);
-    if(!hl) return 1;
-    if(!GetProcAddress(hl, "OpenSCManagerA"))
-    {
-      FreeLibrary(hl);
-      return 2;
-    }
-    FreeLibrary(hl);
-  }
+  if(!IsNT())
+    return 2;
 
   sman=OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
   if(!sman)
@@ -570,63 +563,6 @@ static void wndthread(void *par)
     }
 }
 
-int build_service_parameter(char**argv,char**asp)
-{ int len;
-
-  *asp=(char*)calloc(1,strlen(argv[0]) + strlen(srvname) +3 + strlen(configpath) +11 +3*11); /* max: 11 options */
-  len = sprintf(*asp, "%s", argv[0]) + 1;
-  if(srvname){
-    strcpy(*asp+len,"-S");
-    len+=3;
-    strcpy(*asp+len,srvname);
-    len+=strlen(srvname)+1;
-  }
-#if defined(WIN32) && !defined(BINKDW9X)
-  if(tray_flag){
-    strcpy(*asp+len,"-T");
-    len+=3;
-  }
-#endif
-  if(server_flag){
-    strcpy(*asp+len,"-s");
-    len+=3;
-  }
-  if(client_flag){
-    strcpy(*asp+len,"-c");
-    len+=3;
-  }
-  if(poll_flag){
-    strcpy(*asp+len,"-p");
-    len+=3;
-  }
-  if(quiet_flag){
-    strcpy(*asp+len,"-q");
-    len+=3;
-  }
-  if(verbose_flag){
-    strcpy(*asp+len,"-v");
-    len+=3;
-  }
-  if(checkcfg_flag){
-    strcpy(*asp+len,"-C");
-    len+=3;
-  }
-  if(no_MD5){
-    strcpy(*asp+len,"-m");
-    len+=3;
-  }
-  if(no_crypt){
-    strcpy(*asp+len,"-r");
-    len+=3;
-  }
-  if(configpath){
-    strcpy(*asp+len,configpath);
-    len+=strlen(configpath)+1;
-  }
-  len++;
-
-  return len;
-}
 
 int service(int argc, char **argv, char **envp)
 {
@@ -646,6 +582,7 @@ int service(int argc, char **argv, char **envp)
 
 
   if(service_name) srvname = service_name;  /* Use service name from command line if specified */
+  else service_name = srvname;
 
   if (tray_flag)
   {
@@ -680,6 +617,7 @@ int service(int argc, char **argv, char **envp)
       if(!service_main(2))
       {
         Log(-1, "Service '%s' installed...", srvname);
+
       }
       else
       {
@@ -700,7 +638,7 @@ int service(int argc, char **argv, char **envp)
       }
 
       /* build arguments list for service */
-      len = build_service_parameter(argv,&asp);
+      len = build_service_arguments(&asp,'\0');
 
       /* build enviroment */
       if(envp)
