@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2003/06/08 13:41:07  cvs
+ * Auto increase patchlevel
+ *
  * Revision 2.12  2003/06/08 13:18:58  gul
  * Added patchlevel
  *
@@ -91,7 +94,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-1"
+#define MYVER "0.9.6a-2"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
