@@ -1,3 +1,7 @@
+2004/01/18 22:39:36 1.0a-368 gul
+ftnnode.c,2.29,2.30
+Undo previous patch
+
 2004/01/15 16:49:15 1.0a-367 gul
 ftnnode.c,2.28,2.29
 If only two passwords for a node specified in passwd-file, use its as
