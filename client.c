@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.21  2003/03/10 15:57:52  gul
+ * Fixed segfault on unresolvable host
+ *
  * Revision 2.20  2003/03/10 12:16:53  gul
  * Use HAVE_DOS_H macro
  *
@@ -444,7 +447,7 @@ badtry:
     if (!proxy[0] && !host[0])
 #endif
     {
-      if (hp->h_addr_list != alist)
+      if (hp && hp->h_addr_list != alist)
       {
         if (hp->h_addr_list && hp->h_addr_list[0])
           free(hp->h_addr_list[0]);
