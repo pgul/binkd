@@ -20,6 +20,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.16  2004/01/04 16:01:10  stas
+ * Fix service name convertion: now Service Display Name may be content a comma
+ *
  * Revision 2.15  2004/01/04 15:51:06  stas
  * Fix service name convertion: now Service Display Name (parameter of the '-S' command line option) may be content a '\' and '/' characters
  *
@@ -135,8 +138,9 @@ char *get_service_name(char *display_name)
     for(cp=srv_name; *cp; cp++)
     {
        if(*cp==' ') *cp='_';
-       if(*cp=='/') *cp='-';
-       if(*cp=='\\') *cp='=';
+       else if(*cp==',') *cp='-';
+       else if(*cp=='/') *cp='-';
+       else if(*cp=='\\') *cp='=';
     }
   }
   else
