@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2003/06/20 10:37:02  val
+ * Perl hooks for binkd - initial revision
+ *
  * Revision 2.15  2003/06/04 10:36:58  stas
  * Thread-safety tcperr() implementation on Win32
  *
@@ -83,6 +86,9 @@
 #include "binlog.h"
 #include "sem.h"
 #include "server.h"
+#ifdef WITH_PERL
+#include "perlhooks.h"
+#endif
 
 int binkd_exit;
 
@@ -111,6 +117,7 @@ int del_socket(SOCKET sockfd)
 
 void exitfunc (void)
 {
+  Log(7, "exitfunc()");
 #ifdef HAVE_FORK
   if (pidcmgr)
   { int i;
@@ -148,6 +155,17 @@ void exitfunc (void)
   sock_deinit ();
   BinLogDeInit ();
   nodes_deinit ();
+#ifdef WITH_PERL
+#  ifdef HAVE_FORK
+Log(7, "exitproc(): pid=%d, cmgr=%d, smgr=%d, inetd=%d", getpid(), pidCmgr, pidsmgr, inetd_flag);
+  if (inetd_flag) perl_done(1);
+  else if (!pidsmgr && pidCmgr == (int) getpid()) perl_done(1);
+  else if (pidsmgr == (int) getpid()) perl_done(1);
+  else perl_done(0);
+#  else
+  perl_done(1);
+#  endif
+#endif
   if (*pid_file && pidsmgr == (int) getpid ())
     delete (pid_file);
   CleanSem (&hostsem);

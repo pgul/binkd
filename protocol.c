@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.71  2003/06/20 10:37:02  val
+ * Perl hooks for binkd - initial revision
+ *
  * Revision 2.70  2003/06/12 08:21:43  val
  * 'skipmask' is replaced with 'skip', which allows more skipping features
  *
@@ -315,6 +318,9 @@
 #include "sem.h"
 #include "md5b.h"
 #include "crypt.h"
+#ifdef WITH_PERL
+#include "perlhooks.h"
+#endif
 
 static char *scommand[] = {"NUL", "ADR", "PWD", "FILE", "OK", "EOB",
                            "GOT", "ERR", "BSY", "GET", "SKIP"};
@@ -353,6 +359,11 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to)
   state->listed_flag = 0;
   state->fa = NULL;
   state->nfa = state->nallfa = 0;
+#ifdef WITH_PERL
+  state->nAddr = 0; state->pAddr = NULL;
+  state->perl_set_lvl = 0;
+#endif
+  state->state_ext = P_NA;
   setsockopts (state->s = socket);
   TF_ZERO (&state->in);
   TF_ZERO (&state->out);
@@ -412,6 +423,9 @@ static int deinit_protocol (STATE *state)
     bsy_remove (state->fa + i, F_BSY);
   if (state->fa)
     free (state->fa);
+#ifdef WITH_PERL
+  if (state->pAddr) free (state->pAddr);
+#endif
   if (state->MD_challenge)
 	free (state->MD_challenge);
   rel_grow_handles(-state->nfa);
@@ -542,7 +556,7 @@ static int send_block (STATE *state)
 	{
 	  Log (1, "send: %s", save_err);
 	  if (state->to)
-	    bad_try (&state->to->fa, save_err);
+	    bad_try (&state->to->fa, save_err, BAD_IO);
 	}
 	return 0;
       }
@@ -954,7 +968,7 @@ static int RError (STATE *state, char *buf, int sz)
 
   Log (1, "rerror: %s", s = strquote (buf, SQ_CNTRL));
   if (state->to)
-    bad_try (&state->to->fa, s);
+    bad_try (&state->to->fa, s, BAD_MERR);
   free (s);
   return 0;
 }
@@ -965,7 +979,7 @@ static int BSY (STATE *state, char *buf, int sz)
 
   Log (1, "got M_BSY: %s", s = strquote (buf, SQ_CNTRL));
   if (state->to)
-    bad_try (&state->to->fa, s);
+    bad_try (&state->to->fa, s, BAD_MBSY);
   free (s);
   return 0;
 }
@@ -1259,7 +1273,7 @@ static int ADR (STATE *state, char *s, int sz)
   {
     ftnaddress_to_str (szFTNAddr, &state->to->fa);
     Log (1, "called %s, but remote has no such AKA", szFTNAddr);
-    bad_try (&state->to->fa, "Remote has no needed AKA");
+    bad_try (&state->to->fa, "Remote has no needed AKA", BAD_AKA);
     return 0;
   }
   if (ip_verified < 0)
@@ -1296,7 +1310,7 @@ static int ADR (STATE *state, char *s, int sz)
       if(!tp) 
       {
         Log(2, "Unable to build MD5 digest");
-        bad_try (&state->to->fa, "Unable to build MD5 digest");
+        bad_try (&state->to->fa, "Unable to build MD5 digest", BAD_AUTH);
         return 0;
       }
       msg_send2 (state, M_PWD, tp, 0);
@@ -1306,7 +1320,7 @@ static int ADR (STATE *state, char *s, int sz)
     else if ((state->to->MD_flag == 1) && !no_MD5) /* We do not want to talk without MD5 */
     {
       Log(2, "CRAM-MD5 is not supported by remote");
-      bad_try (&state->to->fa, "CRAM-MD5 is not supported by remote");
+      bad_try (&state->to->fa, "CRAM-MD5 is not supported by remote", BAD_AUTH);
       return 0;
     }
     else
@@ -1328,7 +1342,7 @@ static char *select_inbound (FTN_ADDR *fa, int secure_flag)
   return p;
 }
 
-static void complete_login (STATE *state)
+static int complete_login (STATE *state)
 {
   state->inbound = select_inbound (state->fa, state->state);
   if (OK_SEND_FILES (state) && state->q == NULL)
@@ -1368,6 +1382,17 @@ static void complete_login (STATE *state)
     }
   }
   if (state->crypt_flag!=YES_CRYPT) state->crypt_flag=NO_CRYPT;
+#ifdef WITH_PERL
+  {
+    char *s = perl_after_handshake(state);
+    if (s && *s) {
+      Log (1, "aborted by Perl after_handshake(): %s", s);
+      msg_send2 (state, M_ERR, s, 0);
+      return 0;
+    }
+  }
+#endif
+  return 1;
 }
 
 static int PWD (STATE *state, char *pwd, int sz)
@@ -1422,8 +1447,10 @@ static int PWD (STATE *state, char *pwd, int sz)
       {
         state->state = P_NONSECURE;
         do_prescan (state);
-        if(bad_pwd) 
+        if(bad_pwd) {
           Log (1, "unexpected password digest from the remote");
+          state->state_ext = P_WE_NONSECURE;
+        }
       }
       else
       {
@@ -1466,8 +1493,7 @@ static int PWD (STATE *state, char *pwd, int sz)
                (!(state->ND_flag & WE_ND)) != (!(state->ND_flag & THEY_ND)) ? " NDA" : "",
                (state->crypt_flag == (WE_CRYPT | THEY_CRYPT)) ? " CRYPT" : "");
   msg_send2 (state, M_OK, state->state==P_SECURE ? "secure" : "non-secure", 0);
-  complete_login (state);
-  return 1;
+  return complete_login (state);
 }
 
 static int OK (STATE *state, char *buf, int sz)
@@ -1478,11 +1504,11 @@ static int OK (STATE *state, char *buf, int sz)
   {
     state->crypt_flag=NO_CRYPT; /* some development binkd versions send OPT CRYPT with unsecure session */
     Log (1, "Warning: remote set UNSECURE session");
+    state->state_ext = P_REMOTE_NONSECURE;
   }
   if (state->ND_flag == WE_ND || state->ND_flag == THEY_ND)
     state->ND_flag = 0; /* remote does not support asymmetric ND-mode */
-  complete_login (state);
-  return 1;
+  return complete_login (state);
 }
 
 /* val: checks file against skip rules */
@@ -1532,7 +1558,7 @@ static int start_file_recv (STATE *state, char *args, int sz)
 
       if (inb_done (state->in_complete.netname, state->in_complete.size,
 	            state->in_complete.time, state->fa, state->nallfa,
-		    state->inbound, realname) == 0)
+		    state->inbound, realname, state) == 0)
         return 0; /* error, drop session */
       if (*realname)
       {
@@ -1578,7 +1604,19 @@ static int start_file_recv (STATE *state, char *args, int sz)
     {
       char realname[MAXPATHLEN + 1];
       struct skipchain *mask;
+      int rc;
 
+#ifdef WITH_PERL
+      if ((rc = perl_before_recv(state, offset)) > 0) {
+	Log (1, "skipping %s (%sdestructive, %li byte(s), by Perl before_recv)",
+	     state->in.netname, rc == SKIP_D ? "" : "non-", state->in.size);
+	msg_sendf (state, (t_msg)(rc == SKIP_D ? M_GOT : M_SKIP), "%s %li %li",
+		   state->in.netname,
+		   (long) state->in.size,
+		   (long) state->in.time);
+	return 1;
+      }
+#endif
       /* val: skip check */
       if ((mask = skip_test(state)) != NULL) {
 	Log (1, "skipping %s (%sdestructive, %li byte(s), mask %s)",
@@ -1914,6 +1952,9 @@ static int GOT (STATE *state, char *args, int sz)
 	  }
 	  state->waiting_for_GOT = 0;
 	  Log(9, "Don't waiting for M_GOT");
+#ifdef WITH_PERL
+          perl_after_sent(state, n);
+#endif
 	  remove_from_spool (state, state->sent_fls[n].flo,
 			state->sent_fls[n].path, state->sent_fls[n].action);
 	  remove_from_sent_files_queue (state, n);
@@ -1943,7 +1984,7 @@ static int EOB (STATE *state, char *buf, int sz)
 
     if (inb_done (state->in_complete.netname, state->in_complete.size,
                   state->in_complete.time, state->fa, state->nallfa,
-	          state->inbound, realname) == 0)
+	          state->inbound, realname, state) == 0)
       return 0;
     if (*realname)
     {
@@ -1998,7 +2039,7 @@ static int recv_block (STATE *state)
       {
 	Log (1, "recv: %s", save_err);
 	if (state->to)
-	  bad_try (&state->to->fa, save_err);
+	  bad_try (&state->to->fa, save_err, BAD_IO);
       }
       return 0;
     }
@@ -2083,7 +2124,7 @@ static int recv_block (STATE *state)
 	  {
 	    if (inb_done (state->in.netname, state->in.size,
 		          state->in.time, state->fa, state->nallfa,
-		          state->inbound, realname) == 0)
+		          state->inbound, realname, state) == 0)
               return 0;
 	    if (*realname)
 	    {
@@ -2133,11 +2174,32 @@ static int recv_block (STATE *state)
     return 1;
 }
 
-static void banner (STATE *state)
-{
+static void send_ADR (STATE *state) {
   char szFTNAddr[FTN_ADDR_SZ + 1];
   char *szAkas;
-  int i, tz;
+  int i, n = nAddr;
+  FTN_ADDR *p = pAddr;
+
+  Log(7, "send_ADR(): got %d remote addresses", state->nfa);
+
+#ifdef WITH_PERL
+  if (state->nAddr && state->pAddr) { n = state->nAddr; p = state->pAddr; }
+#endif
+  szAkas = xalloc (n * (FTN_ADDR_SZ + 1));
+  *szAkas = 0;
+  for (i = 0; i < n; ++i)
+  {
+    ftnaddress_to_str (szFTNAddr, p + i);
+    strcat (szAkas, " ");
+    strcat (szAkas, szFTNAddr);
+  }
+  msg_send2 (state, M_ADR, szAkas, 0);
+  free (szAkas);
+}
+
+static void banner (STATE *state)
+{
+  int tz;
   char szLocalTime[60];
   time_t t, gt;
   struct tm tm;
@@ -2190,22 +2252,16 @@ static void banner (STATE *state)
   msg_sendf (state, M_NUL,
     "VER " MYNAME "/" MYVER "%s " PRTCLNAME "/" PRTCLVER, get_os_string ());
 
-  szAkas = xalloc (nAddr * (FTN_ADDR_SZ + 1));
-  *szAkas = 0;
-  for (i = 0; i < nAddr; ++i)
-  {
-    ftnaddress_to_str (szFTNAddr, pAddr + i);
-    strcat (szAkas, " ");
-    strcat (szAkas, szFTNAddr);
-  }
-  msg_send2 (state, M_ADR, szAkas, 0);
+#ifdef DELAY_ADR
+  if (state->to)
+#endif
+    send_ADR (state);
 
   if (state->to)
     msg_sendf (state, M_NUL, "OPT NDA%s%s%s",
                (state->NR_flag & WANT_NR) ? " NR" : "",
                (state->ND_flag & THEY_ND) ? " ND" : "",
                (state->crypt_flag & WE_CRYPT) ? " CRYPT" : "");
-  free (szAkas);
 }
 
 static int start_file_transfer (STATE *state, FTNQ *file)
@@ -2317,6 +2373,16 @@ static int start_file_transfer (STATE *state, FTNQ *file)
     TF_ZERO (&state->out);
     return 0;
   }
+#ifdef WITH_PERL
+  if (perl_before_send(state) > 0) {
+    Log(3, "sending %s aborted by Perl before_send()", state->out.path);
+    if (state->out.f) fclose(state->out.f);
+    remove_from_spool (state, state->out.flo,
+			 state->out.path, state->out.action);
+    TF_ZERO (&state->out);
+    return 0;
+  }
+#endif
   Log (3, "sending %s as %s (%li)",
        state->out.path, state->out.netname, (long) state->out.size);
 
@@ -2340,6 +2406,9 @@ void log_end_of_session (char *status, STATE *state)
   char szFTNAddr[FTN_ADDR_SZ + 1];
 
   BinLogStat (status, state);
+#ifdef WITH_PERL
+  perl_after_session(state, status);
+#endif
 
   if (state->to)
     ftnaddress_to_str (szFTNAddr, &state->to->fa);
@@ -2365,6 +2434,13 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
   socklen_t peer_name_len = sizeof (peer_name);
   char host[MAXHOSTNAMELEN + 1];
   const char *save_err;
+  int ok = 1;                         /* drop to 0 to abort session */
+#ifdef DELAY_ADR
+  int ADR_sent = 0;
+#endif
+#ifdef WITH_PERL
+  int perl_on_handshake_done = 0;
+#endif
 
   if (!init_protocol (&state, socket, to))
     return;
@@ -2397,8 +2473,20 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
   else 
     state.our_ip=peer_name.sin_addr.s_addr;
 
-  banner (&state);
-  if (n_servers > max_servers && !to)
+#ifdef WITH_PERL
+  if (state.to) {
+    char *s = perl_on_handshake(&state);
+    perl_on_handshake_done = 1;
+    if (s && *s) { 
+      Log (1, "aborted by Perl on_handshake(): %s", s);
+      msg_send2 (&state, M_ERR, s, 0);
+      ok = 0;
+    }
+  }
+#endif
+  if (ok) banner (&state);
+  if (!ok) ;
+  else if (n_servers > max_servers && !to)
   {
     Log (1, "too many servers");
     msg_send2 (&state, M_BSY, "Too many servers", 0);
@@ -2491,7 +2579,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
 	state.io_error = 1;
 	Log (1, "timeout!");
 	if (to)
-	  bad_try (&to->fa, "Timeout!");
+	  bad_try (&to->fa, "Timeout!", BAD_IO);
 	break;
       }
       else if (no < 0)
@@ -2501,7 +2589,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
 	{
 	  Log (1, "select: %s (args: %i %i)", save_err, socket, tv.tv_sec);
 	  if (to)
-	    bad_try (&to->fa, save_err);
+	    bad_try (&to->fa, save_err, BAD_IO);
 	}
 	break;
       }
@@ -2510,6 +2598,20 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
 	if (!recv_block (&state))
 	  break;
       }
+#ifdef WITH_PERL
+      if (state.nfa && !perl_on_handshake_done) {
+        char *s = perl_on_handshake(&state);
+        perl_on_handshake_done = 1;
+        if (s && *s) { 
+          Log (1, "aborted by Perl on_handshake(): %s", s);
+          msg_send2 (&state, M_ERR, s, 0);
+          break;
+        }
+      }
+#endif
+#ifdef DELAY_ADR
+      if (!state.to && state.nfa && !ADR_sent) { send_ADR (&state); ADR_sent = 1; }
+#endif
       if (FD_ISSET (socket, &w))       /* Clear to send */
       {
 	if (!send_block (&state))

@@ -1,8 +1,12 @@
 # Microsoft Visual C++ Makefile
 # $Id$
 #
-# Usage: nmake [DEBUG=1] [DLLRTL=1] [BINKD9X=1]
+# Usage: nmake [DEBUG=1] [DLLRTL=1] [BINKD9X=1] [PERL=1]
 #
+
+!ifdef PERL
+PERL_BASE=c:\programs\Perl
+!endif
 
 !ifdef DLLRTL
 RTLTYPE=D
@@ -38,13 +42,22 @@ BINKDSBR=  -FR"$(OUTDIR)\\"
 LDEBUG=    /incremental:yes /map:"$(OUTDIR)\$(BINKDEXE).map" /debug
 !endif
 
+!ifdef PERL
+PERL_COPT= -I"$(PERL_BASE)\lib\core"
+PERL_CDEFS= -D"WITH_PERL" -D"DELAY_ADR" -D"xCLIENT_BUGx" -DNDEBUG -DWIN32 -D_CONSOLE -DNO_STRICT -DHAVE_DES_FCRYPT -DPERL_IMPLICIT_CONTEXT -DPERL_IMPLICIT_SYS -DPERL_MSVCRT_READFIX
+PERL_LLIBS= $(PERL_BASE)\lib\core\perl56.lib 
+#PERL_LLIBS= delayimp.lib $(PERL_BASE)\lib\core\perl56.lib 
+#PERL_LOPT= /opt:nowin98 /delayload:perl56.dll
+PERL_OBJS= $(OUTDIR)\perlhooks.obj
+!endif
+
 CC=        cl
-CDEFS=     $(CDEBUG) $(BINKD9X_DEFINES) -D"HTTPS" -D"WIN32" -D"HAVE_THREADS" -D"HAVE_IO_H" -D"HAVE_DOS_H" -D"VISUALCPP" -D"AMIGADOS_4D_OUTBOUND"
-COPT=      $(BINKDSBR) -Fo"$(OUTDIR)\\" -Fp"$(OUTDIR)\$(BINKDEXE).pch" -YX -Fd"$(OUTDIR)\\"
+CDEFS=     $(CDEBUG) $(BINKD9X_DEFINES) $(PERL_CDEFS) -D"HTTPS" -D"WIN32" -D"HAVE_THREADS" -D"HAVE_IO_H" -D"HAVE_DOS_H" -D"VISUALCPP" -D"AMIGADOS_4D_OUTBOUND"
+COPT=      $(BINKDSBR) $(PERL_COPT) -Fo"$(OUTDIR)\\" -Fp"$(OUTDIR)\$(BINKDEXE).pch" -YX -Fd"$(OUTDIR)\\"
 LINK=      link
 LFLAGS=    /nologo /machine:I386
-LOPT=      $(LDEBUG) /subsystem:$(BINKD9X_SUBSYSTEM) /pdb:"$(OUTDIR)\$(BINKDEXE).pdb" /out:"$(OUTDIR)\$(BINKDEXE).exe"
-LLIBS=     kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib wsock32.lib
+LOPT=      $(LDEBUG) /subsystem:$(BINKD9X_SUBSYSTEM) /pdb:"$(OUTDIR)\$(BINKDEXE).pdb" /out:"$(OUTDIR)\$(BINKDEXE).exe" $(PERL_LOPT)
+LLIBS=     kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib wsock32.lib $(PERL_LLIBS)
 BSC=       bscmake
 BINKDBSC=  "$(OUTDIR)\$(BINKDEXE).bsc"
 BSCFLAGS=  /nologo /o$(BINKDBSC)
@@ -73,7 +86,7 @@ OBJS= \
  "$(OUTDIR)\run.obj"      "$(OUTDIR)\binlog.obj"   "$(OUTDIR)\exitproc.obj"\
  "$(OUTDIR)\getw.obj"     "$(OUTDIR)\xalloc.obj"   "$(OUTDIR)\setpttl.obj" \
  "$(OUTDIR)\https.obj"    "$(OUTDIR)\md5b.obj"     "$(OUTDIR)\crypt.obj"   \
- $(NT_OBJS) $(NTSERVICE_OBJ) $(BINKD9X_OBJ) $(NTLM_OBJS)
+ $(NT_OBJS) $(NTSERVICE_OBJ) $(BINKD9X_OBJ) $(NTLM_OBJS) $(PERL_OBJS)
 
 !ifdef DEBUG
 SBRS= $(OBJS:.obj=.sbr)

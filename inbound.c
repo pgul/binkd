@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2003/06/20 10:37:02  val
+ * Perl hooks for binkd - initial revision
+ *
  * Revision 2.14  2003/06/12 08:30:57  val
  * check pkt header feature, see keyword 'check-pkthdr'
  *
@@ -97,6 +100,9 @@
 #include "tools.h"
 #include "protocol.h"
 #include "readdir.h"
+#ifdef WITH_PERL
+#include "perlhooks.h"
+#endif
 
 /* Removes both xxxxx.hr and it's xxxxx.dt */
 static void remove_hr (char *path)
@@ -437,7 +443,8 @@ int check_pkthdr(int nfa, FTN_ADDR *from, char *netname, char *tmp_name,
  * Sets realname[MAXPATHLEN]
  */
 int inb_done (char *netname, off_t size, time_t time,
-	      FTN_ADDR *from, int nfa, char *inbound, char *real_name)
+	      FTN_ADDR *from, int nfa, char *inbound, char *real_name,
+              STATE *state)
 {
   char tmp_name[MAXPATHLEN + 1];
   char *s, *u;
@@ -457,6 +464,16 @@ int inb_done (char *netname, off_t size, time_t time,
   strnzcat (real_name, u = makeinboundcase (strdequote (netname)), MAXPATHLEN);
   free (u);
   strwipe (s);
+
+#ifdef WITH_PERL
+  if (perl_after_recv(state, netname, size, time, from, nfa, tmp_name, real_name)) {
+    /* Replacing .dt with .hr and removing temp. file */
+    if (access(tmp_name, 0) == 0) sdelete (tmp_name);
+    strcpy (strrchr (tmp_name, '.'), ".hr");
+    sdelete (tmp_name);
+    return 1;
+  }
+#endif
 
   if (mask_test(netname, overwrite) && !ispkt(netname) && !isarcmail(netname))
   {

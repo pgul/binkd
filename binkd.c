@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.38  2003/06/20 10:37:02  val
+ * Perl hooks for binkd - initial revision
+ *
  * Revision 2.37  2003/06/13 03:10:07  hbrew
  * Correct standalone/service logging for binkd9x.
  *
@@ -193,6 +196,11 @@
 #include "binlog.h"
 #include "setpttl.h"
 #include "sem.h"
+
+#ifdef WITH_PERL
+#include "perlhooks.h"
+#endif
+
 #ifdef UNIX
 #include "unix/daemonize.h"
 #endif
@@ -221,6 +229,7 @@ MUTEXSEM fhsem = 0;
  * Global variables
  */
 int pidcmgr = 0;		       /* pid for clientmgr */
+int pidCmgr = 0;		       /* real pid for clientmgr (not 0) */
 int pidsmgr = 0;		       /* pid for server */
 SOCKET inetd_socket = 0;
 
@@ -745,6 +754,10 @@ int main (int argc, char *argv[], char *envp[])
   /* Set up break handler, set up exit list if needed */
   if (!set_break_handlers ())
     Log (0, "cannot install break handlers");
+
+#ifdef WITH_PERL
+  perl_init("test.pl");
+#endif
 
 #ifdef HAVE_FORK
   signal (SIGCHLD, chld);

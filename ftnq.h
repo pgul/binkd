@@ -14,6 +14,9 @@
 /* $Id$
  *
  * $Log$
+ * Revision 2.5  2003/06/20 10:37:02  val
+ * Perl hooks for binkd - initial revision
+ *
  * Revision 2.4  2003/05/28 14:32:57  gul
  * new function q_add_last_file() - add file to the end of queue
  *
@@ -162,7 +165,10 @@ extern const char prio[];
  */
 #define MAXFLVR(a,b) ((strchr(prio, (a)) < strchr(prio, (b))) ? (a) : (b))
 
-void bad_try (FTN_ADDR *fa, const char *error);
+enum bad_try_type { BAD_NA, BAD_CALL, BAD_MERR, BAD_MBSY, BAD_IO, BAD_TIMEOUT, 
+                    BAD_AKA, BAD_AUTH };
+
+void bad_try (FTN_ADDR *fa, const char *error, const int where);
 void good_try (FTN_ADDR *fa, char *comment);
 void read_try (FTN_ADDR *fa, unsigned *nok, unsigned *nbad);
 void write_try (FTN_ADDR *fa, unsigned *nok, unsigned *nbad, char *comment);

@@ -13,6 +13,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/06/20 10:37:02  val
+ * Perl hooks for binkd - initial revision
+ *
  * Revision 2.4  2003/06/09 13:27:28  stas
  * New command line parser
  *
@@ -86,6 +89,7 @@ extern int n_servers, n_clients;
 extern int binkd_exit;
 extern int checkcfg_flag;	/* exit(3) on config change */
 extern int pidcmgr;		/* pid for clientmgr */
+extern int pidCmgr;             /* real pid for clientmgr (not 0) */
 extern int pidsmgr;		/* pid for server */
 extern int no_MD5;
 extern int no_crypt;

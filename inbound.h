@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/06/20 10:37:02  val
+ * Perl hooks for binkd - initial revision
+ *
  * Revision 2.2  2003/03/01 18:29:52  gul
  * Change size_t to off_t for file sizes and offsets
  *
@@ -15,6 +18,9 @@
  */
 #ifndef _inbound_h
 #define _inbound_h
+
+#include "prothlp.h"
+#include "protoco2.h"
 
 /*
  * Checks if the file already exists in our inbound. !0=ok, 0=failed.
@@ -35,7 +41,8 @@ FILE *inb_fopen (char *netname, off_t size, time_t t,
  * Sets realname[MAXPATHLEN]
  */
 int inb_done (char *netname, off_t size, time_t t,
-	       FTN_ADDR *from, int nfa, char *inbound, char *realname);
+	       FTN_ADDR *from, int nfa, char *inbound, char *realname,
+               STATE *state);
 
 /*
  * Remove partial file

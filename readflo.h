@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2003/06/20 10:37:02  val
+ * Perl hooks for binkd - initial revision
+ *
  * Revision 2.0  2001/01/10 12:12:39  gul
  * Binkd is under CVS again
  *
@@ -34,6 +37,8 @@ struct _RF_RULE
   char *from, *to;
   RF_RULE *next;
 };
+
+extern RF_RULE *rf_rules;
 
 /*
  * Add a translation rule for trans_flo_line ()

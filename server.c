@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.24  2003/06/20 10:37:02  val
+ * Perl hooks for binkd - initial revision
+ *
  * Revision 2.23  2003/05/23 18:10:57  stas
  * Do not report errors when threads exits by exitfunc
  *
@@ -148,6 +151,9 @@
 #include "assert.h"
 #include "setpttl.h"
 #include "sem.h"
+#if defined(WITH_PERL) && defined(HAVE_THREADS)
+#include "perlhooks.h"
+#endif
 
 int n_servers = 0;
 int ext_rand = 0;
@@ -167,14 +173,23 @@ SOCKET sockfd = INVALID_SOCKET;
 void serv (void *arg)
 {
   int h = *(int *) arg;
+#if defined(WITH_PERL) && defined(HAVE_THREADS)
+  void *cperl;
+#endif
 
 #ifdef HAVE_FORK
   pidcmgr = 0;
   soclose(sockfd);
   sockfd = INVALID_SOCKET;
 #endif
+#if defined(WITH_PERL) && defined(HAVE_THREADS)
+  cperl = perl_init_clone();
+#endif
   protocol (h, 0, NULL);
   Log (5, "downing server...");
+#if defined(WITH_PERL) && defined(HAVE_THREADS)
+  perl_done_clone(cperl);
+#endif
   del_socket(h);
   soclose (h);
   free (arg);

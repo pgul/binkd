@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.40  2003/06/20 10:37:02  val
+ * Perl hooks for binkd - initial revision
+ *
  * Revision 2.39  2003/06/02 14:10:17  gul
  * write domain and IP to logfile on outgoing connections
  *
@@ -198,12 +201,15 @@
 #include "assert.h"
 #include "setpttl.h"
 #include "sem.h"
+#if defined(WITH_PERL)
+#include "perlhooks.h"
+#endif
 
 #ifdef HTTPS
 #include "https.h"
 #endif
 
-static void call (void *arg);
+void call (void *arg);
 
 int n_clients = 0;
 
@@ -265,6 +271,7 @@ void clientmgr (void *arg)
 
 #ifdef HAVE_FORK
   pidcmgr = 0;
+  pidCmgr = (int) getpid();
   signal (SIGCHLD, chld);
 #elif HAVE_THREADS
   pidcmgr = PID();
@@ -355,6 +362,13 @@ static int call0 (FTN_NODE *node)
   unsigned short port;
   const char *save_err;
 
+#ifdef WITH_PERL
+  if (!perl_on_call(node)) {
+    Log(1, "call aborted by Perl on_call()");
+    return 0;
+  }
+#endif
+
   ftnaddress_to_str (szDestAddr, &node->fa);
   Log (2, "call to %s", szDestAddr);
   setproctitle ("call to %s", szDestAddr);
@@ -415,7 +429,7 @@ static int call0 (FTN_NODE *node)
     {
       if ((hp = find_host(host, &he, &defaddr)) == NULL)
       {
-        bad_try(&node->fa, "Cannot gethostbyname");
+        bad_try(&node->fa, "Cannot gethostbyname", BAD_CALL);
         continue;
       }
       sin.sin_port = htons(port);
@@ -498,7 +512,7 @@ badtry:
       if (!binkd_exit)
       {
 	Log (1, "unable to connect: %s", save_err);
-	bad_try (&node->fa, save_err);
+	bad_try (&node->fa, save_err, BAD_CALL);
       }
       del_socket(sockfd);
       soclose (sockfd);
@@ -514,7 +528,7 @@ badtry:
     if (sockfd != INVALID_SOCKET && (proxy[0] || socks[0])) {
       if (h_connect(sockfd, host) != 0) {
 	if (!binkd_exit)
-          bad_try (&node->fa, TCPERR ());
+          bad_try (&node->fa, TCPERR (), BAD_CALL);
         del_socket(sockfd);
         soclose (sockfd);
         sockfd = INVALID_SOCKET;
@@ -542,15 +556,24 @@ badtry:
   return 1;
 }
 
-static void call (void *arg)
+void call (void *arg)
 {
   FTN_NODE *node = (FTN_NODE *) arg;
+#if defined(WITH_PERL) && defined(HAVE_THREADS)
+  void *cperl;
+#endif
 
+#if defined(WITH_PERL) && defined(HAVE_THREADS) && !defined(CLIENT_BUG)
+  cperl = perl_init_clone();
+#endif
   if (bsy_add (&node->fa, F_CSY))
   {
     call0 (node);
     bsy_remove (&node->fa, F_CSY);
   }
+#if defined(WITH_PERL) && defined(HAVE_THREADS) && !defined(CLIENT_BUG)
+  perl_done_clone(cperl);
+#endif
   free (arg);
   rel_grow_handles(-6);
 #ifdef HAVE_THREADS

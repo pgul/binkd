@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/06/20 10:37:02  val
+ * Perl hooks for binkd - initial revision
+ *
  * Revision 2.9  2003/06/12 08:30:57  val
  * check pkt header feature, see keyword 'check-pkthdr'
  *
@@ -97,6 +100,10 @@ struct _FTN_NODE
   int mail_flvr;		       /* -1=no mail, other=it's flavour */
   int files_flvr;		       /* -1=no files, other=it's flavour */
 };
+
+extern int nNod;
+extern FTN_NODE *pNod;
+extern int nNodSorted;
 
 /*
  * Call this before all others functions from this file.

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.21  2003/06/20 10:37:02  val
+ * Perl hooks for binkd - initial revision
+ *
  * Revision 2.20  2003/06/07 08:46:25  gul
  * New feature added: shared aka
  *
@@ -124,6 +127,9 @@
 #include "readcfg.h"
 #include "tools.h"
 #include "readdir.h"
+#ifdef WITH_PERL
+#include "perlhooks.h"
+#endif
 
 const char prio[] = "IiCcDdOoFfHh";
 static const char flo_flvrs[] = "icdfhICDFH";
@@ -894,6 +900,15 @@ FTNQ *select_next_file (FTNQ *q, FTN_ADDR *fa, int nAka)
   int j, k;
   FTNQ *curr;
 
+#ifdef WITH_PERL
+  if (perl_manages_queue) { 
+    for (curr = q; curr; curr = curr->next) {
+      if (!curr->sent) { curr->sent = 1; return curr; }
+    }
+    return NULL;
+  }
+#endif
+
   for (k = 0; k < nAka; ++k)
   {
     for (curr = q; curr; curr = curr->next)	/* Status first */
@@ -965,22 +980,29 @@ void q_get_sizes (FTNQ *q, unsigned long *netsize, unsigned long *filessize)
 
       if ((f = fopen(curr->path, "r")) != NULL)
       {
+        curr->size = curr->time = 0;
         while (fgets (str, sizeof(str), f))
         {
           if (*str == '~' || *str == '$') continue;
           if ((p = strchr(str, '\n')) != NULL) *p='\0';
           p=str;
           if (*str == '#' || *str == '^') p++;
-          if (stat(p, &st) == 0)
+          if (stat(p, &st) == 0) {
             *filessize += st.st_size;
+            curr->size += st.st_size;
+            if (st.st_mtime > curr->time) curr->time = st.st_mtime;
+          }
         }
         fclose(f);
       }
     }
     else if (curr->type == 's')
       *filessize += curr->size;
-    else if (stat(curr->path, &st) == 0)
+    else if (stat(curr->path, &st) == 0) {
       *(curr->type == 'm' ? netsize : filessize) += st.st_size;
+      curr->size = st.st_size;
+      curr->time = st.st_mtime;
+    }
   }
 }
 
@@ -1153,10 +1175,13 @@ void read_try (FTN_ADDR *fa, unsigned *nok, unsigned *nbad)
   }
 }
 
-void bad_try (FTN_ADDR *fa, const char *error)
+void bad_try (FTN_ADDR *fa, const char *error, const int where)
 {
   unsigned nok, nbad;
 
+#ifdef WITH_PERL
+  perl_on_error(fa, error, where);
+#endif
   if (tries == 0) return;
   read_try (fa, &nok, &nbad);
   if (tries > 0 && ++nbad >= (unsigned) tries)

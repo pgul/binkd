@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2003/06/20 10:37:02  val
+ * Perl hooks for binkd - initial revision
+ *
  * Revision 2.6  2003/05/30 17:15:22  gul
  * Asymmetric ND-mode, new protocol option NDA
  *
@@ -100,6 +103,10 @@ struct _STATE
   FTN_ADDR *fa;			/* Foreign akas */
   int nfa;			/* How many... */
   int nallfa;			/* How many remote akas including busy & n/a */
+#ifdef WITH_PERL
+  FTN_ADDR *pAddr;              /* Our aka's, NULL = use from config */
+  int nAddr;                    /* How many our aka's, 0 = use from config */
+#endif
   int maxflvr;
   int skip_all_flag;		/* We'd skip all */
   int r_skipped_flag;		/* Remote skipped smthng */
@@ -130,7 +137,7 @@ struct _STATE
   int GET_FILE_balance;		/* Prevent quitting without * waiting for GET 
 				   results */
   int off_req_sent;		/* "M_FILE ... -1" sent, waiting * for M_GET */
-  int state;
+  int state, state_ext;
   int NR_flag;                  /* State of binkp when in NR mode */
 
   int ND_flag;                  /* State of binkp when in ND mode */
@@ -146,6 +153,9 @@ struct _STATE
   unsigned long keys_out[3];	/* Encription keys for outbound */
   unsigned long keys_in[3];	/* Encription keys for inbound */
   EVTQ *evt_queue;		/* Queue of by-files events */
+#ifdef WITH_PERL
+  int perl_set_lvl;             /* Level of already set Perl vars */
+#endif
 };
 #define STATE_DEFINED 1
 

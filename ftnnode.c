@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2003/06/20 10:37:02  val
+ * Perl hooks for binkd - initial revision
+ *
  * Revision 2.13  2003/06/12 08:30:57  val
  * check pkt header feature, see keyword 'check-pkthdr'
  *
@@ -82,9 +85,9 @@
 static MUTEXSEM NSem;
 #endif
 
-static int nNod = 0;
-static FTN_NODE *pNod = 0;
-static int nNodSorted = 0;
+int nNod = 0;
+FTN_NODE *pNod = 0;
+int nNodSorted = 0;
 
 /*
  * Call this before all others functions from this file.
