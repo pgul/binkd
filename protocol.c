@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.136  2003/10/24 06:38:41  val
+ * fix warning
+ *
  * Revision 2.135  2003/10/20 18:44:51  gul
  * Inhibit incorrect error message
  *
@@ -865,7 +868,7 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
     {
       /* There is a file in transfer and we don't wait for an answer for * *
        * "FILE ... -1" */
-      unsigned sz;
+      int sz;
       char *buf = state->obuf + BLK_HDR_SIZE;
 
       if (state->out.f)
