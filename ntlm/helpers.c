@@ -166,10 +166,10 @@ typedef struct {
 } Type3message;
 
 
-short mkls(short x)
+short mkls(int x)
 {
-  x = htons(x);
-  return ((x>>8) & 0xFF)| ((x&0xFF)<<8);
+  x = htons((short)x);
+  return (short)(((x>>8) & 0xFF) | ((x&0xFF)<<8));
 }
 
 static char b64t[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
