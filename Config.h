@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.95  2003/08/11 08:36:43  gul
+ * Auto increase patchlevel, set 0.9.6a-83
+ * workaround winsock bug
+ *
  * Revision 2.94  2003/08/11 08:33:18  val
  * Auto increase patchlevel, set 0.9.6a-82
  * better error handling in perl hooks
@@ -411,7 +415,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-82"
+#define MYVER "0.9.6a-83"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
