@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67.2.13  2003/08/29 13:37:37  gul
+ * Do not save zero-length .dt files
+ *
  * Revision 2.67.2.12  2003/08/27 06:46:37  gul
  * Migrate from stable branch:
  * remove partial if received part more then total size,
@@ -393,16 +396,16 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to)
   return 1;
 }
 
-/*
- * Clears protocol buffers and queues, closes files, etc.
+/* 
+ * Close file currently receiving,
+ * remove .hr and .dt if it's partial pkt or zero-length
  */
-static int deinit_protocol (STATE *state)
+static int close_partial (STATE *state)
 {
-  int i;
+  off_t s;
 
   if (state->in.f)
   {
-    off_t s;
     if (ispkt (state->in.netname))
     {
       Log (2, "%s: partial .pkt", state->in.netname);
@@ -411,13 +414,25 @@ static int deinit_protocol (STATE *state)
     else
     {
       if ((s = ftell (state->in.f)) == 0)
-	Log (4, "%s: empty partial", state->in.netname);
+      Log (4, "%s: empty partial", state->in.netname);
     }
     fclose (state->in.f);
     if (s == 0)
       inb_reject (state->in.netname, state->in.size, state->in.time,
-		  state->fa, state->nallfa, state->inbound);
+                  state->fa, state->nallfa, state->inbound);
   }
+  TF_ZERO (&state->in);
+  return 0;
+}
+
+/*
+ * Clears protocol buffers and queues, closes files, etc.
+ */
+static int deinit_protocol (STATE *state)
+{
+  int i;
+
+  close_partial(state);
   if (state->out.f)
     fclose (state->out.f);
   if (state->flo.f)
@@ -1393,9 +1408,8 @@ static int start_file_recv (STATE *state, char *args, int sz)
 	strcmp (argv[0], state->in.netname))	/* ...a file with another *
 						 * name! */
     {
-      fclose (state->in.f);
       Log (1, "receiving of %s interrupted", state->in.netname);
-      TF_ZERO (&state->in);
+      close_partial (state);
     }
     if ((state->ND_flag & THEY_ND) && state->in_complete.netname[0])
     { /* rename complete received file to its true form */
