@@ -558,6 +558,9 @@ NT/95:  ctrl-c problems fixed
 
 	New option -S specifies service name (NT, w9x).
 
+	NT service name restrictions is removed, a slash (/), backslash (\),
+        comma and space may be used in the NT service name.
+
 	New option -t operates with NT and w9x service (start, stop, query
         status, install, uninstall).
 
