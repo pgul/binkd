@@ -1,4 +1,4 @@
-.TH BINKD 8 "16 Jul 1998"
+.TH BINKD 8 "4 Apr 2003"
 .SH NAME
 binkd \- transfer files between two Fidonet systems over TCP/IP
 .SH SYNOPSIS
@@ -19,7 +19,8 @@ FTN-based (Fido Technology Network) networks.
 .PP
 .B Binkd
 expects your spool for Fido-like networks to be in BSO
-("Bink style outbound") format. BSO is also used by
+("Bink style outbound") or optionaly ASO ("Amiga style outbound") format.
+BSO is also used by
 .B ifmail
 and
 .B BinkleyTerm
@@ -29,9 +30,10 @@ mailers.
 .TP
 .BI \-C
 .B Binkd
-running with this option will exit with return code 3 when
-the configuration file is changed. The configuration file
-is checked every 60 seconds.
+running with this option will reread the configuration file if
+it is changed. The modification time of the configuration file
+is checked every 60 seconds and on every incoming and outgoing
+connection.
 .TP
 .BI \-c
 Start client only. Normally
@@ -48,14 +50,6 @@ Run
 .B Binkd
 from
 .B inetd.
-Don't forget either to comment out
-.I printq,
-.I conlog
-and
-.I percents
-from the configuration file or to use
-.BI \-q
-option.
 .TP
 .BI \-P
 Poll a
@@ -111,6 +105,8 @@ inetd(8)
 Binkd homepage,
 http://www.corbina.net/~maloff/binkd/
 ftp://happy.kiev.ua/pub/fidosoft/mailer/binkd/
+ftp://fido.thunderdome.ws/pub/mirror/binkd/
+ftp://ftp.lucky.net/pub/fido/binkd/
 
 "Binkd User Guide" by Nick Soveiko,
 http://www.doe.carleton.ca/~nsoveiko/fido/binkd/man/
@@ -121,5 +117,5 @@ Dima Maloff <maloff@tts.magadan.su> and others.
 This manual page is based on "Binkd User Guide" by
 nsoveiko@doe.carleton.ca (Nick Soveiko)
 
-.SH HISTORY
-Nov 1996 - First version under FreeBSD
+.SH "REPORTING BUGS"
+Report bugs to <binkd-bugs@happy.kiev.ua>

@@ -1,7 +1,5 @@
-
-
-
 BINKD(8)                                                 BINKD(8)
+
 
 
 NAME
@@ -9,7 +7,7 @@ NAME
        TCP/IP
 
 SYNOPSIS
-       binkd [-Ccipqsv] [ -P node ] config-file
+       binkd [-CcDipqsv] [ -P node ] config-file
 
 DESCRIPTION
        Binkd is a Fidonet mailer designed to operate  via  TCP/IP
@@ -19,35 +17,38 @@ DESCRIPTION
        networks.
 
        Binkd expects your spool for Fido-like networks to  be  in
-       BSO  ("Bink  style  outbound") format. BSO is also used by
-       ifmail and BinkleyTerm mailers.
+       BSO ("Bink style outbound") or optionaly ASO ("Amiga style
+       outbound") format.  BSO is also used by ifmail  and  Bink-
+       leyTerm mailers.
 
 
 OPTIONS
-       -C     Binkd running  with  this  option  will  exit  with
-              return  code  3  when  the  configuration  file  is
-              changed. The configuration file is checked every 60
-              seconds.
+       -C     Binkd running with this option will reread the con-
+              figuration file if it is changed. The  modification
+              time  of the configuration file is checked every 60
+              seconds and on every incoming and outgoing  connec-
+              tion.
 
        -c     Start  client  only.  Normally  Binkd  starts  both
               server and client.
 
-       -i     Run Binkd from inetd.  Don't forget either to  com-
-              ment  out printq, conlog and percents from the con-
-              figuration file or to use -q option.
+       -D     Run Binkd as a daemon (cannot be used  for  client-
+              only mode).
 
-       -P     Poll a node.  An empty *.ilo file in  the  outbound
-              will  be created, which will force Binkd to connect
-              to and to receive mail from the node (  Binkd  will
-              also  add  "Node  node * -" record to the table-of-
-              nodes in Binkd 's memory if there is no  entry  for
+       -i     Run Binkd from inetd.
+
+       -P     Poll  a  node.  An empty *.ilo file in the outbound
+              will be created, which will force Binkd to  connect
+              to  and  to receive mail from the node ( Binkd will
+              also add "Node node * -" record  to  the  table-of-
+              nodes  in  Binkd 's memory if there is no entry for
               the node in the configuration file).
 
-       -p     Start  client  manager,  process polls, quit if the
-              queue seems to be  empty  after  the  next  rescan.
+       -p     Start client manager, process polls,  quit  if  the
+              queue  seems  to  be  empty  after the next rescan.
               Implies -c.
 
-       -q     Quiet  mode.  Turns off printq, conlog and percents
+       -q     Quiet mode. Turns off printq, conlog  and  percents
               statements of configuration.
 
        -s     Start  server  only.  Normally  Binkd  starts  both
@@ -57,19 +58,6 @@ OPTIONS
               quit.
 
 
-
-
-
-
-                           16 Jul 1998                          1
-
-
-
-
-
-BINKD(8)                                                 BINKD(8)
-
-
 SIGNALS
        SIGHUP Causes Binkd to reload it's config.
 
@@ -77,11 +65,13 @@ SIGNALS
 SEE ALSO
        inetd(8)
 
-       Binkd homepage, http://www.corbina.net/~maloff/binkd/
+       Binkd    homepage,   http://www.corbina.net/~maloff/binkd/
        ftp://happy.kiev.ua/pub/fidosoft/mailer/binkd/
+       ftp://fido.thunderdome.ws/pub/mirror/binkd/
+       ftp://ftp.lucky.net/pub/fido/binkd/
 
-       "Binkd     User     Guide"      by      Nick      Soveiko,
-       http://www.doe.carleton.ca/~nsoveiko/fido/binkd/man/
+       "Binkd User Guide" by  Nick  Soveiko,  http://www.doe.car-
+       leton.ca/~nsoveiko/fido/binkd/man/
 
 
 AUTHORS
@@ -91,43 +81,9 @@ AUTHORS
        nsoveiko@doe.carleton.ca (Nick Soveiko)
 
 
-HISTORY
-       Nov 1996 - First version under FreeBSD
+REPORTING BUGS
+       Report bugs to <binkd-bugs@happy.kiev.ua>
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                           16 Jul 1998                          2
-
-
+                            4 Apr 2003                   BINKD(8)
