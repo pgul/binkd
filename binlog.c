@@ -26,6 +26,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.6  2003/08/16 09:47:25  gul
+ * Autodetect tzoff if not specified
+ *
  * Revision 2.5  2003/08/16 09:08:33  gul
  * Binlog semaphoring removed
  *
@@ -121,7 +124,7 @@ void TLogStat (char *status, STATE *state)
 		TS.fBSent = state->bytes_sent;
 		TS.fFReceive = state->files_rcvd;
 		TS.fFSent = state->files_sent;
-		TS.fSTime = state->start_time + tzoff;
+		TS.fSTime = state->start_time + tz_off(state->start_time)*60;
 		TS.fLTime = safe_time() - state->start_time;
 		if (STRICMP(status, "OK") != 0) {
 			TS.fStatus |= 3;
@@ -167,8 +170,8 @@ void FDLogStat (STATE *state)
             return; /* nothing to do */
 
 	t = safe_time();
-	std.TimeStart = (u32)(state->start_time + tzoff);
-	std.TimeEnd = (u32)(t + tzoff);
+	std.TimeStart = (u32)(state->start_time + tz_off(state->start_time)*60);
+	std.TimeEnd = (u32)(t + tz_off(t)*60);
 	std.Zone = state->fa->z;
 	std.Net = state->fa->net;
 	std.Node = state->fa->node;

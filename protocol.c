@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.97  2003/08/16 09:47:25  gul
+ * Autodetect tzoff if not specified
+ *
  * Revision 2.96  2003/08/15 08:48:50  gul
  * Compilation error fixed
  *
@@ -2333,7 +2336,7 @@ static void banner (STATE *state)
 {
   int tz;
   char szLocalTime[60];
-  time_t t, gt;
+  time_t t;
   struct tm tm;
   char *dayweek[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
   char *month[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -2356,14 +2359,8 @@ static void banner (STATE *state)
   msg_send2 (state, M_NUL, "LOC ", location);
   msg_send2 (state, M_NUL, "NDL ", nodeinfo);
 
-  tzset();
   t = safe_time();
-  safe_gmtime (&t, &tm);
-  tm.tm_isdst = 0;
-  gt = mktime(&tm);
-  safe_localtime (&t, &tm);
-  tm.tm_isdst = 0;
-  tz = (int)(((long)mktime(&tm)-(long)gt)/60);
+  tz = tz_off(t);
   safe_localtime (&t, &tm);
 
 #if 0

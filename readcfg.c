@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.38  2003/08/16 09:47:25  gul
+ * Autodetect tzoff if not specified
+ *
  * Revision 2.37  2003/08/14 07:39:36  val
  * migrate from vfprintf() to vsnprintf() in Log(), new keyword `nolog'
  *
@@ -251,7 +254,7 @@ char bindaddr[16] = "";
 int loglevel = 4;
 int conlog = 0;
 int send_if_pwd = 0;
-int tzoff = 0;
+int tzoff = -1; /* autodetect */
 char root_domain[MAXHOSTNAMELEN + 1] = "fidonet.net.";
 int prescan = 0;
 enum inbcasetype inboundcase = INB_SAVE;

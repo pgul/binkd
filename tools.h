@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.17  2003/08/16 09:47:26  gul
+ * Autodetect tzoff if not specified
+ *
  * Revision 2.16  2003/07/07 08:38:18  val
  * safe pkthdr-reading function (to byte order and struct alignment)
  *
@@ -247,6 +250,7 @@ char *makeinboundcase (char *s);
 struct tm *safe_localtime(time_t *t, struct tm *tm);
 struct tm *safe_gmtime(time_t *t, struct tm *tm);
 time_t safe_time(void);
+int tz_off(time_t t);
 
 
 /* Safe string to long conversion: negative converts using atol,

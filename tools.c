@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.39  2003/08/16 09:47:25  gul
+ * Autodetect tzoff if not specified
+ *
  * Revision 2.38  2003/08/16 06:21:13  gul
  * Log() semaphoring removed
  *
@@ -1087,3 +1090,18 @@ int read_pkthdr(FILE *F, PKTHDR *hdr) {
   READ_BYTE2(F, hdr->dpoint, c, w1, w2);
   return c == (2*19 + 8 + 1*8);
 }
+
+int tz_off(time_t t)
+{
+  struct tm tm;
+  time_t gt;
+
+  if (tzoff != -1) return tzoff/60;
+  safe_gmtime (&t, &tm);
+  tm.tm_isdst = 0;
+  gt = mktime(&tm);
+  safe_localtime (&t, &tm);
+  tm.tm_isdst = 0;
+  return (int)(((long)mktime(&tm)-(long)gt)/60);
+}
+
