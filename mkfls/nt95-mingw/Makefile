@@ -1,6 +1,10 @@
 # $Id$
 #
+ifeq ($(TERM),msys)
+SHELL=sh.exe
+else
 SHELL=bash.exe
+endif
 
 ifdef BINKD9X
 BINKD9X_SRC=nt/win9x.c
