@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.40  2003/07/06 06:49:43  gul
+ * Code cleanup
+ *
  * Revision 2.39  2003/06/30 22:42:27  hbrew
  * Print only binkd name (without path) in error messages
  *
@@ -243,9 +246,7 @@ static void chld (int signo)
 {
 #include "reapchld.inc"
 }
-#endif
 
-#if defined(UNIX) || defined(AMIGA) || (defined(OS2) && defined(HAVE_FORK))
 jmp_buf jb;
 static void hup (int signo)
 {
@@ -808,7 +809,7 @@ int main (int argc, char *argv[], char *envp[])
 
   if (client_flag && !server_flag)
   {
-#if defined(UNIX) || defined(AMIGA) || (defined(OS2) && defined(HAVE_FORK))
+#if defined(HAVE_FORK)
     if (setjmp(jb))
       goto binkdrestart;
     else
