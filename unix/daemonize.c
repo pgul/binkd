@@ -3,6 +3,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.3.2.1  2003/07/11 15:14:22  gul
+ * Fix building with libc5
+ *
  * Revision 2.3  2003/03/01 17:33:25  gul
  * Clean daemonize code
  *
@@ -52,7 +55,7 @@ if (already_daemonized)
 if (daemon(nochdir,0) == -1)
 	{ Log(2,"Daemon() failed, %s",strerror(errno)); return -1; }
 
-#elif HAVE_SETSID
+#elif defined(HAVE_SETSID)
 if (fork() != 0) exit(0);
 if (setsid() == -1)
 #ifdef ultrix
@@ -68,20 +71,20 @@ freopen("/dev/null","w",stderr);
 if (!nochdir)
 	chdir("/");
 
-#elif HAVE_TIOCNOTTY
-register int fd;
+#elif defined(HAVE_TIOCNOTTY)
 
 if (fork() != 0) exit(0);
 if (setpgrp(0,0) <0)
 	{ Log(2,"Setpgrp failed, %s",strerror(errno)); return -1; }
 
-if ((fd = open("/dev/tty", 2)) >= 0)
-        {
-                (void) ioctl(fd, TIOCNOTTY, (char*)0);
-                (void) close(fd);
-        }
-   else
+{ register int fd;
+  if ((fd = open("/dev/tty", 2)) >= 0)
+	{ ioctl(fd, TIOCNOTTY, (char*)0);
+	  close(fd);
+	}
+  else
 	{ Log(2,"Cannot open /dev/tty, %s", strerror(errno)); return -1; }
+}
 
 if (!nochdir)
 	chdir("/");
