@@ -17,6 +17,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2003/12/24 00:36:40  gul
+ * Move system-dependent macros from Config.h to sys.h,
+ * add pipe() wrapper for mingw32.
+ *
  * Revision 2.15  2003/09/21 17:51:09  gul
  * Fixed PID in logfile for perl stderr handled messages in fork version.
  *
@@ -154,7 +158,12 @@
 #endif
 
 #ifdef VISUALCPP
-  #define sleep(a) Sleep(a*1000)
+  #define sleep(a) Sleep((a)*1000)
+  #define pipe(h)  _pipe(h, 0, 64)
+#endif
+
+#ifdef __MINGW32__
+  #define sleep(a) _sleep((a)*1000ul)
   #define pipe(h)  _pipe(h, 0, 64)
 #endif
 
@@ -173,8 +182,25 @@ int snprintf (va_alist) va_dcl;
 int vsnprintf (char *str, size_t count, const char *fmt, va_list args);
 #endif
 
+#ifndef O_BINARY
+  #define O_BINARY 0
+#endif
+#if defined(__WATCOMC__) || defined(VISUALCPP) || defined(__MINGW32__) || defined(IBMC) || defined(__MSC__)
+  #define MKDIR(s) mkdir(s)
+#else
+  #define MKDIR(s) mkdir(s, 0755)
+#endif
+
+#if defined(__WATCOMC__) || defined(__EMX__) /* expand list if necessary */
+#define BEGINTHREAD(a, b, c)   _beginthread(a, NULL, b, c)
+#elif defined(HAVE_THREADS)
+#define BEGINTHREAD(a, b, c)   _beginthread(a, b, c)
+#endif
+
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned long u32;
+
+#define UNUSED_ARG(s)  (void)(s)
 
 #endif
