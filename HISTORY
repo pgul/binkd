@@ -1,3 +1,7 @@
+2004/09/11 17:37:17 1.0a-401 gul
+readcfg.c,2.71,2.72
+Fix erroneously applied previous patch
+
 2004/09/11 16:57:20 1.0a-400 gul
 ftnnode.c,2.32,2.33
 Remove duplicate line
