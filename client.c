@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.38  2003/04/30 13:38:17  gul
+ * Avoid warnings
+ *
  * Revision 2.37  2003/04/28 07:30:16  gul
  * Bugfix: Log() changes TCPERRNO
  *
@@ -347,7 +350,7 @@ static int call0 (FTN_NODE *node)
   int i, rc;
   char host[MAXHOSTNAMELEN + 5 + 1];       /* current host/port */
   unsigned short port;
-  char *save_err;
+  const char *save_err;
 
   ftnaddress_to_str (szDestAddr, &node->fa);
   Log (2, "call to %s", szDestAddr);

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.51  2003/04/30 13:38:17  gul
+ * Avoid warnings
+ *
  * Revision 2.50  2003/04/28 07:30:16  gul
  * Bugfix: Log() changes TCPERRNO
  *
@@ -457,7 +460,7 @@ static void current_file_was_sent (STATE *state)
 static int send_block (STATE *state)
 {
   int i, n, save_errno;
-  char *save_err;
+  const char *save_err;
 
   /* Have something to send in buffers */
   if (state->optr && state->oleft)
@@ -1669,7 +1672,7 @@ static int recv_block (STATE *state)
     }
     else
     {
-      char *save_err = TCPERR();
+      const char *save_err = TCPERR();
       state->io_error = 1;
       if (!binkd_exit)
       {
@@ -2040,7 +2043,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
   struct sockaddr_in peer_name;
   socklen_t peer_name_len = sizeof (peer_name);
   char host[MAXHOSTNAMELEN + 1];
-  char *save_err;
+  const char *save_err;
 
   if (!init_protocol (&state, socket, to))
     return;
