@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.64  2003/05/30 17:15:22  gul
+ * Asymmetric ND-mode, new protocol option NDA
+ *
  * Revision 2.63  2003/05/30 16:03:10  gul
  * Asymmetric NR-mode
  *
@@ -322,7 +325,7 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to)
   state->files_sent = state->files_rcvd = 0;
   state->to = to;
   state->NR_flag = (to && (to->NR_flag == NR_ON || to->ND_flag == ND_ON)) ? WANT_NR : NO_NR;
-  state->ND_flag = (to && to->ND_flag == ND_ON) ? WE_ND : NO_ND;
+  state->ND_flag = (to && to->ND_flag == ND_ON) ? THEY_ND : NO_ND;
   state->MD_flag = 0;
   state->MD_challenge = NULL;
   state->crypt_flag = no_crypt ? NO_CRYPT : WE_CRYPT;
@@ -483,7 +486,7 @@ static void current_file_was_sent (STATE *state)
 	  &state->out,
 	  sizeof (TFILE));
   TF_ZERO (&state->out);
-  if (state->ND_flag == YES_ND)
+  if (state->ND_flag & WE_ND)
   {
     state->waiting_for_GOT = 1;
     Log(4, "Waiting for M_GOT");
@@ -786,16 +789,11 @@ static void do_prescan(STATE *state)
 {
   char s[64];
   unsigned long netsize, filessize;
-  int savend;
 
   if (OK_SEND_FILES (state) && prescan)
   {
     state->q = q_scan_addrs (0, state->fa, state->nfa, state->to ? 1 : 0);
-    /* hack to avoid warning: this scan can be before receive "OPT ND" */
-    savend = state->ND_flag;
-    state->ND_flag = YES_ND;
     q_get_sizes (state->q, &netsize, &filessize);
-    state->ND_flag = savend;
     sprintf(s, "%lu %lu", netsize, filessize);
     msg_send2 (state, M_NUL, "TRF ", s);
   }
@@ -833,24 +831,29 @@ static int NUL (STATE *state, char *buf, int sz)
       if (!strcmp (w, "NR"))
       {
 	state->NR_flag |= WE_NR;      /* They want NR mode - turn it on */
-        Log(2, "Remote requests NR mode");
+	Log(2, "Remote requests NR mode");
       }
       if (!strcmp (w, "ND"))
       {
-	state->ND_flag |= THEY_ND;     /* They want ND mode */
-        Log(2, "Remote requests ND mode");
+	state->ND_flag |= WE_ND;      /* They want ND mode - turn it on */
+	Log(2, "Remote requests ND mode");
+      }
+      if (!strcmp (w, "NDA"))
+      {
+	state->ND_flag |= CAN_NDA;     /* They supports asymmetric ND */
+	Log(2, "Remote supports asymmetric ND mode");
       }
       if (!strcmp (w, "CRYPT"))
       {
 	state->crypt_flag |= THEY_CRYPT;  /* They want crypt mode */
-        Log(2, "Remote requests CRYPT mode");
+	Log(2, "Remote requests CRYPT mode");
       }
       if (!strncmp(w, "CRAM-MD5-", 9) && !no_MD5 &&
           state->to && (state->to->MD_flag>=0))
       {
-        Log(2, "Remote requests MD mode");
-        if(state->MD_challenge) free(state->MD_challenge);
-        state->MD_challenge=MD_getChallenge(w, NULL);
+	Log(2, "Remote requests MD mode");
+	if(state->MD_challenge) free(state->MD_challenge);
+	state->MD_challenge=MD_getChallenge(w, NULL);
       }
       free (w);
     }
@@ -1058,12 +1061,12 @@ static int ADR (STATE *state, char *s, int sz)
       {
 	if (n.pwd && strcmp(n.pwd, "-"))
 	{
-	  secure_ND = WE_ND;
+	  secure_ND = THEY_ND;
 	  secure_NR = WANT_NR;
 	}
 	else
 	{
-	  unsecure_ND = WE_ND;
+	  unsecure_ND = THEY_ND;
 	  unsecure_NR = WANT_NR;
 	}
       }
@@ -1104,13 +1107,13 @@ static int ADR (STATE *state, char *s, int sz)
   {
     if (state->expected_pwd[0] && strcmp(state->expected_pwd, "-"))
     {
-      state->ND_flag = secure_ND;
-      state->NR_flag = secure_NR;
+      state->ND_flag |= secure_ND;
+      state->NR_flag |= secure_NR;
     }
     else
     {
-      state->ND_flag = unsecure_ND;
-      state->NR_flag = unsecure_NR;
+      state->ND_flag |= unsecure_ND;
+      state->NR_flag |= unsecure_NR;
     }
   }
 
@@ -1157,7 +1160,6 @@ static char *select_inbound (FTN_ADDR *fa, int secure_flag)
 
 static void complete_login (STATE *state)
 {
-  if (state->ND_flag!=YES_ND) state->ND_flag=NO_ND;
   state->inbound = select_inbound (state->fa, state->state);
   if (OK_SEND_FILES (state) && state->q == NULL)
     state->q = q_scan_addrs (0, state->fa, state->nfa, state->to ? 1 : 0);
@@ -1165,8 +1167,10 @@ static void complete_login (STATE *state)
   if (state->state == P_SECURE)
     Log (2, "pwd protected session (%s)",
          (state->MD_flag == 1) ? "MD5" : "plain text");
-  if (state->ND_flag == YES_ND)
-    Log (3, "session in ND mode");
+  if (state->ND_flag & WE_ND)
+    Log (3, "we are in ND mode");
+  if (state->ND_flag & THEY_ND)
+    Log (3, "remote is in ND mode");
   else if (state->NR_flag == WE_NR)
     Log (3, "we are in NR mode");
   if (state->state != P_SECURE)
@@ -1264,12 +1268,18 @@ static int PWD (STATE *state, char *pwd, int sz)
     Log (4, "Crypt allowed only with MD5 authorization");
   }
 
+  if ((state->ND_flag & WE_ND) && (state->ND_flag & CAN_NDA) == 0)
+    state->ND_flag |= THEY_ND;
+  if ((state->ND_flag & WE_ND) == 0 && (state->ND_flag & CAN_NDA) == 0)
+    state->ND_flag &= ~THEY_ND;
+
   if ((state->NR_flag & WANT_NR) ||
       (state->crypt_flag == (WE_CRYPT | THEY_CRYPT)) ||
-      (state->ND_flag & WE_ND))
-    msg_sendf (state, M_NUL, "OPT%s%s%s",
+      (state->ND_flag & (WE_ND|THEY_ND)))
+    msg_sendf (state, M_NUL, "OPT%s%s%s%s",
                (state->NR_flag & WANT_NR) ? " NR" : "",
-               (state->ND_flag & WE_ND) ? " ND" : "",
+               (state->ND_flag & THEY_ND) ? " ND" : "",
+               (!(state->ND_flag & WE_ND)) != (!(state->ND_flag & THEY_ND)) ? " NDA" : "",
                (state->crypt_flag == (WE_CRYPT | THEY_CRYPT)) ? " CRYPT" : "");
   msg_send2 (state, M_OK, state->state==P_SECURE ? "secure" : "non-secure", 0);
   complete_login (state);
@@ -1285,6 +1295,8 @@ static int OK (STATE *state, char *buf, int sz)
     state->crypt_flag=NO_CRYPT; /* some development binkd versions send OPT CRYPT with unsecure session */
     Log (1, "Warning: remote set UNSECURE session");
   }
+  if (state->ND_flag == WE_ND || state->ND_flag == THEY_ND)
+    state->ND_flag = 0; /* remote does not support asymmetric ND-mode */
   complete_login (state);
   return 1;
 }
@@ -1312,7 +1324,7 @@ static int start_file_recv (STATE *state, char *args, int sz)
       Log (1, "receiving of %s interrupted", state->in.netname);
       TF_ZERO (&state->in);
     }
-    if ((state->ND_flag == YES_ND) && state->in_complete.netname[0])
+    if ((state->ND_flag & THEY_ND) && state->in_complete.netname[0])
     { /* rename complete received file to its true form */
       char realname[MAXPATHLEN + 1];
       char szAddr[FTN_ADDR_SZ + 1];
@@ -1356,7 +1368,7 @@ static int start_file_recv (STATE *state, char *args, int sz)
       if ((state->NR_flag & THEY_NR) == 0)
       {
 	state->NR_flag |= THEY_NR;
-	if (!state->ND_flag)
+	if ((state->ND_flag & THEY_ND) == 0)
 	  Log (3, "remote is in NR mode");
       }
     }
@@ -1536,7 +1548,7 @@ static int GET (STATE *state, char *args, int sz)
 	/* to satisfy remote GET_FILE_balance */
 	msg_sendf (state, M_FILE, "%s %li %li %li", state->out.netname,
 	   (long) state->out.size, (long) state->out.time, atol(argv[3]));
-	if (atol(argv[3])==(long)state->out.size && state->ND_flag == YES_ND)
+	if (atol(argv[3])==(long)state->out.size && (state->ND_flag & WE_ND))
 	{
 	  state->send_eof = 1;
 	  state->waiting_for_GOT = 1;
@@ -1572,7 +1584,7 @@ static int GET (STATE *state, char *args, int sz)
       Log (1, "unexpected M_GET for %s", argv[0]);
     ND_set_status("", &state->ND_addr, state);
     state->ND_addr.z=-1;
-    if (state->ND_flag == YES_ND)
+    if (state->ND_flag & WE_ND)
     {
       state->waiting_for_GOT = 0;
       Log(9, "Don't waiting for M_GOT");
@@ -1618,7 +1630,7 @@ static int SKIP (STATE *state, char *args, int sz)
     }
     ND_set_status("", &state->ND_addr, state);
     state->ND_addr.z=-1;
-    if (state->ND_flag == YES_ND || (state->NR_flag & WE_NR))
+    if ((state->ND_flag & WE_ND) || (state->NR_flag & WE_NR))
     {
       state->waiting_for_GOT = state->off_req_sent = 0;
       Log(9, "Don't waiting for M_GOT");
@@ -1639,7 +1651,7 @@ static int GOT (STATE *state, char *args, int sz)
   int n, rc=1;
   char *status = NULL;
 
-  if (state->ND_flag == YES_ND)
+  if (state->ND_flag & WE_ND)
     status = strdup(args);
   else
     ND_set_status("", &state->ND_addr, state);
@@ -1654,7 +1666,7 @@ static int GOT (STATE *state, char *args, int sz)
 	state->out.f = NULL;
       }
       memcpy(&state->ND_addr, &state->out_addr, sizeof(state->out_addr));
-      if (state->ND_flag == YES_ND)
+      if (state->ND_flag & WE_ND)
         Log (7, "Set ND_addr to %u:%u/%u.%u",
              state->ND_addr.z, state->ND_addr.net, state->ND_addr.node, state->ND_addr.p);
       if (status)
@@ -1682,7 +1694,7 @@ static int GOT (STATE *state, char *args, int sz)
 	  state->bytes_sent += state->sent_fls[n].size;
 	  ++state->files_sent;
           memcpy(&state->ND_addr, &state->out_addr, sizeof(state->out_addr));
-          if (state->ND_flag == YES_ND)
+          if (state->ND_flag & WE_ND)
              Log (7, "Set ND_addr to %u:%u/%u.%u",
                   state->ND_addr.z, state->ND_addr.net, state->ND_addr.node, state->ND_addr.p);
 	  Log (2, "sent: %s (%li, %.2f CPS, %s)", state->sent_fls[n].path,
@@ -1721,7 +1733,7 @@ static int EOB (STATE *state, char *buf, int sz)
     Log (1, "receiving of %s interrupted", state->in.netname);
     TF_ZERO (&state->in);
   }
-  if ((state->ND_flag == YES_ND) && state->in_complete.netname[0])
+  if ((state->ND_flag & THEY_ND) && state->in_complete.netname[0])
   { /* rename complete received file to its true form */
     char realname[MAXPATHLEN + 1];
     char szAddr[FTN_ADDR_SZ + 1];
@@ -1858,7 +1870,7 @@ static int recv_block (STATE *state)
 	    return 0;
 	  }
 	  state->in.f = NULL;
-	  if (state->ND_flag == YES_ND)
+	  if (state->ND_flag & THEY_ND)
 	  {
 	    Log (5, "File %s complete received, waiting for renaming",
 	         state->in.netname);
@@ -1985,13 +1997,10 @@ static void banner (STATE *state)
   }
   msg_send2 (state, M_ADR, szAkas, 0);
 
-  if (state->to && 
-      ((state->NR_flag & WANT_NR) ||
-       (state->crypt_flag & WE_CRYPT) ||
-       (state->ND_flag & WE_ND)))
-    msg_sendf (state, M_NUL, "OPT%s%s%s",
+  if (state->to)
+    msg_sendf (state, M_NUL, "OPT NDA%s%s%s",
                (state->NR_flag & WANT_NR) ? " NR" : "",
-               (state->ND_flag & WE_ND) ? " ND" : "",
+               (state->ND_flag & THEY_ND) ? " ND" : "",
                (state->crypt_flag & WE_CRYPT) ? " CRYPT" : "");
   free (szAkas);
 }
@@ -2033,7 +2042,7 @@ static int start_file_transfer (STATE *state, FTNQ *file)
       }
     }
     memcpy(&state->out_addr, &file->fa, sizeof(state->out_addr));
-    if (state->ND_flag != YES_ND)
+    if ((state->ND_flag & WE_ND) == 0)
       memcpy(&state->ND_addr, &file->fa, sizeof(state->out_addr));
     Log (8, "cur remote addr is %u:%u/%u.%u",
          file->fa.z, file->fa.net, file->fa.node, file->fa.p);

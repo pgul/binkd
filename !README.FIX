@@ -516,3 +516,6 @@ NT/95:  ctrl-c problems fixed
 
 	Remove -crypt option, add global -r option (disable crypt).
 
+	NR- and ND-modes can be asymmetric now, options -nr and -nd
+	sets mode only for receiving files from this node.
+

@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/05/30 17:15:22  gul
+ * Asymmetric ND-mode, new protocol option NDA
+ *
  * Revision 2.5  2003/05/30 16:03:10  gul
  * Asymmetric NR-mode
  *
@@ -166,7 +169,7 @@ struct _STATE
 #define NO_ND	0
 #define WE_ND	1
 #define THEY_ND	2
-#define YES_ND	(WE_ND|THEY_ND)
+#define CAN_NDA 4	/* they supports asymmetric ND-mode */
 
 /* state.crypt_flag: state of binkp when in crypt mode */
 #define NO_CRYPT	0
