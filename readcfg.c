@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2002/11/14 13:01:43  gul
+ * Bugfix for previous patch
+ *
  * Revision 2.7  2002/11/12 17:41:02  gul
  * Check for (personal) outbox pointed to (common) outbound
  *
@@ -290,6 +293,7 @@ static int check_outbox(char *obox)
   FTN_DOMAIN *pd=pDomains;
 #ifndef UNIX
   char *OBOX, *PATH=NULL;
+  if (obox == NULL) return 0;
   OBOX = strupper(strdup(obox));
 #endif
   while (pd)
@@ -311,9 +315,9 @@ static int check_outbox(char *obox)
     pd=pd->next;
   }
 #ifndef UNIX
- free(OBOX);
+  free(OBOX);
 #endif
- return 0;
+  return 0;
 }
 
 /*
