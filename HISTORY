@@ -1,3 +1,8 @@
+2004/11/05 14:44:30 1.0a-426 gul
+client.c,2.56,2.57
+Client manager did not reload config on change
+in fork versions (unix, os2-emx)
+
 2004/11/05 14:25:08 1.0a-425 gul
 protocol.c,2.164,2.165
 hide-aka & present-aka did not work on outgoing sessions
