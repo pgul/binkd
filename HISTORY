@@ -1,3 +1,7 @@
+2003/08/26 17:36:50 0.9.6a-140 gul
+perlhooks.c,2.16,2.17 binkd.c,2.55,2.56
+Perl hooks in os2-emx
+
 2003/08/26 10:43:57 0.9.6a-139 stream
 perlhooks.c,2.15,2.16
 Use generic lists
