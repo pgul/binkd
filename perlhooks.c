@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2003/08/22 09:37:39  val
+ * missing function import for PERLDL: sv_setpvn()
+ *
  * Revision 2.12  2003/08/18 09:41:00  gul
  * Little cleanup in handle perl errors
  *
@@ -174,6 +177,7 @@ extern "C" {
 # define Perl_sv_2iv			(*dl_Perl_sv_2iv)
 # define Perl_sv_setsv			(*dl_Perl_sv_setsv)
 # define Perl_sv_setpv			(*dl_Perl_sv_setpv)
+# define Perl_sv_setpvn			(*dl_Perl_sv_setpvn)
 # define Perl_av_undef			(*dl_Perl_av_undef)
 # define Perl_sv_setpvf_nocontext	(*dl_Perl_sv_setpvf_nocontext)
 # define Perl_hv_fetch			(*dl_Perl_hv_fetch)
@@ -240,6 +244,7 @@ PERL_CALLCONV PerlInterpreter*	(*dl_perl_clone)(PerlInterpreter* interp, UV flag
 PERL_CALLCONV void	(*dl_Perl_sv_setiv)(pTHX_ SV* sv, IV num);
 PERL_CALLCONV void	(*dl_Perl_sv_setsv)(pTHX_ SV* dsv, SV* ssv);
 PERL_CALLCONV void	(*dl_Perl_sv_setpv)(pTHX_ SV* sv, const char* ptr);
+PERL_CALLCONV void	(*dl_Perl_sv_setpvn)(pTHX_ SV* sv, const char* ptr, STRLEN len);
 PERL_CALLCONV AV*	(*dl_Perl_newAV)(pTHX);
 PERL_CALLCONV SV*	(*dl_Perl_newRV_noinc)(pTHX_ SV *sv);
 PERL_CALLCONV HV*	(*dl_Perl_newHV)(pTHX);
@@ -317,6 +322,7 @@ VK_MAKE_DFL(PerlInterpreter*, dl_perl_clone, (PerlInterpreter* interp, UV flags)
 VK_MAKE_DFL(void, dl_Perl_sv_setiv, (pTHX_ SV* sv, IV num));
 VK_MAKE_DFL(void, dl_Perl_sv_setsv, (pTHX_ SV* dsv, SV* ssv));
 VK_MAKE_DFL(void, dl_Perl_sv_setpv, (pTHX_ SV* sv, const char* ptr));
+VK_MAKE_DFL(void, dl_Perl_sv_setpvn, (pTHX_ SV* sv, const char* ptr, STRLEN len));
 
 VK_MAKE_DFL(AV*, dl_Perl_newAV, (pTHX));
 VK_MAKE_DFL(SV*, dl_Perl_newRV_noinc, (pTHX_ SV *sv));
@@ -388,6 +394,7 @@ struct perl_dlfunc { void **f; char *name; } perl_dlfuncs[] = {
   VK_MAKE_DLFUNC(Perl_sv_setiv),
   VK_MAKE_DLFUNC(Perl_sv_setsv),
   VK_MAKE_DLFUNC(Perl_sv_setpv),
+  VK_MAKE_DLFUNC(Perl_sv_setpvn),
   VK_MAKE_DLFUNC(Perl_newAV),
   VK_MAKE_DLFUNC(Perl_newRV_noinc),
   VK_MAKE_DLFUNC(Perl_newHV),
