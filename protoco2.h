@@ -2,8 +2,9 @@
  * $Id$
  *
  * $Log$
- * Revision 2.11  2003/09/12 07:37:57  val
- * compression support via zlib (preliminary)
+ * Revision 2.12  2003/09/12 09:09:38  val
+ * zlib compression support and configure for unix (my first try to write
+ * autoconf script, i hope it works on your system ;-)
  *
  * Revision 2.10  2003/08/26 16:06:26  stream
  * Reload configuration on-the fly.
@@ -66,6 +67,10 @@
 #define _PROTOCO2_H_
 
 #include "prothlp.h"
+
+#ifdef WITH_ZLIB
+#include <zconf.h>
+#endif
 
 #define BLK_HDR_SIZE 2
 
@@ -177,7 +182,7 @@ struct _STATE
 #endif
 #ifdef WITH_ZLIB
   int z_ok, z_recv, z_send;     /* gzip is on for current file */
-  int z_ocnt, z_icnt;           /* length of actual data */
+  uLongf z_ocnt, z_icnt;        /* length of actual data */
   char *z_obuf, *z_ibuf;        /* compression and decompression buffers */
 #endif
   int delay_ADR, delay_EOB;     /* delay sending of the command */

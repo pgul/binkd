@@ -15,8 +15,9 @@
  * $Id$
  *
  * $Log$
- * Revision 2.117  2003/09/12 07:37:57  val
- * compression support via zlib (preliminary)
+ * Revision 2.118  2003/09/12 09:09:38  val
+ * zlib compression support and configure for unix (my first try to write
+ * autoconf script, i hope it works on your system ;-)
  *
  * Revision 2.116  2003/09/08 16:39:39  stream
  * Fixed race conditions when accessing array of nodes in threaded environment
@@ -2398,7 +2399,7 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
 #ifdef WITH_ZLIB
         if (state->z_recv) {
           state->z_icnt = MAX_BLKSIZE;
-          decompress(state->z_ibuf, &(state->z_icnt), 
+          uncompress(state->z_ibuf, &(state->z_icnt), 
                      state->ibuf, state->isize);
           Log (7, "decompress: %d -> %d", state->isize, state->z_icnt);
           memcpy(state->ibuf, state->z_ibuf, state->z_icnt);

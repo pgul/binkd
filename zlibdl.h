@@ -18,10 +18,10 @@
 typedef int __stdcall zlib_compress_func(char *, int *, const char *, int);
 
 /* actual compress() and decompress() */
-extern zlib_compress_func *dl_compress, *dl_decompress;
+extern zlib_compress_func *dl_compress, *dl_uncompress;
 
 #define compress(a1,a2,a3,a4)   (*dl_compress)(a1,a2,a3,a4)
-#define decompress(a1,a2,a3,a4) (*dl_decompress)(a1,a2,a3,a4)
+#define uncompress(a1,a2,a3,a4) (*dl_uncompress)(a1,a2,a3,a4)
 
 /* loading function */
 int zlib_init(const char *dll_name);

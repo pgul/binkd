@@ -206,6 +206,57 @@ case x$do_perl in
    ;;
 esac
 
+AC_ARG_WITH(zlib,
+            [  --with-zlib             zlib compression (default no)],
+            [do_zlib=$withval], 
+            [do_zlib=no])
+
+if test ".$do_zlib" != ".no" ; then
+	AC_MSG_CHECKING(for libz)
+	save_LIBS="$LIBS"
+	save_CFLAGS="$CFLAGS"
+	found_zlib=no
+
+	if test ".$do_zlib" = ".yes"; then
+	  zlib_paths="/usr/local /usr /usr/local/zlib"
+	else
+	  zlib_paths="$do_zlib"
+	fi
+
+	for zlib_path in $zlib_paths ; do
+	  if test ! -d "$zlib_path/lib" ; then
+	    continue
+	  fi
+	  LIBS="-L$zlib_path/lib -lz $save_LIBS"
+	  CFLAGS="-I$zlib_path/include $save_CFLAGS"
+	  AC_TRY_LINK(
+[
+#include <zlib.h>
+#ifdef __cplusplus
+  extern "C"
+#endif
+],
+[
+  compress(0, (unsigned long*) 0, "", 0);
+  uncompress(0, (unsigned long*) 0, "", 0);
+],
+	    found_zlib="$zlib_path", found_zlib=no
+	  )
+	  if test ".$found_zlib" != ".no"; then
+	    break
+	  fi
+	done
+
+	if test ".$found_zlib" != ".no"; then
+	  AC_MSG_RESULT(yes: $found_zlib)
+	  AC_DEFINE(WITH_ZLIB)
+	else
+	  AC_MSG_RESULT(no)
+	  LIBS="$save_LIBS"
+	  CFLAGS="$save_CFLAGS"
+	fi
+fi
+
 case $ac_cv_func_getopt in
  no) OPT_SRC="$OPT_SRC getopt.c"
      ;;
