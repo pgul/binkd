@@ -15,8 +15,9 @@
  * $Id$
  *
  * $Log$
- * Revision 2.67.2.6  2003/08/13 15:47:12  hbrew
- * previous fix: synchronize with 'current'.
+ * Revision 2.67.2.7  2003/08/17 08:11:06  gul
+ * Migrate patch from current:
+ * Drop remote AKA with another password on outgoing sessions
  *
  * Revision 2.67.2.5  2003/08/13 11:38:43  hbrew
  * Fix warning.
@@ -934,6 +935,12 @@ static int ADR (STATE *state, char *s, int sz)
   s[sz] = 0;
   secure_NR = unsecure_NR = NO_NR;
   secure_ND = unsecure_ND = NO_ND;
+
+  /* set expected password on outgoing session
+   * for drop remote AKAs with another passwords */
+  if (state->to)
+    memcpy (state->expected_pwd, state->to->pwd, sizeof (state->expected_pwd));
+
   for (i = 1; (w = getwordx (s, i, 0)) != 0; ++i)
   {
     if (!parse_ftnaddress (w, &fa) || !is4D (&fa))
@@ -1041,6 +1048,28 @@ static int ADR (STATE *state, char *s, int sz)
       ip_verified = 1;
     }
 
+    if (state->expected_pwd[0] && pn)
+    {
+      state->listed_flag = 1;
+      if (!strcmp (state->expected_pwd, "-"))
+      {
+	memcpy (state->expected_pwd, n.pwd, sizeof (state->expected_pwd));
+	state->MD_flag=n.MD_flag;
+      }
+      else if (n.pwd && strcmp(n.pwd, "-") &&
+               strcmp(state->expected_pwd, n.pwd))
+      {
+	if (state->to)
+	  Log (2, "inconsistent pwd settings for this node, aka %s dropped", szFTNAddr);
+	else
+	{ /* drop incoming session with M_ERR "Bad password" */
+	  Log (1, "inconsistent pwd settings for this node");
+	  state->expected_pwd[0] = 0;
+	}
+	continue;
+      }
+    }
+
     if (bsy_add (&fa, F_BSY))
     {
       Log (2, "addr: %s", szFTNAddr);
@@ -1066,22 +1095,6 @@ static int ADR (STATE *state, char *s, int sz)
       Log (2, "addr: %s (n/a or busy)", szFTNAddr);
       state->fa = xrealloc (state->fa, sizeof (FTN_ADDR) * ++state->nallfa);
       memcpy (state->fa + state->nallfa - 1, &fa, sizeof (FTN_ADDR));
-    }
-
-    if (state->expected_pwd[0] && pn)
-    {
-      state->listed_flag = 1;
-      if (!strcmp (state->expected_pwd, "-"))
-      {
-	memcpy (state->expected_pwd, n.pwd, sizeof (state->expected_pwd));
-	state->MD_flag=n.MD_flag;
-      }
-      else if (n.pwd && strcmp(n.pwd, "-") &&
-               strcmp(state->expected_pwd, n.pwd))
-      {
-	Log (1, "inconsistent pwd settings for this node");
-	state->expected_pwd[0] = 0;
-      }
     }
 
     if (!state->to && pn)
