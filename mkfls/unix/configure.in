@@ -7,6 +7,8 @@ AC_PROG_AWK
 AC_PROG_CC
 AC_PROG_INSTALL
 
+CFLAGS=
+
 dnl Checks for header files.
 AC_CHECK_HEADERS(unistd.h io.h)
 AC_CHECK_HEADERS(sys/vfs.h sys/statfs.h sys/statvfs.h sys/param.h sys/mount.h)
@@ -117,6 +119,10 @@ AC_MSG_RESULT(cross-compiling. No assumptions made)
 
 dnl -------------------------------------------------------------------------
 dnl Optional features
+
+AC_ARG_WITH(debug,
+            [  --with-debug            produce debug info (default no)],
+            [CFLAGS="-g $CFLAGS"], [CFLAGS="-O2 $CFLAGS"])
 
 AC_ARG_WITH(https,
             [  --with-https            https support (default no)],
