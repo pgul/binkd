@@ -15,6 +15,13 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.59  2003/07/07 18:38:27  hbrew
+ * Auto increase patchlevel, set 0.9.6a-48
+ * Fix gcc(mingw) warnings:
+ *
+ * getopt.c:   suggest explicit braces to avoid ambiguous `else'
+ * nt/win9x.c: Avoid gcc warnings about non-handled enumeration values
+ *
  * Revision 2.58  2003/07/07 10:39:27  gul
  * Auto increase patchlevel, set 0.9.6a-47
  * getopt() usage fix
@@ -239,7 +246,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-47"
+#define MYVER "0.9.6a-48"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
