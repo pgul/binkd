@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.96  2003/08/12 09:23:03  val
+ * Auto increase patchlevel, set 0.9.6a-84
+ * migrate from pmatch() to pmatch_ncase()
+ *
  * Revision 2.95  2003/08/11 08:36:43  gul
  * Auto increase patchlevel, set 0.9.6a-83
  * workaround winsock bug
@@ -415,7 +419,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-83"
+#define MYVER "0.9.6a-84"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
