@@ -60,8 +60,8 @@
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co binkd
        Получить последние исходники ветки binkd 0.9.5-stable:
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_5-stable binkd
-       Получить исходники binkd 0.9.5-release:
-       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_5-release binkd
+       Получить исходники binkd 0.9.6-release:
+       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_6 binkd
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/snapshot (основной)
     ftp://ftp.grumbler.org/pub/binkd/current (зеркало, обновляется 23:50 UTC+5)
 
@@ -496,7 +496,7 @@ binkd -p -P1:2/3.4  binkd.cfg
     Начиная с версии 0.9.1 binkd научился определять обновление файла
 конфигурации. Запущенный с флагом -C он при этом завершался с кодом 3.
 (После каждой входящей сессии производилась проверка времени модификации).
-Вот файл для запуска binkd версий 0.9.1-0.9.3 и 0.9.4/w32, 0.9.5/w32:
+Вот файл для запуска binkd версий 0.9.1-0.9.3 и 0.9.4-0.9.6/w32:
     ====
     :aaa
     binkd -C binkd.cfg
@@ -513,7 +513,7 @@ rescan-delay секунд.
 установить его с параметром -C: тогда binkd будет перечитывать конфиг.
     До версии 0.9.4 изменения конфига не проверялись, если binkd был запущен
 в режиме client-only (ключ -c).
-    В версии 0.9.5/unix конфиг перечитывается по сигналу SIGHUP, командой
+    В версях для unix конфиг перечитывается по сигналу SIGHUP, командой
 kill -HUP `cat /var/run/binkd.pid`
     В версии 1.0 сделано автоматическое перечитывание конфига при его
 изменении. Проверка проводится через каждые rescan-delay секунд.

@@ -63,8 +63,8 @@ from Russian by Michael Dukelsky 2:5020/1042.
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co binkd
        Retrieve the latest sources of the binkd 0.9.5-stable branch:
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_5-stable binkd
-       Retrieve the sources of the binkd 0.9.5-release:
-       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_5-release binkd
+       Retrieve the sources of the binkd 0.9.6-release:
+       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_6 binkd
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/snapshot (main)
     ftp://ftp.grumbler.org/pub/binkd/current (the mirror is refreshed
                                               at 23:50 UTC+5)
@@ -521,7 +521,7 @@ Reloaded?
     Starting with the version 0.9.1 BinkD could feel that its configuration
 file changed. It exited with code 3 if it had been started with option -C.
 Modification time was checked after each ingoing session. Here is the batch
-file for starting BinkD versions 0.9.1-0.9.3 and 0.9.4/w32, 0.9.5/w32:
+file for starting BinkD versions 0.9.1-0.9.3 and 0.9.4-0.9.6/w32:
 
     ====
     :aaa
@@ -543,7 +543,7 @@ with -C command line option.  Then BinkD re-reads its configuration file.
     Before version 0.9.4 changes in the configuration file were not tested if
 BinkD was started in client-only mode (-c command line option).
 
-    In the version 0.9.5/unix configuration file is re-read on SIGHUP signal
+    In the unix versions configuration file is re-read on SIGHUP signal
 by the command
     kill -HUP `cat /var/run/binkd.pid`
 
