@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67.2.12  2003/08/27 06:46:37  gul
+ * Migrate from stable branch:
+ * remove partial if received part more then total size,
+ * flush buffer after receive data frame,
+ * drop session if extra bytes received.
+ *
  * Revision 2.67.2.11  2003/08/24 18:58:33  gul
  * Bugfix in timeout check on win32
  *
@@ -1913,7 +1919,8 @@ static int recv_block (STATE *state)
       else if (state->in.f)
       {
 	if (state->isize != 0 &&
-	    fwrite (state->ibuf, state->isize, 1, state->in.f) < 1)
+	    (fwrite (state->ibuf, state->isize, 1, state->in.f) < 1 ||
+	     fflush (state->in.f)))
 	{
 	  Log (1, "write error: %s", strerror(errno));
 	  return 0;
@@ -1977,6 +1984,7 @@ static int recv_block (STATE *state)
 	else if ((off_t) ftell (state->in.f) > state->in.size)
 	{
 	  Log (1, "rcvd %li extra bytes!", (long) ftell (state->in.f) - state->in.size);
+	  return 0;
 	}
       }
       else if (state->isize > 0)

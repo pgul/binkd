@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12.2.1  2003/08/27 06:46:37  gul
+ * Migrate from stable branch:
+ * remove partial if received part more then total size,
+ * flush buffer after receive data frame,
+ * drop session if extra bytes received.
+ *
  * Revision 2.12  2003/03/10 10:39:23  gul
  * New include file common.h
  *
@@ -274,8 +280,12 @@ FILE *inb_fopen (char *netname, off_t size, time_t time, FTN_ADDR *from,
   if (!find_tmp_name (buf, netname, size, time, from, nfa, inbound))
     return 0;
 
+fopen_again:
   if ((f = fopen (buf, "ab")) == 0)
+  {
     Log (1, "%s: %s", buf, strerror (errno));
+    return 0;
+  }
   fseek (f, 0, SEEK_END);	       /* Work-around MSVC bug */
 
 #if defined(OS2)
@@ -294,6 +304,14 @@ FILE *inb_fopen (char *netname, off_t size, time_t time, FTN_ADDR *from,
     freespace = getfree(buf);
     freespace2 = getfree(inbound);
     if (freespace > freespace2) freespace = freespace2;
+    if (sb.st_size > size)
+    {
+      Log (1, "Partial size %lu > %lu (file size), delete partial", 
+           (unsigned long) sb.st_size, (unsigned long) size);
+      fclose (f);
+      if (trunc (buf) && delete (buf)) return 0;
+      goto fopen_again;
+    }
     if (req_free >= 0 &&
 	freespace < (unsigned long)(size - sb.st_size + 1023) / 1024 + req_free)
     {
