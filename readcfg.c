@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.17  2003/02/23 16:31:21  gul
+ * Add "-sip" option in node string.
+ * Change "-ip" check logic.
+ *
  * Revision 2.16  2003/02/22 21:32:46  gul
  * Amiga Style Outbound support
  *
@@ -666,7 +670,9 @@ static void read_node_info (KEYWORD *key, char *s)
 	  ND_flag = ND_ON;
 	}
 	else if (STRICMP (tmp, "-ip") == 0)
-	  restrictIP = 1;
+	  restrictIP = 1; /* allow matched or unresolvable */
+	else if (STRICMP (tmp, "-sip") == 0)
+	  restrictIP = 2; /* allow only resolved and matched */
 	else if (STRICMP (tmp, "-crypt") == 0)
 	  crypt_flag = CRYPT_ON;
 	else

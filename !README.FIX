@@ -510,3 +510,7 @@ NT/95:  ctrl-c problems fixed
 
 	Amiga Style Outbound (ASO) support.
 
+	New option -sip in node string: strict IP check; host need to
+	be specified, resolved and matched. For -ip option unresolved
+	host is ok.
+

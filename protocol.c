@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.26  2003/02/23 16:31:21  gul
+ * Add "-sip" option in node string.
+ * Change "-ip" check logic.
+ *
  * Revision 2.25  2003/02/22 20:19:54  gul
  * Update copyrightes, 2002->2003
  *
@@ -771,7 +775,7 @@ static int BSY (STATE *state, char *buf, int sz)
 
 static int ADR (STATE *state, char *s, int sz)
 {
-  int i, j, main_AKA_ok = 0;
+  int i, j, main_AKA_ok = 0, ip_verified = 0;
   char *w;
   FTN_ADDR fa;
   FTN_NODE n;
@@ -821,6 +825,8 @@ static int ADR (STATE *state, char *s, int sz)
 	  Log (1, "%s: %i: error parsing host list", n.hosts, i);
 	  continue;
 	}
+	if (strcmp(host, "-") == 0)
+	  continue;
 	if (!isdigit (host[0]) ||
 	    (defaddr.s_addr = inet_addr (host)) == INADDR_NONE)
 	{
@@ -838,23 +844,33 @@ static int ADR (STATE *state, char *s, int sz)
 	    {
 	      ipok = 1;
 	      break;
-	    }
+	    } else if (ipok == 0)
+	      ipok = -1; /* resolved and not match */
 	  releasehostsem();
 	}
 	else
 	{
 	  if (defaddr.s_addr == sin.sin_addr.s_addr)
 	    ipok = 1;
+	  else if (ipok == 0)
+	    ipok = -1;  /* resolved and not match */
 	}
+	if (ipok == 1)
+	  break;
       }
-      if (ipok != 1)
-      {
+      if (ipok == 1)
+      { /* matched */
+	ip_verified = 1;
+      }
+      else if (ipok == 0)
+      { /* unresolvable */
+	if (n.restrictIP == 2 && ip_verified == 0) /* strict */
+	  ip_verified = -1;
+      } else
+      { /* not matched */
 	Log (1, "addr: %s (not from allowed remote address)", szFTNAddr);
-#if 0
-	continue;
-#else
-        return 0;
-#endif
+        msg_send2 (state, M_ERR, "Bad source IP", 0);
+	return 0;
       }
     }
 
@@ -913,6 +929,12 @@ static int ADR (STATE *state, char *s, int sz)
     Log (1, "called %s, but remote has no such AKA", szFTNAddr);
     if (state->to)
       bad_try (&state->to->fa, "Remote has no needed AKA");
+    return 0;
+  }
+  if (ip_verified < 0)
+  { /* strict IP check and no address resolved */
+    Log (1, "IP check failed, no address for check found");
+    msg_send2 (state, M_ERR, "Bad source IP", 0);
     return 0;
   }
   if (state->to)
