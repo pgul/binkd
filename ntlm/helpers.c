@@ -45,7 +45,7 @@
         des_ecb_encrypt((des_cblock*) plaintext, (des_cblock*) (results+16), ks, DES_ENCRYPT);
     }
 
-int encrypt(char *passw, int idx, unsigned char *nonce, unsigned char *lm_resp,
+int ntlm_encrypt(char *passw, int idx, unsigned char *nonce, unsigned char *lm_resp,
     unsigned char *nt_resp)
 {
     unsigned char nt_hpw[21];
@@ -322,7 +322,7 @@ int getNTLM2(char *udata, char *req, char *result)
   for (i = j = 0; domain[i]; i++, j+=2) m.data[j] = toupper(domain[i]);
   for (i = 0; user[i]; i++, j+=2) m.data[j] = user[i];
   for (i = 0; host[i]; i++, j+=2) m.data[j] = toupper(host[i]);
-  encrypt(password, 0, nonce, (unsigned char*)m.data+j, (unsigned char*)(m.data+j+24));
+  ntlm_encrypt(password, 0, nonce, (unsigned char*)m.data+j, (unsigned char*)(m.data+j+24));
   j += 0x40+48;
   m.msg_len = mkls(j);
   enbase64((char*)&m, j, result);

@@ -1,4 +1,4 @@
-int encrypt(char *passw, int idx, unsigned char *nonce, unsigned char *lm_resp,
+int ntlm_encrypt(char *passw, int idx, unsigned char *nonce, unsigned char *lm_resp,
     unsigned char *nt_resp);
 
 int getNTLM1(char *udata, char *result);
