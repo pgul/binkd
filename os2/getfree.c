@@ -3,6 +3,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.2  2001/04/25 20:07:36  gul
+ * bugfix
+ *
  * Revision 2.1  2001/04/23 07:58:57  gul
  * getfree() on large drives fixed
  *
@@ -47,6 +50,6 @@ unsigned long getfree (char *path)
     if (fsa.cSectorUnit * fsa.cbSector >= 1024)
       return fsa.cUnitAvail * (fsa.cSectorUnit * fsa.cbSector / 1024);
     else
-      return fsa.cUnitAvail * (1024 / (fsa.cSectorUnit * fsa.cbSector));
+      return fsa.cUnitAvail / (1024 / (fsa.cSectorUnit * fsa.cbSector));
   }
 }

@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.2  2001/04/25 20:07:36  gul
+ * bugfix
+ *
  * Revision 2.1  2001/04/23 07:58:57  gul
  * getfree() on large drives fixed
  *
@@ -109,7 +112,7 @@ BOOL rc;
     return ULONG_MAX;		    /* Assume enough disk space */
   } else {
     if (BPS * SPC >= 1024)
-      return (unsigned long) ((BPS * SPC / 1024l) * SPC * FC);
+      return (unsigned long) ((BPS * SPC / 1024l) * FC);
     else
       return (unsigned long) (FC / (1024 / (BPS * SPC)));
   }
