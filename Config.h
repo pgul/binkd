@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.129  2003/08/19 19:41:41  gul
+ * Auto increase patchlevel, set 0.9.6a-116
+ * Fix warnings
+ *
  * Revision 2.128  2003/08/19 18:08:10  gul
  * Auto increase patchlevel, set 0.9.6a-115
  * Avoid double exitfunc() call
@@ -556,7 +560,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-115"
+#define MYVER "0.9.6a-116"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
