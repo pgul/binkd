@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2003/03/01 18:46:05  gul
+ * Use HAVE_SYS_IOCTL_H macro
+ *
  * Revision 2.3  2003/02/28 08:53:38  gul
  * Fixed proxy usage
  *
@@ -43,7 +46,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 
-#if !defined(WIN32)
+#if defined(HAVE_SYS_IOCTL_H)
 #include <sys/ioctl.h>
 #endif
 
