@@ -134,6 +134,8 @@ void wndthread(void *par)
     {
         loaded_icon = hi = LoadImage( NULL, BINKD_ICON_FILE, IMAGE_ICON, 0, 0,
                         LR_LOADFROMFILE | LR_LOADTRANSPARENT );
+        if(loaded_icon)
+          Log(12,"Icon for systray is loaded from %s", BINKD_ICON_FILE);
     }
     if (!hi)
     {
