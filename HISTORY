@@ -1,3 +1,7 @@
+2003/10/19 13:28:12 1.0a-252 gul
+server.c,2.35,2.36
+Minor DEBUGCHILD fix
+
 2003/10/19 07:41:20 1.0a-251 hbrew
 tray.c,2.1,2.2 tray.h,2.1,2.2
 '\r\n' --> '\n'
