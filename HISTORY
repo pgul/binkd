@@ -1,3 +1,8 @@
+2003/10/22 17:24:55 1.0a-267
+ stas
+Config.h,2.285,2.286 perlhooks.c,2.31,2.32
+Remove obsolete defines
+
 2003/10/21 21:17:22 1.0a-266
  stas
 tray.c,2.2,2.3
