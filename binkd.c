@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.53  2003/08/17 10:38:55  gul
+ * Return semaphoring for log and binlog
+ *
  * Revision 2.52  2003/08/16 09:08:32  gul
  * Binlog semaphoring removed
  *
@@ -274,6 +277,8 @@
 #include "sem.h"
 MUTEXSEM hostsem = 0;
 MUTEXSEM resolvsem = 0;
+MUTEXSEM lsem = 0;
+MUTEXSEM blsem = 0;
 MUTEXSEM varsem = 0;
 EVENTSEM eothread = 0;
 EVENTSEM exitcmgr = 0;
@@ -661,6 +666,8 @@ int main (int argc, char *argv[], char *envp[])
 
   InitSem (&hostsem);
   InitSem (&resolvsem);
+  InitSem (&lsem);
+  InitSem (&blsem);
   InitSem (&varsem);
   InitEventSem (&eothread);
   InitEventSem (&exitcmgr);

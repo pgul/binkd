@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.21  2003/08/17 10:38:55  gul
+ * Return semaphoring for log and binlog
+ *
  * Revision 2.20  2003/08/16 09:08:33  gul
  * Binlog semaphoring removed
  *
@@ -181,6 +184,8 @@ Log(7, "exitproc(): pid=%d, cmgr=%d, smgr=%d, inetd=%d", getpid(), pidCmgr, pids
     delete (pid_file);
   CleanSem (&hostsem);
   CleanSem (&resolvsem);
+  CleanSem (&lsem);
+  CleanSem (&blsem);
   CleanSem (&varsem);
   CleanEventSem (&eothread);
   CleanEventSem (&exitcmgr);

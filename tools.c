@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.40  2003/08/17 10:38:55  gul
+ * Return semaphoring for log and binlog
+ *
  * Revision 2.39  2003/08/16 09:47:25  gul
  * Autodetect tzoff if not specified
  *
@@ -444,10 +447,24 @@ void Log (int lev, char *s,...)
   static int first_time = 1;
   static const char *month[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
                                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-  char buf[1024];
+  static char buf[1024];
   int ok = 1;
   va_list ap;
+#ifdef HAVE_THREADS
+  static int locktid=-1;
+  int locked = 0;
 
+  /* lock, possible reenter from perl via onlog() */
+  if (varsem) {
+    LockSem(&varsem);
+    if (locktid != (int) PID()) {
+      LockSem(&lsem);
+      locktid = (int) PID();
+      locked = 1;
+    }
+    ReleaseSem(&varsem);
+  }
+#endif
   /* make string in buffer */
   va_start(ap, s);
   vsnprintf(buf, sizeof(buf), s, ap);
@@ -479,7 +496,15 @@ void Log (int lev, char *s,...)
     fprintf (my_stderr, "%30.30s\r%c %02d:%02d [%u] %s%s", " ", ch,
          tm.tm_hour, tm.tm_min, (unsigned) PID (), buf, (lev >= 0) ? "\n" : "");
     if (lev < 0)
+    {
+#ifdef HAVE_THREADS
+      if (locked) {
+        locktid = -1;
+        ReleaseSem(&lsem);
+      }
+#endif
       return;
+    }
   }
 
   if (lev <= loglevel && *logpath)
@@ -547,6 +572,13 @@ void Log (int lev, char *s,...)
   }
 #endif
 } /* if (ok) */
+
+#ifdef HAVE_THREADS
+  if (locked) {
+    locktid = -1;
+    ReleaseSem(&lsem);
+  }
+#endif
 
   if (lev == 0)
     exit (1);

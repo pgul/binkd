@@ -26,6 +26,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.7  2003/08/17 10:38:55  gul
+ * Return semaphoring for log and binlog
+ *
  * Revision 2.6  2003/08/16 09:47:25  gul
  * Autodetect tzoff if not specified
  *
@@ -129,10 +132,13 @@ void TLogStat (char *status, STATE *state)
 		if (STRICMP(status, "OK") != 0) {
 			TS.fStatus |= 3;
 		}
+		LockSem(&blsem);
 		if ((fl = fopen(binlogpath,"ab")) != NULL) {
 			fwrite(&TS,sizeof(TS),1,fl);
 			fclose(fl);
+			ReleaseSem(&blsem)
 		} else {
+			ReleaseSem(&blsem)
 			Log(1,"unable to open binary log file `%s'",binlogpath);
 		}
 	}
@@ -184,6 +190,7 @@ void FDLogStat (STATE *state)
 	std.Cost = 0; /* Let it be free :) */
 
 
+	LockSem(&blsem);
 	if (state->to) fp = fopen( fdouthist, "ab" );
 		  else fp = fopen( fdinhist , "ab" );
 
@@ -191,9 +198,13 @@ void FDLogStat (STATE *state)
 	{
 		fwrite ( &std, (size_t) sizeof(std), (size_t) 1, fp);
 		fclose( fp );
+		ReleaseSem(&blsem)
 	}
-	else Log (1, "failed to write to %s", (state->to ? fdouthist : fdinhist));
-
+	else
+	{
+		ReleaseSem(&blsem)
+		Log (1, "failed to write to %s", (state->to ? fdouthist : fdinhist));
+	}
 }
 
 /*--------------------------------------------------------------------*/
