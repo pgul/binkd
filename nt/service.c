@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.20  2003/10/05 07:37:47  stas
+ * Fix NT service exit (don't hang service on receive CTRL_SERVICESTOP_EVENT)
+ *
  * Revision 2.19  2003/10/05 04:59:11  stas
  * Fix service handler function definition; get service name from OS
  *
@@ -105,6 +108,7 @@
 #include "../iphdr.h"
 #include "service.h"
 #include "w32tools.h"
+#include "brw32sig.h"
 
 /* ChangeServiceConfig2() prototype:
  */
@@ -154,15 +158,13 @@ static BOOL ReportStatusToSCMgr(DWORD dwCurrentState,
   return fResult;
 }
 
-BOOL SigHandler(DWORD SigType);
-
 static void WINAPI ServiceCtrl(DWORD dwCtrlCode)
 {
   switch(dwCtrlCode)
   {
   case SERVICE_CONTROL_STOP:
     ReportStatusToSCMgr(SERVICE_STOP_PENDING, NO_ERROR, 0);
-    SigHandler(CTRL_SERVICESTOP_EVENT);
+    SigHandlerExit(CTRL_SERVICESTOP_EVENT);
     return;
   case SERVICE_CONTROL_INTERROGATE:
   default:

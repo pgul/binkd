@@ -455,6 +455,7 @@ $(OUTDIR)\service.obj: \
 	"sys.h" \
 	"tools.h" \
 	"nt\service.h" \
+	"nt\brw32sig.h" \
 	"nt\wsock.h" \
 	"nt\w32tools.h"
 

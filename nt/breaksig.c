@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.11  2003/10/05 07:37:47  stas
+ * Fix NT service exit (don't hang service on receive CTRL_SERVICESTOP_EVENT)
+ *
  * Revision 2.10  2003/08/26 16:06:27  stream
  * Reload configuration on-the fly.
  *
@@ -158,8 +161,10 @@ BOOL SigHandler(DWORD SigType) {
 
 BOOL SigHandlerExit(DWORD SigType) {
    Log(8, "SigHandlerExit(%lu)", SigType);
-   if (!SigHandler(SigType))
+   if (SigHandler(SigType)==FALSE)
+   {
      exit(0);
+   }
 
    return TRUE;
 }
