@@ -1,3 +1,7 @@
+2003/10/29 23:08:45 1.0a-288 gul
+daemonize.c,2.6,2.7
+Change include-files structure, relax dependences
+
 2003/10/29 08:44:35 1.0a-287 stas
 service.c,2.43,2.44 brw32sig.h,2.6,NONE
 Remove unused header file
