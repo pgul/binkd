@@ -1,3 +1,7 @@
+2003/10/18 21:51:19 1.0a-249 stas
+binkd.c,2.67,2.68 tools.c,2.54,2.55
+Move to new 'tray.c' file several functions when is related with 'minimize to tray' feature
+
 2003/10/18 21:50:51 1.0a-248 stas
 tray.c,NONE,2.1 tray.h,NONE,2.1 service.c,2.38,2.39 service.h,2.11,2.12 w32tools.c,2.9,2.10 w32tools.h,2.4,2.5
 Move to new 'tray.c' file several functions when is related with 'minimize to tray' feature
