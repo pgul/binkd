@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67  2003/10/18 15:59:07  stas
+ * Improve logging (report about loading dlls)
+ *
  * Revision 2.66  2003/10/05 09:37:42  stas
  * Optimize binkd/nt start: use hack to determine if we're running as a service without waiting for the service control manager to fail
  *
@@ -771,9 +774,11 @@ int main (int argc, char *argv[], char *envp[])
 
 #if defined(WITH_ZLIB) && defined(ZLIBDL)
   if (!zlib_init("zlib.dll")) Log (3, "cannot load zlib.dll, GZ compression disabled");
+  else Log (9, "zlib.dll loaded successfully");
 #endif
 #if defined(WITH_BZLIB2) && defined(ZLIBDL)
   if (!bzlib2_init("bzlib2.dll")) Log (3, "cannot load bzlib2.dll, BZ2 compression disabled");
+  else Log (9, "bzlib2.dll loaded successfully");
 #endif
 
 #ifdef WITH_PERL
