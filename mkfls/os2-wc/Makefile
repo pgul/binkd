@@ -7,7 +7,7 @@
 
 .c:  .;os2;ntlm
 
-# To make debug version uncomment follow sring or use
+# To make debug version uncomment follow string or use
 # "wmake DEBUG=yes" command line
 #DEBUG    = yes    
 
@@ -44,21 +44,20 @@ OBJS      = binkd.obj     readcfg.obj    tools.obj    ftnaddr.obj   &
             https.obj     $(NTLM_OBJS)
 
 .c.obj: .autodepend
-        -echo Compile  $<
+	-echo Compile  $<
 	$(CC) $(CFLAGS) $<
-
-.before:
-        -cls
-!ifeq DEBUG yes
-        -echo Make binkd debug version from $(%cdrive):$(%cwd)
-!else        
-        -echo Make binkd release version from $(%cdrive):$(%cwd)
-!endif
 
 all: binkd.exe .SYMBOLIC
 
-binkd.exe: $(OBJS)
-        -echo Link     $@
+before:	.SYMBOLIC
+!ifeq DEBUG yes
+	-echo Make binkd debug version from $(%cdrive):$(%cwd)
+!else        
+	-echo Make binkd release version from $(%cdrive):$(%cwd)
+!endif
+
+binkd.exe: before $(OBJS)
+	-echo Link     $@
 	$(LINK) $(LFLAGS) /fe=$@ $(OBJS)
 
 clean:  .SYMBOLIC
