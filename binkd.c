@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2001/11/07 13:46:20  gul
+ * bugfix (added saved_argc)
+ *
  * Revision 2.5  2001/10/29 19:31:44  gul
  * Added -h option (print usage)
  *
@@ -221,6 +224,7 @@ int main (int argc, char *argv[], char *envp[])
 /* Config file name */
   char *config = NULL;
   char **saved_argv;
+  int saved_argc;
 #if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
   int  nochdir;
 #endif
@@ -230,6 +234,7 @@ int main (int argc, char *argv[], char *envp[])
 #endif
   /* save argv as setproctitle() under some systems will change it */
   saved_argv = mkargv (argc, argv);
+  saved_argc = argc;
 
   for (i = 1; i < argc; ++i)
   {
@@ -294,6 +299,7 @@ int main (int argc, char *argv[], char *envp[])
 	        free(saved_argv[i]);
 	        for (j=i; j<argc; j++)
 	          saved_argv[j]=saved_argv[j+1];
+	        saved_argc--;
 	      }
 	      break;
 #endif
@@ -473,7 +479,7 @@ int main (int argc, char *argv[], char *envp[])
     soclose (sockfd);
 binkdrestart:
     exitfunc();
-    print_args (tmp, sizeof (tmp), argc - 1, saved_argv + 1);
+    print_args (tmp, sizeof (tmp), saved_argc - 1, saved_argv + 1);
     Log (2, "exec %s%s", saved_argv[0], tmp);
     if (execv (saved_argv[0], saved_argv) == -1)
       Log (1, "execv: %s", strerror (errno));
