@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2003/06/02 08:26:00  gul
+ * Fix hang on exit with big loglevel
+ *
  * Revision 2.13  2003/05/04 08:45:30  gul
  * Lock semaphores more safely for resolve and IP-addr print
  *
@@ -142,6 +145,8 @@ void exitfunc (void)
   sock_deinit ();
   BinLogDeInit ();
   nodes_deinit ();
+  if (*pid_file && pidsmgr == (int) getpid ())
+    delete (pid_file);
   CleanSem (&hostsem);
   CleanSem (&resolvsem);
   CleanSem (&varsem);
@@ -151,6 +156,4 @@ void exitfunc (void)
 #ifdef OS2
   CleanSem (&fhsem);
 #endif
-  if (*pid_file && pidsmgr == (int) getpid ())
-    delete (pid_file);
 }
