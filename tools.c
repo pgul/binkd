@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2002/03/20 14:32:14  gul
+ * Bugfix in ftrans
+ *
  * Revision 2.7  2002/03/07 14:29:52  gul
  * print PID as unsigned to bsy/csy
  *
@@ -609,7 +612,7 @@ char *ed (char *s, char *a, char *b, unsigned int *size)
        continue;
      }
      if(a[j]) continue;
-     if(strlen(r)-len_a+len_b>sz)
+     if(strlen(r)-len_a+len_b>=sz)
      {
        if(len_b<64) sz+=64;
        else sz+=len_b;
@@ -619,6 +622,8 @@ char *ed (char *s, char *a, char *b, unsigned int *size)
      memmove(r+i+len_b, r+i+len_a, strlen(r+i+len_a)+1);
      if(len_b)
        memcpy(r+i, b, len_b);
+     j=0;
+     i+=len_b-1;
    }
    if(size) *size=sz;
    return r;

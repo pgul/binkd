@@ -485,3 +485,4 @@ NT/95:  ctrl-c problems fixed
 
 	Run by-file events with the same command-line once after session.
 
+	Bugfix in ftrans (thanks to Aleksey I Zavilohin <villain@ems.ru>).
