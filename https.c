@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2003/02/22 19:29:40  gul
+ * Fix typo
+ *
  * Revision 2.6  2003/02/22 17:49:16  gul
  * Fix compilation error
  *
@@ -233,7 +236,7 @@ int h_connect(int so, char *host)
 		strcpy(buf, socks);
 		if ((sauth=strchr(buf, '/')) != NULL)
 			*sauth++ = '\0';
-		Log(4, "connected to socks%c %s", sp ? '5' : '4', buf);
+		Log(4, "connected to socks%c %s", sauth ? '5' : '4', buf);
 		if ((sp = strchr(host, ':')) != NULL)
 		{
 			*sp++ = '\0';
