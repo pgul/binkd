@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.114  2003/09/05 09:57:16  gul
+ * Process multiply M_NUL FREQ messages
+ *
  * Revision 2.113  2003/09/05 06:49:06  val
  * Perl support restored after config reloading patch
  *
@@ -1103,7 +1106,7 @@ static int NUL (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
   else if (!memcmp (s, "LOC ", 4))
     strnzcpy (state->location, s + 4, sizeof (state->location));
   else if (!memcmp (s, "FREQ", 4)) {
-    state->delay_EOB = 1;
+    state->delay_EOB++;
     Log(2, "Remote claims to have a FREQ for us");
   }
   free (s);
@@ -1740,7 +1743,7 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
         return 0; /* error, drop session */
       /* val: check for *.req if got M_NUL FREQ */
       if (state->delay_EOB && isreq(state->in_complete.netname))
-        state->delay_EOB = 0;
+        state->delay_EOB--;
       /* val: /check */
       if (*realname)
       {
