@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.82  2004/01/03 19:33:42  stas
+ * Implement install and uninstall win* services using -t option
+ *
  * Revision 2.81  2004/01/03 19:04:20  stas
  * New functions: public w32Init() and hidden w32exitfunc()
  *
@@ -444,13 +447,13 @@ void usage (void)
 #elif defined(BINKDW9X)
 	  "  -i       install Win9x service\n"
 	  "  -u       UNinstall Win9x service\n"
-	  "  -t cmd   (start|stop|restart|status) service(s)\n"
+	  "  -t cmd   (start|stop|restart|status|install|uninstall) service(s)\n"
 	  "  -S name  set Win9x service name, all - use all services\n"
 #elif defined(WIN32)
 	  "  -T       minimize to Tray\n"
 	  "  -i       install WindowsNT service\n"
 	  "  -u       UNinstall WindowsNT service\n"
-	  "  -t cmd   (start|stop|restart|status) service(s)\n"
+	  "  -t cmd   (start|stop|restart|status|install|uninstall) service\n"
 	  "  -S name  set WindowsNT service name\n"
 #endif
 	  "  -P node  poll a node\n"
@@ -581,6 +584,10 @@ char *parseargs (int argc, char *argv[])
                 service_flag = w32_stopservice;
 	      else if (!strcmp (optarg, "restart"))
                 service_flag = w32_restartservice;
+	      else if (!strcmp (optarg, "install"))
+                service_flag = w32_installservice;
+	      else if (!strcmp (optarg, "uninstall"))
+                service_flag = w32_uninstallservice;
 	      else
                 Log (0, "%s: '-t': invalid argument '%s'", extract_filename(argv[0]), optarg);
               break;
