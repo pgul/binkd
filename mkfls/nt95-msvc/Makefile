@@ -197,6 +197,7 @@ clean:
 	-@del "$(OUTDIR)\*.sbr"
 	-@del "$(OUTDIR)\*.idb"
 	-@del "$(OUTDIR)\$(BINKDEXE).ilk"
+	-@del "$(OUTDIR)\*.res"
 
 distclean: clean
 	-@del "$(OUTDIR)\$(BINKDEXE).exe"
