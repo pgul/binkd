@@ -8,6 +8,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.3  2003/12/02 13:02:27  gul
+ * Use own snprintf() instead of sprintf() if no HAVE_SNPRINTF
+ *
  * Revision 2.2  2003/02/28 20:39:09  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -202,11 +205,7 @@ void setproctitle(const char *fmt, ...)
 
 	/* print the argument string */
 	va_start(ap, fmt);
-#ifdef HAVE_SNPRINTF
 	(void) vsnprintf(p, SPACELEFT(buf, p), fmt, ap);
-#else
-	(void) vsprintf(p, fmt, ap);
-#endif
 	va_end(ap);
 
 	i = strlen(buf);
