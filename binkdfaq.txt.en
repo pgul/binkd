@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of October 25 2004
+        Version of November 05 2004
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -58,11 +58,16 @@ from Russian by Michael Dukelsky 2:5020/1042.
 
     In Internet:
 
-    Release versions, log analyzers etc. (Pavel Gulchouck 2:463/68):
+    Release versions, documenatation, log analyzers etc. (Pavel Gulchouck 
+    2:463/68):
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/
-    The mirror
-    ftp://fido.thunderdome.ws/pub/mirror/binkd/  (by Matt Bedynek 1:106/1)
+    The mirrors:
     ftp://cheetah.itpark.com.ua/pub/fido/binkd/
+      (Ukraine, Pavel Gulchouck 2:463/68)
+    ftp://fido.thunderdome.ws/pub/mirror/binkd/
+      (USA, Matt Bedynek 1:106/1)
+    ftp://ftp.alexblues.ru/pub/binkd/
+      (Russia, Alexander Gladchenko 2:5080/111, refreshes at 22:00 UTC)
 
     Beta versions:
     Public CVS
