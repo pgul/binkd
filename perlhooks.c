@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2003/08/13 08:20:45  val
+ * try to avoid mixing Log() output and Perl errors in stderr
+ *
  * Revision 2.7  2003/08/11 08:33:16  val
  * better error handling in perl hooks
  *
@@ -176,6 +179,10 @@ extern "C" {
 
 #ifndef sv_undef
 #  define sv_undef PL_sv_undef
+#endif
+
+#ifdef q
+#  undef q
 #endif
 
 #ifdef __GNUC__
@@ -499,12 +506,14 @@ struct perl_const { char *name; int value; } perl_consts[] = {
 
 /* since multi-thread handlers don't work anyway, use single copy ;) */
 static int perl_olderr, perl_errpipe[2];
+FILE *perl_OLDERR = NULL;
 
 /* set up perl errors handler, redirect stderr to pipe */
 /* !!! DON'T CALL FROM THREADS !!! */
 static void handle_perlerr(int *olderr, int *errpipe) {
   fflush(stderr);
   *olderr = dup(fileno(stderr));
+  perl_OLDERR = fdopen(*olderr, "w");
 #if defined(UNIX) || defined(__OS2__)
   pipe(errpipe);
 #elif defined(_MSC_VER)
@@ -518,14 +527,18 @@ static void handle_perlerr(int *olderr, int *errpipe) {
 static void restore_perlerr(int *olderr, int *errpipe) {
 char buf[256];
 FILE *R;
+  fflush(perl_OLDERR); perl_OLDERR = NULL;
   close(errpipe[1]);
   dup2(*olderr, fileno(stderr));
   R = fdopen(errpipe[0], "r");
-  fflush(R);
   buf[0] = 0;
   while ( fgets(buf, 256, R) ) {
     int n = strlen(buf);
-    if (n > 0 && buf[n-1] == '\n') buf[--n] = 0;
+    if (n > 0 && buf[n-1] == '\n') {
+      if (n > 1 && buf[n-2] == '\r') buf[--n] = 0;
+      buf[--n] = 0;
+    }
+    /* while (n && buf[n] == ' ') buf[n--] = 0; */
     if (n > 0) Log(LL_ERR, "Perl error: %s", buf);
   }
   fclose(R);

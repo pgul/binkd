@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/08/13 08:20:45  val
+ * try to avoid mixing Log() output and Perl errors in stderr
+ *
  * Revision 2.1  2003/06/20 10:37:02  val
  * Perl hooks for binkd - initial revision
  *
@@ -32,6 +35,8 @@ extern char *perl_subnames[]; /* names for perl subs */
 
 extern int perl_manages_queue; /* queue is managed from perl: sorting, etc */
 extern int perl_wants_queue;   /* export queue to perl subs */
+
+extern FILE *perl_OLDERR;      /* saved stderr */
 
 int perl_init(char *); /* init root perl, parse hooks file, return success */
 void perl_setup(void); /* set config vars to root perl */

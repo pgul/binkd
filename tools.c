@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.33  2003/08/13 08:20:45  val
+ * try to avoid mixing Log() output and Perl errors in stderr
+ *
  * Revision 2.32  2003/08/12 09:35:48  gul
  * Cosmetics
  *
@@ -191,6 +194,9 @@
 #include "readdir.h"		       /* for [sys/]utime.h */
 #include "readcfg.h"
 #include "sem.h"
+#ifdef WITH_PERL
+#include "perlhooks.h"
+#endif
 
 /*
  * Lowercase the string
@@ -433,6 +439,11 @@ void Log (int lev, char *s,...)
   va_list ap;
   static const char *marks = "!?+-";
   char ch = (0 <= lev && lev < (int) strlen (marks)) ? marks[lev] : ' ';
+#ifdef WITH_PERL
+  FILE *my_stderr = perl_OLDERR ? perl_OLDERR : stderr;
+#else
+# define my_stderr stderr
+#endif
 
   if (first_time == 1)
   {
@@ -450,13 +461,13 @@ void Log (int lev, char *s,...)
      )
   {
     LockSem (&LSem);
-    fprintf (stderr, "%30.30s\r%c %02d:%02d [%u] ", " ", ch,
+    fprintf (my_stderr, "%30.30s\r%c %02d:%02d [%u] ", " ", ch,
              tm.tm_hour, tm.tm_min, (unsigned) PID ());
     va_start (ap, s);
-    vfprintf (stderr, s, ap);
+    vfprintf (my_stderr, s, ap);
     va_end (ap);
     if (lev >= 0)
-      fputc ('\n', stderr);
+      fputc ('\n', my_stderr);
     ReleaseSem (&LSem);
     if (lev < 0)
       return;
@@ -547,6 +558,10 @@ void Log (int lev, char *s,...)
 /*
   assert (_heapchk () == _HEAPOK || _heapchk () == _HEAPEMPTY);
 */
+#endif
+
+#ifndef WITH_PERL
+# undef my_stderr
 #endif
 }
 
