@@ -1,3 +1,7 @@
+2004/01/02 17:32:02 1.0a-323 stas
+inbound.c,2.27,2.28
+Fix the minfree token usage and fix getfree() on Win >w95
+
 2004/01/02 17:31:33 1.0a-322 stas
 getfree.c,2.8,2.9
 Fix the minfree token usage and fix getfree() on Win >w95
