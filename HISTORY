@@ -1,3 +1,8 @@
+2003/10/24 00:39:23 1.0a-272
+ gul
+readcfg.c,2.57,2.58
+Remove C++ style comments
+
 2003/10/24 00:38:56 1.0a-271
  gul
 breaksig.c,2.21,2.22
