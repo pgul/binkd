@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.47  2004/01/03 15:46:09  stas
+ * Fix: do not load icon into service control window at binkd service starts
+ *
  * Revision 2.46  2004/01/03 15:38:50  stas
  * Implement service control option for Windows NT/2k/XP
  *
@@ -729,7 +732,6 @@ int service(int argc, char **argv, char **envp)
   if (tray_flag)
   {
      srvtype |= SERVICE_INTERACTIVE_PROCESS;
-     do_tray_flag();
   }
 
   j=checkservice();
