@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9.2.1  2003/06/30 22:46:03  hbrew
+ * Print only binkd name (without path) in error messages
+ *
  * Revision 2.9  2003/04/04 07:33:11  gul
  * Fix syntax error
  *
@@ -214,5 +217,8 @@ char *makeinboundcase (char *s);
 struct tm *safe_localtime(time_t *t, struct tm *tm);
 struct tm *safe_gmtime(time_t *t, struct tm *tm);
 time_t safe_time(void);
+
+/* Extract filename from path */
+char *extract_filename(char *s);
 
 #endif

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30.2.1  2003/06/30 22:46:03  hbrew
+ * Print only binkd name (without path) in error messages
+ *
  * Revision 2.30  2003/05/10 00:30:36  hbrew
  * binkd9x: -u option now support '--all' service name (uninstall all services).
  * Unneeded spaces cleanup.
@@ -359,7 +362,7 @@ int main (int argc, char *argv[], char *envp[])
 	      if (!strcmp (s + 1, "help"))
 		usage ();
 	      else
-		Log (0, "%s: --%s: unknown command line switch", argv[0], s + 1);
+		Log (0, "%s: --%s: unknown command line switch", extract_filename(argv[0]), s + 1);
 	    case 'C':
 	      checkcfg_flag = 1;
 	      break;
@@ -381,7 +384,7 @@ int main (int argc, char *argv[], char *envp[])
 	      {
 		++i;
 		if (argv[i] == 0)
-		  Log (0, "%s: -P: missing requred argument", argv[0]);
+		  Log (0, "%s: -P: missing requred argument", extract_filename(argv[0]));
 	      }
 	      goto BREAK_WHILE;
 	    case 'p':
@@ -417,7 +420,7 @@ int main (int argc, char *argv[], char *envp[])
 	    case 'h':
 	      usage();
 	    default:
-	      Log (0, "%s: -%c: unknown command line switch", argv[0], *s);
+	      Log (0, "%s: -%c: unknown command line switch", extract_filename(argv[0]), *s);
 	    case 0:
 	      usage ();
 	  }
@@ -475,7 +478,7 @@ int main (int argc, char *argv[], char *envp[])
     usage ();
   else
   {
-    Log (0, "%s: invalid command line: config name must be specified", argv[0]);
+    Log (0, "%s: invalid command line: config name must be specified", extract_filename(argv[0]));
     exit (1);
   }
 
