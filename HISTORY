@@ -1,3 +1,7 @@
+2003/11/09 05:45:50 1.0a-295 hbrew
+binkd.c,2.73,2.74
+Add -vv to help message
+
 2003/11/04 02:47:56 1.0a-294 hbrew
 confopt.h,2.1,2.2
 Cosmetic
