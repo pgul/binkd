@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.1  2002/03/15 15:49:30  gul
+ * Do not check/create *.try if "try" is not defined in config
+ *
  * Revision 2.0  2001/01/10 12:12:38  gul
  * Binkd is under CVS again
  *
@@ -965,6 +968,7 @@ void bad_try (FTN_ADDR *fa, const char *error)
 {
   unsigned nok, nbad;
 
+  if (tries == 0) return;
   read_try (fa, &nok, &nbad);
   if (tries > 0 && ++nbad >= (unsigned) tries)
   {
@@ -978,6 +982,7 @@ void good_try (FTN_ADDR *fa, char *comment)
 {
   unsigned nok, nbad;
 
+  if (tries == 0) return;
   read_try (fa, &nok, &nbad);
   nbad = 0;
   ++nok;
