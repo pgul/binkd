@@ -1,3 +1,7 @@
+2003/09/07 07:37:05 0.9.6a-161 hbrew
+win9x.c,2.19,2.20
+Close process and thread handles after CreateProcess()
+
 2003/09/07 07:35:18 0.9.6a-160 hbrew
 win9x.c,2.18,2.19
 Fix old noncritical bug in binkd9x (STD_OUTPUT_HANDLE --> STD_INPUT_HANDLE)
