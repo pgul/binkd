@@ -11,3 +11,4 @@
 - charsets support, unicode
 - present aka
 - do not resolve domains when use proxy
+- 3 passwords in passwd-file - "incoming,pkt,outgoing"
