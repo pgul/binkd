@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2002/11/13 07:49:27  gul
+ * Fix typo
+ *
  * Revision 2.8  2002/11/12 16:55:58  gul
  * Run as service under win9x
  *
@@ -193,7 +196,7 @@ void usage ()
 #elif defined(BINKDW9X)
 	  "  -i[(service-name)][q]  install Win9x service\n"
 	  "  -u[(service-name)][q]  UNinstall Win9x service\n"
-	  "  -t[start|stop|restart][(service-name|--all)][q]  status|control service(s)\n";
+	  "  -t[start|stop|restart][(service-name|--all)][q]  status|control service(s)\n"
 #elif defined(WIN32)
 	  "  -T       minimize to Tray\n"
 	  "%s"
