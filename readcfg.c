@@ -3,7 +3,7 @@
  *
  *  readcfg.c is a part of binkd project
  *
- *  Copyright (C) 1996-2003  Dima Maloff, 5047/13 and others
+ *  Copyright (C) 1996-2004  Dima Maloff, 5047/13 and others
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.65  2004/01/07 13:12:29  gul
+ * Update 2003->2004 in copyright notices
+ *
  * Revision 2.64  2004/01/07 12:23:40  gul
  * Remove zaccept keyword, receiving compressed files possibility
  * is always on now if binkd was compiled with zlib/bzip2 support.
