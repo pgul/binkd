@@ -1,3 +1,7 @@
+2003/11/20 18:21:21 1.0a-298 gul
+protocol.c,2.140,2.141
+Bugfix in sending ND-status with compression
+
 2003/11/19 20:07:24 1.0a-297 gul
 perlhooks.c,2.40,2.41
 Use foreach_node() for fill %node hash
