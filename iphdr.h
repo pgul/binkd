@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.17  2004/07/12 08:21:20  stas
+ * Fix the file name case. Bugreport from Andrey Slusar 2:467/126
+ *
  * Revision 2.16  2003/10/06 17:16:47  stas
  * (Cosmetics) Rename tcperr() to w32err() for win32/win9x versions
  *
@@ -168,7 +171,7 @@ void ReleaseErrorList(void);
   #define TCPERRNO (h_errno)
   #define TCPERR_WOULDBLOCK WSAEWOULDBLOCK
   #define TCPERR_AGAIN WSAEWOULDBLOCK
-  #include "nt/wsock.h"
+  #include "nt/WSock.h"
   #define sock_init() WinsockIni()
   #define sock_deinit() WinsockClean()
   #define soclose(h) closesocket(h)

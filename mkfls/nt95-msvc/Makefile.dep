@@ -27,7 +27,7 @@ $(OUTDIR)\binkd.obj: \
 !endif
 	"nt\service.h" \
 	"nt\win9x.h" \
-	"nt\wsock.h"
+	"nt\WSock.h"
 
 $(OUTDIR)\binlog.obj: \
 	"Config.h" \
@@ -45,7 +45,7 @@ $(OUTDIR)\binlog.obj: \
 	"sem.h" \
 	"sys.h" \
 	"tools.h" \
-	"nt\wsock.h"
+	"nt\WSock.h"
 
 $(OUTDIR)\branch.obj: \
 	"Config.h" \
@@ -68,7 +68,7 @@ $(OUTDIR)\bsy.obj: \
 	"sys.h" \
 	"tools.h" \
 	"nt\dirwin32.h" \
-	"nt\wsock.h"
+	"nt\WSock.h"
 
 $(OUTDIR)\client.obj: \
 	"Config.h" \
@@ -93,7 +93,7 @@ $(OUTDIR)\client.obj: \
 !ifdef PERL
 	"perlhooks.h" \
 !endif
-	"nt\wsock.h"
+	"nt\WSock.h"
 
 $(OUTDIR)\crypt.obj: \
 	"crypt.h"
@@ -116,7 +116,7 @@ $(OUTDIR)\exitproc.obj: \
 !ifdef PERL
 	"perlhooks.h" \
 !endif
-	"nt\wsock.h"
+	"nt\WSock.h"
 
 $(OUTDIR)\ftnaddr.obj: \
 	"Config.h" \
@@ -128,7 +128,7 @@ $(OUTDIR)\ftnaddr.obj: \
 	"readcfg.h" \
 	"sys.h" \
 	"tools.h" \
-	"nt\wsock.h"
+	"nt\WSock.h"
 
 $(OUTDIR)\ftndom.obj: \
 	"ftnaddr.h" \
@@ -149,7 +149,7 @@ $(OUTDIR)\ftnnode.obj: \
 	"sem.h" \
 	"sys.h" \
 	"tools.h" \
-	"nt\wsock.h"
+	"nt\WSock.h"
 
 $(OUTDIR)\ftnq.obj: \
 	"Config.h" \
@@ -168,7 +168,7 @@ $(OUTDIR)\ftnq.obj: \
 	"perlhooks.h" \
 !endif
 	"nt\dirwin32.h" \
-	"nt\wsock.h"
+	"nt\WSock.h"
 
 $(OUTDIR)\getw.obj: \
 	"getw.h" \
@@ -187,7 +187,7 @@ $(OUTDIR)\https.obj: \
 	"sem.h" \
 	"sys.h" \
 	"tools.h" \
-	"nt\wsock.h"
+	"nt\WSock.h"
 
 $(OUTDIR)\inbound.obj: \
 	"Config.h" \
@@ -207,7 +207,7 @@ $(OUTDIR)\inbound.obj: \
 	"perlhooks.h" \
 !endif
 	"nt\dirwin32.h" \
-	"nt\wsock.h"
+	"nt\WSock.h"
 
 $(OUTDIR)\iptools.obj: \
 	"Config.h" \
@@ -221,7 +221,7 @@ $(OUTDIR)\iptools.obj: \
 	"sem.h" \
 	"sys.h" \
 	"tools.h" \
-	"nt\wsock.h"
+	"nt\WSock.h"
 
 $(OUTDIR)\md5b.obj: \
 	"Config.h" \
@@ -238,7 +238,7 @@ $(OUTDIR)\md5b.obj: \
 	"server.h" \
 	"sys.h" \
 	"tools.h" \
-	"nt\wsock.h"
+	"nt\WSock.h"
 
 $(OUTDIR)\prothlp.obj: \
 	"Config.h" \
@@ -255,7 +255,7 @@ $(OUTDIR)\prothlp.obj: \
 	"srif.h" \
 	"sys.h" \
 	"tools.h" \
-	"nt\wsock.h"
+	"nt\WSock.h"
 
 $(OUTDIR)\protocol.obj: \
 	"Config.h" \
@@ -288,7 +288,7 @@ $(OUTDIR)\protocol.obj: \
 	"perlhooks.h" \
 !endif
         "compress.h" \
-	"nt\wsock.h"
+	"nt\WSock.h"
 
 $(OUTDIR)\readcfg.obj: \
 	"Config.h" \
@@ -308,7 +308,7 @@ $(OUTDIR)\readcfg.obj: \
 	"srif.h" \
 	"sys.h" \
 	"tools.h" \
-	"nt\wsock.h"
+	"nt\WSock.h"
 
 $(OUTDIR)\readflo.obj: \
 	"Config.h" \
@@ -342,7 +342,7 @@ $(OUTDIR)\server.obj: \
 !ifdef PERL
 	"perlhooks.h" \
 !endif
-	"nt\wsock.h"
+	"nt\WSock.h"
 
 $(OUTDIR)\setpttl.obj: \
 	"setpttl.h"
@@ -362,7 +362,7 @@ $(OUTDIR)\srif.obj: \
 	"srif.h" \
 	"sys.h" \
 	"tools.h" \
-	"nt\wsock.h"
+	"nt\WSock.h"
 
 $(OUTDIR)\tools.obj: \
 	"Config.h" \
@@ -382,7 +382,7 @@ $(OUTDIR)\tools.obj: \
 	"perlhooks.h" \
 !endif
 	"nt\dirwin32.h" \
-	"nt\wsock.h"
+	"nt\WSock.h"
 
 $(OUTDIR)\xalloc.obj: \
 	"getw.h" \
@@ -431,7 +431,7 @@ $(OUTDIR)\breaksig.obj: \
 	"sys.h" \
 	"tools.h" \
 	"nt\win9x.h" \
-	"nt\wsock.h"
+	"nt\WSock.h"
 
 $(OUTDIR)\dirwin32.obj: \
 	"nt\dirwin32.h"
@@ -456,7 +456,7 @@ $(OUTDIR)\service.obj: \
 	"sys.h" \
 	"tools.h" \
 	"nt\service.h" \
-	"nt\wsock.h" \
+	"nt\WSock.h" \
 	"nt\w32tools.h"
 
 $(OUTDIR)\win9x.obj: \
@@ -467,7 +467,7 @@ $(OUTDIR)\win9x.obj: \
 	"sys.h" \
 	"tools.h" \
 	"nt\win9x.h" \
-	"nt\wsock.h" \
+	"nt\WSock.h" \
 	"nt\w32tools.h"
 
 $(OUTDIR)\des_enc.obj: \
@@ -483,7 +483,7 @@ $(OUTDIR)\ecb_enc.obj: \
 $(OUTDIR)\helpers.obj: \
 	"iphdr.h" \
 	"sys.h" \
-	"nt\wsock.h" \
+	"nt\WSock.h" \
 	"ntlm\des.h" \
 	"ntlm\md4.h"
 
