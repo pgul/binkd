@@ -1,3 +1,7 @@
+2003/09/24 01:02:39 0.9.6a-189 gul
+zlibdl.h,2.3,2.4
+Fix warning
+
 2003/09/22 14:38:50 0.9.6a-188 val
 protocol.c,2.125,2.126
 new ip checking modes in VAL_STYLE: ipNoUnknown, ipNoError;
