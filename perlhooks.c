@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/07/07 08:42:02  val
+ * check real length of SvPV() when importing queue element from perl
+ *
  * Revision 2.4  2003/07/04 08:13:17  val
  * core dump in perl_clone() fixed, works with 5.6.0+
  *
@@ -800,12 +803,13 @@ static FTNQ *refresh_queue(STATE *state, FTNQ *queue) {
     if (SvTYPE(hv) != SVt_PVHV) continue;
     svp = hv_fetch(hv, "file", 4, 0);
     if (!svp || !SvOK(*svp)) continue;
+    s = SvPV(*svp, len);
+    if (len == 0) continue;
     qp = q;
     q = xalloc( sizeof(FTNQ) ); FQ_ZERO(q);
     if (!q0) q0 = q;
       else { qp->next = q; q->prev = qp; }
-    s = SvPV(*svp, len);
-    strnzcpy(q->path, s, MAXPATHLEN);
+    strnzcpy(q->path, s, min(len, MAXPATHLEN));
     svp = hv_fetch(hv, "size", 4, 0);
     if (!svp || !SvOK(*svp)) q->size = 0;
       else q->size = SvIV(*svp);
