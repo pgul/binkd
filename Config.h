@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.139  2003/08/24 13:30:35  stream
+ * Auto increase patchlevel, set 0.9.6a-126
+ * Socket wasn't closed if branch() failed
+ *
  * Revision 2.138  2003/08/24 01:36:02  hbrew
  * Auto increase patchlevel, set 0.9.6a-125
  * Update for previous patch
@@ -598,7 +602,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-125"
+#define MYVER "0.9.6a-126"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
