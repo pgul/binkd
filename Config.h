@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.72  2003/07/17 02:41:51  hbrew
+ * Auto increase patchlevel, set 0.9.6a-61
+ * Compability with nt/service.c & nt/win9x.c.
+ * Usage "--service" options as win9x "run-as-service" flag.
+ *
  * Revision 2.71  2003/07/16 15:51:17  stas
  * Auto increase patchlevel, set 0.9.6a-60
  * Fix: restore "Minimise to tray"
@@ -297,7 +302,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-60"
+#define MYVER "0.9.6a-61"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
