@@ -1,3 +1,7 @@
+2003/09/25 01:14:10 0.9.6a-193 hbrew
+zlibdl.h,2.6,2.7
+Fix cvs macro
+
 2003/09/24 12:53:20 0.9.6a-192 val
 zlibdl.c,2.4,2.5 zlibdl.h,2.5,2.6
 fix warnings
