@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.24  2003/09/19 13:37:14  val
+ * old get_defnode_info() logic returned for a while
+ *
  * Revision 2.23  2003/09/16 06:38:44  val
  * correct IP checking algorithms (gul's one is buggy), correct get_defnode_info()
  *
@@ -258,11 +261,11 @@ static FTN_NODE *search_for_node(FTN_NODE *np, BINKD_CONFIG *config)
 
 static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *config)
 {
-/*  struct hostent *he;*/
+  struct hostent *he;
   FTN_NODE n, *np;
-/*  char host[MAXHOSTNAMELEN + 1];  */     /* current host/port */
-/*  unsigned short port; */
-/*  int i; */
+  char host[MAXHOSTNAMELEN + 1];       /* current host/port */
+  unsigned short port;
+  int i;
 
   strcpy(n.fa.domain, "defnode");
   n.fa.z=n.fa.net=n.fa.node=n.fa.p=0;
@@ -271,7 +274,6 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
   if (!np) /* we don't have defnode info */
     return on;
 
-/* //val: it's wrong
   for (i=1; np->hosts && get_host_and_port(i, host, &port, np->hosts, fa, config)==1; i++)
   {
     if (!strcmp(host, "-"))
@@ -287,7 +289,7 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
   }
   if (i)
     strcpy(host, "-");
-*/
+
   if (on)
   { /* on contains only passwd */
     on->hosts=xstrdup(/*host*/np->hosts);
