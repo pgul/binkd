@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.11  2004/01/04 16:55:00  stas
+ * Move declarations of the 'binkd_main' into one place (nt/w32tools.h)
+ *
  * Revision 2.10  2004/01/03 19:04:20  stas
  * New functions: public w32Init() and hidden w32exitfunc()
  *
@@ -47,6 +50,9 @@
 #define __W32TOOLS_H
 
 #define AlertWin(text) MessageBox(NULL, text, MYNAME, MB_OK|MB_ICONSTOP|0x00200000L|MB_SYSTEMMODAL|MB_SETFOREGROUND)
+
+/* Declaration of main binkd function (see binkd.c) */
+int binkd_main(int argc, char **argv, char **envp);
 
 #define IsNTService (IsNT()&&isService())
 #define Is9xService (Is9x()&&isService())

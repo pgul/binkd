@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.26  2004/01/04 16:55:00  stas
+ * Move declarations of the 'binkd_main' into one place (nt/w32tools.h)
+ *
  * Revision 2.25  2003/10/06 17:53:15  stas
  * (Prevent compiler warning.) Remove type convertion at CreateWin9xThread() call
  *
@@ -150,7 +153,6 @@ const char *Win9xStartService = "--service";
 extern enum serviceflags service_flag;
 extern char *service_name;
 
-int binkd_main(int argc, char **argv, char **envp);
 int win9x_service_un_install(int argc, char **argv);
 int win9x_service_control(void);
 
