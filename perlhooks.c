@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19  2003/08/26 17:01:26  gul
+ * Correct previous patch
+ *
  * Revision 2.18  2003/08/26 16:45:52  gul
  * binkd/2 perl dynamic DLL load
  *
@@ -324,9 +327,13 @@ PERL_CALLCONV I32** (*dl_Perl_Tmarkstack_ptr_ptr)(pTHXo);
 PERL_CALLCONV SV*** (*dl_Perl_Tstack_sp_ptr)(pTHXo);
 PERL_CALLCONV void (*dl_boot_DynaLoader)(pTHXo_ CV* cv);
 */
+/* below is the prototype with typedef:
+typedef char* (PERL_CALLCONV *tf_Perl_sv_2pv)(pTHX_ SV* sv, STRLEN* lp);
+tf_Perl_sv_2pv         dl_Perl_sv_2pv;
+*/
 
 /* the currently used way to define prototypes via macro */
-#define VK_MAKE_DFL(t,n,a) t (*n) a
+#define VK_MAKE_DFL(t,n,a) t (PERL_CALLCONV *n) a
 VK_MAKE_DFL(char*, dl_Perl_sv_2pv, (pTHX_ SV* sv, STRLEN* lp));
 VK_MAKE_DFL(UV, dl_Perl_sv_2uv, (pTHX_ SV* sv));
 
