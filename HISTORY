@@ -1,3 +1,7 @@
+2003/08/29 16:27:37 0.9.6a-152 gul
+protocol.c,2.110,2.111
+Do not save zero-length .dt files
+
 2003/08/28 10:35:57 0.9.6a-151 gul
 inbound.c,2.21,2.22
 Cosmetics in log
