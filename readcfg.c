@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.80  2004/11/21 11:55:24  val
+ * remove old commented code for limit-rate debug output
+ *
  * Revision 2.79  2004/11/07 07:26:36  gul
  * New config options zlib-dll and bzlib2-dll
  *
@@ -2207,14 +2210,6 @@ void debug_readcfg (void)
       struct ratechain *sk;
       for (sk = work_config.rates.first; sk; sk = sk->next) {
           printf("\n    %s %s \"%s\"", describe_addrtype(sk->atype), describe_rate(sk->rate), sk->mask);
-/*
-        if (sk->rate == 0)
-          printf("\n    %s - \"%s\"", describe_addrtype(sk->atype), sk->mask);
-        else if (sk->rate < 0)
-          printf("\n    %s %d%% \"%s\"", describe_addrtype(sk->atype), -sk->rate, sk->mask);
-        else
-          printf("\n    %s %d \"%s\"", describe_addrtype(sk->atype), sk->rate, sk->mask);
-*/
       }
     }
 #endif
