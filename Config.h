@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.137  2003/08/24 00:45:48  hbrew
+ * Auto increase patchlevel, set 0.9.6a-124
+ * win9x-select-workaround fix, thanks to Pavel Gulchouck
+ *
  * Revision 2.136  2003/08/23 15:51:52  stream
  * Auto increase patchlevel, set 0.9.6a-123
  * Implemented common list routines for all linked records in configuration
@@ -590,7 +594,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-123"
+#define MYVER "0.9.6a-124"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
