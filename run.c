@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/04/06 07:54:41  gul
+ * Change wait for child process function for win32
+ *
  * Revision 2.1  2001/10/27 08:07:17  gul
  * run and run_args returns exit code of calling process
  *
@@ -84,7 +87,9 @@ int run (char *cmd)
     Log (1, "Error in CreateProcess()=%d", GetLastError());
   else if (sp==cmd)
     for(;;)
-    {
+    { /* WaitForSingleObject() does not wait for process under Windows95 */
+      dw = WaitForSingleObject(pi.hProcess, 1000);
+      if (dw != WAIT_OBJECT_0 && dw != WAIT_TIMEOUT) Sleep(100);
       if (!GetExitCodeProcess(pi.hProcess, &dw))
       {
         Log (1, "Error in GetExitCodeProcess()=%d", GetLastError());
@@ -96,7 +101,6 @@ int run (char *cmd)
         Log (3, "rc=%i", rc);
         break;
       }
-      Sleep(100);
     }
   free(cs);
 #endif
