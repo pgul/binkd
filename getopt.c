@@ -33,7 +33,7 @@
 #endif
 #include <stdio.h>
 
-#define ERR(s,c) fprintf(stderr,"%s%s%c\n", argv[0],s,c)    /* ahd   */
+#define ERR(s,c) if (opterr) fprintf(stderr,"%s%s%c\n", argv[0],s,c) /* ahd */
 
 /*--------------------------------------------------------------------*/
 /*                    UUPC/extended include files                     */
@@ -42,6 +42,7 @@
 #include "getopt.h"
 
 int   optind = 1;
+int   opterr = 1;
 int   optopt = 0;
 char  *optarg = NULL;
 static int sp = 1;
@@ -49,6 +50,7 @@ static int sp = 1;
 void init_getopt(void)
 {
 	optind = 1;
+	opterr = 1;
 	sp = 1;
 	optarg = NULL;
 	optopt = 0;

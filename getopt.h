@@ -11,4 +11,6 @@ extern int getopt(int argc, char **argv, char *opts);
 extern void init_getopt(void);
 
 extern int optind;
+extern int optopt;
+extern int opterr;
 extern char *optarg;
