@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.72  2003/06/21 08:41:29  gul
+ * "try" and "hold" did not work if connection closed by remote
+ *
  * Revision 2.71  2003/06/20 10:37:02  val
  * Perl hooks for binkd - initial revision
  *
@@ -2167,7 +2170,13 @@ static int recv_block (STATE *state)
   if (no == 0 && sz > 0)
   {
     state->io_error = 1;
-    Log (1, "recv: connection closed by foreign host");
+    if (!binkd_exit)
+    {
+      char *s_err = "connection closed by foreign host";
+      Log (1, "recv: %s", s_err);
+      if (state->to)
+	bad_try (&state->to->fa, s_err, BAD_IO);
+    }
     return 0;
   }
   else
