@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.104  2003/08/24 01:35:59  hbrew
+ * Update for previous patch
+ *
  * Revision 2.103  2003/08/24 00:45:44  hbrew
  * win9x-select-workaround fix, thanks to Pavel Gulchouck
  *
@@ -2854,6 +2857,9 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
 	if (!no)
 	  break;
       }
+#if defined(WIN32) /* workaround winsock bug - give up CPU */
+      else { t_out = 0; }
+#endif
     }
   }
 
