@@ -57,11 +57,11 @@ from Russian by Michael Dukelsky 2:5020/1042.
     Public CVS
        :pserver:binkd@cvs.happy.kiev.ua:/cvs , module binkd, empty password
        Command examples.
-       Login to cvs server:
+       Login to the cvs server:
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs login
-       Retrieve the latest sources of current branch:
+       Retrieve the latest sources of the current branch:
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co binkd
-       Retrieve the latest sources of binkd 0.9.5-stable branch:
+       Retrieve the latest sources of the binkd 0.9.5-stable branch:
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_5-stable binkd
        Retrieve the sources of the binkd 0.9.5-release:
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_5-release binkd
@@ -80,6 +80,22 @@ from Russian by Michael Dukelsky 2:5020/1042.
     This FAQ list:
     http://binkd.grumbler.org/binkdfaq.shtml.en (or .txt.en)
 
+    The official BinkD binaries are named in a way that shows the OS, the
+compiler and the way of building the program.
+
+    Windows (32bit) versions:
+    binkd.exe, binkdw32.exe - binkd/w32, console, compiled by MS Visual C
+    binkd-dll.exe   - binkd/w32, console, MS Visual C, needs msvcrt.dll
+    binkd-mingw.exe - binkd/w32, console, MinGW32, needs msvcrt.dll
+    binkd9x.exe     - binkd/w9x, w/o a window, compiled by MS Visual C
+    binkd9x-dll.exe - binkd/w9x, w/o a window, MS Visual C, needs msvcrt.dll
+    binkd9x-mingw.exe - binkd/w9x, w/o a window, MinGW32, needs msvcrt.dll
+
+    OS/2 versions:
+    binkd2.exe   - Watcom C compiler, no Perl
+    binkd2e.exe  - emx, can load the Perl dll and can work without it
+    binkd2pl.exe - emx, Perl is liked staticly (i.e. no need in a Perl dll)
+    binkd2eo.exe - emx/omf (multithreaded), no Perl.
 
 
 ----------------------------------------------------------------------------
@@ -399,6 +415,16 @@ use the command line option -p:
     If BinkD does not exit for a long time after the session has been
 finished then decrease the value of rescan-delay (and sometimes the value
 of timeout).
+
+    If BinkD works permanently (e.g. as a Windows service) and you want to
+get your mail regularly then you need some additional program or a script.
+As an example in DOS, Windows or OS/2 it is enough to execute the command:
+
+    cd . > %outbound%\NNNNMMMM.ilo
+
+    where NNNN is the hex net number,
+          MMMM is the hex node number,
+          %outbound% is the path to the necessary zone outbound.
 
 
 ----------------------------------------------------------------------------
