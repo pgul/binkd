@@ -1,3 +1,7 @@
+2003/08/27 00:01:13 0.9.6a-146 gul
+daemonize.c,2.5,2.6
+Fix compilation under unix
+
 2003/08/26 21:18:53 0.9.6a-145 gul
 binkd.c,2.57,2.58
 Process "-?" commandline switch as "-h"
