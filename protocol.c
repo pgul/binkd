@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.52  2003/05/01 09:55:01  gul
+ * Remove -crypt option, add global -r option (disable crypt).
+ *
  * Revision 2.51  2003/04/30 13:38:17  gul
  * Avoid warnings
  *
@@ -289,7 +292,7 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to)
   state->ND_flag = (!to || to->ND_flag == ND_ON) ? WE_ND : NO_ND;
   state->MD_flag = 0;
   state->MD_challenge = NULL;
-  state->crypt_flag = (!to || to->crypt_flag == CRYPT_ON) ? WE_CRYPT : NO_CRYPT;
+  state->crypt_flag = no_crypt ? NO_CRYPT : WE_CRYPT;
   strcpy (state->expected_pwd, "-");
   state->skip_all_flag = state->r_skipped_flag = 0;
   state->maxflvr = 'h';

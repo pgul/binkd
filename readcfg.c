@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.24  2003/05/01 09:55:01  gul
+ * Remove -crypt option, add global -r option (disable crypt).
+ *
  * Revision 2.23  2003/03/25 13:17:53  gul
  * Check if inbound and temp-inbound are in the same partition
  *
@@ -575,7 +578,7 @@ static void passwords (KEYWORD *key, char *s)
     for(w=buf;(w[0])&&(!isspace(w[0]));w++);
     w[0]=0;
     if (!add_node (&fa, NULL, buf, '-', NULL, NULL,
-                   NR_USE_OLD, ND_USE_OLD, CRYPT_USE_OLD, 0, 0))
+                   NR_USE_OLD, ND_USE_OLD, 0, 0))
       Log (0, "%s: add_node() failed", w[0]);
   }
   fclose(in);
@@ -690,7 +693,7 @@ static void read_node_info (KEYWORD *key, char *s)
 #define ARGNUM 6
   char *w[ARGNUM], *tmp;
   int i, j, NR_flag = NR_USE_OLD, ND_flag = ND_USE_OLD;
-  int MD_flag = 0, crypt_flag = CRYPT_USE_OLD, restrictIP = 0;
+  int MD_flag = 0, restrictIP = 0;
   FTN_ADDR fa;
 
   memset (w, 0, sizeof (w));
@@ -728,7 +731,7 @@ static void read_node_info (KEYWORD *key, char *s)
 	else if (STRICMP (tmp, "-sip") == 0)
 	  restrictIP = 2; /* allow only resolved and matched */
 	else if (STRICMP (tmp, "-crypt") == 0)
-	  crypt_flag = CRYPT_ON;
+	  Log (1, "%s: %i: obsolete %s option ignored", path, line, tmp);
 	else
 	  Log (0, "%s: %i: %s: unknown option for `node' keyword", path, line, tmp);
       }
@@ -759,7 +762,7 @@ static void read_node_info (KEYWORD *key, char *s)
   check_dir_path (w[5]);
 
   if (!add_node (&fa, w[1], w[2], (char)(w[3] ? w[3][0] : '-'), w[4], w[5],
-		 NR_flag, ND_flag, crypt_flag, MD_flag, restrictIP))
+		 NR_flag, ND_flag, MD_flag, restrictIP))
     Log (0, "%s: add_node() failed", w[0]);
 
   for (i = 0; i < ARGNUM; ++i)

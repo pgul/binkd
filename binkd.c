@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.28  2003/05/01 09:55:01  gul
+ * Remove -crypt option, add global -r option (disable crypt).
+ *
  * Revision 2.27  2003/03/31 21:48:59  gul
  * Avoid infinite recursion
  *
@@ -237,7 +240,7 @@ void usage (void)
 #elif defined(WIN32)
 	  "T%s"
 #endif          
-	  "pqsvmh] [-P node] config"
+	  "pqrsvmh] [-P node] config"
 #ifdef OS2
 	  " [socket]"
 #endif
@@ -264,6 +267,7 @@ void usage (void)
 	  "  -P node  poll a node\n"
 	  "  -p       run client only, poll, quit\n"
 	  "  -q       be quiet\n"
+	  "  -r       disable crypt traffic\n"
 	  "  -s       run server only\n"
 	  "  -v       be verbose / dump version and quit\n"
 	  "  -m       disable CRAM-MD5 authorization\n"
@@ -297,6 +301,7 @@ int quiet_flag = 0;		       /* Be quiet (-q) */
 int verbose_flag = 0;		       /* Be verbose / print version (-v) */
 int checkcfg_flag = 0;		       /* exit(3) on config change (-C) */
 int no_MD5 = 0;			       /* disable MD5 flag (-m) */
+int no_crypt = 0;		       /* disable CRYPT (-r) */
 
 #ifdef BINKDW9X
 int binkd_main (int argc, char *argv[], char *envp[])
@@ -381,6 +386,9 @@ int main (int argc, char *argv[], char *envp[])
 	      break;
 	    case 'm':
 	      no_MD5 = 1;
+	      /* fallthrough */
+	    case 'r':
+	      no_crypt = 1;
 	      break;
 	    case 'v':
 	      ++verbose_flag;

@@ -7,7 +7,7 @@ NAME
        TCP/IP
 
 SYNOPSIS
-       binkd [-CcDipqsv] [ -P node ] config-file
+       binkd [-CcDipqrsvmh] [ -P node ] config-file
 
 DESCRIPTION
        Binkd is a Fidonet mailer designed to operate  via  TCP/IP
@@ -51,11 +51,17 @@ OPTIONS
        -q     Quiet mode. Turns off printq, conlog  and  percents
               statements of configuration.
 
+       -r     Disable crypt traffic.
+
        -s     Start  server  only.  Normally  Binkd  starts  both
               server and client.
 
        -v     Be verbose.  Binkd -v will dump binkd's version and
               quit.
+
+       -m     Disable CRAM-MD5 authorization. Implies -r.
+
+       -h     Print help message.
 
 
 SIGNALS

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2003/05/01 09:55:01  gul
+ * Remove -crypt option, add global -r option (disable crypt).
+ *
  * Revision 2.9  2003/04/23 04:35:34  gul
  * Fix semaphores usage
  *
@@ -121,7 +124,7 @@ static void sort_nodes (void)
  */
 static int add_node_nolock(FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
 	      char *obox, char *ibox, int NR_flag, int ND_flag,
-	      int crypt_flag, int MD_flag, int restrictIP)
+	      int MD_flag, int restrictIP)
 {
   int cn;
 
@@ -143,7 +146,6 @@ static int add_node_nolock(FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
     pNod[cn].obox_flvr = 'f';
     pNod[cn].NR_flag = NR_OFF;
     pNod[cn].ND_flag = ND_OFF;
-    pNod[cn].crypt_flag = CRYPT_OFF;
     pNod[cn].MD_flag = 0;
     pNod[cn].restrictIP = 0;
 
@@ -160,8 +162,6 @@ static int add_node_nolock(FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
     pNod[cn].NR_flag = NR_flag;
   if (ND_flag != ND_USE_OLD)
     pNod[cn].ND_flag = ND_flag;
-  if (crypt_flag != CRYPT_USE_OLD)
-    pNod[cn].crypt_flag = crypt_flag;
 
   if (hosts && *hosts)
   {
@@ -198,12 +198,12 @@ static int add_node_nolock(FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
 
 int add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
 	      char *obox, char *ibox, int NR_flag, int ND_flag,
-	      int crypt_flag, int MD_flag, int restrictIP)
+	      int MD_flag, int restrictIP)
 {
   int res;
   locknodesem();
   res = add_node_nolock(fa, hosts, pwd, obox_flvr, obox, ibox, NR_flag, ND_flag,
-                        crypt_flag, MD_flag, restrictIP);
+                        MD_flag, restrictIP);
   releasenodesem();
   return res;
 }
@@ -248,7 +248,7 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on)
   }
 
   if(!add_node_nolock(fa, host, NULL, np->obox_flvr, np->obox, np->ibox, 
-       np->NR_flag, np->ND_flag, np->crypt_flag, np->MD_flag, np->restrictIP))
+       np->NR_flag, np->ND_flag, np->MD_flag, np->restrictIP))
     return NULL;
   sort_nodes ();
   memcpy (&n.fa, fa, sizeof (FTN_ADDR));
@@ -355,7 +355,7 @@ int poll_node (char *s)
     Log (4, "creating a poll for %s (`%c' flavour)", buf, POLL_NODE_FLAVOUR);
     locknodesem();
     if (!get_node_info (&target))
-      if (!add_node_nolock (&target, "*", 0, '-', 0, 0, 0, 0, 0, 0, 0))
+      if (!add_node_nolock (&target, "*", 0, '-', 0, 0, 0, 0, 0, 0))
 	Log (1, "%s: add_node() failed", buf);
     releasenodesem();
     return create_poll (&target, POLL_NODE_FLAVOUR);

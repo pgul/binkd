@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2003/05/01 09:55:01  gul
+ * Remove -crypt option, add global -r option (disable crypt).
+ *
  * Revision 2.7  2003/03/31 19:35:16  gul
  * Clean semaphores usage
  *
@@ -83,7 +86,6 @@ struct _FTN_NODE
   int NR_flag;
   int ND_flag;
   int MD_flag;
-  int crypt_flag;
   int restrictIP;
 
   time_t hold_until;
@@ -126,7 +128,7 @@ FTN_NODE *get_node (FTN_ADDR *fa, FTN_NODE *node);
  */
 int add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
 	      char *obox, char *ibox, int NR_flag, int ND_flag,
-	      int crypt_flag, int MD_flag, int restrictIP);
+	      int MD_flag, int restrictIP);
 
 #define NR_ON       1
 #define NR_OFF      0
@@ -135,10 +137,6 @@ int add_node (FTN_ADDR *fa, char *hosts, char *pwd, char obox_flvr,
 #define ND_ON       1
 #define ND_OFF      0
 #define ND_USE_OLD -1		       /* Use old value */
-
-#define CRYPT_ON	 1
-#define CRYPT_OFF	 0
-#define CRYPT_USE_OLD	-1		/* Use old value */
 
 /*
  * Iterates through nodes while func() == 0.

@@ -514,3 +514,5 @@ NT/95:  ctrl-c problems fixed
 	be specified, resolved and matched. For -ip option unresolved
 	host is ok.
 
+	Remove -crypt option, add global -r option (disable crypt).
+

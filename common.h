@@ -13,6 +13,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2003/05/01 09:55:01  gul
+ * Remove -crypt option, add global -r option (disable crypt).
+ *
  * Revision 2.2  2003/03/10 10:57:45  gul
  * Extern declarations moved to header files
  *
@@ -69,6 +72,7 @@ extern int checkcfg_flag;	/* exit(3) on config change */
 extern int pidcmgr;		/* pid for clientmgr */
 extern int pidsmgr;		/* pid for server */
 extern int no_MD5;
+extern int no_crypt;
 extern int server_flag, client_flag;
 extern int poll_flag;
 extern int inetd_flag;
