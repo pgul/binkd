@@ -14,6 +14,9 @@
 /* $Id$
  *
  * $Log$
+ * Revision 2.1  2003/02/22 12:56:00  gul
+ * Do not give unsecure mail to secuse link when send-if-pwd
+ *
  * Revision 2.0  2001/01/10 12:12:38  gul
  * Binkd is under CVS again
  *
@@ -88,7 +91,7 @@ FTNQ *q_add_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action
 /*
  * Adds to the q all files for n akas stored in fa
  */
-FTNQ *q_scan_addrs (FTNQ *q, FTN_ADDR *fa, int n);
+FTNQ *q_scan_addrs (FTNQ *q, FTN_ADDR *fa, int n, int to);
 
 /*
  * Scans fileboxes for n akas stored in fa

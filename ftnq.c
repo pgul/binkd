@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2003/02/22 12:56:00  gul
+ * Do not give unsecure mail to secuse link when send-if-pwd
+ *
  * Revision 2.1  2002/03/15 15:49:30  gul
  * Do not check/create *.try if "try" is not defined in config
  *
@@ -191,14 +194,22 @@ FTNQ *q_scan (FTNQ *q)
 /*
  * Adds to the q all files for n akas stored in fa
  */
-FTNQ *q_scan_addrs (FTNQ *q, FTN_ADDR *fa, int n)
+FTNQ *q_scan_addrs (FTNQ *q, FTN_ADDR *fa, int n, int to)
 {
   char buf[MAXPATHLEN + 1];
-  int i;
+  int  i;
   char *s;
 
   for (i = 0; i < n; ++i)
   {
+    if (!to && send_if_pwd)
+    {
+      /* do not give unsecure mail even to secure link when send-if-pwd */
+      FTN_NODE *n;
+      if ((n = get_node_info(fa+i)) == NULL ||
+           n->pwd == NULL || strcmp(n->pwd, "-") == 0)
+	continue;
+    }
     ftnaddress_to_filename (buf, fa + i);
     if (*buf)
     {

@@ -506,3 +506,5 @@ NT/95:  ctrl-c problems fixed
 
 	Do not resolve hosts if proxy or socks5 using.
 
+	Do not give unsecure mail to secure link when send-if-pwd.
+
