@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2003/01/16 14:34:11  gul
+ * Fix segfault under unix
+ *
  * Revision 2.11  2002/12/17 14:02:22  gul
  * change strcasecmp -> STRICMP
  *
@@ -304,6 +307,8 @@ static int check_outbox(char *obox)
   char *OBOX, *PATH=NULL;
   if (obox == NULL) return 0;
   OBOX = strupper(xstrdup(obox));
+#else
+  if (obox == NULL) return 0;
 #endif
   for (; pd; pd=pd->next)
   {
