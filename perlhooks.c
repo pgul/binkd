@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2003/08/22 09:41:36  val
+ * add check perl!=NULL in perl_on_handshake
+ *
  * Revision 2.13  2003/08/22 09:37:39  val
  * missing function import for PERLDL: sv_setpvn()
  *
@@ -1489,8 +1492,10 @@ char *perl_on_handshake(STATE *state) {
   STRLEN len;
   AV *he, *me;
   SV *svret, **svp;
-
-  if (Perl_get_context()) { VK_ADD_intz(svret, "__state", (long)state); }
+  /* this pointer is used later */
+  if (perl && perl_ok && Perl_get_context()) {
+    VK_ADD_intz(svret, "__state", (long)state); 
+  }
   if (perl_ok & (1 << PERL_ON_HANDSHAKE)) {
     Log(LL_DBG, "perl_on_handshake(), perl=%p", Perl_get_context());
     if (!Perl_get_context()) return NULL;
