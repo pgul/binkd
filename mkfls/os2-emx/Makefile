@@ -17,7 +17,7 @@ binkd.exe: $(OBJS)
 install: all clean
 
 clean:
-	-del /n *.RES *.obj *.o os2\\*.o *.map *~ *.bak *.b *.ini *.err core >nul 2> nul
+	-del /n *.RES *.obj *.o os2\*.o *.map *~ *.bak *.b *.ini *.err core >nul 2> nul
 
 depend	Makefile.dep:
 	gcc -MM $(CFLAGS) $(SRCS) | tee Makefile.dep
