@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30  2003/03/01 15:55:02  gul
+ * Current outgoing address is now attibute of session, but not node
+ *
  * Revision 2.29  2003/03/01 15:00:16  gul
  * Join skipmask and overwrite into common maskchain
  *
@@ -1938,7 +1941,7 @@ void log_end_of_session (char *status, STATE *state)
        state->bytes_sent, state->bytes_rcvd);
 }
 
-void protocol (SOCKET socket, FTN_NODE *to)
+void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
 {
   extern int n_servers;
   STATE state;
@@ -1956,11 +1959,9 @@ void protocol (SOCKET socket, FTN_NODE *to)
     Log (1, "getpeername: %s", TCPERR ());
 
   lockhostsem();
-#ifdef HTTPS
-  if (to && to->current_addr)
-    state.peer_name = to->current_addr;
+  if (to && current_addr)
+    state.peer_name = current_addr;
   else
-#endif
   {
     get_hostname(&peer_name, host, sizeof(host));
     state.peer_name = host;

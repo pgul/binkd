@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2003/03/01 15:55:02  gul
+ * Current outgoing address is now attibute of session, but not node
+ *
  * Revision 2.14  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -466,7 +469,7 @@ int main (int argc, char *argv[], char *envp[])
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
   if (inetd_flag)
   {
-    protocol (inetd_socket, 0);
+    protocol (inetd_socket, 0, NULL);
     soclose (inetd_socket);
     exit (0);
   }

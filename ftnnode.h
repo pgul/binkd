@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/03/01 15:55:02  gul
+ * Current outgoing address is now attibute of session, but not node
+ *
  * Revision 2.4  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -81,9 +84,6 @@ struct _FTN_NODE
   int busy;			       /* 0=free, 'c'=.csy, other=.bsy */
   int mail_flvr;		       /* -1=no mail, other=it's flavour */
   int files_flvr;		       /* -1=no files, other=it's flavour */
-#ifdef HTTPS
-  char *current_addr;
-#endif
 };
 
 /*

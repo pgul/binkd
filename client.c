@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2003/03/01 15:55:02  gul
+ * Current outgoing address is now attibute of session, but not node
+ *
  * Revision 2.10  2003/02/28 20:39:08  gul
  * Code cleanup:
  * change "()" to "(void)" in function declarations;
@@ -412,7 +415,6 @@ badtry:
     }
 #endif
 #ifdef HTTPS
-    node->current_addr = host;
     if (sockfd != INVALID_SOCKET && (proxy[0] || socks[0]) &&
         h_connect(sockfd, host) != 0)
     {
@@ -435,7 +437,7 @@ badtry:
   if (sockfd == INVALID_SOCKET)
     return 0;
 
-  protocol (sockfd, node);
+  protocol (sockfd, node, host);
   soclose (sockfd);
   return 1;
 }
