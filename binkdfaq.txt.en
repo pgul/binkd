@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of September 28 2004
+        Version of October 20 2004
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -42,6 +42,7 @@ from Russian by Michael Dukelsky 2:5020/1042.
     31. "start_file_transfer: ECHO is off.: No such file or directory" Error.
     32. How to Create a Poll Correctly.
     33. What Does the Number in Brackets in the Log Mean?
+    34. How to Configure BinkD for sending outgoing mail?
     A1. I Have Found a Bug in BinkD!
     A2. I Want To Talk To Developers.
     A3. I Want To Get Information About Changes In BinkD Immediately!
@@ -665,9 +666,14 @@ ISDN and Fido-over-IP.
 
     You must configure your modem mailer and tosser for BSO (binkley-style
 outbound) mode so that all of them including BinkD would have the same
-inbound directories (and also the same outbound directories). If your
-mailer can work with AMA (arcmail-attach) only you have to change your
-mailer.
+inbound directories (and also the same outbound directories). For example,
+one may put the following line to T-Mail mailer configuration file:
+
+    BinkStyle_Pack_For All
+
+    If your mailer can work with AMA (arcmail-attach) only you have to change
+your mailer.
+    See also question 34.
 
 
 ----------------------------------------------------------------------------
@@ -1039,6 +1045,19 @@ multithreaded BinkD versions (for example, in Windows versions).
     The process (or the thread) number simplifies the log analysis: it 
 allows picking out messages from one BinkD process (or thread). In 
 particular, it allows separating the messages from the different sessions.
+    
+    
+----------------------------------------------------------------------------
+
+
+        34. How to Configure BinkD for sending outgoing mail?
+        
+    You should configure your netmail packer in such a way that your mail
+is packed to BSO (Binkley Style Outbound) packets. If you have not used
+such a program before then you should install it. In some modem mailers the
+possibility of packing netmail to BSO has been provided by their developers
+(for example, in T-Mail starting with the version 2500).
+    See also the answer to question 17.
     
     
 ----------------------------------------------------------------------------
