@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.34  2003/10/24 14:19:28  val
+ * missing OS/2 code for PERLDL improvements added
+ *
  * Revision 2.33  2003/10/24 06:40:13  val
  * PERLDL support for both Perl 5.6 and 5.8 versions
  *
@@ -1105,12 +1108,25 @@ int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
       }
     }
 #ifdef OS2
+    {
+      if (!DosQueryProcAddr(hl, 0, "Perl_sv_2pv", (PFN*)dl_Perl_sv_2pv) &&
+          !DosQueryProcAddr(hl, 0, "Perl_sv_2pv_flags", (PFN*)dl_Perl_sv_2pv_flags)) {
+        return 0;
+        Log(LL_ERR, "perl_init(): can't load method Perl_sv_2pv or Perl_sv_2pv_flags");
+      }
+      if (!DosQueryProcAddr(hl, 0, "Perl_sv_setsv", (PFN*)dl_Perl_sv_setsv) &&
+          !DosQueryProcAddr(hl, 0, "Perl_sv_setsv_flags", (PFN*)dl_Perl_sv_setsv_flags)) {
+        return 0;
+        Log(LL_ERR, "perl_init(): can't load method Perl_sv_setsv or Perl_sv_setsv_flags");
+      }
+    }
 #else
     {
       (void*)dl_Perl_sv_2pv = GetProcAddress(hl, "Perl_sv_2pv");
       (void*)dl_Perl_sv_2pv_flags = GetProcAddress(hl, "Perl_sv_2pv_flags");
       if (!dl_Perl_sv_2pv && !dl_Perl_sv_2pv_flags) {
         Log(LL_ERR, "perl_init(): can't load method Perl_sv_2pv or Perl_sv_2pv_flags");
+        return 0;
       }
       (void*)dl_Perl_sv_setsv = GetProcAddress(hl, "Perl_sv_setsv");
       (void*)dl_Perl_sv_setsv_flags = GetProcAddress(hl, "Perl_sv_setsv_flags");
