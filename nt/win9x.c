@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.20  2003/09/07 04:37:02  hbrew
+ * Close process and thread handles after CreateProcess()
+ *
  * Revision 2.19  2003/09/07 04:35:15  hbrew
  * Fix old noncritical bug in binkd9x (STD_OUTPUT_HANDLE --> STD_INPUT_HANDLE)
  *
@@ -160,11 +163,18 @@ int win9xExec(char *cmdline)
 {
   STARTUPINFO si;
   PROCESS_INFORMATION pi;
+  BOOL rc;
 
   memset(&si, 0, sizeof(si));
   si.cb=sizeof(si);
 
-  return CreateProcess(NULL, cmdline, NULL, NULL, 0, CREATE_DEFAULT_ERROR_MODE, NULL, NULL, &si, &pi);
+  if (rc = CreateProcess(NULL, cmdline, NULL, NULL, 0, CREATE_DEFAULT_ERROR_MODE, NULL, NULL, &si, &pi))
+  {
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+  }
+
+  return rc;
 }
 
 void win9xAtExit(void)
