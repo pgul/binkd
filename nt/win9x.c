@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.22  2003/09/07 04:49:42  hbrew
+ * Remove binkd9x restart-on-config-change code; move binkd9x deinit to exitfunc()
+ *
  * Revision 2.21  2003/09/07 04:39:16  hbrew
  * Memory leak (binkd9x service startup)
  *
@@ -180,11 +183,9 @@ int win9xExec(char *cmdline)
   return rc;
 }
 
-void win9xAtExit(void)
+void win9x_exit(void)
 {
   FreeTempConsole();
-  if (checkcfg_flag==2)
-        win9xExec(GetCommandLine());
 }
 
 void win9x_extend_service_name(void)
@@ -323,8 +324,6 @@ int win9x_process(int argc, char **argv)
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-        atexit(win9xAtExit);
-
         return binkd_main(__argc, __argv, environ);
 }
 

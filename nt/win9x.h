@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.5  2003/09/07 04:49:42  hbrew
+ * Remove binkd9x restart-on-config-change code; move binkd9x deinit to exitfunc()
+ *
  * Revision 2.4  2003/07/07 10:13:54  gul
  * Use getopt() for commandline parse
  *
@@ -37,9 +40,9 @@ int win9x_process(int argc, char **argv);
 int win9x_check_name_all(void);
 
 void CreateWin9xThread(PHANDLER_ROUTINE phandler);
-/*
-void DestroyWin9xThread();
-*/
+
+/* binkd9x deinit */
+void win9x_exit(void);
 
 /* TempConsole */
 void AllocTempConsole(void);

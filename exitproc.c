@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.24  2003/09/07 04:49:41  hbrew
+ * Remove binkd9x restart-on-config-change code; move binkd9x deinit to exitfunc()
+ *
  * Revision 2.23  2003/08/26 22:18:47  gul
  * Fix compilation under w32-mingw and os2-emx
  *
@@ -108,6 +111,9 @@
 #include "server.h"
 #ifdef WITH_PERL
 #include "perlhooks.h"
+#endif
+#ifdef BINKDW9X
+#include "nt/win9x.h"
 #endif
 
 int binkd_exit;
@@ -206,4 +212,7 @@ Log(7, "exitproc(): pid=%d, cmgr=%d, smgr=%d, inetd=%d", getpid(), pidCmgr, pids
   CleanSem (&fhsem);
 #endif
   ReleaseErrorList();
+#ifdef BINKDW9X
+  win9x_exit();
+#endif
 }
