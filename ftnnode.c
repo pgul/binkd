@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2003/05/04 08:49:05  gul
+ * Fix previous patch
+ *
  * Revision 2.11  2003/05/04 08:45:30  gul
  * Lock semaphores more safely for resolve and IP-addr print
  *
@@ -231,7 +234,7 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on)
   {
     lockresolvsem();
     he=gethostbyname(host);
-    releasehostsem();
+    releaseresolvsem();
     if (!he) continue;
     sprintf (host+strlen(host), ":%d", port);
     i=0;
