@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2003/06/11 09:00:44  stas
+ * Don't try to install/uninstall/control service on incompatible OS. Thanks to Alexander Reznikov
+ *
  * Revision 2.5  2003/06/09 18:00:19  stas
  * New command line parser (continue)
  *
@@ -563,6 +566,14 @@ int service(int argc, char **argv, char **envp)
   HKEY hk=0;
 
   if(service_flag==w32_noservice) return 0;
+  else{
+    if( W32_CheckOS(VER_PLATFORM_WIN32_NT) )
+    {
+      Log(0,"Can't operate witn Windows NT services: incompatible OS type");
+      return 1;
+    }
+  }
+
 
   if(service_name) srvname = service_name;  /* Use service name from command line if specified */
 
@@ -591,7 +602,7 @@ int service(int argc, char **argv, char **envp)
   j=checkservice();
 
   if(service_flag && j==-1){
-      Log(-1, "Can't operate witn Windows NT services...");
+      Log(0, "Can't operate witn Windows NT services...");
       exit(0);
   }
 

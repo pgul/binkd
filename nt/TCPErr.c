@@ -2,7 +2,7 @@
 /*       T c p E r r . c                                              */
 /*                                                                    */
 /*       Part of BinkD project                                        */
-/*       WinSock error's                                              */
+/*       WinSock & other Win32API error's                             */
 /*--------------------------------------------------------------------*/
 
 /*--------------------------------------------------------------------*/
@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.10  2003/06/11 09:00:44  stas
+ * Don't try to install/uninstall/control service on incompatible OS. Thanks to Alexander Reznikov
+ *
  * Revision 2.9  2003/06/05 11:40:19  stas
  * Cosmetics
  *
@@ -111,11 +114,20 @@ static pStrErrList errlist;
 /*                    Local functions prototypes                      */
 /*--------------------------------------------------------------------*/
 
-/*--------------------------------------------------------------------*/
-/*    int tcperr(void)                                                */
-/*                                                                    */
-/*    return string to winsock error.                                 */
-/*--------------------------------------------------------------------*/
+/* Windows version test
+ * Parameter: Platform ID (VER_PLATFORM_WIN32_NT or VER_PLATFORM_WIN32_WINDOWS,
+ *            see GetVersionEx() if MSDN)
+ * Return 0 if match OS, not zero (usually -1) if do not match OS,
+ * return 1 if can't retrieve OS version info.
+ */
+int W32_CheckOS(unsigned long PlatformId)
+{ OSVERSIONINFO os_ver;
+
+  os_ver.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+  if( GetVersionEx(&os_ver) )
+    return os_ver.dwPlatformId != PlatformId;
+  return 1;
+}
 
 /* Return error string for win32 API error
  * return pointer to malloc'ed string or NULL
