@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22  2003/10/05 10:01:15  stas
+ * Remove unused code
+ *
  * Revision 2.21  2003/10/05 09:37:43  stas
  * Optimize binkd/nt start: use hack to determine if we're running as a service without waiting for the service control manager to fail
  *
@@ -284,7 +287,7 @@ static void WINAPI ServiceMain(DWORD argc,LPSTR* args)
   sshan=RegisterServiceCtrlHandler(srvname, ServiceCtrl);
   if(sshan)
   {
-    sstat.dwServiceType = SERVICE_WIN32_OWN_PROCESS | (tray_flag? SERVICE_INTERACTIVE_PROCESS : 0);
+    sstat.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
     sstat.dwServiceSpecificExitCode = 0;
     if (ReportStatusToSCMgr(SERVICE_START_PENDING, NO_ERROR, 3000))
     {
