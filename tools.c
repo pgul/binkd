@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.46  2003/08/21 07:24:40  gul
+ * Use local buffer in Log() with HAVE_FORK
+ *
  * Revision 2.45  2003/08/19 10:16:11  gul
  * Rename trunc() -> trunc_file() due to conflict under OS/2 EMX
  *
@@ -467,9 +470,6 @@ void Log (int lev, char *s,...)
   static int first_time = 1;
   static const char *month[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
                                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-#ifndef HAVE_THREADS
-  static
-#endif
   char buf[1024];
   int ok = 1;
   va_list ap;
