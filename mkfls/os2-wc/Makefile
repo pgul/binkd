@@ -22,9 +22,9 @@ LFLAGS    += -d3 -hw /fm=binkd.map
 !endif
 CFLAGS    = -DOS2 -DHAVE_THREADS -DHAVE_IO_H -DHAVE_SYS_TIME_H      &
             -DHAVE_SYS_IOCTL_H -DHAVE_SNPRINTF -Dsnprintf=_bprintf  &
-            -Dvsnprintf=_vbprintf -DIBMTCPIP -DVOID_SLEEP           &
-            -DNTLM -DAMIGADOS_4D_OUTBOUND -DHAVE_DOS_H -DHTTPS      &
-            /w4 /bm /zq 
+            -DHAVE_VSNPRINTF -Dvsnprintf=_vbprintf -DHAVE_DOS_H     &
+            -DHAVE_STDARG_H -DIBMTCPIP -DVOID_SLEEP                 &
+            -DHTTPS -DNTLM -DAMIGADOS_4D_OUTBOUND /w4 /bm /zq 
 !ifeq DEBUG yes
 CFLAGS    += -d3 -hw
 !else
