@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.140  2003/08/24 16:55:10  hbrew
+ * Auto increase patchlevel, set 0.9.6a-127
+ * Fix memory allocation for polls
+ *
  * Revision 2.139  2003/08/24 13:30:35  stream
  * Auto increase patchlevel, set 0.9.6a-126
  * Socket wasn't closed if branch() failed
@@ -602,7 +606,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-126"
+#define MYVER "0.9.6a-127"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
