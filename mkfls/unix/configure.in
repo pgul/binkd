@@ -222,9 +222,9 @@ case x$do_perl in
 esac
 
 AC_ARG_WITH(zlib,
-            [  --with-zlib             zlib compression (default no)],
+            [  --with-zlib[=path]      zlib compression (default auto)],
             [do_zlib=$withval], 
-            [do_zlib=no])
+            [do_zlib=auto])
 
 if test ".$do_zlib" != ".no" ; then
 	AC_MSG_CHECKING(for libz)
@@ -232,7 +232,7 @@ if test ".$do_zlib" != ".no" ; then
 	save_CFLAGS="$CFLAGS"
 	found_zlib=no
 
-	if test ".$do_zlib" = ".yes"; then
+	if test ".$do_zlib" = ".yes" -o ".$do_zlib" = ".auto"; then
 	  zlib_paths="/usr /usr/local /usr/local/zlib"
 	else
 	  zlib_paths="$do_zlib"
@@ -278,24 +278,27 @@ if test ".$do_zlib" != ".no" ; then
 	  AC_MSG_RESULT(no)
 	  LIBS="$save_LIBS"
 	  CFLAGS="$save_CFLAGS"
+	  if test ".$do_zlib" != ".auto"; then
+	    AC_ERROR(zlib not found in $zlib_paths)
+	  fi
 	fi
 fi
 
-AC_ARG_WITH(bzlib2,
-            [  --with-bzlib2           bzlib2 compression (default no)],
-            [do_bzlib2=$withval], 
-            [do_bzlib2=no])
+AC_ARG_WITH(bzip2,
+            [  --with-bzip2[=path]     bzip2 compression (default auto)],
+            [do_bzip2=$withval], 
+            [do_bzip2=auto])
 
-if test ".$do_bzlib2" != ".no" ; then
+if test ".$do_bzip2" != ".no" ; then
 	AC_MSG_CHECKING(for libbz2)
 	save_LIBS="$LIBS"
 	save_CFLAGS="$CFLAGS"
 	found_bzlib2=no
 
-	if test ".$do_bzlib2" = ".yes"; then
+	if test ".$do_bzip2" = ".yes" -o ".$do_bzip2" = ".auto"; then
 	  bzlib2_paths="/usr /usr/local /usr/local/bzlib2"
 	else
-	  bzlib2_paths="$do_bzlib2"
+	  bzlib2_paths="$do_bzip2"
 	fi
 
 	for bzlib2_path in $bzlib2_paths ; do
@@ -339,6 +342,9 @@ if test ".$do_bzlib2" != ".no" ; then
 	  AC_MSG_RESULT(no)
 	  LIBS="$save_LIBS"
 	  CFLAGS="$save_CFLAGS"
+	  if test ".$do_bzlib2" != ".auto"; then
+	    AC_ERROR(bz2 lib not found in $bzlib2_paths)
+	  fi
 	fi
 fi
 

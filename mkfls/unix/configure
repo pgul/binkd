@@ -22,9 +22,9 @@ ac_help="$ac_help
 ac_help="$ac_help
   --with-perl             Perl hooks (default no)"
 ac_help="$ac_help
-  --with-zlib             zlib compression (default no)"
+  --with-zlib[=path]      zlib compression (default auto)"
 ac_help="$ac_help
-  --with-bzlib2           bzlib2 compression (default no)"
+  --with-bzip2[=path]     bzip2 compression (default auto)"
 
 # Initialize some variables set by options.
 # The variables have the same names as the options, with
@@ -2094,7 +2094,7 @@ if test "${with_zlib+set}" = set; then
   withval="$with_zlib"
   do_zlib=$withval
 else
-  do_zlib=no
+  do_zlib=auto
 fi
 
 
@@ -2105,7 +2105,7 @@ echo "configure:2104: checking for libz" >&5
 	save_CFLAGS="$CFLAGS"
 	found_zlib=no
 
-	if test ".$do_zlib" = ".yes"; then
+	if test ".$do_zlib" = ".yes" -o ".$do_zlib" = ".auto"; then
 	  zlib_paths="/usr /usr/local /usr/local/zlib"
 	else
 	  zlib_paths="$do_zlib"
@@ -2168,29 +2168,32 @@ EOF
 	  echo "$ac_t""no" 1>&6
 	  LIBS="$save_LIBS"
 	  CFLAGS="$save_CFLAGS"
+	  if test ".$do_zlib" != ".auto"; then
+	    { echo "configure: error: zlib not found in $zlib_paths" 1>&2; exit 1; }
+	  fi
 	fi
 fi
 
-# Check whether --with-bzlib2 or --without-bzlib2 was given.
-if test "${with_bzlib2+set}" = set; then
-  withval="$with_bzlib2"
-  do_bzlib2=$withval
+# Check whether --with-bzip2 or --without-bzip2 was given.
+if test "${with_bzip2+set}" = set; then
+  withval="$with_bzip2"
+  do_bzip2=$withval
 else
-  do_bzlib2=no
+  do_bzip2=auto
 fi
 
 
-if test ".$do_bzlib2" != ".no" ; then
+if test ".$do_bzip2" != ".no" ; then
 	echo $ac_n "checking for libbz2""... $ac_c" 1>&6
-echo "configure:2186: checking for libbz2" >&5
+echo "configure:2189: checking for libbz2" >&5
 	save_LIBS="$LIBS"
 	save_CFLAGS="$CFLAGS"
 	found_bzlib2=no
 
-	if test ".$do_bzlib2" = ".yes"; then
+	if test ".$do_bzip2" = ".yes" -o ".$do_bzip2" = ".auto"; then
 	  bzlib2_paths="/usr /usr/local /usr/local/bzlib2"
 	else
-	  bzlib2_paths="$do_bzlib2"
+	  bzlib2_paths="$do_bzip2"
 	fi
 
 	for bzlib2_path in $bzlib2_paths ; do
@@ -2205,7 +2208,7 @@ echo "configure:2186: checking for libbz2" >&5
 	    CFLAGS="-I$bzlib2_path/include $save_CFLAGS"
 	  fi
 	  cat > conftest.$ac_ext <<EOF
-#line 2209 "configure"
+#line 2212 "configure"
 #include "confdefs.h"
 
 #include <stdio.h>
@@ -2221,7 +2224,7 @@ int main() {
 
 ; return 0; }
 EOF
-if { (eval echo configure:2225: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2228: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   found_bzlib2="$bzlib2_path"
 else
@@ -2251,6 +2254,9 @@ EOF
 	  echo "$ac_t""no" 1>&6
 	  LIBS="$save_LIBS"
 	  CFLAGS="$save_CFLAGS"
+	  if test ".$do_bzlib2" != ".auto"; then
+	    { echo "configure: error: bz2 lib not found in $bzlib2_paths" 1>&2; exit 1; }
+	  fi
 	fi
 fi
 
