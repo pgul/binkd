@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 1.6  2004/01/02 04:22:53  stas
+ * Add icon (16x16 and 32x32)
+ *
  * Revision 1.5  2003/11/04 02:36:42  hbrew
  * Fix copyright sign
  *
@@ -44,9 +47,7 @@
 LANGUAGE 0x0, 0x0 /* LANG_NEUTRAL, SUBLANG_NEUTRAL */
 #pragma code_page(1251)
 
-/* !!! Todo: Icon (simply uncomment next line)
-0 ICON DISCARDABLE "nt\\binkd_rays2.ico"
-*/
+0 ICON "nt/binkd.ico"
 
 VS_VERSION_INFO VERSIONINFO
   FILEVERSION MAJOR, MINOR, 0, PATCHLEVEL
