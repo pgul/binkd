@@ -23,4 +23,10 @@
 - xBSO
 - go to tray under windows
 - debugcfg -> to commandline
-- compression
+- compression:
+  - configurable dll paths
+  - no-compression node switch, remove zallow keyword
+  - NZ option for M_GET command - disable compression
+? ssl
+? true multibatch mode
+? hide attaches and remove bsy during a session
