@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of Oct 05 2003
+        Version of Oct 11 2003
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -101,7 +101,7 @@ http://beemail.gexonline.net/)
     - translation of a FTN-address into a domain name (*.fidonet.net) is
       supported
     - a password file in the style of T-mail is supported starting with
-      version 0.9.4, and password file in the style of ifcico starting with
+      version 0.9.4 and a password file in the style of ifcico starting with
       version 1.0
     - file requests using SRIF are supported
     - a flag on receiving files (using a template) may be created

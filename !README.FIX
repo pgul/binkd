@@ -33,16 +33,16 @@ NT/95:  The "reference" compiler changed. NT & W95 versions are compiled
 	readdir.h -- The header to get POSIX directory interface out of
 	misc compilers
 
-	Now binkd removes partial .pkt's (When next time creates
+	Now binkd removes partial .pkt's (Next time it creates
 	a new temporary name in the inbound dir)
 
-	When trying to receive a new file: remove from inbound partial
-	files with this name but diff.size or time. (By default binkd
+	When trying to receive a new file: remove partial files with this name
+	but different size or time from the inbound. (By default binkd
 	will left old parts as .dt and .hr in the inbound directory)
 		#
 		kill-dup-partial-files
 			
-	Remove from inbound all old partial files. (OFF by default)
+	Remove all old partial files from the inbound. (OFF by default)
 		#
 		kill-old-partial-files <max-age-in-seconds>
 
@@ -56,8 +56,8 @@ NT/95:  ctrl-c problems fixed
 
 0.8.6
 -----
-	Fixed a minor bug in protocol.c (Some error msgs were not
-	send to remote)
+	Fixed a minor bug in protocol.c (Some error msgs were not sent
+	to the remote)
 
 	Fixed "restoring poll with 'h' flavour" bug
 
@@ -71,8 +71,8 @@ NT/95:  ctrl-c problems fixed
 	New keyword:
 		#
 		minfree <Kbytes>
-	binkd will skip all files from a node if
-	  size of the next file for us there + minfree < free space in inbound
+	binkd will skip all files from a node if the size of the next file
+	for us there + minfree < free space in inbound
 	Default -- don't check
 
 	Flags, like this
@@ -80,11 +80,11 @@ NT/95:  ctrl-c problems fixed
 		flag D:\\bbs\\flags\\toss!.now *.pkt
 		flag D:\\bbs\\flags\\toss!.now *.su? *.mo? *.tu? *.we? *.th? *.fr? *.sa?
 
-	Misc bugs fixed by Mike Malakhov
+	Misc bugs were fixed by Mike Malakhov
 
 0.8.7
 -----
-	Added minfree-nonsecure (see. minfree). There is a good idea to set
+	Added minfree-nonsecure (see minfree). There is a good idea to set
 	them both if you have both of your inbounds on the same file system.
 		#
 		minfree-nonsecure <Kbytes>
@@ -117,15 +117,15 @@ NT/95:  ctrl-c problems fixed
 	
 	Added more paranoya to inbound.c
 
-	client.c/ftnq.c rewritten
+	client.c/ftnq.c was rewritten
 
-	Improved SIGCHLD handling, use -DSYS5SIGNALS / -DEMXSIGNALS for
+	Improved SIGCHLD handling, please use -DSYS5SIGNALS / -DEMXSIGNALS for
 	SysV / EMX signal models, see reapchld.inc
 
-	Added some experimental code, which will teoretically help to
+	Added some experimental code, which will theoretically help to
 	avoid some bugs
 
-	Added include keyword:
+	Added "include" keyword:
 		#
 		include filename
 	
@@ -143,7 +143,7 @@ NT/95:  ctrl-c problems fixed
 	Flavour is one of i, c, d, -, h; and is the flavour for the outbound
 	filebox. All non-"-" fields will redefine values specified for the
 	same node earlier in config. Default for ibox is inbound or
-        inbound-nosecure depending on the pwd field. Default for port is oport.
+        inbound-nonsecure depending on the pwd field. Default for port is oport.
 	Binkd sends from obox all non-dir entries NOT matching ".*" wildcard.
 	EVERY TIME YOU PUT A FILE INTO OBOX CHECK IF BINKD WILL BE ABLE TO
 	UNLINK IT. Otherwise, the session will never end.
@@ -169,14 +169,14 @@ NT/95:  ctrl-c problems fixed
 	Added command line options:
 		-i	run from inetd (OS/2 or *IX only)
 			(*IX: don't forget to turn `printq', `conlog' and
-			`percents' OFF when running from inetd -- binkd'll
+			`percents' OFF when running from inetd -- binkd will
 			not take care about this itself!!!)
 		-c	start clientmgr only
 		-p	start clientmgr only, make polls, quit if the queue
 			seems to be empty after the next rescan
 		-s	start servmgr only
 	
-	Changes based on patch by Boris Tobotras --
+	Changes based on the patch by Boris Tobotras --
 	1) you can now use service names (as in /etc/services) with iport/oport
 	2) before using 24554 as the default port number, binkd will try
 	to find "binkp" entry in /etc/services database first
@@ -188,7 +188,7 @@ NT/95:  ctrl-c problems fixed
 	HAVE_VSYSLOG defined and add syslog facility name to config:
 		#
 		syslog local0
-	(Based on patch by Boris Tobotras)
+	(Based on the patch by Boris Tobotras)
 
 	Binkd could create a poll in *.olo instead of *.flo (Reported
 	by Dmitry Baronov and John Gladkih)
@@ -201,8 +201,8 @@ NT/95:  ctrl-c problems fixed
 		node [[z:]n/]n[.p] [-nr] [{host[:port]|-} [{pwd|-} [flavour [{obox|-} [{ibox|-}]]]]]
         `-nr' stands for `Not Reliable Link', this works only on outbound calls
 	with another binkp/1.1 mailer. The option solves the only problem with
-	binkd having no enough time to start receiving of a file from
-	non-zero offset before IP link's down, so don't use it unless you
+	binkd having not enough time to start receiving a file from
+	non-zero offset before the IP link is down, so don't use it unless you
 	have this problem -- really not effective
 
 	Map paths in flo's:
@@ -236,7 +236,7 @@ NT/95:  ctrl-c problems fixed
 
 	Binkd ignored fileboxes' flavours (Reported by Sergey Gubanov)
 
-	Changed a bit pid-file handling.
+	Changed pid-file handling a bit.
 
 	Binkd will not complain about missing .rsp files when running
 	programms with "exec" statement without using of *S macro.
@@ -262,7 +262,7 @@ NT/95:  ctrl-c problems fixed
 		send-if-pwd
 	Don't send (only receive) files if no password for an inbound session.
 
-	Remove old .bsy/.csy files (If some left after a system crash).	
+	Remove old .bsy/.csy files (If some are left after a system crash).	
 		#
 		kill-old-bsy <max-age-in-seconds>
 	It would be wise to set this to 43200 (12 hrs) on almost any system.
@@ -287,7 +287,7 @@ NT/95:  ctrl-c problems fixed
 	Binkd used to remove pidfiles not in time (Sergey Babitch)
 
 	Binkd will do 1:2/3.4 --> p4.f3.n2.z1.fidonet.net translation
-	atomagically if you specify `*' as the hostname for a node:
+	automatically if you specify `*' as the hostname for a node:
 		#
 		node 999 *
 	(Yes, you can say "node 999 fido.xxx.ru;*")
@@ -325,7 +325,7 @@ NT/95:  ctrl-c problems fixed
 	will add a data record for your first point in binkd's core (if
 	needed) and then create a corresponding *.ilo in the outbound.
 
-	Binkd used to send _all_ log messages to syslogd, reling on it's
+	Binkd used to send _all_ log messages to syslogd, relying on it's
 	ability to ignore redundant (per `syslog.conf') data. Now it
 	will only send messages allowed by value of the `loglevel' config
 	variable, thus reducing network traffic and increasing Binkd's
@@ -347,7 +347,7 @@ NT/95:  ctrl-c problems fixed
 
 	Option "-nd" in "node" string in binkd.cfg - "No Dupe Mode"
 	on outbound link with another binkd 0.9.3. It protects for
-	making duplicate files while link losses, but make link a
+	making duplicate files while link losses, but makes link a
 	bit slower.
 
 	New options "filebox", "brakebox" and "deletebox" in binkd.cfg -
@@ -357,15 +357,15 @@ NT/95:  ctrl-c problems fixed
 	node and send traffic prognose on session start (compartible
 	with argus).
 
-	OS/2 emx version restarts himself when config changed and
-	command line option "-C" specified.
+	OS/2 emx version restarts itself when config is changed and
+	command line option "-C" is specified.
 
 	OS/2 wcc version - "Too many open files" bug fixed.
 
-	OS/2 & win32 versions: bsy-files keeps opened while
+	OS/2 & win32 versions: bsy-files are kept opened while
 	session is active (to protect from removing).
 
-	ACK sending only when file was successfully renamed
+	ACK is sent only when file has been successfully renamed
 	in inbound to its realname (otherwise session drops).
 	"The file is complete, but not renamed to it's realname,
 	so I'll not remove it!" removed, now it's safe to delete
@@ -380,8 +380,8 @@ NT/95:  ctrl-c problems fixed
 
 	Fixed bug in multithread version (win32 & os2/watcom).
 
-	New option "temp-inbound" in binkd.cfg - directory for
-	incomplete receiving files (.dt and .hr).
+	New option "temp-inbound" in binkd.cfg - directory for the
+	incomplete files (.dt and .hr) being received.
 
 	New options "socks" and "proxy" in binkd.cfg
 	(Dima Afanasiev <da@4u.net>)
@@ -391,37 +391,37 @@ NT/95:  ctrl-c problems fixed
 
 	prescan did not work on incoming sessions with send-if-pwd
 
-	NT: new commandline parameters "-i" (install as service)
+	NT: new command line parameters "-i" (install as service)
 	and "-u" (uninstall service) (Dima Afanasiev <da@4u.net>)
 
-	Immediate events (beginning with '!') runs immediate
-	after file receiving (Dima Afanasiev <da@4u.net>)
+	Immediate events (beginning with '!') run immediately
+	after receiving a file (Dima Afanasiev <da@4u.net>)
 
 	Macros *F (file name), *H (host name), *A0..*A9
 	(remote addresses), *L (listed), *P (protected)
 	in events (Dima Afanasiev <da@4u.net>)
 
 	Option "-ip" in "node" string in binkd.cfg - "Restrict
-	remote IP-address". If specified, incoming connections
-	for this node are allowed only from one of the node hosts.
+	remote IP-address". If specified incoming connections
+	for this node are allowed only from one of the node's hosts.
 
 	Prescan did not add size of files in fileboxes.
 
 	Send "NUL TIME" in RFC format.
 
-	NT: MessageBox if service ended by error (Dima Afanasiev
+	NT: MessageBox if service ended with error (Dima Afanasiev
 	<da@4u.net>).
 
 	New option "connect-timeout" in binkd.cfg - timeout
-	for connect() in seconds. 0 - no check. Don't works
-	in multithread versions. Recommended for linux.
+	for connect() in seconds. 0 - no check. Doesn't work
+	in multithreaded versions. Recommended for linux.
 
 	New option "passwords" in binkd.cfg - name of file
 	contains passwords in t-mail format  (Dima Afanasiev
 	<da@4u.net>).
 
 	New option "defnode" in binkd.cfg - default node
-	flags, now binkd can call unlisted node by fidonet.net
+	flags, now binkd can call an unlisted node from fidonet.net domain
 	(Dima Afanasiev <da@4u.net>).
 
 	SIGHUP handler fixed (sometimes binkd/unix exited
@@ -429,18 +429,18 @@ NT/95:  ctrl-c problems fixed
 
 	-C did not work with -c (client only).
 
-	binkd -C now check included config-files.
+	binkd -C now checks included config-files.
 
 	binkd -c did not handle SIGHUP (unix).
 
-	binkd -C now restart himself if config changed (unix).
+	binkd -C now restarts itself if config changed (unix).
 
-	binkd/2 EMX now restart himself by SIGHUP.
+	binkd/2 EMX now restarts itself by SIGHUP.
 
-	Some protocol bugs fixed (skip files in NR- or ND-mode
+	Some protocol bugs are fixed (skipping files in NR- or ND-mode
 	caused waiting for session timeout).
 
-	configure sometimes added redudancent libraries.
+	configure sometimes added redundant libraries.
 
 	binkd/2 Watcom did not set modification time of received
 	files.
@@ -455,7 +455,7 @@ NT/95:  ctrl-c problems fixed
 
 	Allow '-' and '_' in domain names (Tobias Ernst 2:2476/418).
 
-	"defnode" was not work correctly in 0.9.4.
+	"defnode" did not work correctly in 0.9.4.
 
 	binkd/win: run() fix for no inherit open files (i.e. *.bsy).
 	@command - run in background (Dima Afanasiev <da@4u.net>)
@@ -466,8 +466,8 @@ NT/95:  ctrl-c problems fixed
 
 	New command-line parameter '-m' - do not use MD5 authorization.
 
-	If remote requests file offset more then file size, touch
-	the file and drop session for send it from 0 next session.
+	If remote requests file offset more then file size, touch the file
+	and drop the session in order to send it from 0 at the next session.
 
 	binkd/unix: run as daemon (Alex Semenyaka <alexs@snark.rinet.ru>).
 
@@ -492,30 +492,32 @@ NT/95:  ctrl-c problems fixed
 
 	Do not send empty (60-bytes) pkt files.
 
-	New option overwrite in binkd.cfg - overwrite older file by newer.
+	New option overwrite in binkd.cfg - overwrite an older file by the newer.
 
 	Run as service under win9x (Alexander Reznikov 2:4600/220@fidonet).
 
 	Check free space on inbox if defined.
 
-	Fix security vulernability (DoS) (andrew clarke <mail@ozzmosis.com>).
+	Fix security vulnerability (DoS) (andrew clarke <mail@ozzmosis.com>).
 
 	Assume default domain for remote 4D address.
 
-	Do not resolve hosts if proxy or socks5 using.
+	Do not resolve hosts if proxy or socks5 is used.
 
 	Do not give unsecure mail to secure link when send-if-pwd.
 
 	Amiga Style Outbound (ASO) support.
 
-	New option -sip in node string: strict IP check; host need to
-	be specified, resolved and matched. For -ip option unresolved
+	New option -sip in node string: strict IP check; host needs to
+	be specified, resolved and matched. For -ip option an unresolved
 	host is ok.
 
 	Crypt traffic, new option -r (disable crypt).
 
 	NR- and ND-modes can be asymmetric now, options -nr and -nd
-	sets mode only for receiving files from this node.
+	set mode only for receiving files from this node.
+
+	Version for DOS (ported by Victor Pashkevich, 2:451/30@fidonet)
 
 1.0
 ---
@@ -536,6 +538,6 @@ NT/95:  ctrl-c problems fixed
 	New config options "present-aka" and "hide-aka")
 	(val khokhlov <val@vk.kiev.ua>).
 
-	Reload config "on fly" (Roman Trunov <stream@proxyma.ru>).
+	Reload config "on the fly" (Roman Trunov <stream@proxyma.ru>).
 
 	Ifcico/qico passwords file format support (Stas Degteff <g@ural.org>)
