@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.13  2003/07/18 07:48:57  hbrew
+ * binkd9x: Store current dir in registry
+ *
  * Revision 2.12  2003/07/17 03:08:21  hbrew
  * Fix uninstall of binkd9x service
  *
@@ -91,6 +94,10 @@ DWORD SigType = -1;
 
 char *Win9xWindowClassName = "binkdWin9xHandler";
 char *Win9xRegServ = "Software\\Microsoft\\Windows\\CurrentVersion\\RunServices";
+#define WIN9XREGPARM_PREFIX "Software"
+#define WIN9XREGPARM_SUFFIX "binkd9x"
+char *Win9xRegParm = WIN9XREGPARM_PREFIX "\\" WIN9XREGPARM_SUFFIX;
+char *Win9xRegParm_Path = "Path";
 char *Win9xServPrefix = "binkd9x-service";
 char *Win9xStartService = "--service";
 
@@ -159,7 +166,7 @@ void win9x_extend_service_name(void)
       int len_sn = strlen(service_name);
       int len_pr = strlen(Win9xServPrefix);
 
-      if ((strncmp(service_name, Win9xServPrefix, len_pr)==0) && 
+      if ((strncmp(service_name, Win9xServPrefix, len_pr)==0) &&
           ((len_sn == len_pr)||(len_sn>(len_pr+1) && service_name[len_pr] == '-')))
         return;
 
@@ -172,6 +179,21 @@ void win9x_extend_service_name(void)
       service_name = tmp;
     }
   }
+}
+
+char *win9x_make_Win9xRegParm(char *srvname)
+{
+  char *tmp;
+  int tmplen1, tmplen2;
+
+  tmplen1 = strlen(Win9xRegParm);
+  tmplen2 = strlen(srvname);
+  tmp = (char *)malloc(tmplen1+tmplen2+2);  /* [Win9xRegParm] + '\\' + [srvname] + '\0' */
+  memcpy(tmp, Win9xRegParm, tmplen1);
+  tmp[tmplen1] = '\\';
+  memcpy(tmp+tmplen1+1, srvname, tmplen2);
+  tmp[tmplen1+1+tmplen2] = '\0';
+  return tmp;
 }
 
 /* return -1 for normal run or any other value as exitcode */
@@ -207,14 +229,35 @@ int win9x_process(int argc, char **argv)
       char *tmp, *path = NULL;
       int pathlen;
       HINSTANCE hl;
+      HKEY hk;
+      DWORD reg_type, size;
 
-      tmp = extract_filename(argv[0]);
-      pathlen = tmp-argv[0];
-      if (pathlen>0)
-      {
-        path = (char *)malloc(pathlen+1);
-        memcpy(path, argv[0], pathlen);
-        path[pathlen] = 0;
+      tmp = win9x_make_Win9xRegParm(service_name);
+
+      if (RegOpenKey(HKEY_LOCAL_MACHINE, tmp, &hk)==ERROR_SUCCESS)
+      { /* extract current directory from registry */
+        size = 0;
+        if ((RegQueryValueEx(hk, Win9xRegParm_Path, NULL, &reg_type, NULL, &size)==ERROR_SUCCESS)&&(reg_type == REG_SZ))
+        {
+          path = (char *)malloc(size);
+          if ((RegQueryValueEx(hk, Win9xRegParm_Path, NULL, &reg_type, path, &size) != ERROR_SUCCESS)||(reg_type != REG_SZ))
+          {
+            free(path); path = NULL;
+          }
+        }
+        RegCloseKey(hk);
+      }
+
+      if (!path)
+      { /* extract current directory from argv[0] */
+        tmp = extract_filename(argv[0]);
+        pathlen = tmp-argv[0];
+        if (pathlen>0)
+        {
+          path = (char *)malloc(pathlen+1);
+          memcpy(path, argv[0], pathlen);
+          path[pathlen] = 0;
+        }
       }
 
       if (path)
@@ -397,7 +440,7 @@ HWND win9x_service_find(char *name)
 }
 
 /* return 1 if success, 0 if fail */
-int win9x_service_control_exec(char *tmp, enum serviceflags cmd)
+int win9x_service_control_exec(char *tmp, enum serviceflags cmd, int qflag)
 {
   int rc;
   HWND hwnd;
@@ -409,29 +452,29 @@ int win9x_service_control_exec(char *tmp, enum serviceflags cmd)
   switch (cmd)
   {
   case w32_queryservice:
-    if (!quiet_flag)  Log(-1, "%s: %s\n", tmp, hwnd?"started":"stopped");
+    if (!qflag)  Log(-1, "%s: %s\n", tmp, hwnd?"started":"stopped");
     break;
   case w32_startservice:
     if (!hwnd)
     {
       if (win9x_service_start(tmp))
       {
-        if (!quiet_flag)   Log(-1, "%s: started\n", tmp);
+        if (!qflag)   Log(-1, "%s: started\n", tmp);
       }
       else
       {
-        if (!quiet_flag)  Log(-1, "%s: starting failed!\n", tmp);
+        if (!qflag)  Log(-1, "%s: starting failed!\n", tmp);
         rc = 0;
       }
     }
     else
     {
-      if (!quiet_flag)  Log(-1, "%s: already started\n", tmp);
+      if (!qflag)  Log(-1, "%s: already started\n", tmp);
     }
     break;
   case w32_stopservice:
     if (hwnd) SendMessage(hwnd, WM_BINKD9XCOMMAND, CTRL_SERVICESTOP_EVENT, 0);
-    if (!quiet_flag)  Log(-1, "%s: %s\n", tmp, hwnd?"stopped":"already stopped");
+    if (!qflag)  Log(-1, "%s: %s\n", tmp, hwnd?"stopped":"already stopped");
     break;
   case w32_restartservice:
     if (hwnd)
@@ -439,16 +482,16 @@ int win9x_service_control_exec(char *tmp, enum serviceflags cmd)
       SendMessage(hwnd, WM_BINKD9XCOMMAND, CTRL_SERVICERESTART_EVENT, 0);
       if (win9x_service_start(tmp))
       {
-        if (!quiet_flag)  Log(-1, "%s: restarted\n", tmp);
+        if (!qflag)  Log(-1, "%s: restarted\n", tmp);
       }
       else
       {
-        if (!quiet_flag)  Log(-1, "%s: restarting failed!\n", tmp);
+        if (!qflag)  Log(-1, "%s: restarting failed!\n", tmp);
         rc = 0;
       }
     }
     else
-      if (!quiet_flag)  Log(-1, "%s: already stopped\n", tmp);
+      if (!qflag)  Log(-1, "%s: already stopped\n", tmp);
     break;
   default:  /* Avoid gcc warnings about non-handled enumeration values */
     rc = 0;
@@ -542,31 +585,32 @@ int win9x_service_control(void)
   default:
     msg = NULL;
     break;
-  }  
-  
+  }
+
   if (!quiet_flag && msg)  Log(-1, msg);
-  
+
   if (win9x_check_name_all())
   {
     srvlst = win9x_get_services_list(1);
 
     for(i=0; i<srvlst->count; i++)
-      if (!win9x_service_control_exec(srvlst->names[i], service_flag))
+      if (!win9x_service_control_exec(srvlst->names[i], service_flag, quiet_flag))
         rc = 0;
 
     win9x_free_services_list(srvlst);
   }
   else
-    rc = win9x_service_control_exec(service_name, service_flag);
+    rc = win9x_service_control_exec(service_name, service_flag, quiet_flag);
 
   return rc;
 }
 
 /* return 1 if success, return 0 if fail */
-int win9x_service_do_uninstall(char *srvname)
+int win9x_service_do_uninstall(char *srvname, int qflag)
 {
   HKEY hk;
-  int rc = 1;
+  DWORD hk_keys, hk_vals;
+  int hk_del = 0, rc = 1;
 
   if (RegOpenKey(HKEY_LOCAL_MACHINE, Win9xRegServ, &hk)==ERROR_SUCCESS)
   {
@@ -574,8 +618,30 @@ int win9x_service_do_uninstall(char *srvname)
     RegCloseKey(hk);
   } else rc = 0;
 
-  if (!quiet_flag)  Log(-1, "%s uninstalled...\n", srvname);
-  if (!win9x_service_control_exec(srvname, w32_stopservice))  rc = 0;
+  if (RegOpenKey(HKEY_LOCAL_MACHINE, Win9xRegParm, &hk)==ERROR_SUCCESS)
+  {
+/* MSDN says:
+   RegDeleteKey([...]) [...]
+   Windows 95/98: The function also deletes all subkeys and values. [...]
+   Windows NT/2000: The subkey to be deleted must not have subkeys. [...]
+*/
+    RegDeleteKey(hk, srvname);
+
+    if ((RegQueryInfoKey(hk, NULL, NULL, NULL, &hk_keys, NULL, NULL, &hk_vals, NULL, NULL, NULL, NULL)==ERROR_SUCCESS) &&
+        !hk_keys && !hk_vals)
+      hk_del = 1;
+
+    RegCloseKey(hk);
+
+    if (hk_del && (RegOpenKey(HKEY_LOCAL_MACHINE, WIN9XREGPARM_PREFIX, &hk)==ERROR_SUCCESS))
+    {
+      RegDeleteKey(hk, WIN9XREGPARM_SUFFIX);
+      RegCloseKey(hk);
+    }
+  }
+
+  if (!qflag)  Log(-1, "%s uninstalled...\n", srvname);
+  if (!win9x_service_control_exec(srvname, w32_stopservice, qflag))  rc = 0;
   return rc;
 }
 
@@ -619,12 +685,12 @@ int win9x_service_un_install(int argc, char **argv)
         Log(-1, "No installed services.\n");
       else
         for(i=0; i<srvlst->count; i++)
-          if (!win9x_service_do_uninstall(srvlst->names[i]))  rc = 0;
+          if (!win9x_service_do_uninstall(srvlst->names[i], quiet_flag))  rc = 0;
 
       win9x_free_services_list(srvlst);
     }
     else
-      rc = win9x_service_do_uninstall(service_name);
+      rc = win9x_service_do_uninstall(service_name, quiet_flag);
     return rc;
   }
 
@@ -633,23 +699,18 @@ int win9x_service_un_install(int argc, char **argv)
   if (RegOpenKey(HKEY_LOCAL_MACHINE, Win9xRegServ, &hk)!=ERROR_SUCCESS)
     if (RegCreateKey(HKEY_LOCAL_MACHINE, Win9xRegServ, &hk)!=ERROR_SUCCESS)
       rc = 0;
-  
+
   if (rc)
   {
-    char *srvcmd, *tmp, *sp, *path;
-    int q = 0, tmplen1, tmplen2, len = 4;      /* '\\' + ' ' + ' ' + '\0' */
+    char *sp, *path;
+    int q = 0, tmplen1, tmplen2, len = 2;  /* ' ' + '\0' */
 
-    j = GetCurrentDirectory(0, NULL);
-    path = (char *)malloc(j);
-    GetCurrentDirectory(j, path);
-    len += j-1;                            /* CurrentPath + ('\\') */
-    tmp = extract_filename(argv[0]);
-    tmplen1 = strlen(tmp);
-    len += tmplen1;                        /* binkd9x filename + (' ') */
+    tmplen1 = strlen(argv[0]);
+    len += tmplen1;                        /* binkd9x path & filename + (' ') */
     tmplen2 = strlen(Win9xStartService);
-    len += tmplen2;                        /* Win9xStartService + (' ') */
+    len += tmplen2;                        /* Win9xStartService */
 
-    if (strchr(tmp, ' ')!=NULL || strchr(path, ' ')!=NULL)
+    if (strchr(argv[0], ' ')!=NULL)
     {
       q = 1;
       len += 2;
@@ -662,13 +723,11 @@ int win9x_service_un_install(int argc, char **argv)
         len += 2;
     }
 
-    sp = srvcmd = (char *)malloc(len);
+    sp = path = (char *)malloc(len);
 
     if (q)
       *(sp++) = '"';
-    memcpy(sp, path, j-1); sp += j-1;
-    *(sp++) = '\\';
-    memcpy(sp, tmp, tmplen1); sp += tmplen1;
+    memcpy(sp, argv[0], tmplen1); sp += tmplen1;
     if (q)
       *(sp++) = '"';
     *(sp++) = ' ';
@@ -689,12 +748,36 @@ int win9x_service_un_install(int argc, char **argv)
     }
     *sp = 0;
 
-    if (RegSetValueEx(hk, service_name, 0, REG_SZ, srvcmd, len-1) != ERROR_SUCCESS)
+    if (RegSetValueEx(hk, service_name, 0, REG_SZ, path, len-1) != ERROR_SUCCESS)
       rc = 0;
 
     free(path);
-    free(srvcmd);
     RegCloseKey(hk);
+
+/* Store current directory */
+    if (rc)
+    {
+      sp = win9x_make_Win9xRegParm(service_name);
+
+      if (RegOpenKey(HKEY_LOCAL_MACHINE, sp, &hk)!=ERROR_SUCCESS)
+        if (RegCreateKey(HKEY_LOCAL_MACHINE, sp, &hk)!=ERROR_SUCCESS)
+          rc = 0;
+
+      if (rc)
+      {
+        j = GetCurrentDirectory(0, NULL);
+        path = (char *)malloc(j);
+        GetCurrentDirectory(j, path);
+        if (RegSetValueEx(hk, Win9xRegParm_Path, 0, REG_SZ, path, j-1) != ERROR_SUCCESS)
+          rc = 0;
+        free(path);
+
+      }
+
+      free(sp);
+      RegCloseKey(hk);
+      if (!rc)  win9x_service_do_uninstall(service_name, 1); /* Rollback */
+    }
   }
 
   if (!rc)
