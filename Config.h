@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.146  2003/08/25 06:11:08  gul
+ * Auto increase patchlevel, set 0.9.6a-133
+ * Fix compilation with HAVE_FORK
+ *
  * Revision 2.145  2003/08/25 05:39:28  stas
  * Auto increase patchlevel, set 0.9.6a-132
  * Bugfix: "readcfg.c:938: `fa\' undeclared" compilation error
@@ -626,7 +630,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.6a-132"
+#define MYVER "0.9.6a-133"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
