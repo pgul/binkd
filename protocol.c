@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.55  2003/05/03 11:04:58  gul
+ * Fix typo
+ *
  * Revision 2.54  2003/05/03 10:56:00  gul
  * Bugfix in protocol logic (when file already exists)
  *
