@@ -1,3 +1,7 @@
+2003/09/11 16:04:45 0.9.6a-173 hbrew
+exitproc.c,2.27,2.28
+Undo 'move binkd9x deinit to exitfunc()' patch
+
 2003/09/11 16:04:16 0.9.6a-172 hbrew
 win9x.c,2.23,2.24 win9x.h,2.5,2.6
 Undo 'move binkd9x deinit to exitfunc()' patch
