@@ -1,3 +1,7 @@
+2003/09/12 10:38:30 0.9.6a-174 val
+zlibdl.c,NONE,2.1 zlibdl.h,NONE,2.1 binkd.c,2.62,2.63 protoco2.h,2.10,2.11 protocol.c,2.116,2.117 readcfg.c,2.51,2.52 readcfg.h,2.21,2.22
+compression support via zlib (preliminary)
+
 2003/09/11 16:04:45 0.9.6a-173 hbrew
 exitproc.c,2.27,2.28
 Undo 'move binkd9x deinit to exitfunc()' patch
