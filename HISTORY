@@ -1,3 +1,7 @@
+2004/01/03 17:38:54 1.0a-335 stas
+service.c,2.45,2.46
+Implement service control option for Windows NT/2k/XP
+
 2004/01/03 15:35:34 1.0a-334 stas
 tools.c,2.58,2.59
 Fix log file name usage (from enviroment)
