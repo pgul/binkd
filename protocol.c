@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2001/04/13 20:16:10  gul
+ * "OPT CRYPT" was send only in NR-mode
+ *
  * Revision 2.4  2001/02/20 12:01:50  gul
  * rename encrypt to encrypt_buf to avoid conflict with unistd.h
  *
@@ -1726,7 +1729,7 @@ static void banner (STATE *state)
   }
   msg_send2 (state, M_ADR, szAkas, 0);
 
-  if (state->NR_flag == WANT_NR || !state->to)
+  if (state->NR_flag == WANT_NR || (state->crypt_flag & WE_CRYPT) || !state->to)
     msg_sendf (state, M_NUL, "OPT%s%s%s",
                state->NR_flag == WANT_NR ? " NR" : "",
                ((state->ND_flag & WE_ND) || !state->to) ? " ND" : "",
