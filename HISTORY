@@ -1,3 +1,7 @@
+2004/01/02 17:46:45 1.0a-324 stas
+tray.c,2.6,2.7
+Load tray icon from compiled resource
+
 2004/01/02 17:32:02 1.0a-323 stas
 inbound.c,2.27,2.28
 Fix the minfree token usage and fix getfree() on Win >w95
