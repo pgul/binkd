@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2003/02/23 12:49:00  gul
+ * Added *A* and *A@ macros
+ *
  * Revision 2.4  2002/03/14 12:26:24  gul
  * Creating flags bugfix
  *
@@ -297,6 +300,24 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa,
         w = ed (w, "*F", fn, &sw);
         break;
       case 'A': /* AKA */
+	if (sp[2] == '@' || sp[2] == '*')
+	{
+	  char *pa, *addrlist;
+	  pa = addrlist = malloc(nfa*(FTN_ADDR_SZ+1l));
+	  if (addrlist == NULL)
+	  { Log(1, "Not enough memory, %ld bytes needed", nfa*(FTN_ADDR_SZ+1l));
+	    break;
+	  }
+	  for (i=0; i<nfa; i++)
+	  { if (pa != addrlist) *pa++=' ';
+	    ftnaddress_to_str (pa, fa+i);
+	    pa += strlen(pa);
+	  }
+	  aka[2]=sp[2];
+	  w = ed (w, aka, adr, &sw);
+	  free(addrlist);
+	  break;
+	}
         i=isdigit(sp[2])?(sp[2]-'0'):0;
         if(i<nfa)
           ftnaddress_to_str (adr, fa+i);
