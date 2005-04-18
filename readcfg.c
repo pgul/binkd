@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.83  2005/04/18 16:46:41  stream
+ * Double free of pNodArray caused mysterious crashes on config reload
+ *
  * Revision 2.82  2004/11/22 15:56:41  stream
  * Errors in config were not logged to file (log file name was set only
  * when config was completely loaded, checked and accepted). Now log
@@ -553,7 +556,6 @@ void unlock_config_structure(BINKD_CONFIG *c)
     xfree(c->pAddr);
 
     free_nodes(c);
-    xfree(c->pNodArray);
     xfree(c->pkthdr_bad);
 
     simplelist_free(&c->config_list.linkpoint, destroy_configlist);
