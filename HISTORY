@@ -1,3 +1,7 @@
+2005/04/18 19:46:46 1.0a-443 stream
+readcfg.c,2.82,2.83
+Double free of pNodArray caused mysterious crashes on config reload
+
 2005/04/05 10:31:48 1.0a-442 gul
 sys.h,2.22,2.23
 Fixed bug in have_intmax_t detection
