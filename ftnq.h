@@ -14,6 +14,9 @@
 /* $Id$
  *
  * $Log$
+ * Revision 2.4.2.2  2005/05/13 10:03:59  stas
+ * update comment for the _FTNQ.type values
+ *
  * Revision 2.4.2.1  2003/09/14 12:20:05  gul
  * Clean use pointers to pNod array
  *
@@ -69,13 +72,15 @@ struct _FTNQ
   char action;			       /* 'd'elete, 't'runcate, '\0' -- none,
 				        * remove on 's'uccessful session,
 				        * after 'a'ny session */
-  char type;			       /* 'm'ail (.out), .f'l'o, '*' -- a
-				        * file from .flo (just for stats, it
-				        * will never be selected for sending
-				        * right from the queue, it will be
-				        * send when parsing its .flo instead,
-				        * now it's obsolete), other -- a file
-				        * to send. */
+  char type;			       /* 'm' -- a mail packet (.?ut),
+				        * 'l' -- a flow file (.?lo),
+				        * 's' -- a ND-mode status file (.stc),
+				        * '*' -- a file from .?lo (just for
+				        * stats, it will never be selected for
+				        * sending right from the queue, it
+				        * will be send when parsing its .flo
+				        * instead, now it's obsolete),
+				        * other -- a file to send. */
   char path[MAXPATHLEN + 1];
   unsigned long size;
   time_t time;			       /* this field seems to be used only in
