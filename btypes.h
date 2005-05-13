@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2005/05/13 11:12:00  stas
+ * update coment for struct _FTNQ
+ *
  * Revision 2.5  2004/09/06 10:47:04  val
  * bandwidth limiting code advancements, `listed' session state fix
  *
@@ -114,13 +117,15 @@ struct _FTNQ
   char action;			       /* 'd'elete, 't'runcate, '\0' -- none,
 				        * remove on 's'uccessful session,
 				        * after 'a'ny session */
-  char type;			       /* 'm'ail (.out), .f'l'o, '*' -- a
-				        * file from .flo (just for stats, it
-				        * will never be selected for sending
-				        * right from the queue, it will be
-				        * send when parsing its .flo instead,
-				        * now it's obsolete), other -- a file
-				        * to send. */
+  char type;			       /* 'm' -- a mail packet (.?ut),
+				        * 'l' -- a flow file (.?lo),
+				        * 's' -- a ND-mode status file (.stc),
+				        * '*' -- a file from .?lo (just for
+				        * stats, it will never be selected for
+				        * sending right from the queue, it
+				        * will be send when parsing its .flo
+				        * instead, now it's obsolete),
+				        * other -- a file to send. */
   char path[MAXPATHLEN + 1];
   off_t size;
   time_t time;			       /* this field seems to be used only in
