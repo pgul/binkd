@@ -1,3 +1,7 @@
+2005/06/06 19:55:28 1.0a-446 stream
+protocol.c,2.167,2.168
+Fixed broken ND-mode status.
+
 2005/06/06 19:43:42 1.0a-445 stream
 zlibdl.h,2.18,2.19
 Updates for OS/2+Watcom+zlib compilation
