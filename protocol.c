@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.168  2005/06/06 16:55:05  stream
+ * Fixed broken ND-mode status.
+ *
  * Revision 2.167  2005/02/09 17:33:59  val
  * config docs and makefile changes for the bandwidth limiting code
  *
@@ -2667,1168 +2670,1137 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
 
     if ((state->out.f || state->off_req_sent) &&
          !tfile_cmp (&state->out, argv[0], fsize, ftime))
-    {
-      if (!state->out.f)
-      { /* response for status */
-	rc = 1;
-	/* to satisfy remote GET_FILE_balance */
-	msg_sendf (state, M_FILE, "%s %" PRIuMAX " %" PRIuMAX " %" PRIuMAX,
-		   state->out.netname, (uintmax_t) state->out.size,
-		   (uintmax_t) state->out.time, strtoul(argv[3], NULL, 10));
-	if (strtoumax(argv[3], NULL, 10) == (uintmax_t) state->out.size &&
-	    (state->ND_flag & WE_ND))
-	{
-	  state->send_eof = 1;
-	  state->waiting_for_GOT = 1;
-	  Log(5, "Waiting for M_GOT");
-	  state->off_req_sent = 0;
-	  return rc;
+    {all_flag &&
+       e, ftWITH_BZLIB2)  TF_ZTsecuor (iatus fo
+	strc 1;
 	}
+  T speic sfremote", T_FILE_balance;
+o
+	stg_sendf (state, M_GELE_b"%s %" PRIuMAX " %" PRIuMAX " %" PRIuMAX,
+		 st tate->out.netname, cointmax_t) state->int.size >		   (uintmax_t) state->int.sime, statoumalrgv[3], NULL, 10);
+
+	if (statoumax (rgv[3], NULL, 10);
+= (WEntmax_t) state->int.size >&
+	  !f  tate->ND_flag & WE_ND))
+  
+	  state->skid_stf (T1;
+	  elate->skwaings _r (OT : 1;
+	  elg(5, "SeWaings or (iGOT, ;
+	  state->exf_req_sent)  0;
+	}
+return rc;
+  
 	else
-	  /* request from offset 0 - file already renamed */
-	  ND_set_status("", &state->out.fa, state, config);
-	TF_ZERO(&state->out);
-      }
-      else if ((offset = (off_t)strtoumax (argv[3], NULL, 10)) > state->out.size ||
-               fseeko (state->out.f, offset, SEEK_SET) == -1)
-      {
-	Log (1, "GET: error seeking %s to %" PRIuMAX ": %s",
-	     argv[0], (uintmax_t) offset, strerror (errno));
-	/* touch the file and drop session */
-	fclose(state->out.f);
-	state->out.f=NULL;
-	touch(state->out.path, time(NULL));
-	rc = 0;
-      }
-      else
-      {
-	Log (2, "sending %s from %" PRIuMAX, argv[0], (uintmax_t) offset);
-	for (argc = 1; (extra = getwordx (args, argc, 0)) != 0; ++argc)
 	{
-	  if (strcmp(extra, "GZ") == 0 || strcmp(extra, "BZ2") == 0) ;
-	  else if (strcmp(extra, "NZ") == 0) nz = 1;
-	  else if (extra[0])
-	    Log (4, "Unknown option %s for %s ignored", extra, argv[0]);
-	  free(extra);
+/* resoest form offset
+  0 -ile agaeady receme, d/
+	  Lo_set_status(ch""&state->out, ., state->config);
+  F_ZERO (state->out);
+	}    }
+      else if (!s(fset = (off_t) srtoumax (argv[3], NULL, 10);
+> 64ate->int.size >&
+          /*   fsizko (state->int, .,offset, SEEK_SET) == -1)
+    {
+{
+	Log (1, "SeT: %sror (ezko g %s (% %s:PRIuMAX " %:s",
+	   (u rgv[0], fsintmax_t) offset);strerror (errno));
+	    T sh AKe file wad BZop session */
+  	lose(f)ate->out.f);
+	  ate->out.f);ULL;
+
+ 	 sh Atate->out.path, "rme();LL)
+ 
+	retc 0;
+      }
+  }
+  else
+      {
+	stg (2, "skidif
+ %s (%rm of PRIuMAX,
+	rgv[0], fsintmax_t) offset);
+	rer (argc = 1; (w tra = ""twordx (args, argc, 0)) != 0; ++argc)
+  
+	  if (iprcmp(w,tra ="GZ") == 0)
+| strcmp (,tra ="GZ2") == 0)
+  	  else if (iprcmp (,tra ="GZN) == 0)
+ z = 0;
+	  else if (iptra =])
+  	  Log (4, "Unknown option %s for %s ignored", w,tra ="Ggv[0], 
+	  stee(w)tra) =  
+	elsend_stop(state)
+#	if (!isnz)_send_init(state, config, ex&tra) =  
+g_sendf (state, M_GELE_b"%s %" PRIuMAX " %" PRIuMAX " %" PRIuMAX,
+%s %"		 st tate->out.netname, c	   (uintmax_t) state->int.size >		   (uintmax_t) state->int.sime, s	   (uintmax_t) stfset);sttra) =  
+rc 1;
+	}    }
+    }
+    else b     Log (1, "unexpected paGET \"r %s", stgv[0], 
+	   Lo_set_status(ch""&state->ou_sear, state->config);
+    state->st_sear, .z=-1    if (state->to_flag & WE_ND)
+  { {
+      state->crwaings _r (OT : 1;0      Log ((9"unD't chwaings or (iGOT, ;
+	   }
+    state->z_f_req_sent)  0;
+	}   return rc;
+  }
+}
+else
+    return 0;
+}
+
+st
+ * M_GEIP, Resete addskusinT spep chfile w. Oy GZfile wirrently, nt * M_a) nsferill rubepep cped!* M* M_GEIP, rgs: "%s %lu %lu % filename, size, time, */
+static int GEIP, rTATE *state, char *args, int sz, BINKD_CONFIG *config)
+{
+  innsistnt argc = 4;3  char *argv[4]3]  int no_  time_t ftime=0;
+
+ off_t ofsize=0;
+   UNUSED_ARG(sz);
+
+  if ((arse_msg_args (argc, argv, args, "M_GEIP,  state)) ! {
+    Lo      char *sprmesg=NULL;
+
+     fsize = atff_t) srtoumax (argv[3]1 NULL, 10);
+    ifftime = safe_atol (argv[2], &errmesg);
+      if(e rrmesg){
+     {
+	stg (2,, "File time parsing error: %s! (M_GEIP, r%s %s %s %)", errmesg, argv[0], argv[1], argv[0], argv[2], ;
+      }
+    }
+    /*r (arn 0; i n state->n_sent_fls; ++i)n    {
+      if (!tfile_cmp (state->sent_fls + i,nargv[0], fsize, ftime))
+      {
+	ifate->rcv_ep cpedlag = 1;
 	}
-	z_send_stop(state);
-	if (!nz) z_send_init(state, config, &extra);
-	msg_sendf (state, M_FILE, "%s %" PRIuMAX " %" PRIuMAX " %" PRIuMAX "%s",
-		   state->out.netname,
-		   (uintmax_t) state->out.size,
-		   (uintmax_t) state->out.time,
-		   (uintmax_t) offset, extra);
-	rc = 1;
+g (2, "sk %sep cpedy remote", BAate->sent_fls +[n]etname);
+	msgcpy (&state->ou_sear, st&ate->sent_fls +[n]e, sizeof (TN_ADDR));
+  	move_from_sent_files_queue (state, i)n
       }
     }
-    else
-      Log (1, "unexpected M_GET for %s", argv[0]);
-    ND_set_status("", &state->ND_addr, state, config);
-    state->ND_addr.z=-1;
-    if (state->ND_flag & WE_ND)
-    {
-      state->waiting_for_GOT = 0;
-      Log(9, "Don't waiting for M_GOT");
-    }
-    state->off_req_sent = 0;
-
-    return rc;
-  }
-  else
-    return 0;
-}
-
-/*
- * M_SKIP: Remote asks us to skip a file. Only a file currently in
- * transfer will be skipped!
- *
- * M_SKIP args: "%s %lu %lu", filename, size, time
- */
-static int SKIP (STATE *state, char *args, int sz, BINKD_CONFIG *config)
-{
-  const int argc = 3;
-  char *argv[3];
-  int n;
-  time_t ftime=0;
-  off_t  fsize=0;
-
-  UNUSED_ARG(sz);
-
-  if (parse_msg_args (argc, argv, args, "M_SKIP", state))
-  {
-    {
-      char *errmesg=NULL;
-      fsize = (off_t)strtoumax (argv[1], NULL, 10);
-      ftime = safe_atol (argv[2], &errmesg);
-      if (errmesg)
-      {
-	Log ( 1, "File time parsing error: %s! (M_SKIP \"%s %s %s\")", errmesg, argv[0], argv[1], argv[0], argv[2] );
-      }
-    }
-    for (n = 0; n < state->n_sent_fls; ++n)
-    {
-      if (!tfile_cmp (state->sent_fls + n, argv[0], fsize, ftime))
-      {
-	state->r_skipped_flag = 1;
-	Log (2, "%s skipped by remote", state->sent_fls[n].netname);
-	memcpy (&state->ND_addr, &state->sent_fls[n].fa, sizeof(FTN_ADDR));
-	remove_from_sent_files_queue (state, n);
-      }
-    }
-    if (!tfile_cmp (&state->out, argv[0], fsize, ftime))
-    {
-      state->r_skipped_flag = 1;
-      if (state->out.f)
-	fclose (state->out.f);
-      else
-      {
-	Log (1, "Cannot skip ND-status, session dropped");
-	msg_send2(state, M_ERR, "Cannot skip ND-status", 0);
-	return 0;
-      }
-      Log (2, "%s skipped by remote", state->out.netname);
-      TF_ZERO (&state->out);
-    }
-    ND_set_status("", &state->ND_addr, state, config);
-    state->ND_addr.z=-1;
-    if ((state->ND_flag & WE_ND) || (state->NR_flag & WE_NR))
-    {
-      state->waiting_for_GOT = state->off_req_sent = 0;
-      Log(9, "Don't waiting for M_GOT");
-    }
-    return 1;
-  }
-  else
-    return 0;
-}
-
-/*
- * M_GOT args: "%s %lu %lu", filename, size, time
- */
-static int GOT (STATE *state, char *args, int sz, BINKD_CONFIG *config)
-{
-  const int argc = 3;
-  char *argv[3];
-  int n, rc=1;
-  char *status = NULL;
-  time_t ftime=0;
-  off_t  fsize=0;
-  char *errmesg = NULL;
-
-  UNUSED_ARG(sz);
-
-  if (parse_msg_args (argc, argv, args, "M_GOT", state))
-  {
-    if ((state->NR_flag & WE_NR) && !(state->ND_flag & WE_ND))
-      ND_set_status("", &state->ND_addr, state, config);
-    else
-      status = strdup(args);
-    fsize = (off_t) strtoumax (argv[1], NULL, 10);
-    errno = 0;
-    ftime = safe_atol (argv[2], &errmesg);
-    if (errmesg)
-    {
-      Log ( 1, "File time parsing error: %s! (M_GOT \"%s %s %s\")", errmesg, argv[0], argv[1], argv[0], argv[2] );
-    }
-    if (!tfile_cmp (&state->out, argv[0], fsize, ftime))
-    {
-      Log (2, "remote already has %s", state->out.netname);
-      if (state->out.f)
-      {
-	fclose (state->out.f);
-	state->out.f = NULL;
-      }
-      memcpy(&state->ND_addr, &state->out.fa, sizeof(state->out.fa));
-      if (state->ND_flag & WE_ND)
-        Log (7, "Set ND_addr to %u:%u/%u.%u",
-             state->ND_addr.z, state->ND_addr.net, state->ND_addr.node, state->ND_addr.p);
-      if (status)
-      {
-	if (state->off_req_sent)
-	  rc = ND_set_status("", &state->ND_addr, state, config);
-	else
-	  rc = ND_set_status(status, &state->ND_addr, state, config);
-      }
-      state->waiting_for_GOT = state->off_req_sent = 0;
-      Log(9, "Don't waiting for M_GOT");
-      remove_from_spool (state, state->out.flo,
-			 state->out.path, state->out.action, config);
-      TF_ZERO (&state->out);
-    }
-    else
-    {
-      for (n = 0; n < state->n_sent_fls; ++n)
-      {
-	if (!tfile_cmp (state->sent_fls + n, argv[0], fsize, ftime))
+    /* (!tfile_cmp (sttate->out, argv[0], fsize, ftime))
+    {all_flag ate->rcv_ep cpedlag = 1;
+	}    if (state->skt.f)
 	{
-	  char szAddr[FTN_ADDR_SZ + 1];
-
-	  ftnaddress_to_str (szAddr, &state->sent_fls[n].fa);
-	  state->bytes_sent += state->sent_fls[n].size;
-	  ++state->files_sent;
-	  memcpy (&state->ND_addr, &state->sent_fls[n].fa, sizeof(FTN_ADDR));
-          if (state->ND_flag & WE_ND)
-             Log (7, "Set ND_addr to %u:%u/%u.%u",
-                  state->ND_addr.z, state->ND_addr.net, state->ND_addr.node, state->ND_addr.p);
-	  Log (2, "sent: %s (%" PRIuMAX ", %.2f CPS, %s)",
-	       state->sent_fls[n].path,
-	       (uintmax_t) state->sent_fls[n].size,
-	       (double) (state->sent_fls[n].size) /
-	       (safe_time() == state->sent_fls[n].start ?
-		1 : (safe_time() - state->sent_fls[n].start)), szAddr);
-	  if (status)
-	  {
-	    if (state->off_req_sent || !(state->ND_flag & WE_ND))
-	      rc = ND_set_status("", &state->ND_addr, state, config);
-	    else
-	      rc = ND_set_status(status, &state->ND_addr, state, config);
-	  }
-	  state->waiting_for_GOT = 0;
-	  Log(9, "Don't waiting for M_GOT");
-#ifdef WITH_PERL
-          perl_after_sent(state, n);
-#endif
-	  remove_from_spool (state, state->sent_fls[n].flo,
-			state->sent_fls[n].path, state->sent_fls[n].action, config);
-	  remove_from_sent_files_queue (state, n);
-	  break;		       /* we have ACK for _ONE_ file */
-	}
+lose (state->out.f);
+	 }
+  else
+      {
+	stg (2, "Can'tt supp chND-atus, f)ssion */opped", =  
+g_sendf 2tate, M_ERR, "Can'tt supp chND-atus,  0);
+	  turn 0;
       }
-    }
-    if (status) free(status);
-    return rc;
+      ifg (2, "sk %sep cpedy remote", BAate->set.netname);
+        _ZERO (&state->out);
+	}  }
+      _set_status(ch""&state->ou_sear, state->config);
+    state->st_sear, .z=-1    if (sttate->ND_flag & WE_ND) == (state->NR_flag & TH_NR)
+   { {
+      state->crwaings _r (OT : 1;ate->z_f_req_sent)  0;
+	}    Log ((9"unD't chwaings or (iGOT, ;
+	   }
+    stturn 1;
   }
   else
     return 0;
 }
 
-static int EOB (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
+st
+ * M_GETOTrgs: "%s %lu %lu % filename, size, time, */
+static int GETOTrTATE *state, char *args, int sz, BINKD_CONFIG *config)
 {
-  UNUSED_ARG(buf);
-  UNUSED_ARG(sz);
+  innsistnt argc = 4;3  char *argv[4]3]  int no_,c=1;
+    ar *status,  NULL;
+    me_t ftime=0;
 
-  state->remote_EOB = 1;
-  state->delay_EOB = 0; /* val: we can do it anyway now :) */
-  if (state->in.f)
+ off_t ofsize=0;
+  char *sprmesg=N NULL;
+    ar *staavedlgs,    UNUSED_ARG(sz);
+
+  ifaavedlgs,  xstrdup(" gs, 
+
+  if ((arse_msg_args (argc, argv, args, "M_GET, ;state)) ! {
+    Lo ((state->NR_flag & WANER) &&
+ (state->ND_flag & WE_ND))
+  {     _set_status(ch""&state->ou_sear, state->config);
+    stse
+      {
+atus,  NUaavedlgs,     fsize = atff_t) s rtoumax (argv[3]1 NULL, 10);
+    ifrno)) 0;
+	}    ime = safe_atol (argv[2], &errmesg);
+      (e rrmesg){
+           Log (1,, "File time parsing error: %s! (M_GETOTr%s %s %s %)", errmesg, argv[0], argv[1], argv[0], argv[2], ;
+          /* (!tfile_cmp (sttate->out, argv[0], fsize, ftime))
+    {all_flag g (2, "rcvete addeady havess", state->out.netname);
+    }
+if (state->skt.f)
+	{    {
+	stlose (state->out.f);
+	  ate->out.f = NULL;
+	     }
+      msgcpy(sttate->ou_sear, st&ate->set, ., staeof (Tate->set, ., ;
+      if (state->to_flag & WE_ND)
+  { {
+  Log (7, "SessND_sear, % %s:%u/%u.%u",
+          fa state->st_sear, .z,tate->st_sear, .net,tate->st_sear, .ne, faate->st_sear, .p
+      if (state-)
   {
-    close_partial(state, config);
-  }
-  if ((state->ND_flag & THEY_ND) && state->in_complete.netname[0])
-  { /* rename complete received file to its true form */
-    char realname[MAXPATHLEN + 1];
-    char szAddr[FTN_ADDR_SZ + 1];
-
-    if (inb_done (&(state->in_complete), realname, state, config) == 0)
-      return 0;
-    if (*realname)
+  {
+	if (state->out_req_sent) &}
+ret= 4;_set_status(ch""&state->ou_sear, state->config);
+  lse
+	{
+/*t= 4;_set_status(chatus, f)tate->ou_sear, state->config);
+    st}
+      msate->crwaings _r (OT : 1;ate->z_f_req_sent)  0;
+	}    Log ((9"unD't chwaings or (iGOT, ;
+	   }
+remove_from_senpoo(state, coate->set, .,los	  	tate->out.path, stree->out.paacon %config);
+    st}
+_ZERO (&state->out);
+	}  }
+      se
     {
-      /* Set flags */
-      if (evt_test(&(state->evt_queue), realname, config->evt_flags.first))
-        state->q = evt_run(&(state->evt_queue), state->q, realname, state->fa,
-	       state->nfa, state->state == P_SECURE, state->listed_flag,
-               state->peer_name, state, config);
-      /* We will run external programs using this list */
-      add_to_rcvdlist (&state->rcvdlist, &state->n_rcvdlist, realname);
+      ifr (arn 0; i n state->n_sent_fls; ++i)n    {
+{
+	if (stfile_cmp (state->sent_fls + i,nargv[0], fsize, ftime))
+  
+	  ifar szAddr[FTN_ADDR_SZ + 1];
+
+  	ftnaddress_to_str (szAddr, st&ate->sent_fls +[n]e, 
+	  state->extes_rcnt)   state->innt_fls +[n]eze;
+  	++state->files_rcnt_f	  memcpy (&state->ou_sear, st&ate->sent_fls +[n]e, sizeof (TN_ADDR));
+       fa st (state->to_flag & WE_ND)
+  { {
+  Lo
+  Log (7, "SessND_sear, % %s:%u/%u.%u",
+          fa stfa state->st_sear, .z,tate->st_sear, .net,tate->st_sear, .ne, faate->st_sear, .p
+   Log (2, "innt_f%s (%" PRIuMAX ", %.2f CPS, %s)",
+	   st  state->skit_fls +[n]eth, s   st  stintmax_t) state->innt_fls +[n]eze;
+s   st  stiuble) (state->innt_fls +[n]eze;
+/
+	   (s  (safe_time() == state->innt_fls +[n]ezrt ?
+	  	: (safe_time() - state->innt_fls +[n]ezrt ?, szAddr);
+  	if (state-)
+  	{
+	if}
+if (state->skt_req_sent)   !*state->ND_flag & WE_ND))
+  
+    rc,  4;_set_status(ch""&state->ou_sear, state->config);
+  l    se
+  
+    rc,  4;_set_status(chatus, f)tate->ou_sear, state->config);
+  	}
+  	state->crwaings _r (OT : 1;0  	Log ((9"unD't chwaings or (iGOT, ;
+	 fdef WITH_PERL
+      in  pn l_after_hant) tate, i)n
+  ndif
+
+/	remove_from_senpoo(state, coate->sent_fls +[n]e,los	  	ate->skit_fls +[n]eth, soate->sent_fls +[n]eacon %config);
+   remove_from_sent_files_queue (state, i)n
+   reeak;
+        /* Alweave %sACKor (i_ONE_ile wi
+  	}     }
     }
-    ftnaddress_to_str (szAddr, state->fa);
-    state->bytes_rcvd += state->in_complete.size;
-    ++state->files_rcvd;
-    Log (2, "rcvd: %s (%" PRIuMAX ", %.2f CPS, %s)", state->in_complete.netname,
-         (uintmax_t) state->in_complete.size,
-         (double) (state->in_complete.size) /
-         (safe_time() == state->in_complete.start ?
-                      1 : (safe_time() - state->in_complete.start)), szAddr);
-    TF_ZERO (&state->in_complete);
   }
-  return 1;
-}
-
-typedef int command (STATE *state, char *buf, int sz, BINKD_CONFIG *config);
-static command *commands[] =
+  ifse
+    retc 0;
+	}   ee(szOavedlgs, 
+  return co;
+  
+static int NDB &&TATE *state, char *buf, int sz, BINKD_CONFIG *config)
 {
-  NUL, ADR, PWD, start_file_recv, OK, EOB, GOT, RError, BSY, GET, SKIP
-};
+  chUSED_ARG(szf) =  UNUSED_ARG(sz);
 
-/* Recvs next block, processes msgs or writes down the data from the remote */
-static int recv_block (STATE *state, BINKD_CONFIG *config)
-{
-  int no;
-
-  int sz = state->isize == -1 ? BLK_HDR_SIZE : state->isize;
-
-#ifdef BW_LIM
-  if (state->bw_recv) {
-    time_t ctime = time(NULL);
-    if (!state->bw_recv_utime) {
-      state->bw_recv_utime = ctime;
-      state->bw_recv_cps = 0; state->bw_recv_cpsN = 0;
+  ifate->rcvete aOB &&1;
+	}  ate->delay_EOB &&0; /* rel: /swean (sdits  anyway now :)/
+  if (state->st.f)
+	 {
+    chase_partial (tate, config);
     }
-    if (ctime > state->bw_recv_utime) {
-      int cps = state->bw_recv_bytes / (ctime - state->bw_recv_utime);
-      state->bw_recv_bytes = 0;
-      state->bw_recv_utime = ctime;
-      if (state->bw_recv_cpsN < 10) {
-        state->bw_recv_cps = (state->bw_recv_cpsN*state->bw_recv_cps + cps) / (state->bw_recv_cpsN + 1);
-        state->bw_recv_cpsN++;
+if ((state->ND_flag & THEY_ND) && state->in_complete.netname[0])
+    /* rename complete received file to its true form */
+      ar realname[MAXPATHLEN + 1];
+      ar szAddr[FTN_ADDR_SZ + 1];
+
+       (inb_done (&(state->in_complete), realname, state, config) == 0)
+        turn 0;
+       (*realname)
+      {
+    /* Set flags */
+        (e rr_test(&(state->evt_queue), realname, config->evt_flags.first))
+          ate->q = evt_run(&(state->evt_queue), state->q, realname, state->fa,
+	         ate->nfa, state->state == P_SECURE, state->listed_flag,
+                 ate->peer_name, state, config);
+         We will run external programs using this list */
+        d_to_rcvdlist (&state->rcvdlist, &state->n_rcvdlist, realname);
       }
-      else state->bw_recv_cps = (9*state->bw_recv_cps + cps) / 10;
-      Log (9, "recv: current cps is %u, avg. cps is %u", cps, state->bw_recv_cps);
-    }
-    else if (state->bw_recv && state->bw_recv_bytes > state->bw_recv) 
-      return 1; /* val: return the same as if TCPERR_WOULDBLOCK */
-    if (state->bw_recv && state->bw_recv_cps > state->bw_recv) 
-      return 1; /* val: return the same as if TCPERR_WOULDBLOCK */
-  }
-#endif
-  if (sz == 0)
-    no = 0;
-  else if ((no = recv (state->s, state->ibuf + state->iread,
-		       sz - state->iread, 0)) == SOCKET_ERROR)
-  {
-    if (TCPERRNO == TCPERR_WOULDBLOCK || TCPERRNO == TCPERR_AGAIN)
-    {
+  ftnaddress_to_str (szAddr, state->fa);
+      ate->bytes_rcvd += state->in_complete.size;
+      state->files_rcvd;
+      g (2, "rcvd: %s (%" PRIuMAX ", %.2f CPS, %s)",
+	tate->in_complete.netname,
+	        (stntmax_t) state->in_complete.size,
+	        (stuble) (state->in_complete.size) /
+	        (stae_time() == state->in_complete.start ?
+	                       : (safe_time() - state->in_complete.start)), szAddr);
+      _ZERO (&state->in_complete);
       return 1;
-    }
-    else
-    {
-      const char *save_err = TCPERR();
-      state->io_error = 1;
-      if (!binkd_exit)
-      {
-	Log (1, "recv: %s", save_err);
-	if (state->to)
-	  bad_try (&state->to->fa, save_err, BAD_IO, config);
-      }
-      return 0;
-    }
-  }
-#ifdef BW_LIM
-  state->bw_recv_bytes += no;
-#endif
-  if (state->crypt_flag == YES_CRYPT)
-    decrypt_buf(state->ibuf + state->iread, no, state->keys_in);
-  state->iread += no;
-  /* assert (state->iread <= sz); */
-  if (state->iread == sz)
-  {
-    if (state->isize == -1)	       /* reading block header */
-    {
-      state->imsg = state->ibuf[0] >> 7;
-      state->isize = ((((unsigned char *) state->ibuf)[0] & ~0x80) << 8) +
-	((unsigned char *) state->ibuf)[1];
-      Log (7, "recvd hdr: %i (%s)", state->isize, state->imsg ? "msg" : "data");
-      if (state->isize == 0)
-	goto DoNotEvenTryToRecvZeroLengthBlock;
-    }
-    else
-    {
-  DoNotEvenTryToRecvZeroLengthBlock:
-      Log (7, "got block: %i (%s)", state->isize, state->imsg ? "msg" : "data");
-      if (state->imsg)
-      {
-	int rc = 1;
-
-	++state->msgs_in_batch;
-
-#ifdef WITH_PERL
-        perl_on_recv(state, state->ibuf, state->isize);
-#endif
-	if (state->isize == 0)
-	  Log (1, "zero length command from remote (must be at least 1)");
-	else if ((unsigned) (state->ibuf[0]) > M_MAX)
-	  Log (1, "unknown msg type from remote: %u", state->ibuf[0]);
-	else
-	{
-	  state->ibuf[state->isize] = 0;
-          Log (5, "rcvd msg %s %s", scommand[(unsigned char)(state->ibuf[0])], state->ibuf+1);
-	  rc = commands[(unsigned) (state->ibuf[0])]
-	    (state, state->ibuf + 1, state->isize - 1, config);
-	}
-
-	if (rc == 0)
-	{
-	  state->iread = 0;
-	  return 0;
-	}
-      }
-      else if (state->in.f)
-      {
-#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
-        if (state->z_recv)
-        {
-          int rc = 0, nget = state->isize, zavail, nput;
-          char zbuf[ZBLKSIZE];
-          char *buf = state->ibuf;
-
-          if (state->z_idata == NULL)
-          {
-            if (decompress_init(state->z_recv, &state->z_idata))
-            {
-              Log (1, "Can't init decompress");
-              return 0;
-            } else
-              Log (8, "decompress_init success");
-          }
-          while (nget)
-          {
-            zavail = ZBLKSIZE;
-            nput = nget;
-            rc = do_decompress(state->z_recv, zbuf, &zavail, buf, &nput,
-                               state->z_idata);
-            if (rc < 0)
-            {
-              Log (1, "Decompress %s error %d", state->in.netname, rc);
-              return 0;
-            }
-            else
-              Log (10, "%d bytes of data decompressed to %d", nput, zavail);
-            if (zavail != 0 && fwrite (zbuf, zavail, 1, state->in.f) < 1)
-            {
-              Log (1, "write error: %s", strerror(errno));
-              decompress_abort(state->z_recv, state->z_idata);
-              state->z_idata = NULL;
-              return 0;
-            }
-            buf += nput;
-            nget -= nput;
-            state->z_isize += zavail;
-            state->z_cisize += nput;
-          }
-          if (rc == 1)
-          { if ((rc = decompress_deinit(state->z_recv, state->z_idata)) < 0)
-              Log (1, "decompress_deinit retcode %d", rc);
-            state->z_idata = NULL;
-          }
-          if (fflush(state->in.f))
-          {
-            Log (1, "write error: %s", strerror(errno));
-            return 0;
-          }
-        }
-        else
-#endif
-        if (state->isize != 0 &&
-            (fwrite (state->ibuf, state->isize, 1, state->in.f) < 1 ||
-            fflush (state->in.f)))
-        {
-          Log (1, "write error: %s", strerror(errno));
-          return 0;
-        }
-        if (config->percents && state->in.size > 0)
-        {
-          LockSem(&lsem);
-          printf ("%-20.20s %3.0f%%\r", state->in.netname,
-                  100.0 * ftello (state->in.f) / (float) state->in.size);
-          fflush (stdout);
-          ReleaseSem(&lsem);
-        }
-        if (ftello (state->in.f) == state->in.size)
-        {
-          char szAddr[FTN_ADDR_SZ + 1];
-          char realname[MAXPATHLEN + 1];
-
-          if (fclose (state->in.f))
-          {
-            Log (1, "Cannot fclose(%s): %s!",
-                 state->in.netname, strerror (errno));
-            state->in.f = NULL;
-            return 0;
-          }
-          state->in.f = NULL;
-#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
-          if (state->z_recv)
-          {
-            Log (4, "File %s compressed size %" PRIuMAX " bytes, compress ratio %.1f%%",
-                 state->in.netname, (uintmax_t) state->z_cisize,
-                 100.0 * state->z_cisize / state->z_isize);
-            if (state->z_idata)
-            {
-              Log (1, "Warning: extra compressed data ignored");
-              decompress_deinit(state->z_recv, state->z_idata);
-              state->z_idata = NULL;
-            }
-          }
-#endif
-	  if (state->ND_flag & THEY_ND)
-	  {
-	    Log (5, "File %s complete received, waiting for renaming",
-	         state->in.netname);
-	    memcpy(&state->in_complete, &state->in, sizeof(state->in_complete));
-	  }
-	  else
-	  {
-	    if (inb_done (&(state->in), realname, state, config) == 0)
-              return 0;
-	    if (*realname)
-	    {
-	      /* Set flags */
-              if (evt_test(&(state->evt_queue), realname, config->evt_flags.first))
-                state->q = evt_run(&(state->evt_queue), state->q, realname,
-		       state->fa, state->nfa, state->state == P_SECURE,
-		       state->listed_flag, state->peer_name, state, config);
-	      /* We will run external programs using this list */
-	      add_to_rcvdlist (&state->rcvdlist, &state->n_rcvdlist, realname);
-	    }
-	    ftnaddress_to_str (szAddr, state->fa);
-	    state->bytes_rcvd += state->in.size;
-	    ++state->files_rcvd;
-	    Log (2, "rcvd: %s (%" PRIuMAX ", %.2f CPS, %s)", state->in.netname,
-	         (uintmax_t) state->in.size,
-	         (double) (state->in.size) /
-	         (safe_time() == state->in.start ?
-		  1 : (safe_time() - state->in.start)), szAddr);
-	  }
-	  msg_sendf (state, M_GOT, "%s %" PRIuMAX " %" PRIuMAX,
-		     state->in.netname,
-		     (uintmax_t) state->in.size,
-		     (uintmax_t) state->in.time);
-	  TF_ZERO (&state->in);
-	}
-	else if (ftello (state->in.f) > state->in.size)
-	{
-	  Log (1, "rcvd %" PRIuMAX " extra bytes!",
-	       (uintmax_t) (ftello (state->in.f) - state->in.size));
-	  return 0;
-	}
-      }
-      else if (state->isize > 0)
-      {
-	Log (7, "ignoring data block (%" PRIuMAX " byte(s))",
-	     (uintmax_t) state->isize);
-      }
-      state->isize = -1;
-    }
-    state->iread = 0;
-  }
-  if (no == 0 && sz > 0)
-  {
-    state->io_error = 1;
-    if (!binkd_exit)
-    {
-      char *s_err = "connection closed by foreign host";
-      Log (1, "recv: %s", s_err);
-      if (state->to)
-	bad_try (&state->to->fa, s_err, BAD_IO, config);
-    }
-    return 0;
-  }
-  else
-    return 1;
 }
 
-static void send_ADR (STATE *state, BINKD_CONFIG *config) {
-  char szFTNAddr[FTN_ADDR_SZ + 1];
-  char *szAkas;
-  int i, N;
-  struct akachain *ps;
-
-  Log(7, "send_ADR(): got %d remote addresses", state->nfa);
-
-  if (!state->pAddr) {
-    state->nAddr = config->nAddr;
-    state->pAddr = xalloc(state->nAddr * sizeof(FTN_ADDR));
-    memcpy(state->pAddr, config->pAddr, state->nAddr*sizeof(FTN_ADDR));
-  }
-
-  N = state->nAddr;
-  for (ps = config->akamask.first; ps; ps = ps->next)
-  {
-    int t = (ps->type & 0x7f);
-    int rc;
-
-    if (state->to)
-      rc = ftnamask_cmpm(ps->mask, 1, &(state->to->fa)) == (ps->type & 0x80 ? -1 : 0);
-    else
-      rc = ftnamask_cmpm(ps->mask, state->nfa, state->fa) == (ps->type & 0x80 ? -1 : 0);
-    /* hide aka */
-    if (t == ACT_HIDE && rc) {
-      i = 0;
-      while (i < state->nAddr)
-        if (ftnaddress_cmp(state->pAddr+i, &(ps->fa)) == 0) {
-          char buf[FTN_ADDR_SZ];
-          ftnaddress_to_str(buf, &(ps->fa));
-          Log(3, "hiding aka %s", buf);
-          if (i < state->nAddr-1)
-            memmove(state->pAddr+i, state->pAddr+i+1, (state->nAddr-1-i)*sizeof(FTN_ADDR));
-          state->nAddr--;
-        }
-        else i++;
-    }
-    /* present aka */
-    else if (t == ACT_PRESENT && rc) {
-      for (i = 0; i < state->nAddr+1; i++)
-        if (i == state->nAddr || ftnaddress_cmp(state->pAddr+i, &(ps->fa)) == 0) break;
-      if (i == state->nAddr) {
-        char buf[FTN_ADDR_SZ];
-        ftnaddress_to_str(buf, &(ps->fa));
-        Log(3, "presenting aka %s", buf);
-        state->nAddr++;
-        if (state->nAddr > N) {
-          state->pAddr = xrealloc(state->pAddr, state->nAddr * sizeof(FTN_ADDR));
-          N++;
-        }
-        memcpy(state->pAddr+state->nAddr-1, &(ps->fa), sizeof(FTN_ADDR));
-      }
-    }
-  }
-
-  szAkas = xalloc (state->nAddr * (FTN_ADDR_SZ + 1));
-  *szAkas = 0;
-  for (i = 0; i < state->nAddr; ++i)
-  {
-    ftnaddress_to_str (szFTNAddr, state->pAddr + i);
-    strcat (szAkas, " ");
-    strcat (szAkas, szFTNAddr);
-  }
-  msg_send2 (state, M_ADR, szAkas, 0);
-  free (szAkas);
-}
-
-static void banner (STATE *state, BINKD_CONFIG *config)
+stpe &f WIt complmd BZTATE *state, char *buf, int sz, BINKD_CONFIG *config)
+{;tatic chaplmd BZ*aplmd Bs[] =
+  chL, "OADR, D, state_file_recv (, , stB &, T, "%REor, drY, "NT, "%IP, 
+};/* vaRv (s xt)
+ block,rogrss(bessgs */ (iite tssdiwnKe fita = om the remote on
+static int GEcv_rablockSTATE *state, BINKD_CONFIG *config)
 {
-  int tz;
-  char szLocalTime[60];
-  char *szOpt;
-  time_t t;
-  struct tm tm;
-  char *dayweek[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-  char *month[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+  stt no_p
+  if  sz,  1;ate->z_ize = 0-1)
+ ? BLK_H_SZ IZ: P_ate->z_ize =;#ifdef BW_LIM
+  pn (state->bw_recv)
+  {
+    me_t ftcme = same();LL)
+ ;   if (!state->z__recv_unlme))
 
-  if ((!no_MD5) && (!state->to) &&
-      ((state->MD_challenge=MD_getChallenge(NULL, state))!=NULL))
-  {  /* Answering side MUST send CRAM message as a very first M_NUL */
-    char s[MD_CHALLENGE_LEN*2+15]; /* max. length of opt string */
-    strcpy(s, "OPT ");
-    MD_toString(s+4, state->MD_challenge[0], state->MD_challenge+1);
-    state->MD_flag=1;
-    msg_send2 (state, M_NUL, s, "");
+      state->cr_recv_unlme)) comme));     state->cr_recv_unc = ps0;tate->cr_recv_unc =N 0;
+	}        /* (!tcme = > ate->z__recv_unlme))
+
+      stt comp= state->bw_recv_retes_r /!tcme = - ate->z__recv_unlme))
+;     state->cr_recv_untes_r 0;
+	}    Loate->cr_recv_unlme)) comme));     st (state->bw_recv_abc =N <0);
+=        state->st_recv_unc = pstate->bw_recv_abc =N*ate->st_recv_unc = +omp=/ 10tate->bw_recv_abc =N 1];
+        state->z__recv_abc =N++	}    }
+      else ifate->st_recv_unc = pst9*ate->st_recv_unc = +omp=/ 1010      Log (4,9"receiv:irrentlyomp=  %d uargvg.omp=  %d u
+	tmp=,fate->st_recv_unc =
+    }
+    else if ((sate->bw_recv =  state->in_recv_untes_r > ate->z__recv_u
+      stturn 1;
+}* rel: /sturn 1;e same tiaif noTCRL
+R_WOULDBLOCKo
+    if (rlate->bw_recv =  state->in_recv_unmp= > ate->z__recv_u
+      stturn 1;
+}* rel: /sturn 1;e same tiaif noTCRL
+R_WOULDBLOCKo
+    #endif
+     (rlaz= 0)
+      )) 0;
+	}  se if (!s()) 0;cv (STate->sta	tate->in_f,  state->miiady 		    st staz state->in_ady 	)) != SKIOCKETRR, OR! {
+    Lo ((sTCRL
+RNO= THECRL
+R_WOULDBLOCKo !*TCRL
+RNO= THECRL
+R_AGAIN      {
+    /*turn 1;
+    }
+    else i   Lo      chasistnar *staave_err THECRL
+R(
+      state->in.o_ror (e1;
+	}    if (st!nkd v_exit    {
+{
+	Log (1, "Seceiv:i", staave_err
+	if (state->in)
+  	bad_try (&state->to->fa, "Caave_errBAD_AUIOconfig);
+    st}
+      msturn 0;
+    }
   }
-  else
-    state->MD_flag=0;
+#endef BW_LIM
+  pnate->in_recv_untes_r  st_p
+ ndif
+     (rlate->crypt_flag == (WS_CRYPT) s
+  decompt_flf, (ate->in_f,  state->miiady 	t_p	tate->inys_in, 
+  state->msiady   st_p
+    Wea(ber(state->in.ady  <sta;
 
-  msg_send2 (state, M_NUL, "SYS ", config->sysname);
-  msg_send2 (state, M_NUL, "ZYZ ", config->sysop);
-  msg_send2 (state, M_NUL, "LOC ", config->location);
-  msg_send2 (state, M_NUL, "NDL ", config->nodeinfo);
+/
+  if (state->st.ady  =sta;
+ {
+    if (state->stize = 0-1)
+)      /* Alady g thblockShdy  *
+	/ { {
+      state->crim=N NUate->in_f, ] ==>> 7      state->in.ze = atffffunsign fiar *st)Uate->in_f, )] ==& ~0x8;
+=<< 8) +
+	ffunsign fiar *st)Uate->in_f, )];
+      stg (7, "Secv_ud hd %s!i%s)",
+ tate->in.ze =,tate->crim=N ? "m=N: "nota ="
+      if (state->toize = 0-1
+	{
+go itDoNotEvenTryToRv (ZeroLengthBlock    }
+    else i   Lo    DoNotEvenTryToRv (ZeroLengthBlock:     stg (7, "Set ofblock%s!i%s)",
+ tate->in.ze =,tate->crim=N ? "m=N: "nota ="
+      if (state->toim){
+     {
+	stt rc;
+e1;
+	}
+	state->figs_in_batch =;#ifdef BWTH_PERL
+      in   l_afonecv(state, ofate->in_f,  tate->in.ze =
+  ndif
 
-  t = safe_time();
-  tz = tz_off(t, config->tzoff);
-  safe_localtime (&t, &tm);
+/	 (state->toize = 0-1
+	{
+Log (1, "unzero lengthhaplmd BZom thmote on(st subet thlea su1)"
+  lse
+	f (!s(unsign f(state->in_f, ] => 64M_X "	{
+Log (1, "unknown adm=N pe & om thmote o:d u
+	tate->in_f, ] =>;else
+	{
+	  meate->in_f, ]ate->toize =] 0;
+	}    Lo  Log (5, "rat_ud m=N %ss", staaplmd B[funsign fiar *)tate->in_f, ] =>]	tate->in_f, +1
+   rem= comprmd Bs[(unsign f(state->in_f, ] =>]  !f  tate->	tate->in_f,  st1 tate->in.ze = st1config);
+   
+st	 (st == SK
+	{
+	  state->sk.ady  =;
+	}
+return rc0; 	}     }
+    }
+else if ((sate->bw.f)
+	 {
+  {
+	sf defined(WITH_ZLIB) || defined(WITH_BZLIB2)
+    if  if (state->z_recv =    if  if          Lot rc;
+e1; nz g = (oate->in.ze =,tzavailnz put	}    Lo  Loar *szf, ]ZBLK IZ:]	}    Lo  Loar *suf,  NUate->in_f, 
+      if  if (state->z_reata = NNULL)
+    stif  if          Loif (stcompress_deit(state->z_recv, st&ate->z_idata);
+  { {
+  Lo
+  L{               g (2, "Can't'tnit_kecompress_d;
+          st  return 0;
+      }
+    }
+ lse
+        Lo      g (2, "NDcompress_deit(s suess(b;
+          st}         stwhe to( g =    stif  if          Loifzavail NUZBLK IZ:      }
+    }
+ put NU g =      }
+    }
+;
+e1;do_compress_dtate->z_recv, stzf, &stzavailnzf, &st put,                              state->z_seata);
+      st  Loif (st;
+e<)
+          Lo L{               g (2, "CaDompress_d %ssror (e%d state->in.netname, strc
+          st  return 0;
+      }
+    }
+      }
+    }
+se
+        Lo      g (2,10"sk d tes_r ofita = compress_d fi %s:d st put,fzavail
+      st  Loif (stzavail !0 && (sfite to(zf, &szavailnz1state->in.nef) <0)          Lo L{               g (2, "Caite toror: %s! "strerror(errno));
+      re      do_empress_abort(state->z_secv, state->z_idata);
+      st      state->z_seata); NULL;
+	     }
+  st  return 0;
+      }
+    }
+      }
+    }
+f,  s=z put	}    Lo  Lo z g = -=z put	}    Lo  Lo zate->z_isize = s=zzavail	}    Lo  Lo zate->z_iscize = s=z put	}    Lo  Lo}
+  st  Loif (st;
+e 1) |   stif  if f ((rc = cocompress_deinit(state->z_recv, state->z_idata);
+)e<)
+          Lo L  g (2, "Cacompress_deinit(seturce is:d strc
+          st  ate->z_seata); NULL;
+	     }
+  st}
+  st  Loif (stfflushtate->in.f))
+    {
+  Lo L{             g (2, "Caite toror: %s! "strerror(errno));
+      re      turn 0;
+      }
+    }
+  }
+    }
+  }
+    se
+#endif
+      stif (state->toize = !0 && (     re      (fite to(ate->in_f,  tate->in.ze =nz1state->in.nef) <0)&
+          /*  fflushstate->in.f));
+    if  if          Log (2, "Caite toror: %s! "strerror(errno));
+      re    turn 0;
+      }
+  }     stif (stnfig->evrcent rs& state->in.size >= )
+                    Log ckSem(&e
+#m
+      re    prt r(st"%-20.20d %3.0f%%\r state->in.netname, s                   100.0 *tello (state->in.f)); 10tfloa state->in.size);
+	m      /*  fflushstatdt);
+	}    }
 
-#if 0
-  sprintf (szLocalTime, "%s, %2d %s %d %02d:%02d:%02d %c%02d%02d (%s)",
-           dayweek[tm->tm_wday], tm->tm_mday, month[tm->tm_mon],
-           tm->tm_year+1900, tm->tm_hour, tm->tm_min, tm->tm_sec,
-           (tz>=0) ? '+' : '-', abs(tz)/60, abs(tz)%60,
-           tzname[tm->tm_isdst>0 ? 1 : 0]);
-#else
-  snprintf (szLocalTime, sizeof(szLocalTime),
-            "%s, %2d %s %d %02d:%02d:%02d %c%02d%02d",
-            dayweek[tm.tm_wday], tm.tm_mday, month[tm.tm_mon],
-            tm.tm_year+1900, tm.tm_hour, tm.tm_min, tm.tm_sec,
-            (tz>=0) ? '+' : '-', abs(tz)/60, abs(tz)%60);
+
+
+
+Relea eSem(&e
+#m
+      re  }     stif (stello (state->in.f));  state->in_c.ze)
+        re{}    Lo  Loar *sAddr[FTN_ADDR_SZ + 1];
+
+     Lo  Loar *salname[MAXPATHLEN + 1];
+  
+  st  Loif (stfose (state->in.f);
+    {
+  Lo L{             g (2, "Can'tt sulose(f))",%s! ("                 state->pe.netname, statrror (errno));
+      re    state->pe.nef NULL;
+	     }
+  st  turn 0;
+      }
+    }
+  }
+    state->pe.nef NULL;
+	 f defined(WITH_ZLIB) || defined(WITH_BZLIB2)
+    if  ifif (state->z_recv =    if  if L{             g (2,4"File ti%ssmpress_d fize >= PRIuMAX " byte(ss,smpress_date i%s:.1f%%"                 state->pe.netname, sttntmax_t) state->iniscize =                 st100.0 *tate->z_iscize = /zate->z_isize =
+      st  Loif (state->z_idata)
+    {
+    Lo L{               g (2, "Carning: retra = mpress_d fita); nored", 
+      re      do_empress_abinit(state->z_recv, state->z_idata);
+      st      state->z_seata); NULL;
+	     }
+  st  }     }
+    }
+ndif
+
+/	re (state->ND_flag & THEY_ND) x 	{
+	if}
+ifg (5, "rale ti%ssmprete received f,hwaings or (iname gs "	         state->nf.netname);
+	ms  msgcpy(sttate->ou_complete);st&ate->z_instaeof (Tate->se_complete);
+
+  	}
+  	stse
+  
+  	if}
+if (stb_done (&(state->in_c realname, state, config) == 0)
+        re  st  turn 0;
+  	     (*realname)
+  	  {
+	st    /* Set flags */
+        if      (e rr_test(&(state->evt_queue), realname, config->evt_flags.first))
+                  ate->q = evt_run(&(state->evt_queue), state->q, realname, s	    st state->fa,
+	 ate->nfa, state->state == P_SECURE, s	    st state->fasted_flag,
+  ate->peer_name, state, config);
+  	       We will run external programs using this list */
+  	      d_to_rcvdlist (&state->rcvdlist, &state->n_rcvdlist, realname);
+  	    }
+	  ftnaddress_to_str (szAddr, state->fa);
+  	    ate->bytes_rcvd += state->in_ceze;
+  	++  state->files_rcvd;
+  	    g (2, "rcvd: %s (%" PRIuMAX ", %.2f CPS, %s)",
+	tate->in_cetname,
+	   (u    (uintmax_t) state->in.size, m   (u    (uiuble) (state->in_ceze;
+/
+	   (s  (s(stae_time() == state->in_cezrt ?
+	  	  : (safe_time() - state->in_cezrt ?, szAddr);
+  	if}
+	  g_sendf (state, M_GOT, "%s %" PRIuMAX " %" PRIuMAX,
+		   ststate->in.netname,
+		   (u(uintmax_t) state->in.size,
+		   (u(uintmax_t) state->in.time);
+	ifTF_ZERO (&state->in);
+  
+	else
+	f (stello (state->in.f)); >tate->in_c.ze)
+  
+	  Log (1, "GEvd += PRIuMAX " %"tra = tes_r!"s   st  stintmax_t) sttello (state->in.f)); -tate->in_c.ze)
+ )	}
+return rc0; 	}     }
+    }
+else if ((sate->bw.ze >= )
+        	Log (1, "Senoredg thta); blockST PRIuMAX " byte(s))",
+	     stintmax_t) state->in.ze =
+      st}     state->in.ze = at-1	   }
+    state->z_.ady  =;
+	}  }
+if ((s)) 00 && (ssz= )
+    {
+  state->in.o_ror (e1;
+	}     (st!nkd v_exit    {
+      char *sps_err TH"nfinecon %hase_pdy rere_rnor host";     Log (1, "unceiv:i", sta_err
+	i  Loif (state->z_)
+  	d_try (&state->to->fa, "Ca_errBAD_AUIOconfig);
+    st}   return 0;
+  }
+  ftse
+    return 0;1}
+
+static void setundDDRRSTATE *state, BINKD_CONFIG *config)
+{   char buszN_Adr[FTN_ADDR_SZ + 1];
+
+   ar *spszAkas  int i, rcN; struct raakaain *ps;
+  
+Log ((7"skidifDDRR(,%st of%dhmote ondress_te, state->oun);
+   if (!state->topdr);
+ {
+  state->inndr); config->randr);      ate->bypdr); coxao (c(ate->inndr); *izeof (TN_ADDR));
+      gcpy(state->bypdr);config->evpdr, state->fandr);*zeof (TN_ADDR));
+    
+    N NUate->inndr);    r (ps = config->raakask.first; ps; ps = ps->next)
+  {
+    if  i,= (of->nepe & am0x7;
+	 }
+  t rc;
+
+       (state->z_)
+      }
+;
+e1;naddsk.fmp (ms->mask, st "u&(ate->to->fa,  != SKf->nepe & am0x8? P_-: (s0
+    stse
+      {
+;
+e1;naddsk.fmp (ms->mask, state->nfa, state->stfa!= SKf->nepe & am0x8? P_-: (s0
+    st Wehi abskao
+    if (rlt= SKACT_HID&& strc
+
+      stt 0;
+	}    Lowhe to(< state->n_sdr);
+     stif (stelddress_top(state->topdr, + &tff->ne,  != SK;
+=        stchar buf[MAN_ADDR_SZ +
+
+     Lo  Lonaddress_to_str (uf, "wff->ne,  !	}    Lo  Log (, "rehi g thskao", buf, 
+       fa st (st< state->n_sdr);-)          Lo Lgcpve_ftate->topdr, + &tate->topdr, + + "u(ate->n_sdr);-)-i)*zeof (TN_ADDR));
+       fa state->n_sdr);--;
+  }
+    }
+  }
+    se
+# i++	}        /* Chess_tlyoskao
+    ifse if ((st= SKACT_PRESENT& strc
+
+      str (i = 0; i < state->n_sdr, +1; i++
+     stif (sti= state->inndr);  deelddress_top(state->topdr, + &tff->ne,  != SK;
+=eak;
+      }
+ (sti= state->inndr);
+=        star buf[MAN_ADDR_SZ +
+
+     Lo  naddress_to_str (uf, "wff->ne,  !	}    Lo  g (, "reess_tlyg thskao", buf, 
+       fa ate->n_sdr, ++;     stif (state->tondr); > N
+=        stchate->bypdr); coxalna (c(ate->inpdr, state->fandr); *izeof (TN_ADDR));
+      {     _++;     stif}
+  }
+    gcpy(state->bypdr);+ate->n_sdr);-)"wff->ne,  sizeof (TN_ADDR));
+       f    }
+  }
+   strzAkas coxao (c (ate->inndr); *i(N_ADDR_SZ + 1];;
+    *rzAkas co0    r (ps= 0; i < state->n_sdr, ++i)
+    {
+  ftnaddress_to_str (szAdN_Adr[F&tate->topdr,  i, 
+      atrcatszAddkas"re "
+      atrcatszAddkas"rAdN_Adr[F
+      reg_send2 (state, M_ERADR, Addkas"r0
+    ee(sszAddkas
+}
+
+static void sebainerSTATE *state, BINKD_CONFIG *config)
+{
+  stt notz; char buszLocalTe);[60
+
+   ar *spszOpt    me_t ftt; struct ratmatm
+   ar *spdayweek[] = {"Su, bu"Mo, bu"Tu, BA"W", w,"Thu
+	t"Fri
+	t"Sat"}
+   ar *spmonth[] = {"Ja, bu"Feb bu"Mar st"Apr bu"May bu"Ju, b                    "Jul st"Aug
+	t"Sep
+	t"Oct
+	t"Nov""CaDom"}
+ 
+if ((st!no_MD5&& ststate->to)
+ & (     restate->NDMD_ar llenge=MD_getCr llenge(LL, 10ate)) !!ULL)
+     /** Alrnswedg thsi abMUSTend unCRAMessage fr alr ve (&rst; _NUL FR
+      ar res[MD_CHALLENGE_LEN*2+15]}* rex_t. lengthhofptiotrucg */
+	s    atrc(sta	t"OPT "
+      MD_toSucg *(s+4&tate->toMD_ar llenge], state->inMD_ar llenge+1
+      ate->byMflag &;
+    ifg_send2 (state, M_ERL, "Oa	t"")  }
+  ftse
+    reate->byMflag &;
+	}   g_send2 (state, M_ERL, "O"SYS, %.nfig->rasysme);
+    g_send2 (state, M_ERL, "O"ZYZ, %.nfig->rasysop
+    g_send2 (state, M_ERL, "O"LOC, %.nfig->ra (ce i%n
+    g_send2 (state, M_ERL, "O"NDL, %.nfig->rane, info
+   if= safe_time();
+    t  1;tz_off(t%.nfig->ratzoff
+  stae_ti (celme)) (& &sttm
+   f de0 staprt r(stszLocalTe);"%s %, %2d %ss"d %02d:%02d:%02d %c%02d%02d s)",
+             dayweek[tmratm_wday sttmratm_mday, month[tmratm_mon]             tmratm_yea +1900sttmratm_hoursttmratm_minsttmratm_sec             (tz>=0? A_'+' (s'-',bsol(tz)/60,bsol(tz)%60,            tzme[MAtmratm_isdst>? P_: (s0]
+  nde
+    snprt r(stszLocalTe);"%aeof (TazLocalTe);)b             s %, %2d %ss"d %02d:%02d:%02d %c%02d%02d b             dayweek[tm.tm_wday sttm.tm_mday, month[tm.tm_mon]             ttm.tm_yea +1900sttm.tm_hoursttm.tm_minsttm.tm_sec              (tz>=0? A_'+' (s'-',bsol(tz)/60,bsol(tz)%60
 #endif
 
-  msg_send2 (state, M_NUL, "TIME ", szLocalTime);
+    g_send2 (state, M_ERL, "O"TIME, stazLocalTe);)	}   g_send2 fstate, M_ERL, "     "VERre MYME); "/e MYVERre%ssPRIuTCLME); "/e IuTCLVER,"two_os_rucg */()
+   if (!sate->to)
+  !*sate->delay_EOADR)etundDDRRSTate, config);
+   if (!sate->to)
 
-  msg_sendf (state, M_NUL,
-    "VER " MYNAME "/" MYVER "%s " PRTCLNAME "/" PRTCLVER, get_os_string ());
-
-  if (state->to || !state->delay_ADR) send_ADR (state, config);
-
-  if (state->to) {
-    szOpt = xstrdup(" NDA EXTCMD");
-    if (state->NR_flag & WANT_NR) xstrcat(&szOpt, " NR");
-    if (state->ND_flag & THEY_ND) xstrcat(&szOpt, " ND");
-    if (state->crypt_flag & WE_CRYPT) xstrcat(&szOpt, " CRYPT");
-#ifdef WITH_ZLIB
-    if (state->z_canrecv & 1) xstrcat(&szOpt, " GZ");
-#endif
+ {
+  stazOpt xstrdup(" " NDA EXTCMD;
+    if (f=ate->NR_flag & WANANTR) &&xatrcat(&azOpt"re NR;
+    if (f=ate->NR_flag & THEY_ND) &&xatrcat(&azOpt"re ND;
+    if (f=ate->NRypt_flag ==WE_NDYPT) s&xatrcat(&azOpt"re YPT) ;
+	 fdef WITH_PEIB
+    if (!sate->z_cansecv =  ];;&xatrcat(&azOpt"re ") =;endif
 #ifdef WITH_BZLIB2
-    if (state->z_canrecv & 2) xstrcat(&szOpt, " BZ2");
-#endif
-    msg_send2(state, M_NUL, "OPT", szOpt);
-    xfree(szOpt);
-  }
-}
-
-static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
+       (!sate->z_cansecv =  ]2;&xatrcat(&azOpt"re 2") =#endif
+    ifg_sendf 2tate, M_ERL, "O"OPT stazOpt
+    ifxee(szOzOpt
+    } 
+static int NDate_file_rea) nsferiTATE *state, BIN_AQ *le_rBINKD_CONFIG *config)
 {
-  struct stat sb;
-  FILE *f = NULL;
-  int action = -1, i;
-  char *extra;
+  struct skite, sb  FILE *f;
+ NULL;
+	   t argcon %hat-1, i  char *extra;
+  
+if (state->skt.f)
+	{    lose (state->out.f);
+	 }
+_ZERO (&state->out);
+	      /* AlNoile toin_a) nsferi
 
-  if (state->out.f)
-    fclose (state->out.f);
-  TF_ZERO (&state->out);	       /* No file in transfer */
-
-  if (state->flo.f == 0)	       /* There is no open .?lo */
-  {
-    state->maxflvr = MAXFLVR (state->maxflvr, file->flvr);
-    /* Try to open the suggested file */
-    if (file->type == 's')
-    {
-      sb.st_size  = file->size;
-      sb.st_ctime = sb.st_mtime = file->time;
-      f = NULL;
+     (state->skflo == 0)
+       /* AlTheris onno en (s.?lo/
+	s  {
+  state->inx_tflv; coMAXFLVRstate->skx_tflv;filenaskflvr
+    st WeT (&to en (se samuggeed_file wi
+  stif (steenaskpe &  '\0s'  { {
+      stab.st_ze = e1;nenaskze;
+      ++ab.st_cme = saab.st_mme = saeenaskpe));     stf NULL;
     }
-    else
+    stse i   Lo      ch Weloofor *.e file wain_not-to-nd unst */
+        r (i = 0; i < state->n_senond ust *; i++
+     stif (strcmp (,eenaskth, soate->senond ust *[i]!= SK;
+=turn 0;
+       if ((rc= fopen (steenaskth, soteenaskpe &  '\0l'? A_"r+b: "no")) == 0)
+&
+  	ftnite, teenano (, st&sb== -1)
     {
-      /* look for the file in not-to-send list */
-      for (i = 0; i < state->n_nosendlist; i++)
-        if (strcmp(file->path, state->nosendlist[i]) == 0) return 0;
-
-      if ((f = fopen (file->path, (file->type == 'l') ? "r+b" : "rb")) == 0 ||
-	  fstat (fileno (f), &sb) == -1)
-      {
-        Log (1, "%s: cannot open: %s", file->path, strerror (errno));
-        return 0;
+{
+	L        g (2, "Ca: %sc'tt suen (:i", steenaskth, soatrror (errno));
+      re  turn 0;
       }
-      /* We've opened a .?lo */
-      if (file->type == 'l')
-      {
-        state->flo.action = file->action;
-        strcpy (state->flo.path, file->path);
-        memcpy (&state->flo.fa, &file->fa, sizeof(FTN_ADDR));
-        state->flo.f = f;
-      }
+      if We w'veuen (_fias.?lo/
+	s  stif (steenaskpe &  '\0l'    {
+{
+	L        ate->skflo gcon %hateenaskgcon %       fa atry (state->seflo th, soeenaskth, 
+      re  mcpy (&state->ouflo =ast&lenaskf sizeof (TN_ADDR));
+       fa ate->skflo ==  f      }
     }
-    memcpy (&state->out.fa, &file->fa, sizeof(FTN_ADDR));
-    if ((state->ND_flag & WE_ND) == 0)
-      memcpy(&state->ND_addr, &file->fa, sizeof(state->ND_addr));
-    Log (8, "cur remote addr is %u:%u/%u.%u",
-         file->fa.z, file->fa.net, file->fa.node, file->fa.p);
+    /*mcpy (&state->out,  =ast&lenaskf sizeof (TN_ADDR));
+       (sttate->ND_flag & WE_ND) == 0)
+        gcpy(sttate->ou_sear, st&lenaskf sizeof (Tate->ou_sear, ;
+      g (2, "NDcurhmote ondres  %d uu/%u.%u",
+          flenaskf .z,tlenaskf .t, fa-enaskf .te, fa-enaskf .p
+    }
+if ((sate->skflo ==!=)
+    {
+  statry (state->set, .,los ate->seflo th, 
+      whe to(1    {
+      char *spw       if ((r!ady lago_le z_tate->out.path, "r&acon %coate->skflo =)	{    {
+	stlose (state->ouflo =)	  ate->ouflo ==  0	    T.?lo/ase_pd,emove_from_senpoo(()ill runow link %si*/
+  	move_from_senpoo(state, coate->seflo th, so0so0sonfig);
+  F_ZERO (&state->ouflo
+	  turn 0;
+      }
+       if ((rc= gea) nslago_le z_tate->out.path, "rnfig->rarf_les.first)) {
+!=)
+  	g (5, "ra%ssmacpedy %s:  state->out.path, stw)       if Weloofor *.e file wain_not-to-nd unst */
+        r (i = 0; i < state->n_senond ust *; i++
+     stif (strcmp (,w A_w "neenaskth, soate->senond ust *[i]!= SK;
+=    	ifxee(s );
+    	remove_from_senpoo(state, coate->set, .,los	  	   ststate->int.path, stree->out.paacon %config);
+    st}
   }
-  if (state->flo.f != 0)
-  {
-    strcpy (state->out.flo, state->flo.path);
-    while (1)
+fak;
+      }
+}
+      if (st< state->n_senond ust *)onfitinue       if ((rc= fopen (stw A_w "nate->out.path, "rb")) == 0)
+&
+  	ftnite, teenano (, st&sb== -1)
+&
+  	ft(ab.st_me is& S_IFDIR)=!=)
     {
-      char *w;
-
-      if (!read_flo_line (state->out.path, &action, state->flo.f))
-      {
-	fclose (state->flo.f);
-	state->flo.f = 0;
-	/* .?lo closed, remove_from_spool() will now unlink it */
-	remove_from_spool (state, state->flo.path, 0, 0, config);
-	TF_ZERO (&state->flo);
-	return 0;
-      }
-
-      if ((w = trans_flo_line (state->out.path, config->rf_rules.first)) != 0)
-	Log (5, "%s mapped to %s", state->out.path, w);
-
-      /* look for the file in not-to-send list */
-      for (i = 0; i < state->n_nosendlist; i++)
-        if (strcmp(w ? w : file->path, state->nosendlist[i]) == 0) {
-  	  xfree (w);
-  	  remove_from_spool (state, state->out.flo,
-  			     state->out.path, state->out.action, config);
-          break;
-        }
-      if (i < state->n_nosendlist) continue;
-
-      if ((f = fopen (w ? w : state->out.path, "rb")) == 0 ||
-	  fstat (fileno (f), &sb) == -1 ||
-	  (sb.st_mode & S_IFDIR) != 0)
-      {
-	Log (1, "start_file_transfer: %s: %s",
-	     w ? w : state->out.path, strerror (errno));
-        if (f) fclose(f);
-	xfree (w);
-	remove_from_spool (state, state->out.flo,
-			   state->out.path, state->out.action, config);
-      }
-      else
-      {
-	xfree (w);
-	break;
-      }
-    }
-    memcpy (&state->out.fa, &state->flo.fa, sizeof(FTN_ADDR));
-  }
-
-  if (action == -1)
-  {
-    strcpy (state->out.path, file->path);
-    state->out.flo[0] = 0;
-    state->out.action = file->action;
-    state->out.type = file->type;
+{
+	Log (1, "Seate_file_rea) nsfer%s: %s", s     stw A_w "nate->out.path, "ratrror (errno));
+      re   (ste) lose(f)==	  xee(s );
+  	move_from_senpoo(state, coate->set, .,los	  	tstate->int.path, stree->out.paacon %config);
+    st}
   }
   else
+      {
+	stxee(s );
+  	eak;
+      }
+    }
+
+   /*mcpy (&state->out,  =ast&ate->ouflo =astzeof (TN_ADDR));
+    
+     (acceon %ha-1)
+    {
+  statry (state->set, .th, soeenaskth, 
+      ate->set, .,lo] == ;
+      ree->out.paacon %hateenaskgcon %      ate->int.sime &   eenaskpe &  }
+  else
   {
-    state->out.action = action;
-    state->out.type = 0;
+    Loree->out.paacon %hatgcon %      ate->int.sime &   
   }
-  state->out.f = f;
-  state->out.size = sb.st_size;
-  state->out.time = sb.st_mtime;
-  state->waiting_for_GOT = 0;
-  Log(9, "Dont waiting for M_GOT");
-  state->out.start = safe_time();
-  netname (state->out.netname, &state->out, config);
-  if (ispkt(state->out.netname) && state->out.size <= 60)
-  {
-    Log (3, "skip empty pkt %s, %" PRIuMAX " bytes", state->out.path,
-	 (uintmax_t) state->out.size);
-    if (state->out.f) fclose(state->out.f);
-    remove_from_spool (state, state->out.flo,
-                       state->out.path, state->out.action, config);
-    TF_ZERO (&state->out);
-    return 0;
+  state->z_t.f = fop; state->z_t.f ze = stab.st_ze =; state->z_t.f me = saab.st_mme =; state->z_waings _r (OT : 1;0    g ((9"unD'tchwaings or (iGOT, ;
+	   ate->z_t.f zrt ?
+safe_time();
+    tname,
+state->set, .tname, sttate->out, arnfig);
+  if (*bispkttate->set, .tname, )& state->out.size >=<= 6
+    {
+  stg (3, "repp chempty pkt , %" PRIuMAX " byte(s  state->out.path, s
+	uintmax_t) state->int.size >
+    if (f=ate->NRt.f);
+ lose(f)ate->out.f);
+	 }
+remove_from_senpoo(state, coate->set, .,los	                     state->z_t.path, stree->out.paacon %config);
+    st_ZERO (&state->out);
+	}  }
+turn 0;
   }
-#ifdef WITH_PERL
-  if (perl_before_send(state) > 0) {
-    Log(3, "sending %s aborted by Perl before_send()", state->out.path);
-    if (state->out.f) fclose(state->out.f);
-    remove_from_spool (state, state->out.flo,
-                       state->out.path, state->out.action, config);
-    TF_ZERO (&state->out);
-    return 0;
+  fdef BWTH_PERL
+     ((arl_afbere_rendf tate)
+#= )
+ 
+    Log(5,3"skidif
+ %s (%ort(spdy rePl_a bere_rendf t) state->out.path, 
+    if (f=ate->NRt.f);
+ lose(f)ate->out.f);
+	 }
+remove_from_senpoo(state, coate->set, .,los	                     state->z_t.path, stree->out.paacon %config);
+    st_ZERO (&state->out);
+	}  }
+turn 0;
   }
-#endif
-  Log (2, "sending %s as %s (%" PRIuMAX ")",
-       state->out.path, state->out.netname, (uintmax_t) state->out.size);
+  fdif
+    g (2, "skidif
+ %s (%ess",ST PRIuMAX " b,
+         ate->z_t.path, stree->out.patname, cointmax_t) state->int.size >
 #ifdef BW_LIM
-  setup_send_rate_limit(state, config);
+    tup_retundDte_limit(state, config);
 #endif
 
-  z_send_init(state, config, &extra);
-
-  if (state->NR_flag & WE_NR)
-  {
-    msg_sendf (state, M_FILE, "%s %" PRIuMAX " %" PRIuMAX " -1%s",
-	       state->out.netname, (uintmax_t) state->out.size,
-	       (uintmax_t) state->out.time, extra);
-    state->off_req_sent = 1;
+    send_init(state, config, ex&tra) =  
+if (f=ate->NR_flag & WANER) &   {
+  stg_sendf (state, M_GELE_b"%s %" PRIuMAX " %" PRIuMAX " %"-1", s     st tate->out.netname, cointmax_t) state->int.size >		 u    (uintmax_t) state->int.sime, sttra) =    state->z_f_req_sent)  0;
   }
-  else if (state->out.f == NULL)
-    /* status with no NR-mode */
-    msg_sendf (state, M_FILE, "%s %" PRIuMAX " %" PRIuMAX " %" PRIuMAX "%s",
-	       state->out.netname, (uintmax_t) state->out.size,
-	       (uintmax_t) state->out.time,
-	       (uintmax_t) state->out.size, extra);
   else
-    msg_sendf (state, M_FILE, "%s %" PRIuMAX " %" PRIuMAX " 0%s",
-	       state->out.netname, (uintmax_t) state->out.size,
-	       (uintmax_t) state->out.time, extra);
+ f (f=ate->NRt.f); NNULL)
+    st/*
+atus,  withnno NR-me is
+      g_sendf (state, M_GELE_b"%s %" PRIuMAX " %" PRIuMAX " %" PRIuMAX,
+%s %"		    st tate->out.netname, cointmax_t) state->int.size >		 u    (uintmax_t) state->int.sime, s	 u    (uintmax_t) state->int.size =nztra) =    se
+      g_sendf (state, M_GELE_b"%s %" PRIuMAX " %" PRIuMAX " %"0", s     st tate->out.netname, cointmax_t) state->int.size >		 u    (uintmax_t) state->int.sime, sttra) =  
+return 0;1}
 
-  return 1;
+static void selog_d_inof_ssion */har *status, FTATE *state, BINKD_CONFIG *config)
+{
+  char buszN_Adr[FTN_ADDR_SZ + 1];
+
+  chBing (Ste, tatus, f)ste, config);
+#endef BWTH_PERL
+     l_after_hantion *tate, coate-);
+  ndif
+
+     (state->z_)
+      naddress_to_str (szAdN_Adr[F&ttate->to->fa, ); else
+ f (f=ate->NRfa)
+  ftnaddress_to_str (szAdN_Adr[F&tate->tof =    se
+      atry (stadN_Adr[F&t"?")  
+Log (2, "skne (&(%s, %"  FTA/R%s!i/!i%s)PRIuMAX " %/ PRIuMAX " byte(s ),
+         ate->z_ %s? " %s" (safte->tof s? "om th: "no")"rAdN_Adr[F         ate-, f        ate->z_les_rcnt_f, ate->files_rcvd;
+f        ate->z_tes_rcnt) , ate->bytes_rcvd +
 }
 
-static void log_end_of_session (char *status, STATE *state, BINKD_CONFIG *config)
+stid seprotoco(stIOCKET sock, faN_ADNOD*sttochar *burrentlyear, stNKD_CONFIG *config)
 {
-  char szFTNAddr[FTN_ADDR_SZ + 1];
+  chATE *sate->; struct rate, val tv    edet_s  stw  int no_ochrd#endef BWTHN3    unsign filo thi_ou  0;
+	}  unsign filo thu_tnate, ou  0;nfig->rannate, ou *1000000l#endif
+    ruct skiockar, nit er_name, ; strocknan_t er_name, _nan
+safeof (TFer_name, )  char *ehostAXPAHOSTME);N + 1];
+    asistnar *staave_err THLL;
+	   t arA_SZnt)  0;
+	}fdef BWTH_PERL
+     )  ofo1; (wwwwwwwwwwwwwwwwwwwwwwwww/*
+op se %s0e %sort(session */
+     )   l_afonendleshakeone (&0;
+	}fdif
 
-  BinLogStat (status, state, config);
-#ifdef WITH_PERL
-  perl_after_session(state, status);
-#endif
-
-  if (state->to)
-    ftnaddress_to_str (szFTNAddr, &state->to->fa);
-  else if (state->fa)
-    ftnaddress_to_str (szFTNAddr, state->fa);
-  else
-    strcpy (szFTNAddr, "?");
-
-  Log (2, "done (%s%s, %s, S/R: %i/%i (%" PRIuMAX "/%" PRIuMAX " bytes))",
-       state->to ? "to " : (state->fa ? "from " : ""), szFTNAddr,
-       status,
-       state->files_sent, state->files_rcvd,
-       state->bytes_sent, state->bytes_rcvd);
-}
-
-void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *config)
+     (st!it(s_protoco(st&ate, coaock, fatochafig)
+{)}  }
+turn 0  
+if (f=geter_nme,
+staock, fa(ruct skiockar, st)U& er_name, st&er_name, _nan)ha-1)
+    {
+  st (st!nkd v_exit    {
 {
-  STATE state;
-  struct timeval tv;
-  fd_set r, w;
-  int no, rd;
-#ifdef WIN32
-  unsigned long t_out = 0;
-  unsigned long u_nettimeout = config->nettimeout*1000000l;
-#endif
-  struct sockaddr_in peer_name;
-  socklen_t peer_name_len = sizeof (peer_name);
-  char host[MAXHOSTNAMELEN + 1];
-  const char *save_err = NULL;
-  int ADR_sent = 0;
-#ifdef WITH_PERL
-  int ok = 1;                         /* drop to 0 to abort session */
-  int perl_on_handshake_done = 0;
-#endif
-
-  if (!init_protocol (&state, socket, to, config))
-    return;
-
-  if (getpeername (socket, (struct sockaddr *) & peer_name, &peer_name_len) == -1)
+g (1, "Segeter_nme,
+:i", stECRL
+R/()
+    /*mcpt_s(&er_name, st0,afeof (TFer_name, )
+    
+     (ac %s strrentlyear, )   state->.er_name,  0;nrentlyear, ; else
   {
-    if (!binkd_exit)
-      Log (1, "getpeername: %s", TCPERR ());
-    memset(&peer_name, 0, sizeof (peer_name));
-  }
+    Lotwo_hostme, (&er_name, sthoststzeof (Thost)"rnfig->rabackss_olv=    state->.er_name,  0;host  }
+  staeterocont to("%c [%s]"fato A_'o' (s'i',tate->.er_name, =    lockhostsem;
+    g (2, "skidion */withn",ST s,
+         ate->.er_name,          inna_ntoaTFer_name, izenear, ;
+    relea ehostsem;
+  
+if (f=getiockme,
+staock, fa(ruct skiockar, st)U& er_name, st&er_name, _nan)ha-1)
+    {
+  st (st!nkd v_exit    {
+{
+g (1, "Segetiockme,
+:i", stECRL
+R/()
+    /*mcpt_s(&er_name, st0,afeof (TFer_name, )
+    
+ ftse
+    reate->.ou nip=er_name, izenear, .sear, ;  fdef BWTH_PERL
+     ((aate->.)
 
-  if (to && current_addr)
-    state.peer_name = current_addr;
-  else
-  {
-    get_hostname(&peer_name, host, sizeof(host), config->backresolv);
-    state.peer_name = host;
-  }
-  setproctitle ("%c [%s]", to ? 'o' : 'i', state.peer_name);
-  lockhostsem();
-  Log (2, "session with %s (%s)",
-       state.peer_name,
-       inet_ntoa (peer_name.sin_addr));
-  releasehostsem();
-
-  if (getsockname (socket, (struct sockaddr *) & peer_name, &peer_name_len) == -1)
-  {
-    if (!binkd_exit)
-      Log (1, "getsockname: %s", TCPERR ());
-    memset(&peer_name, 0, sizeof (peer_name));
-  }
-  else
-    state.our_ip=peer_name.sin_addr.s_addr;
-
-#ifdef WITH_PERL
-  if (state.to) {
-    char *s = perl_on_handshake(&state, config);
-    perl_on_handshake_done = 1;
-    if (s && *s) {
-      Log (1, "aborted by Perl on_handshake(): %s", s);
-      msg_send2 (&state, M_ERR, s, 0);
-      ok = 0;
+ {
+  star *sta ps-l_afonendleshaket&ate, config);
+    st l_afonendleshakeone (&0;1    if (stas st*s)
+      Log (1, "fsort(spdy rePl_a onendleshaket):i", sta
+    st}
+g_send2 (st&ate, M_ERR, "Cs"r0
+        ofo1;
     }
   }
-  if (ok)
-#endif
-  banner (&state, config);
-#ifdef WITH_PERL
-  if (!ok) ;
-  else
-#endif
-  if (n_servers > config->max_servers && !to)
-  {
-    Log (1, "too many servers");
-    msg_send2 (&state, M_BSY, "Too many servers", 0);
-  }
-  else
-  {
-    while (1)
+#eif (stok)endif
+    bainerST&ste, config);
+#endef BWTH_PERL
+     (st!ok) ; else
+  ndif
+     (rlsentrver= > nfig->rax_t)ntrver= 
+ (s)
     {
-      /* If the queue is not empty and there is no file in tranafer */
-      if (!state.local_EOB && state.q && state.out.f == 0 &&
-          !state.waiting_for_GOT && !state.off_req_sent && state.state!=P_NULL)
-      {
-	FTNQ *q;
-
-	while (1)
-	{			       /* Next .pkt, .flo or a file */
-	  q = 0;
-	  if (state.flo.f ||
-	      (q = select_next_file (state.q, state.fa, state.nfa)) != 0)
-	  {
-	    if (start_file_transfer (&state, q, config))
-	      break;
-	  }
-	  else
-	  {
-	    q_free (state.q, config);
-	    state.q = 0;
-	    break;
-	  }
+  stg (3, "fstoo mansentrver=;
+    ifg_send2 (st&ate, M_ERY, "N"Too mansentrver=;"r0
+      else
+  {
+    Lowhe to(1    {
+      ch/*
+Ithe fieue (s onnothempty d BZtheris onno le toin_a) naf *
+	/ { {
+if (!state->. (celOB && state->.q& state->.t.f); NNU&& (     re    tate->.waings _r (OT : 
+ (sate->.t_req_sent)   state->.ate->!=P_LL)
+    stif{
+	N_AQ *q	}
+	whe to(1  	{	       /* AlNt)
+ .pk fa.,lo/ (iaile wi
+  	  q =;
 	}
-      }
-
-      /* No more files to send in this batch, so send EOB */
-      if (!state.q && !state.local_EOB && state.state != P_NULL && state.sent_fls == 0)
-      {
-        /* val: don't send EOB for binkp/1.0 if delay_EOB is set */
-	if (!state.delay_EOB || (state.major * 100 + state.minor > 100)) {
-	  state.local_EOB = 1;
-	  msg_send2 (&state, M_EOB, 0, 0);
+re ((aate->.flo ==
+  	ft  (uiq =;seleca_nt)
+ile_r(aate->.q,tate->., state->.n,  !=!-1
+	{
+Lo	if}
+if (state_file_rea) nsferiT&ate, M_qchafig)
+{)}	}
+  }
+fak;
+  	}
+  	stse
+  
+  	if}
+ifq_ee(sszAte->.q,tnfig);
+  	    ate->.q&=;
+  	    fak;
+  	}
+  	}     }
+       if AlNoimorfile wnT sped unin_as litch =coaoped unB &&	/ { {
+if (!state->.q 
+ (sate->. (celOB && state->.ate ==!P_SELL)
+& state->.at_fls + ==)
+    {
+{
+	Lwwwwwwww/*
+l: /sd't ched unB &&r (inkd p/1.0  defiy_EOB && lit_s 
+  	 (!state->.fiy_EOB && (state->.majo; *i100 state->.mino; > 100 {
+   state->. (celOB &&0;
+	  elg_send2 (st&ate, M_ERR &, 0"r0
         }
-      }
-
-      FD_ZERO (&r);
-      FD_ZERO (&w);
-      FD_SET (socket, &r);
-      if (state.msgs ||
-          (state.out.f && !state.off_req_sent && !state.waiting_for_GOT) ||
-          state.oleft || state.send_eof)
-	FD_SET (socket, &w);
-
-      if (state.remote_EOB && state.sent_fls == 0 && state.local_EOB &&
-	  state.GET_FILE_balance == 0 && state.in.f == 0 && state.out.f == 0)
-      {
-	/* End of the current batch */
-	if (state.rcvdlist)
+  }
+  el       ifFDERO (&str
+	i  LoifFDERO (&stw
+	i  LoifFDES (STaock, fa&r
+	i  Loif (state->.gs */
+          /*(ate->.t.f); 
+ (sate->.t_req_sent)   sttate->.waings _r (OT :)/
+          /*ate->.tft =  state->.id_stf ()}	FDES (STaock, fa&w)       if (state->.vete aOB && state->.at_fls + ==)
+& state->. (celOB && s  state->.T_FILE_balance;
+o==)
+& state->..nef N=)
+& state->.t.f); NNU&    stif{
+	/*
+E unothe firrentlyotch = 
+  	 (!sate->.vdlist, 	{
+	  state->.q&=;ogrss(bcvdlist (&state->state->.q,tnfig);
+  	  qo_stkillst (&state->.killst (&ttate->.n_killst (&tate->.q
+	  stee(wcvdlist (&state->.vdlist, &state->.rcvdlist, 
+  
+	elg (3,6"fstherisweris!i%gs */in_as litch = state->.gs_in_batch =
+	if (state->.gs_in_batch ==<= 2& (state->.majo; *i100 state->.mino; <= 100 {{
+	     {     _set_status(ch""&state->._sear, st&ate->config);
+    st}
+  }
+ate->._sear, .z=-1  	  fak;
+  		else
 	{
-	  state.q = process_rcvdlist (&state, state.q, config);
-	  q_to_killlist (&state.killlist, &state.n_killlist, state.q);
-	  free_rcvdlist (&state.rcvdlist, &state.n_rcvdlist);
+	  me Setrt ?
+e fixt)
+ bch = 
+  	 tate->.gs_in_batch =&=;
+  	  ate->.vete aOB &&=tate->. (celOB &&0;
 	}
-	Log (6, "there were %i msgs in this batch", state.msgs_in_batch);
-	if (state.msgs_in_batch <= 2 || (state.major * 100 + state.minor <= 100))
-	{
-          ND_set_status("", &state.ND_addr, &state, config);
-          state.ND_addr.z=-1;
-	  break;
-	}
-	else
-	{
-	  /* Start the next batch */
-	  state.msgs_in_batch = 0;
-	  state.remote_EOB = state.local_EOB = 0;
-	  if (OK_SEND_FILES (&state, config))
-	    state.q = q_scan_boxes (state.q, state.fa, state.nfa, config);
-	  continue;
-	}
-      }
-
-#if defined(WIN32) /* workaround winsock bug */
-    if (t_out < u_nettimeout)
-    {
-#endif
-      tv.tv_sec = config->nettimeout;	       /* Set up timeout for select() */
-      tv.tv_usec = 0;
-      Log (8, "tv.tv_sec=%lu, tv.tv_usec=%lu",
-	   (unsigned long) tv.tv_sec, (unsigned long) tv.tv_usec);
-      no = select (socket + 1, &r, &w, 0, &tv);
-      if (no < 0)
-        save_err = TCPERR ();
-      Log (8, "selected %i (r=%i, w=%i)", no, FD_ISSET (socket, &r), FD_ISSET (socket, &w));
-#if defined(WIN32) /* workaround winsock bug */
+re ((aOSET)_seLE_bSST&ste, config);
+) 	    ate->.q&=;sencabatoxwnTaate->.q,tate->., state->.n, ,tnfig);
+  	  nfitinue  	}     }
+   f defined(WITHN3 )* Alworkarou unwinaock bugo
+    if (rlt_ou  <hu_tnate, ou     {
+  ndif
+      sttv.tv_sec 0;nfig->rannate, ou 	      /* Alt flup te, ou  r (iaeleca()&	/ { {
+iftv.tv_usec 0;0      Log (4, "NDtv.tv_sec=%lu,ftv.tv_usec=u % f
+  (uinnsign filo t)ttv.tv_sec,uinnsign filo t)ttv.tv_usec
+    st}
+)) 0;aelecaSTaock,  st1 t& st&w, 0"r&tv
+	i  Loif (st)) <)
+          aave_err THECRL
+R (
+      stg (4, "NDaeleca fi!i%sr=%i, w=%i) st_ochFDEISS (STaock, fa&r
+chFDEISS (STaock, fa&w)); f defined(WITHN3 )* Alworkarou unwinaock bugo
+    if    stse i   Lo      chg (4, "NDwin9xnwinaock workarou u: te, ou  deteca fi(nnate, ou =%u sec,ut_ou =u % sec) %.nfig->rannate, ou ,ut_ou /1000000
+    st}
+)) 0;
     }
-    else
-    {
-      Log (8, "win9x winsock workaround: timeout detected (nettimeout=%u sec, t_out=%lu sec)", config->nettimeout, t_out/1000000);
-      no = 0;
+  ndif
+      stbsy_ sh AK(nfig);
+        /* Al sh AK*.bsy'*/
+        (e r)) 00 &      {
+	ifate->..o_ror (e1;
+	}og (1, "Sete, ou !"
+	if (st)
+  	bad_try (&st->fa, "C"Te, ou !"BAD_AUIOconfig);
+  	eak;
+      }
     }
-#endif
-      bsy_touch (config);		       /* touch *.bsy's */
-      if (no == 0)
-      {
-	state.io_error = 1;
-	Log (1, "timeout!");
-	if (to)
-	  bad_try (&to->fa, "Timeout!", BAD_IO, config);
+else
+ f (f=)) <)
+        	ifate->..o_ror (e1;
+	}o (st!nkd v_exit  
+	  Log (1, "GEaeleca%s (%"gs: "%!i%%i) staave_errBAaock, fatv.tv_sec
+  	if (st)
+  	babad_try (&st->fa, "Caave_errBAD_AUIOconfig);
+  
 	break;
       }
-      else if (no < 0)
-      {
-	state.io_error = 1;
-	if (!binkd_exit)
-	{
-	  Log (1, "select: %s (args: %i %i)", save_err, socket, tv.tv_sec);
-	  if (to)
-	    bad_try (&to->fa, save_err, BAD_IO, config);
-	}
-	break;
-      }
-      rd = FD_ISSET (socket, &r);
-      if (rd)       /* Have something to read */
-      {
-	if (!recv_block (&state, config))
-	  break;
-      }
-#ifdef WITH_PERL
-      if (state.nfa && !perl_on_handshake_done) {
-        char *s = perl_on_handshake(&state, config);
-        perl_on_handshake_done = 1;
-        if (s && *s) {
-          Log (1, "aborted by Perl on_handshake(): %s", s);
-          msg_send2 (&state, M_ERR, s, 0);
-          break;
-        }
-      }
-#endif
-      if (!state.to && state.delay_ADR && state.nfa && !ADR_sent) { send_ADR (&state, config); ADR_sent = 1; }
-      if (FD_ISSET (socket, &w))       /* Clear to send */
-      {
-	no = send_block (&state, config);
-#if defined(WIN32) /* workaround winsock bug - give up CPU */
-        if (!rd && no == 2)
-        {
-	  FD_ZERO (&r);
-	  FD_SET (socket, &r);
-	  tv.tv_sec = 0;
-	  tv.tv_usec = w9x_workaround_sleep; /* see iphdr.h */
-	  if (!select (socket + 1, &r, 0, 0, &tv))
-	  {
-	    t_out += w9x_workaround_sleep;
-	  } else { t_out = 0; }
-        }
-        else { t_out = 0; }
-#endif
-	if (!no)
-	  break;
-      }
-#if defined(WIN32) /* workaround winsock bug - give up CPU */
-      else { t_out = 0; }
-#endif
     }
-  }
-
-  /* Flush input queue */
-  while (!state.io_error)
-  {
-    if ((no = recv(socket, state.ibuf, BLK_HDR_SIZE + MAX_BLKSIZE, 0)) == 0)
-      break;
-    if (no < 0)
-    {
-      if (TCPERRNO != TCPERR_WOULDBLOCK && TCPERRNO != TCPERR_AGAIN)
-	state.io_error = 1;
-      break;
-    }
-    else
-      Log (9, "Purged %d bytes from input queue", no);
-  }
-
-  /* Still have something to send */
-  while (!state.io_error &&
-        (state.msgs || (state.optr && state.oleft)) && send_block (&state, config));
-
-  if (state.local_EOB && state.remote_EOB && state.sent_fls == 0 &&
-      state.GET_FILE_balance == 0 && state.in.f == 0 && state.out.f == 0)
-  {
-    /* Successful session */
-    log_end_of_session ("OK", &state, config);
-    process_killlist (state.killlist, state.n_killlist, 's');
-    inb_remove_partial (&state, config);
-    if (to)
-      good_try (&to->fa, "CONNECT/BND", config);
-  }
-  else
-  {
-    /* Unsuccessful session */
-    log_end_of_session ("failed", &state, config);
-    process_killlist (state.killlist, state.n_killlist, 0);
-    if (to)
-    {
-      /* We called and there were still files in transfer -- restore poll */
-      if (tolower (state.maxflvr) != 'h')
-      {
-	Log (4, "restoring poll with `%c' flavour", state.maxflvr);
-	create_poll (&state.to->fa, state.maxflvr, config);
+  r  =;FDEISS (STaock, fa&r
+	i  Loif (strd)     /* AlHe %ssomeas  thiolady /
+        	if (stfcv_rablockST&ste, config);
+) 	  eak;
       }
-    }
-  }
-
-  if (to && state.r_skipped_flag && config->hold_skipped > 0)
-  {
-    Log (2, "holding skipped mail for %lu sec",
-	 (unsigned long) config->hold_skipped);
-    hold_node (&to->fa, safe_time() + config->hold_skipped, config);
-  }
-
-  Log (4, "session closed, quitting...");
-  deinit_protocol (&state, config);
-  evt_set (state.evt_queue);
-  state.evt_queue = NULL;
+  fdef BWTH_PERL
+      in (state->.n,   stt l_afonendleshakeone (
+=        star buta ps-l_afonendleshaket&ate, config);
+    st  st l_afonendleshakeone (&0;1    if  if (stas st*s)
+      Lo  Log (1, "fsort(spdy rePl_a onendleshaket):i", sta
+    st}
+st}
+g_send2 (st&ate, M_ERR, "Cs"r0
+          }
+fak;
+      }
 }
+      if  ndif
+      st (!state->. %s state->.fiy_EODRRS state->.n,   sttA_SZnt) )
+ etundDDRRST&ate, config);
+ rA_SZnt)  0;1;
+      if (stFDEISS (STaock, fa&w))     /* AlClearT sped un
+        	if)) 0;aendDblockST&ste, config);
+; f defined(WITHN3 )* Alworkarou unwinaock bugo- gi %sup CPU/
+        if (stfcd  st)) 00 2        re{}	ifFDERO (&str
+	i	ifFDES (STaock, fa&r
+	i	sttv.tv_sec 0;0	i	sttv.tv_usec 0;w9x_workarou u_sleep}* res(ssiph, .= 
+  	 t (!staelecaSTaock,  st1 t& st0, 0"r&tv
+	{
+Lo	if}
+ift_ou  +0;w9x_workarou u_sleep} 	}
+ lse
+ f{hi_ou  0;
+	 }
+  }
+    }
+  }
+    se
+#f{hi_ou  0;
+	 }
+ndif
+
+/	 (st!no) 	  eak;
+      }
+  fdeefined(WITHN3 )* Alworkarou unwinaock bugo- gi %sup CPU/
+        se
+#f{hi_ou  0;
+	 }
+ndif
+
+/  }
+  }
+   st AlFlushsi put eue (s
+    whe to(!ate->..o_ror (! {
+    Lo ((st)) 0;cv (Taock, faate->..f, "wBLK_H_SZ IZ: +oMAX_BLK IZ:	)) != SK
+        eak;
+       (f=)) <)
+            if (!tTCRL
+RNO=!THECRL
+R_WOULDBLOCKo stTCRL
+RNO=!THECRL
+R_AGAIN  fate->..o_ror (e1;
+	}      eak;
+          else b     Log (1,9"unPurg fi!d tes_r om thi put eue ( st_o
+    
+     Setrl ruhe %ssomeas  thioled un
+    whe to(!ate->..o_ror (& (     re  tate->.gs */
+ *(ate->.tptr& state->.tft =))& staendDblockST&ste, config);
+=  
+if (f=ate->. (celOB && state->.vete aOB && state->.at_fls + ==)
+& s     state->.T_FILE_balance;
+o==)
+& state->..nef N=)
+& state->.t.f); NNU&    {   st/*
+Suess(bfulession */
+     elog_d_inof_ssion */h"OK"st&ate->config);
+    stogrss(bckillst (&sate->.killst (&tate->.n_killst (&t0s' 	 }
+  t b_move_frrtial ( t&ate, config);
+    st (st)
+      stgootry (&st->fa, "C"CONNECT/BND"config);
+    }
+ifse
+  {
+    Lo/*
+Unsuess(bfulession */
+     elog_d_inof_ssion */h"fae td"st&ate->config);
+    stogrss(bckillst (&sate->.killst (&tate->.n_killst (&t0
+    st (st)
+      {        We wic lled d BZtheriswerissrl rule wnTin_a) nsferi--;cvstorfipo ru
+        (e rtoloweriTate->.matflv;!=!-1'h'    {
+{
+	Log (1,4"uncestor  thpo ruwithn`%c'lagsvour state->.gatflv;!} 	cak; aOpo rustate->.->fa, "Cate->.gatflv;config);
+    st}
+  }
+  }   
+     (ac %s state->.v_ep cpedlag =  strfig->rahold_ep cped= )
+    {
+  stg (2, "skholdg thsp cped=mail r (iu % sec"s
+	uinnsign filo t)trfig->rahold_ep cped
+    sthold_te, &st->fa, "Caa_time() - +trfig->rahold_ep cpedconfig);
+    }
+
+  g (2,4"Fission */ase_pd,equitngs ...;
+    init(s_protoco(st&ate, config);
+    t_qut_s Tate->.t_queue), 	   ate->.t_queue), THLL;
+	 
