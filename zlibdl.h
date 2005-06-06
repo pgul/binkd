@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19  2005/06/06 16:43:28  stream
+ * Updates for OS/2+Watcom+zlib compilation
+ *
  * Revision 2.18  2004/08/11 18:31:15  hbrew
  * zlibdl.h: include <windows.h> for compatibility with zlib 1.2.1
  *
@@ -61,10 +64,18 @@
 #elif defined(__MINGW32__)
 #define ZEXT WINAPI
 #define ZEXP
+#elif defined(__WATCOMC__) && defined(OS2)
+#define ZEXP cdecl
+#define ZEXT
 #else
 #define ZEXP
 #define ZEXT
 #endif
+#endif
+
+#if defined(__WATCOMC__) && defined(OS2)
+/* Popular z.dll compiled by EMX with cdecl calling conv. */
+#define ZEXPORT cdecl
 #endif
 
 /* ---------------- zlib stuff --------------- */
