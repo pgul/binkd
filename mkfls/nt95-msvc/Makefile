@@ -25,13 +25,13 @@ OUTDIRSUFFIX=
 !endif
 
 !ifndef DEBUG
-CFLAGS=    -nologo -M$(RTLTYPE)  -W3 -GX -Ox -c
+CFLAGS=    -nologo -M$(RTLTYPE)  -W3 -J -GX -Ox -c
 CDEBUG=
 OUTDIR=    .\Release$(OUTDIRSUFFIX)$(RTLSUFFIX)
 BINKDSBR=
 LDEBUG=
 !else
-CFLAGS=    -nologo -M$(RTLTYPE)d -W3 -Gm -GX -ZI -Od -c
+CFLAGS=    -nologo -M$(RTLTYPE)d -W3 -J -Gm -GX -ZI -Od -c
 CDEBUG=    -D"_DEBUG"
 OUTDIR=    .\Debug$(OUTDIRSUFFIX)$(RTLSUFFIX)
 BINKDSBR=  -FR"$(OUTDIR)\\"
