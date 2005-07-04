@@ -542,3 +542,7 @@ NT/95:  ctrl-c problems fixed
 	Fixed bug in client manager, sometimes node was not polled
 	(Roman Trunov).
 
+	ND-mode was broken in 0.9.8 (fixed by Roman Trunov).
+
+	Do not run events with immediate-flag twice.
+
