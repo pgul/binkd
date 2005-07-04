@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9.2.3  2005/07/04 18:08:29  gul
+ * Do not exec immediate-events twice
+ *
  * Revision 2.9.2.2  2004/02/29 08:54:41  gul
  * Fix *A@ macro on call events
  * (patch by Victor Levenets).
@@ -419,7 +422,7 @@ FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename0,
 	    Log (1, "mksrifpaths: error");
 	}
       }
-      else
+      else if (st)
 	*eq = run_args(*eq, curr->command, filename0, fa, nfa, prot, listed, peer_name, st, curr->imm);
     }
   }
