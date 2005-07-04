@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2005/07/04 18:24:43  gul
+ * Move events checking and running to inb_test() for reducing repeated code;
+ * do not run immediate events twice;
+ * fixed argus-style freqs (not tested).
+ *
  * Revision 2.4  2003/10/29 21:08:40  gul
  * Change include-files structure, relax dependences
  *
@@ -62,7 +67,8 @@ int evt_test (EVTQ **eq, char *filename, EVT_FLAG *evt_flags);
  * if the name matches one of our "exec"'s
  */
 FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename0, FTN_ADDR *fa,
-               int nfa, int prot, int listed, char *peer_name, STATE *st, BINKD_CONFIG *config);
+               int nfa, int prot, int listed, char *peer_name, int imm_freq,
+               STATE *st, BINKD_CONFIG *config);
 
 /*
  * Sets flags for all matched with evt_test events

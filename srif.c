@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.18  2005/07/04 18:24:43  gul
+ * Move events checking and running to inb_test() for reducing repeated code;
+ * do not run immediate events twice;
+ * fixed argus-style freqs (not tested).
+ *
  * Revision 2.17  2004/06/07 10:47:12  gul
  * Touch flag if its already exists
  *
@@ -99,6 +104,7 @@
 #include "tools.h"
 #include "run.h"
 #include "ftnq.h"
+#include "prothlp.h"
 
 static EVTQ *evt_queue(EVTQ *eq, char evt_type, char *path)
 {
@@ -402,7 +408,8 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa,
  */
 FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename,
 	       FTN_ADDR *fa, int nfa,
-	       int prot, int listed, char *peer_name, STATE *st, BINKD_CONFIG *config)
+	       int prot, int listed, char *peer_name, int imm_freq,
+	       STATE *st, BINKD_CONFIG *config)
 {
   EVT_FLAG *curr;
 
@@ -412,7 +419,7 @@ FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename,
     {
       if (strstr (curr->command, "*S") || strstr (curr->command, "*s"))
       {
-	if (!st)
+	if (imm_freq)
 	{
 	  char srf[MAXPATHLEN + 1], rsp[MAXPATHLEN + 1];
 	  if (mksrifpaths (fa, srf, rsp, config))
@@ -433,7 +440,8 @@ FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename,
 	  }
 	  else
 	    Log (1, "mksrifpaths: error");
-	}
+	} else
+	  add_to_rcvdlist (&st->rcvdlist, &st->n_rcvdlist, filename);
       }
       else
 	*eq = run_args(*eq, curr->command, filename, fa, nfa, prot, listed, peer_name, st, curr->imm);

@@ -2,6 +2,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2005/07/04 18:24:43  gul
+ * Move events checking and running to inb_test() for reducing repeated code;
+ * do not run immediate events twice;
+ * fixed argus-style freqs (not tested).
+ *
  * Revision 2.7  2004/10/19 16:28:19  gul
  * Do not remove complete received but not renamed partial files
  * for prevent data loss in ND-mode.
@@ -56,7 +61,7 @@ FILE *inb_fopen (STATE *state, BINKD_CONFIG *config);
  * File is complete, rename it to it's realname. 1=ok, 0=failed.
  * Sets realname[MAXPATHLEN]
  */
-int inb_done (TFILE *file, char *real_name, STATE *state, BINKD_CONFIG *config);
+int inb_done (TFILE *file, STATE *state, BINKD_CONFIG *config);
 
 /*
  * Remove partial file

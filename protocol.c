@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.170  2005/07/04 18:24:43  gul
+ * Move events checking and running to inb_test() for reducing repeated code;
+ * do not run immediate events twice;
+ * fixed argus-style freqs (not tested).
+ *
  * Revision 2.169  2005/06/06 17:13:56  stream
  * Fuck this buggy CVS compression!
  *
@@ -806,7 +811,7 @@ static FTNQ *process_rcvdlist (STATE *state, FTNQ *q, BINKD_CONFIG *config)
   {
     q = evt_run(&(state->evt_queue), q, state->rcvdlist[i].name, state->fa,
 		state->nfa, state->state == P_SECURE, state->listed_flag,
-		state->peer_name, NULL, config);
+		state->peer_name, 1, state, config);
   }
   return q;
 }
@@ -2326,34 +2331,9 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
     }
     if ((state->ND_flag & THEY_ND) && state->in_complete.netname[0])
     { /* rename complete received file to its true form */
-      char realname[MAXPATHLEN + 1];
-      char szAddr[FTN_ADDR_SZ + 1];
-
-      if (inb_done (&(state->in_complete), realname, state, config) == 0)
+      /* and run events */
+      if (inb_done (&(state->in_complete), state, config) == 0)
         return 0; /* error, drop session */
-      /* val: check for *.req if got M_NUL FREQ */
-      if (state->delay_EOB && isreq(state->in_complete.netname))
-        state->delay_EOB--;
-      /* val: /check */
-      if (*realname)
-      {
-        /* Set flags */
-        if(evt_test(&(state->evt_queue), realname, config->evt_flags.first))
-          state->q = evt_run(&(state->evt_queue), state->q, realname, state->fa,
-	         state->nfa, state->state == P_SECURE, state->listed_flag,
-                 state->peer_name, state, config);
-        /* We will run external programs using this list */
-        add_to_rcvdlist (&state->rcvdlist, &state->n_rcvdlist, realname);
-      }
-      ftnaddress_to_str (szAddr, state->fa);
-      state->bytes_rcvd += state->in_complete.size;
-      ++state->files_rcvd;
-      Log (2, "rcvd: %s (%" PRIuMAX ", %.2f CPS, %s)",
-	   state->in_complete.netname,
-	   (uintmax_t) state->in_complete.size,
-	   (double) (state->in_complete.size) /
-	   (safe_time() == state->in_complete.start ?
-	                1 : (safe_time() - state->in_complete.start)), szAddr);
       TF_ZERO (&state->in_complete);
     }
     if (state->in.f == 0)
@@ -2915,38 +2895,18 @@ static int EOB (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
   UNUSED_ARG(sz);
 
   state->remote_EOB = 1;
-  state->delay_EOB = 0; /* val: we can do it anyway now :) */
   if (state->in.f)
   {
     close_partial(state, config);
   }
   if ((state->ND_flag & THEY_ND) && state->in_complete.netname[0])
   { /* rename complete received file to its true form */
-    char realname[MAXPATHLEN + 1];
-    char szAddr[FTN_ADDR_SZ + 1];
-
-    if (inb_done (&(state->in_complete), realname, state, config) == 0)
+    /* and run events */
+    if (inb_done (&(state->in_complete), state, config) == 0)
       return 0;
-    if (*realname)
-    {
-      /* Set flags */
-      if (evt_test(&(state->evt_queue), realname, config->evt_flags.first))
-        state->q = evt_run(&(state->evt_queue), state->q, realname, state->fa,
-	       state->nfa, state->state == P_SECURE, state->listed_flag,
-               state->peer_name, state, config);
-      /* We will run external programs using this list */
-      add_to_rcvdlist (&state->rcvdlist, &state->n_rcvdlist, realname);
-    }
-    ftnaddress_to_str (szAddr, state->fa);
-    state->bytes_rcvd += state->in_complete.size;
-    ++state->files_rcvd;
-    Log (2, "rcvd: %s (%" PRIuMAX ", %.2f CPS, %s)", state->in_complete.netname,
-         (uintmax_t) state->in_complete.size,
-         (double) (state->in_complete.size) /
-         (safe_time() == state->in_complete.start ?
-                      1 : (safe_time() - state->in_complete.start)), szAddr);
     TF_ZERO (&state->in_complete);
   }
+  state->delay_EOB = 0; /* val: we can do it anyway now :) */
   return 1;
 }
 
@@ -3131,9 +3091,6 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
         }
         if (ftello (state->in.f) == state->in.size)
         {
-          char szAddr[FTN_ADDR_SZ + 1];
-          char realname[MAXPATHLEN + 1];
-
           if (fclose (state->in.f))
           {
             Log (1, "Cannot fclose(%s): %s!",
@@ -3164,26 +3121,8 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
 	  }
 	  else
 	  {
-	    if (inb_done (&(state->in), realname, state, config) == 0)
+	    if (inb_done (&(state->in), state, config) == 0)
               return 0;
-	    if (*realname)
-	    {
-	      /* Set flags */
-              if (evt_test(&(state->evt_queue), realname, config->evt_flags.first))
-                state->q = evt_run(&(state->evt_queue), state->q, realname,
-		       state->fa, state->nfa, state->state == P_SECURE,
-		       state->listed_flag, state->peer_name, state, config);
-	      /* We will run external programs using this list */
-	      add_to_rcvdlist (&state->rcvdlist, &state->n_rcvdlist, realname);
-	    }
-	    ftnaddress_to_str (szAddr, state->fa);
-	    state->bytes_rcvd += state->in.size;
-	    ++state->files_rcvd;
-	    Log (2, "rcvd: %s (%" PRIuMAX ", %.2f CPS, %s)", state->in.netname,
-	         (uintmax_t) state->in.size,
-	         (double) (state->in.size) /
-	         (safe_time() == state->in.start ?
-		  1 : (safe_time() - state->in.start)), szAddr);
 	  }
 	  msg_sendf (state, M_GOT, "%s %" PRIuMAX " %" PRIuMAX,
 		     state->in.netname,

@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.35  2005/07/04 18:24:43  gul
+ * Move events checking and running to inb_test() for reducing repeated code;
+ * do not run immediate events twice;
+ * fixed argus-style freqs (not tested).
+ *
  * Revision 2.34  2004/10/29 11:16:33  gul
  * Fixed bug with check required free space if off_t is signed long
  * and getfree() returns ULONG_MAX.
@@ -165,6 +170,7 @@
 #include "readdir.h"
 #include "ftnaddr.h"
 #include "ftnnode.h"
+#include "srif.h"
 #ifdef WITH_PERL
 #include "perlhooks.h"
 #endif
@@ -517,11 +523,12 @@ int check_pkthdr(STATE *state, char *netname, char *tmp_name,
 
 /*
  * File is complete, rename it to it's realname. 1=ok, 0=failed.
- * Sets realname[MAXPATHLEN]
  */
-int inb_done (TFILE *file, char *real_name, STATE *state, BINKD_CONFIG *config)
+int inb_done (TFILE *file, STATE *state, BINKD_CONFIG *config)
 {
   char tmp_name[MAXPATHLEN + 1];
+  char real_name[MAXPATHLEN + 1];
+  char szAddr[FTN_ADDR_SZ + 1];
   char *s, *u, *netname;
   int  unlinked = 0, i;
 
@@ -623,12 +630,29 @@ int inb_done (TFILE *file, char *real_name, STATE *state, BINKD_CONFIG *config)
   /* Replacing .dt with .hr and removing temp. file */
   strcpy (strrchr (tmp_name, '.'), ".hr");
   sdelete (tmp_name);
+
+  if (*real_name)
+  {
+    /* Set flags */
+    if (evt_test(&(state->evt_queue), real_name, config->evt_flags.first))
+      state->q = evt_run(&(state->evt_queue), state->q, real_name, state->fa,
+               state->nfa, state->state == P_SECURE, state->listed_flag,
+               state->peer_name, state->delay_EOB > 0, state, config);
+  }
+  if (state->delay_EOB && isreq(file->netname))
+    state->delay_EOB--;
+  ftnaddress_to_str (szAddr, state->fa);
+  state->bytes_rcvd += file->size;
+  state->files_rcvd++;
+  Log (2, "rcvd: %s (%" PRIuMAX ", %.2f CPS, %s)", file->netname,
+       (uintmax_t) file->size,
+       (double) (file->size) /
+       (safe_time() == file->start ? 1 : (safe_time() - file->start)), szAddr);
   return 1;
 }
 
 /*
  * Checks if the file already exists in our inbound. !0=ok, 0=failed.
- * Sets realname[MAXPATHLEN]
  */
 int inb_test (char *filename, off_t size, time_t t,
 	       char *inbound, char fp[])
