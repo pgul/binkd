@@ -1,3 +1,9 @@
+2005/07/04 21:24:49 1.0a-448 gul
+inbound.c,2.34,2.35 inbound.h,2.7,2.8 protocol.c,2.169,2.170 srif.c,2.17,2.18 srif.h,2.4,2.5
+Move events checking and running to inb_test() for reducing repeated code;
+do not run immediate events twice;
+fixed argus-style freqs (not tested).
+
 2005/06/06 20:14:07 1.0a-447 stream
 protocol.c,2.168,2.169
 Fuck this buggy CVS compression!
