@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.36  2005/08/08 10:12:04  val
+ * fix segfault when a remote doesn't provide an address but sends a file
+ * (bug reported by andrew clarke)
+ *
  * Revision 2.35  2005/07/04 18:24:43  gul
  * Move events checking and running to inb_test() for reducing repeated code;
  * do not run immediate events twice;
@@ -211,7 +215,7 @@ static int creat_tmp_name (char *s, TFILE *file, FTN_ADDR *from, char *inbound)
 	delete (s);
 	return 0;
       }
-      ftnaddress_to_str (node, from);
+      if (from) ftnaddress_to_str (node, from); else strcpy(node, "0:0/0.0@unknown");
       if (fprintf (f, "%s %" PRIuMAX " %" PRIuMAX " %s\n", file->netname,
                    (uintmax_t) file->size,
                    (uintmax_t) file->time, node) <= 0)
