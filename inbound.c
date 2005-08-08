@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12.2.4  2005/08/08 11:07:45  gul
+ * Applied patch from current:
+ * fix segfault when a remote doesn't provide an address but sends a file
+ * (bug reported by andrew clarke, fixed by val khokhlov)
+ *
  * Revision 2.12.2.3  2004/10/21 17:02:02  gul
  * Rename trunc() -> trunc_file() due to conflicts under OS/2 EMX and SuSE
  *
@@ -141,7 +146,8 @@ static int creat_tmp_name (char *s, char *file, off_t size,
 	delete (s);
 	return 0;
       }
-      ftnaddress_to_str (node, from);
+      if (from) ftnaddress_to_str (node, from);
+      else strcpy(node, "0:0/0.0@unknown");
       if (fprintf (f, "%s %li %li %s\n",
 	           file, (long int) size, (long int) time, node) <= 0)
       {
