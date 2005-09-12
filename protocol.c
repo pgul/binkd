@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.171  2005/09/12 17:07:35  gul
+ * Turn compression on if OPT EXTCMD GZIP received after login phase
+ *
  * Revision 2.170  2005/07/04 18:24:43  gul
  * Move events checking and running to inb_test() for reducing repeated code;
  * do not run immediate events twice;
@@ -2056,13 +2059,6 @@ static int complete_login (STATE *state, BINKD_CONFIG *config)
     }
   }
   if (state->crypt_flag!=YES_CRYPT) state->crypt_flag=NO_CRYPT;
-#if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
-  if (state->z_cansend && !state->extcmd)
-  {
-    Log(2, "Remote does not support EXTCMD, turn compression off");
-    state->z_cansend = 0;
-  }
-#endif
 #ifdef WITH_PERL
   {
     char *s = perl_after_handshake(state);
@@ -2557,7 +2553,7 @@ static void z_send_init(STATE *state, BINKD_CONFIG *config, char **extra)
   int rc;
 
   *extra = "";
-  if (state->z_cansend && state->out.size >= config->zminsize
+  if (state->z_cansend && state->extcmd && state->out.size >= config->zminsize
       && zrule_test(ZRULE_ALLOW, state->out.netname, config->zrules.first)) {
 #ifdef WITH_BZLIB2
     if (!state->z_send && (state->z_cansend & 2)) {
