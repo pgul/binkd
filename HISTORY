@@ -1,3 +1,7 @@
+2005/09/12 20:07:41 1.0a-450 gul
+protocol.c,2.170,2.171
+Turn compression on if OPT EXTCMD GZIP received after login phase
+
 2005/08/08 13:12:14 1.0a-449 val
 inbound.c,2.35,2.36
 fix segfault when a remote doesn't provide an address but sends a file
