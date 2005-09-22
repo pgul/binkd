@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2005/09/22 12:11:13  gul
+ * Dequote filenames for compare in M_GET processing
+ *
  * Revision 2.6  2003/10/29 21:08:39  gul
  * Change include-files structure, relax dependences
  *
@@ -59,18 +62,20 @@
 
 int tfile_cmp (TFILE *a, char *netname, off_t size, time_t time)
 {
-  int rc = strcmp (a->netname, netname);
-
-  if (rc == 0)
-  {
-    if (a->size != size)
-      return a->size - size;
-    if (a->time != time)
-      return a->time - time;
-    return 0;
-  }
-  else
-    return rc;
+  int rc;
+  char *anetname;
+ 
+  anetname = strdequote(a->netname);
+  netname = strdequote(netname);
+  rc = strcmp (a->netname, netname);
+  free(anetname);
+  free(netname);
+  if (rc) return rc;
+  if (a->size != size)
+    return a->size - size;
+  if (a->time != time)
+    return a->time - time;
+  return 0;
 }
 
 /* Adds a file to killlist */
