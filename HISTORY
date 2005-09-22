@@ -1,3 +1,7 @@
+2005/09/22 15:11:24 1.0a-451 gul
+prothlp.c,2.6,2.7
+Dequote filenames for compare in M_GET processing
+
 2005/09/12 20:07:41 1.0a-450 gul
 protocol.c,2.170,2.171
 Turn compression on if OPT EXTCMD GZIP received after login phase
