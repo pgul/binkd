@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15.2.2  2005/09/23 13:41:13  gul
+ * Bugfix in work via proxy with authorization
+ *
  * Revision 2.15.2.1  2003/09/05 07:52:50  gul
  * Fix OS/2 version, improve diagnostics
  *
@@ -140,7 +143,8 @@ int h_connect(int so, char *host)
 	if (proxy[0])
 	{
 		strncpy(buf, proxy, sizeof(buf));
-		if ((sp=strchr(proxy, '/')) != NULL)
+		buf[sizeof(buf)-1] = '\0';
+		if ((sp=strchr(buf, '/')) != NULL)
 			*sp++ = '\0';
 		Log(4, "connected to proxy %s", buf);
 		if(sp) 
@@ -164,7 +168,8 @@ int h_connect(int so, char *host)
 		memset(buf, 0, sizeof(buf));
 		if (socks[0]) {
 			char *sp1;
-			strcpy(buf, socks);
+			strncpy(buf, socks, sizeof(buf));
+			buf[sizeof(buf)-6] = '\0';
 			if((sp1=strchr(buf, '/'))!=NULL) sp1[0]=0;
 			if((sp1=strchr(buf, ':'))==NULL) strcat(buf, ":1080");
 			sp1=strdup(buf);
