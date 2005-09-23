@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.21  2005/09/23 14:08:50  gul
+ * Change sprintf() to snprintf() in https and ntlm code.
+ *
  * Revision 2.20  2005/09/23 13:32:46  gul
  * Bugfix in work via proxy with authorization
  *
@@ -158,6 +161,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 	if (proxy[0])
 	{
 		strncpy(buf, proxy, sizeof(buf));
+		buf[sizeof(buf)-1] = '\0';
 		if ((sp=strchr(buf, '/')) != NULL)
 			*sp++ = '\0';
 		Log(4, "connected to proxy %s", buf);
@@ -182,35 +186,38 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 		memset(buf, 0, sizeof(buf));
 		if (socks[0]) {
 			char *sp1;
-			strcpy(buf, socks);
+			strncpy(buf, socks, sizeof(buf)-6);
 			if((sp1=strchr(buf, '/'))!=NULL) sp1[0]=0;
 			if((sp1=strchr(buf, ':'))==NULL) strcat(buf, ":1080");
 			sp1=strdup(buf);
-			i=sprintf(buf, "CONNECT %s HTTP/1.%d\r\n", sp1, ntlm);
+			i=snprintf(buf, sizeof(buf), "CONNECT %s HTTP/1.%d\r\n", sp1, ntlm);
 			free(sp1);
 		}
 		else
-			i=sprintf(buf, "CONNECT %s HTTP/1.%d\r\n", host, ntlm);
-		if(sp)
+			i=snprintf(buf, sizeof(buf), "CONNECT %s HTTP/1.%d\r\n", host, ntlm);
+		if (sp)
 		{
 #ifdef NTLM
 			if (ntlm)
 			{
-				i+=sprintf(buf+i, "Connection: keep-alive\r\n");
-				i+=sprintf(buf+i, "Proxy-Authorization: NTLM ");
-				getNTLM1(sp, buf+i);
-				strcat(buf, "\r\n");
+				if (i<sizeof(buf)) i+=snprintf(buf+i, sizeof(buf)-i, "Connection: keep-alive\r\n");
+				if (i<sizeof(buf)) i+=snprintf(buf+i, sizeof(buf)-i, "Proxy-Authorization: NTLM ");
+				if (i<sizeof(buf)) getNTLM1(sp, buf+i, sizeof(buf)-i);
+				if (sizeof(buf)>strlen(buf)+3) strcat(buf, "\r\n");
 				i = strlen(buf);
 			}
 			else
 #endif
 			{
-				i+=sprintf(buf+i, "Proxy-Authorization: basic %s\r\n", sp);
+				if (i<sizeof(buf)) i+=snprintf(buf+i, sizeof(buf)-i, "Proxy-Authorization: basic %s\r\n", sp);
 				free(sp);
 			}
 		}
-		buf[i++]='\r';
-		buf[i++]='\n';
+		if (sizeof(buf) > i+2)
+		{
+			buf[i++]='\r';
+			buf[i++]='\n';
+		}
 		if (send(so, buf, i, 0) < 0)
 		{
 			Log(4, "Send to proxy error: %s", TCPERR());
@@ -218,7 +225,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 			return 1;
 		}
 		Log(10, "sent proxy sockfd %d request: %s", so, buf);
-		for(i=0; i<sizeof(buf); i++)
+		for(i=0; i<sizeof(buf)-1; i++)
 		{
 			struct timeval tv;
 			fd_set fds;
@@ -245,7 +252,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 				return 1;
 			}
 			buf[i+1]=0;
-			if((i+1>=sizeof(buf))||((sp=strstr(buf, "\r\n\r\n"))!=NULL)||((sp=strstr(buf, "\n\n"))!=NULL))
+			if((i+2>=sizeof(buf))||((sp=strstr(buf, "\r\n\r\n"))!=NULL)||((sp=strstr(buf, "\n\n"))!=NULL))
 			{
 #ifdef NTLM
 				if ((ntlm) && ((sp=strstr(buf, "uthenticate: NTLM "))!=NULL))
@@ -261,9 +268,9 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 						}
 					}
 					memset(buf, 0, sizeof(buf));
-					i=sprintf(buf, "CONNECT %s HTTP/1.%d\r\nProxy-Authorization: NTLM ",
+					i=snprintf(buf, sizeof(buf), "CONNECT %s HTTP/1.%d\r\nProxy-Authorization: NTLM ",
 						 host, ntlm);
-					i = getNTLM2(ntlmsp, sp, buf + i);
+					i = getNTLM2(ntlmsp, sp, buf + i, sizeof(buf) - i);
 					free(sp);
 					if (i) Log(2, "Invalid username/password/host/domain string (%s) %d", ntlmsp, i);
 					free(ntlmsp);
@@ -271,7 +278,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 					if(!i)
 					{
 						ntlm = 0;
-						strcat(buf, "\r\n\r\n");
+						if (strlen(buf)+3<sizeof(buf)) strcat(buf, "\r\n\r\n");
 						send(so, buf, strlen(buf), 0);
 						i=0;
 						continue;
@@ -294,7 +301,8 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 	}
 	if (socks[0])
 	{
-		strcpy(buf, socks);
+		strncpy(buf, socks, sizeof(buf));
+		buf[sizeof(buf)-1] = '\0';
 		if ((sauth=strchr(buf, '/')) != NULL)
 			*sauth++ = '\0';
 		Log(4, "connected to socks%c %s", sauth ? '5' : '4', buf);
@@ -330,7 +338,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 				else buf[3]=1;
 				send(so, buf, 4, 0);
 			}
-			if((recv(so, buf, 2, 0)!=2)||((buf[1])&&(buf[1]!=1)&&(buf[1]!=2)))
+			if ((recv(so, buf, 2, 0)!=2)||((buf[1])&&(buf[1]!=1)&&(buf[1]!=2)))
 			{
 				Log(1, "Auth. method not supported by socks5 server");
 				free(sauth);
@@ -339,15 +347,15 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 				return 1;
 			}
 			Log(6, "Socks5, Auth=%d", buf[1]);
-			if(buf[1]==2) /* username/password method */
+			if (buf[1]==2) /* username/password method */
 			{
 				buf[0]=1;
-				if(!sp) i=strlen(sauth);
+				if (!sp) i=strlen(sauth);
 				else i=(sp-sauth);
 				buf[1]=i;
 				memcpy(buf+2, sauth, i);
 				i+=2;
-				if(!sp) buf[i++]=0;
+				if (!sp) buf[i++]=0;
 				else {
 					sp++;
 					buf[i++]=strlen(sp);
@@ -356,7 +364,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 				}
 				send(so, buf, i, 0);
 				buf[0]=buf[1]=0;
-				if((recv(so, buf, 2, 0)<2)||(buf[1]))
+				if ((recv(so, buf, 2, 0)<2)||(buf[1]))
 				{
 					Log(1, "Authentication failed (socks5 returns %02X%02X)", (unsigned char)buf[0], (unsigned char)buf[1]);
 					free(sauth);

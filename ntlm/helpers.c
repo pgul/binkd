@@ -227,7 +227,7 @@ static int debase64(char *s, unsigned char *rc)
  /*
   *  User data: username:password:host:domain
   */
-int getNTLM1(char *udata, char *result)
+int getNTLM1(char *udata, char *result, size_t res_size)
 {
   Type1message m;
   int i;
@@ -261,6 +261,7 @@ int getNTLM1(char *udata, char *result)
   for (i = 0; m.host_dom[i]; i++) m.host_dom[i] = toupper(m.host_dom[i]);
   i+=0x20;
   free(td);
+  if (res_size < i*4/3+4) return -1;
   enbase64((char*)&m, i, result);
   return 0;
 }
@@ -268,7 +269,7 @@ int getNTLM1(char *udata, char *result)
  /*
   *  User data: username:password:host:domain
   */
-int getNTLM2(char *udata, char *req, char *result)
+int getNTLM2(char *udata, char *req, char *result, size_t res_size)
 {
   int i, j;
   Type3message m;
@@ -325,6 +326,7 @@ int getNTLM2(char *udata, char *req, char *result)
   ntlm_encrypt(password, 0, nonce, (unsigned char*)m.data+j, (unsigned char*)(m.data+j+24));
   j += 0x40+48;
   m.msg_len = mkls(j);
+  if (res_size < j*4/3+4) return -1;
   enbase64((char*)&m, j, result);
   return 0;
 }
