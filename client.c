@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.61  2005/09/23 12:24:33  gul
+ * define $hosts variable for on_call() perl hook (can be changed).
+ * Changes for $proxy and $socks are now local for the single outgoing call.
+ *
  * Revision 2.60  2005/03/30 17:35:28  stream
  * Finally implemented '-noproxy' node option.
  *
@@ -468,17 +472,34 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   struct in_addr defaddr;
   int i, rc;
   char host[MAXHOSTNAMELEN + 5 + 1];       /* current host/port */
+  char *hosts;
   unsigned short port;
   const char *save_err;
 #ifdef HTTPS
   int use_proxy;
+  char *proxy, *socks;
 #endif
 
 #ifdef WITH_PERL
-  if (!perl_on_call(node, config)) {
+  hosts = xstrdup(node->hosts);
+#ifdef HTTPS
+  proxy = xstrdup(config->proxy);
+  socks = xstrdup(config->socks);
+#endif
+  if (!perl_on_call(node, config, &hosts
+#ifdef HTTPS
+                    , &proxy, &socks
+#endif
+                    )) {
     Log(1, "call aborted by Perl on_call()");
     return 0;
   }
+#else
+  hosts = node->hosts;
+#ifdef HTTPS
+  proxy = config->proxy;
+  socks = config->socks;
+#endif
 #endif
 
   ftnaddress_to_str (szDestAddr, &node->fa);
@@ -487,11 +508,11 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   memset(&sin, 0, sizeof(sin));
 
 #ifdef HTTPS
-  use_proxy = (node->NP_flag != NP_ON) && (config->proxy[0] || config->socks[0]);
+  use_proxy = (node->NP_flag != NP_ON) && (proxy[0] || socks[0]);
   if (use_proxy)
   {
     char *sp, *sport;
-    strncpy(host, config->proxy[0] ? config->proxy: config->socks, sizeof(host));
+    strncpy(host, proxy[0] ? proxy : socks, sizeof(host));
     if ((sp=strchr(host, ':')) != NULL)
     {
       *sp++ = '\0';
@@ -503,15 +524,15 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
     {
       if((sp=strchr(host, '/')) != NULL)
 	*sp++ = '\0';
-      sport = config->proxy[0] ? "squid" : "socks"; /* default port */
+      sport = proxy[0] ? "squid" : "socks"; /* default port */
     }
     if (!isdigit(*sport))
     { struct servent *se;
       lockhostsem();
       if ((se = getservbyname(sport, "tcp")) == NULL)
       {
-	Log(2, "Port %s not found, try default %d", sp, config->proxy[0] ? 3128 : 1080);
-	sin.sin_port = htons((unsigned short)(config->proxy[0] ? 3128 : 1080));
+	Log(2, "Port %s not found, try default %d", sp, proxy[0] ? 3128 : 1080);
+	sin.sin_port = htons((unsigned short)(proxy[0] ? 3128 : 1080));
       } else
 	sin.sin_port = se->s_port;
       releasehostsem();
@@ -521,7 +542,14 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
     /* resolve proxy host */
     if ((hp = find_host(host, &he, &defaddr)) == NULL)
     {
-      Log(1, "%s host %s not found", config->proxy[0] ? "Proxy" : "Socks", host);
+      Log(1, "%s host %s not found", proxy[0] ? "Proxy" : "Socks", host);
+#ifdef WITH_PERL
+      xfree(hosts);
+#ifdef HTTPS
+      xfree(proxy);
+      xfree(socks);
+#endif
+#endif
       return 0;
     }
   }
@@ -529,11 +557,11 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 
   for (i = 1; sockfd == INVALID_SOCKET
        && (rc = get_host_and_port
-	   (i, host, &port, node->hosts, &node->fa, config)) != -1; ++i)
+	   (i, host, &port, hosts, &node->fa, config)) != -1; ++i)
   {
     if (rc == 0)
     {
-      Log (1, "%s: %i: error parsing host list", node->hosts, i);
+      Log (1, "%s: %i: error parsing host list", hosts, i);
       continue;
     }
 #ifdef HTTPS
@@ -555,11 +583,34 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       if ((sockfd = socket (hp->h_addrtype, SOCK_STREAM, 0)) == INVALID_SOCKET)
       {
 	Log (1, "socket: %s", TCPERR ());
+#ifdef WITH_PERL
+	xfree(hosts);
+#ifdef HTTPS
+	xfree(proxy);
+	xfree(socks);
+#endif
+#endif
+#ifdef HAVE_THREADS
+	free_hostent(hp);
+#endif
 	return 0;
       }
       add_socket(sockfd);
       /* Was the socket created after close_sockets loop in exitfunc()? */
-      if (binkd_exit) return 0;
+      if (binkd_exit)
+      {
+#ifdef WITH_PERL
+	xfree(hosts);
+#ifdef HTTPS
+	xfree(proxy);
+	xfree(socks);
+#endif
+#endif
+#ifdef HAVE_THREADS
+	free_hostent(hp);
+#endif
+	return 0;
+      }
       sin.sin_addr = *((struct in_addr *) * cp);
       sin.sin_family = hp->h_addrtype;
       lockhostsem();
@@ -570,11 +621,11 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 	if (sp) *sp = '\0';
 	if (port == config->oport)
 	  Log (4, "trying %s via %s %s:%u...", host,
-	       config->proxy[0] ? "proxy" : "socks", inet_ntoa (sin.sin_addr),
+	       proxy[0] ? "proxy" : "socks", inet_ntoa (sin.sin_addr),
 	       ntohs(sin.sin_port));
 	else
 	  Log (4, "trying %s:%u via %s %s:%u...", host, port,
-	       config->proxy[0] ? "proxy" : "socks", inet_ntoa (sin.sin_addr),
+	       proxy[0] ? "proxy" : "socks", inet_ntoa (sin.sin_addr),
 	       ntohs(sin.sin_port));
 	sprintf(host+strlen(host), ":%u", port);
       }
@@ -657,6 +708,13 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 #if defined(HAVE_THREADS) && defined(HTTPS)
   if (use_proxy)
     free_hostent(hp);
+#endif
+#ifdef WITH_PERL
+  xfree(hosts);
+#ifdef HTTPS
+  xfree(proxy);
+  xfree(socks);
+#endif
 #endif
 
   if (sockfd == INVALID_SOCKET)

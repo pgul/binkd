@@ -180,7 +180,10 @@ Hooks Description
 3) on_call()
    - called when client manager is about to call a node
    - return 0 to abort the call, non-zero to proceed
-   - defined vars: $addr - node to be called
+   - defined vars: $addr  - node to be called,
+                   $hosts - hosts lists for node (can be changed),
+                   $proxy, $socks - proxy or socks used for the call
+                                    (can be changed).
 
 4) on_error()
    - called when various errors occur

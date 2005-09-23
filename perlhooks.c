@@ -14,6 +14,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.52  2005/09/23 12:24:33  gul
+ * define $hosts variable for on_call() perl hook (can be changed).
+ * Changes for $proxy and $socks are now local for the single outgoing call.
+ *
  * Revision 2.51  2005/03/28 10:15:13  val
  * manage proxy/socks via perl-hook on_call()
  *
@@ -1660,10 +1664,14 @@ void perl_on_exit(void) {
 }
 
 /* before outgoing call */
-int perl_on_call(FTN_NODE *node, BINKD_CONFIG *cfg) {
+int perl_on_call(FTN_NODE *node, BINKD_CONFIG *cfg, char **hosts
+#ifdef HTTPS
+		 , char **proxy, char **socks
+#endif
+		) {
   char   buf[FTN_ADDR_SZ];
   int    rc;
-  SV     *svret, *sv;
+  SV     *svret, *svhosts, *sv;
 #ifdef HTTPS
   SV     *svproxy, *svsocks;
 #endif
@@ -1674,9 +1682,10 @@ int perl_on_call(FTN_NODE *node, BINKD_CONFIG *cfg) {
     { dSP;
       ftnaddress_to_str(buf, &(node->fa));
       VK_ADD_str(sv, "addr", buf);
+      if ((svhosts = perl_get_sv("hosts", TRUE))) sv_setpv(svhosts, *hosts);
 #ifdef HTTPS
-      if ((svproxy = perl_get_sv("proxy", TRUE))) sv_setpv(svproxy, cfg->proxy);
-      if ((svsocks = perl_get_sv("socks", TRUE))) sv_setpv(svsocks, cfg->socks);
+      if ((svproxy = perl_get_sv("proxy", TRUE))) sv_setpv(svproxy, *proxy);
+      if ((svsocks = perl_get_sv("socks", TRUE))) sv_setpv(svsocks, *socks);
 #endif
       ENTER;
       SAVETMPS;
@@ -1690,21 +1699,39 @@ int perl_on_call(FTN_NODE *node, BINKD_CONFIG *cfg) {
       FREETMPS;
       LEAVE;
       if (SvTRUE(ERRSV)) sub_err(PERL_ON_CALL);
-#ifdef HTTPS
       else if (rc == 2) {
           STRLEN len;
+          char *s;
+          sv = perl_get_sv("hosts", FALSE);
+          if (sv && SvOK(sv)) {
+            s = SvPV(sv, len);
+            if (len == 0) s = "";
+            if (strcmp(s, *hosts)) {
+              xfree(*hosts);
+              *hosts = xstrdup(s);
+            }
+          }
+#ifdef HTTPS
           sv = perl_get_sv("proxy", FALSE);
           if (sv && SvOK(sv)) {
-            char *s = SvPV(sv, len);
-            strnzcpy(cfg->proxy, len ? s : "", sizeof(cfg->proxy)-1);
+            s = SvPV(sv, len);
+            if (len == 0) s = "";
+            if (strcmp(s, *proxy)) {
+              xfree(*proxy);
+              *proxy = xstrdup(s);
+            }
           }
           sv = perl_get_sv("socks", FALSE);
           if (sv && SvOK(sv)) {
-            char *s = SvPV(sv, len);
-            strnzcpy(cfg->socks, len ? s : "", sizeof(cfg->socks)-1);
+            s = SvPV(sv, len);
+            if (len == 0) s = "";
+            if (strcmp(s, *socks)) {
+              xfree(*socks);
+              *socks = xstrdup(s);
+            }
           }
-      }
 #endif
+      }
     }
     Log(LL_DBG, "perl_on_call() end");
     return rc;
