@@ -1,3 +1,7 @@
+2005/09/23 16:32:51 1.0a-454 gul
+client.c,2.61,2.62 https.c,2.19,2.20 https.h,2.3,2.4
+Bugfix in work via proxy with authorization
+
 2005/09/23 16:04:20 1.0a-453 gul
 protocol.c,2.171,2.172
 Fix warning
