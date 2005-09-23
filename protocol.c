@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.172  2005/09/23 13:04:15  gul
+ * Fix warning
+ *
  * Revision 2.171  2005/09/12 17:07:35  gul
  * Turn compression on if OPT EXTCMD GZIP received after login phase
  *
@@ -1026,7 +1029,7 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
 	if (state->z_send)
 	{ sz = ZBLKSIZE - state->z_oleft;
-	  buf = state->z_obuf + state->z_oleft;
+	  buf = (unsigned char *)state->z_obuf + state->z_oleft;
 	} else
 	  sz = config->oblksize;
 	sz = min ((off_t) sz, state->out.size - ftello (state->out.f));
