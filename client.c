@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.62  2005/09/23 13:32:46  gul
+ * Bugfix in work via proxy with authorization
+ *
  * Revision 2.61  2005/09/23 12:24:33  gul
  * define $hosts variable for on_call() perl hook (can be changed).
  * Changes for $proxy and $socks are now local for the single outgoing call.
@@ -689,7 +692,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 #endif
 #ifdef HTTPS
     if (sockfd != INVALID_SOCKET && use_proxy) {
-      if (h_connect(sockfd, host, config) != 0) {
+      if (h_connect(sockfd, host, config, proxy, socks) != 0) {
         if (!binkd_exit)
           bad_try (&node->fa, TCPERR (), BAD_CALL, config);
         del_socket(sockfd);

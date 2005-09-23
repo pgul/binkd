@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.20  2005/09/23 13:32:46  gul
+ * Bugfix in work via proxy with authorization
+ *
  * Revision 2.19  2003/10/29 21:08:38  gul
  * Change include-files structure, relax dependences
  *
@@ -139,7 +142,7 @@ static int enbase64(char *data, int size, char *p)
 #define SetTCPError(x) errno=x
 #define PR_ERROR EACCES
 #endif
-int h_connect(int so, char *host, BINKD_CONFIG *config)
+int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks)
 {
 	int ntlm = 0;
 #ifdef NTLM
@@ -152,10 +155,10 @@ int h_connect(int so, char *host, BINKD_CONFIG *config)
 	struct in_addr defaddr;
 	unsigned port;
 
-	if (config->proxy[0])
+	if (proxy[0])
 	{
-		strncpy(buf, config->proxy, sizeof(buf));
-		if ((sp=strchr(config->proxy, '/')) != NULL)
+		strncpy(buf, proxy, sizeof(buf));
+		if ((sp=strchr(buf, '/')) != NULL)
 			*sp++ = '\0';
 		Log(4, "connected to proxy %s", buf);
 		if(sp) 
@@ -177,9 +180,9 @@ int h_connect(int so, char *host, BINKD_CONFIG *config)
 			}
 		}
 		memset(buf, 0, sizeof(buf));
-		if (config->socks[0]) {
+		if (socks[0]) {
 			char *sp1;
-			strcpy(buf, config->socks);
+			strcpy(buf, socks);
 			if((sp1=strchr(buf, '/'))!=NULL) sp1[0]=0;
 			if((sp1=strchr(buf, ':'))==NULL) strcat(buf, ":1080");
 			sp1=strdup(buf);
@@ -289,9 +292,9 @@ int h_connect(int so, char *host, BINKD_CONFIG *config)
 			}
 		}
 	}
-	if(config->socks[0])
+	if (socks[0])
 	{
-		strcpy(buf, config->socks);
+		strcpy(buf, socks);
 		if ((sauth=strchr(buf, '/')) != NULL)
 			*sauth++ = '\0';
 		Log(4, "connected to socks%c %s", sauth ? '5' : '4', buf);
