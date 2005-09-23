@@ -1,3 +1,7 @@
+2005/09/23 16:04:20 1.0a-453 gul
+protocol.c,2.171,2.172
+Fix warning
+
 2005/09/23 15:24:38 1.0a-452 gul
 !README.perl,2.5,2.6 client.c,2.60,2.61 perlhooks.c,2.51,2.52 perlhooks.h,2.9,2.10
 define $hosts variable for on_call() perl hook (can be changed).
