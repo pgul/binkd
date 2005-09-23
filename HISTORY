@@ -1,3 +1,7 @@
+2005/09/23 17:08:58 1.0a-455 gul
+helpers.c,1.5,1.6 helpers.h,1.2,1.3
+Change sprintf() to snprintf() in https and ntlm code.
+
 2005/09/23 16:32:51 1.0a-454 gul
 client.c,2.61,2.62 https.c,2.19,2.20 https.h,2.3,2.4
 Bugfix in work via proxy with authorization
