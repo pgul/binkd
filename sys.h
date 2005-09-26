@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.24  2005/09/26 19:01:03  gul
+ * bw limits code partially rewrited (not tested)
+ *
  * Revision 2.23  2005/04/05 07:31:12  gul
  * Fixed bug in have_intmax_t detection
  *
@@ -218,6 +221,10 @@ int snprintf (va_alist) va_dcl;
 #endif
 #ifndef HAVE_VSNPRINTF
 int vsnprintf (char *str, size_t count, const char *fmt, va_list args);
+#endif
+
+#ifndef HAVE_GETTIMEOFDAY
+int gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 
 #ifndef O_BINARY

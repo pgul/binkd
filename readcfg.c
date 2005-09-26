@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.84  2005/09/26 19:01:03  gul
+ * bw limits code partially rewrited (not tested)
+ *
  * Revision 2.83  2005/04/18 16:46:41  stream
  * Double free of pNodArray caused mysterious crashes on config reload
  *
@@ -2092,10 +2095,10 @@ char *describe_rate(long rate)
   static char buf[12];
   int c;
   if (rate == 0) return "-";
-  else if (rate < 0) c = sprintf(buf, "%d%%", -rate);
-  else if (rate >= (1 << 20) && (rate & (1 << 20 - 1)) == 0) c = sprintf(buf, "%dM", rate >> 20);
-  else if (rate >= (1 << 10) && (rate & (1 << 10 - 1)) == 0) c = sprintf(buf, "%dk", rate >> 10);
-  else c = sprintf(buf, "%d", rate);
+  else if (rate < 0) c = sprintf(buf, "%ld%%", -rate);
+  else if (rate >= (1 << 20) && (rate & ((1 << 20) - 1)) == 0) c = sprintf(buf, "%ldM", rate >> 20);
+  else if (rate >= (1 << 10) && (rate & ((1 << 10) - 1)) == 0) c = sprintf(buf, "%ldk", rate >> 10);
+  else c = sprintf(buf, "%ld", rate);
   buf[c] = 0;
   return buf;
 }

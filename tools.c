@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.66  2005/09/26 19:01:03  gul
+ * bw limits code partially rewrited (not tested)
+ *
  * Revision 2.65  2004/11/22 15:56:42  stream
  * Errors in config were not logged to file (log file name was set only
  * when config was completely loaded, checked and accepted). Now log
@@ -1251,3 +1254,17 @@ int tz_off(time_t t, int tzoff)
   return (int)(((long)mktime(&tm)-(long)gt)/60);
 }
 
+#ifndef HAVE_GETTIMEOFDAY
+int gettimeofday(struct timeval *tv, struct timezone *tz)
+{
+  if (tv) {
+    tv->tv_sec = time(NULL);
+    tv->tv_usec = 0;
+  }
+  if (tz) {
+    tz->tz_minuteswest = tz_off(time(NULL), -1);
+    tz->tz_dsttime = 0;
+  }
+  return 0;
+}
+#endif

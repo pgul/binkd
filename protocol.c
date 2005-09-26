@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.173  2005/09/26 19:01:03  gul
+ * bw limits code partially rewrited (not tested)
+ *
  * Revision 2.172  2005/09/23 13:04:15  gul
  * Fix warning
  *
@@ -908,32 +911,10 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
   /* Have something to send in buffers */
   if (state->optr && state->oleft)
   {
-#ifdef BW_LIM
-    time_t ctime = time(NULL);
-    if (!state->bw_send_utime) {
-      state->bw_send_utime = ctime;
-      state->bw_send_cps = 0; state->bw_send_cpsN = 0;
-    }
-    if (ctime > state->bw_send_utime) {
-      int cps = state->bw_send_bytes / (ctime - state->bw_send_utime);
-      state->bw_send_bytes = 0;
-      state->bw_send_utime = ctime;
-      if (state->bw_send_cpsN < 10) {
-        state->bw_send_cps = (state->bw_send_cpsN*state->bw_send_cps + cps) / (state->bw_send_cpsN + 1);
-        state->bw_send_cpsN++;
-      }
-      else state->bw_send_cps = (9*state->bw_send_cps + cps) / 10;
-      Log (9, "send: current cps is %u, avg. cps is %u", cps, state->bw_send_cps);
-    }
-    else if (state->bw_send && state->bw_send_bytes > state->bw_send) 
-      return 2; /* val: return 2 not release cpu on win32 */
-    if (state->bw_send && state->bw_send_cps > state->bw_send) 
-      return 2; /* val: return 2 not release cpu on win32 */
-#endif
     Log (7, "sending %i byte(s)", state->oleft);
     n = send (state->s, state->optr, state->oleft, 0);
 #ifdef BW_LIM
-    state->bw_send_bytes += n;
+    state->bw_send.bytes += n;
 #endif
     save_errno = TCPERRNO;
     save_err = TCPERR ();
@@ -1858,23 +1839,23 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
       if (pn && pn->listed) {
         if (pn->bw_send == 0) bw_send_unlim = 1;
         else if (pn->bw_send < 0 
-                 && (!state->bw_send_rel 
-                 || (unsigned long)(-pn->bw_send) < state->bw_send_rel)) 
-          state->bw_send_rel = -pn->bw_send;
+                 && (!state->bw_send.rel 
+                 || (unsigned long)(-pn->bw_send) < state->bw_send.rel)) 
+          state->bw_send.rel = -pn->bw_send;
         else if (pn->bw_send > 0
-                 && (!state->bw_send_abs
-                 || (unsigned long)pn->bw_send < state->bw_send_abs))
-          state->bw_send_abs = pn->bw_send;
+                 && (!state->bw_send.abs
+                 || (unsigned long)pn->bw_send < state->bw_send.abs))
+          state->bw_send.abs = pn->bw_send;
 
         if (pn->bw_recv == 0) bw_recv_unlim = 1;
         else if (pn->bw_recv < 0 
-                 && (!state->bw_recv_rel 
-                 || (unsigned long)(-pn->bw_recv) < state->bw_recv_rel)) 
-          state->bw_recv_rel = -pn->bw_recv;
+                 && (!state->bw_recv.rel 
+                 || (unsigned long)(-pn->bw_recv) < state->bw_recv.rel)) 
+          state->bw_recv.rel = -pn->bw_recv;
         else if (pn->bw_recv > 0
-                 && (!state->bw_recv_abs
-                 || (unsigned long)pn->bw_recv < state->bw_recv_abs))
-          state->bw_recv_abs = pn->bw_recv;
+                 && (!state->bw_recv.abs
+                 || (unsigned long)pn->bw_recv < state->bw_recv.abs))
+          state->bw_recv.abs = pn->bw_recv;
       }
 #endif
     }
@@ -1962,25 +1943,25 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
     FTN_ADDR dfa = {"defnode", 0, 0, 0, 0};
     pn = get_node_info(&dfa, config);
   }
-  if (bw_send_unlim) state->bw_send_abs = state->bw_send_rel = 0;
+  if (bw_send_unlim) state->bw_send.abs = state->bw_send.rel = 0;
   /* use defnode's -bw settings if no explicit */
-  else if (!state->bw_send_abs && !state->bw_send_rel && pn) {
-    if (pn->bw_send >= 0) state->bw_send_abs = pn->bw_send;
-    else state->bw_send_rel = -pn->bw_send;
+  else if (!state->bw_send.abs && !state->bw_send.rel && pn) {
+    if (pn->bw_send >= 0) state->bw_send.abs = pn->bw_send;
+    else state->bw_send.rel = -pn->bw_send;
   }
-  if (state->bw_send_abs || state->bw_send_rel)
+  if (state->bw_send.abs || state->bw_send.rel)
     Log (7, "Session send rate limit is %s cps or %d%%", 
-            describe_rate(state->bw_send_abs), state->bw_send_rel);
+            describe_rate(state->bw_send.abs), state->bw_send.rel);
 
-  if (bw_recv_unlim) state->bw_recv_abs = state->bw_recv_rel = 0;
+  if (bw_recv_unlim) state->bw_recv.abs = state->bw_recv.rel = 0;
   /* use defnode's -bw settings if no explicit */
-  else if (!state->bw_recv_abs && !state->bw_recv_rel && pn) {
-    if (pn->bw_recv >= 0) state->bw_recv_abs = pn->bw_recv;
-    else state->bw_recv_rel = -pn->bw_recv;
+  else if (!state->bw_recv.abs && !state->bw_recv.rel && pn) {
+    if (pn->bw_recv >= 0) state->bw_recv.abs = pn->bw_recv;
+    else state->bw_recv.rel = -pn->bw_recv;
   }
-  if (state->bw_recv_abs || state->bw_recv_rel)
+  if (state->bw_recv.abs || state->bw_recv.rel)
     Log (7, "Session recv rate limit is %s cps or %d%%", 
-            describe_rate(state->bw_recv_abs), state->bw_recv_rel);
+            describe_rate(state->bw_recv.abs), state->bw_recv.rel);
 #endif
 
   if (state->to)
@@ -2228,7 +2209,8 @@ struct skipchain *skip_test(STATE *state, BINKD_CONFIG *config)
 }
 
 #ifdef BW_LIM
-static void setup_send_rate_limit (STATE *state, BINKD_CONFIG *config)
+static void setup_rate_limit (STATE *state, BINKD_CONFIG *config, BW *bw,
+				char *fname)
 {
   struct ratechain *ps;
   addrtype amask = 0;
@@ -2238,60 +2220,89 @@ static void setup_send_rate_limit (STATE *state, BINKD_CONFIG *config)
   amask |= (state->state == P_SECURE) ? A_PROT : A_UNPROT;
   for (ps = config->rates.first; ps; ps = ps->next)
   {
-    if ( (ps->atype & amask) && pmatch_ncase(ps->mask, state->out.netname) )
+    if ( (ps->atype & amask) && pmatch_ncase(ps->mask, fname) )
     {
-      Log (7, "%s matches rate limit mask %s", state->out.netname, ps->mask);
+      Log (7, "%s matches rate limit mask %s", fname, ps->mask);
       rlim = ps->rate;
       break;
     }
   }
   /* if mask is set to unlim rate, set to unlim */
-  if (rlim == 0) state->bw_send = 0;
+  if (rlim == 0) bw->rlim = 0;
   else {
     /* if mask set to specific rate, adjust to remote percent rate */
     if (rlim > 0) 
-      state->bw_send = state->bw_send_rel ? rlim * state->bw_send_rel / 100 : rlim;
+      bw->rlim = bw->rel ? rlim * bw->rel / 100 : rlim;
     /* if mask set to relative rate, adjust node absolute rate by it */
     else 
-      state->bw_send = state->bw_send_abs ? state->bw_send_abs * (-rlim) / 100 : 0;
+      bw->rlim = bw->abs ? bw->abs * (-rlim) / 100 : 0;
   }
-  if (state->bw_send)
-    Log (3, "rate limit for %s is %d cps", state->out.netname, state->bw_send);
+  if (bw->rlim)
+    Log (3, "rate limit for %s is %d cps", fname, bw->rlim);
   else
-    Log (5, "rate for %s is unlimited", state->out.netname);
+    Log (5, "rate for %s is unlimited", fname);
+  bw->utime.tv_sec = bw->utime.tv_usec = 0;
 }
 
-static void setup_recv_rate_limit (STATE *state, BINKD_CONFIG *config)
+static void setmintv(struct timeval *tv, unsigned long msecs)
 {
-  struct ratechain *ps;
-  addrtype amask = 0;
-  int rlim = -100;
+  unsigned long sec, usec;
 
-  amask |= (state->listed_flag) ? A_LST : A_UNLST;
-  amask |= (state->state == P_SECURE) ? A_PROT : A_UNPROT;
-  for (ps = config->rates.first; ps; ps = ps->next)
-  {
-    if ( (ps->atype & amask) && pmatch_ncase(ps->mask, state->in.netname) )
-    {
-      Log (7, "%s matches rate limit mask %s", state->in.netname, ps->mask);
-      rlim = ps->rate;
-      break;
+  sec = msecs / 1000000;
+  usec = msecs % 1000000;
+  if (tv->tv_sec > sec || (tv->tv_sec == sec && tv->tv_usec > usec)) {
+    tv->tv_sec = sec;
+    tv->tv_usec = usec;
+  }
+}
+
+#define BW_TIME_INT  10000000ul		/* 10 sec */
+static int check_rate_limit(BW *bw, struct timeval *tv)
+{
+  struct timeval ctime;
+  double cps;
+  unsigned long dt;
+
+  if (bw->rlim == 0) return 0;
+  gettimeofday(&ctime, NULL);
+  if (ctime.tv_sec < bw->utime.tv_sec ||
+      (ctime.tv_sec == bw->utime.tv_sec && ctime.tv_usec < bw->utime.tv_usec)) {
+    Log(3, "System time steps back, reset rate-limiting");
+    bw->utime.tv_sec = bw->utime.tv_usec = 0;
+  }
+  if (bw->utime.tv_sec == 0 && bw->utime.tv_usec == 0) {
+    bw->utime.tv_sec = ctime.tv_sec;
+    bw->utime.tv_usec = ctime.tv_usec;
+    bw->cps = 0;
+    bw->cpsN = 0;
+    return 0;
+  }
+  if (ctime.tv_sec == bw->utime.tv_sec && ctime.tv_usec == bw->utime.tv_usec) {
+    if (bw->rlim && bw->bytes > bw->rlim) {
+      setmintv(tv, 100000); /* 0.1 sec */
+      return 1;
     }
+    else
+      return 0;
   }
-  /* if mask is set to unlim rate, set to unlim */
-  if (rlim == 0) state->bw_recv = 0;
-  else {
-    /* if mask set to specific rate, adjust to remote percent rate */
-    if (rlim > 0) 
-      state->bw_recv = state->bw_recv_rel ? rlim * state->bw_recv_rel / 100 : rlim;
-    /* if mask set to relative rate, adjust node absolute rate by it */
-    else 
-      state->bw_recv = state->bw_recv_abs ? state->bw_recv_abs * (-rlim) / 100 : 0;
+  dt = ctime.tv_usec - bw->utime.tv_usec + (ctime.tv_sec - bw->utime.tv_sec) * 1000000ul;
+  cps = (bw->bytes * 1000000. / dt);
+  bw->bytes = 0;
+  bw->utime.tv_sec = ctime.tv_sec;
+  bw->utime.tv_usec = ctime.tv_usec;
+  if (bw->cpsN < BW_TIME_INT) {
+    bw->cps = (bw->cpsN * bw->cps + cps * dt) / (bw->cpsN + dt);
+    bw->cpsN += dt;
+    if (bw->cpsN > BW_TIME_INT) bw->cpsN = BW_TIME_INT;
   }
-  if (state->bw_recv)
-    Log (3, "rate limit for %s is %d cps", state->in.netname, state->bw_recv);
-  else
-    Log (5, "rate for %s is unlimited", state->in.netname);
+  else if (dt >= BW_TIME_INT) bw->cps = cps;
+  else bw->cps = ((BW_TIME_INT - dt) * bw->cps + cps * dt) / BW_TIME_INT;
+  Log (9, "current cps is %u, avg. cps is %u", (int)cps, (int)bw->cps);
+  if (bw->cps <= bw->rlim) 
+    return 0;
+  dt = (unsigned long) (bw->cpsN * (bw->cps / bw->rlim - 1) + 1000);
+  setmintv(tv, dt);
+  return 1;
 }
 #endif
 
@@ -2456,7 +2467,7 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
     Log (3, "receiving %s (%" PRIuMAX " byte(s), off %" PRIuMAX ")",
 	 state->in.netname, (uintmax_t) (state->in.size), (uintmax_t) offset);
 #ifdef BW_LIM
-    setup_recv_rate_limit(state, config);
+    setup_rate_limit(state, config, &state->bw_recv, state->in.netname);
 #endif
 
     for (argc = 1; (w = getwordx (args, argc, 0)) != 0; ++argc)
@@ -2922,30 +2933,6 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
 
   int sz = state->isize == -1 ? BLK_HDR_SIZE : state->isize;
 
-#ifdef BW_LIM
-  if (state->bw_recv) {
-    time_t ctime = time(NULL);
-    if (!state->bw_recv_utime) {
-      state->bw_recv_utime = ctime;
-      state->bw_recv_cps = 0; state->bw_recv_cpsN = 0;
-    }
-    if (ctime > state->bw_recv_utime) {
-      int cps = state->bw_recv_bytes / (ctime - state->bw_recv_utime);
-      state->bw_recv_bytes = 0;
-      state->bw_recv_utime = ctime;
-      if (state->bw_recv_cpsN < 10) {
-        state->bw_recv_cps = (state->bw_recv_cpsN*state->bw_recv_cps + cps) / (state->bw_recv_cpsN + 1);
-        state->bw_recv_cpsN++;
-      }
-      else state->bw_recv_cps = (9*state->bw_recv_cps + cps) / 10;
-      Log (9, "recv: current cps is %u, avg. cps is %u", cps, state->bw_recv_cps);
-    }
-    else if (state->bw_recv && state->bw_recv_bytes > state->bw_recv) 
-      return 1; /* val: return the same as if TCPERR_WOULDBLOCK */
-    if (state->bw_recv && state->bw_recv_cps > state->bw_recv) 
-      return 1; /* val: return the same as if TCPERR_WOULDBLOCK */
-  }
-#endif
   if (sz == 0)
     no = 0;
   else if ((no = recv (state->s, state->ibuf + state->iread,
@@ -2969,7 +2956,7 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
     }
   }
 #ifdef BW_LIM
-  state->bw_recv_bytes += no;
+  state->bw_recv.bytes += no;
 #endif
   if (state->crypt_flag == YES_CRYPT)
     decrypt_buf(state->ibuf + state->iread, no, state->keys_in);
@@ -3438,7 +3425,7 @@ static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
   Log (2, "sending %s as %s (%" PRIuMAX ")",
        state->out.path, state->out.netname, (uintmax_t) state->out.size);
 #ifdef BW_LIM
-  setup_send_rate_limit(state, config);
+  setup_rate_limit(state, config, &state->bw_send, state->out.netname);
 #endif
 
   z_send_init(state, config, &extra);
@@ -3505,6 +3492,9 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
 #ifdef WITH_PERL
   int ok = 1;                         /* drop to 0 to abort session */
   int perl_on_handshake_done = 0;
+#endif
+#ifdef BW_LIM
+  int limited;
 #endif
 
   if (!init_protocol (&state, socket, to, config))
@@ -3602,11 +3592,25 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
 
       FD_ZERO (&r);
       FD_ZERO (&w);
-      FD_SET (socket, &r);
+      tv.tv_sec = config->nettimeout;	       /* Set up timeout for select() */
+      tv.tv_usec = 0;
+#ifdef BW_LIM
+      limited = 0;
+      if (check_rate_limit(&state.bw_recv, &tv))
+        limited = 1;
+      else
+#endif
+        FD_SET (socket, &r);
       if (state.msgs ||
           (state.out.f && !state.off_req_sent && !state.waiting_for_GOT) ||
-          state.oleft || state.send_eof)
-	FD_SET (socket, &w);
+          state.oleft || state.send_eof) {
+#ifdef BW_LIM
+        if (check_rate_limit(&state.bw_send, &tv))
+          limited = 1;
+        else
+#endif
+	  FD_SET (socket, &w);
+      }
 
       if (state.remote_EOB && state.sent_fls == 0 && state.local_EOB &&
 	  state.GET_FILE_balance == 0 && state.in.f == 0 && state.out.f == 0)
@@ -3640,8 +3644,6 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
     if (t_out < u_nettimeout)
     {
 #endif
-      tv.tv_sec = config->nettimeout;	       /* Set up timeout for select() */
-      tv.tv_usec = 0;
       Log (8, "tv.tv_sec=%lu, tv.tv_usec=%lu",
 	   (unsigned long) tv.tv_sec, (unsigned long) tv.tv_usec);
       no = select (socket + 1, &r, &w, 0, &tv);
@@ -3657,7 +3659,11 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
     }
 #endif
       bsy_touch (config);		       /* touch *.bsy's */
-      if (no == 0)
+      if (no == 0
+#ifdef BW_LIM
+          && !limited
+#endif
+          )
       {
 	state.io_error = 1;
 	Log (1, "timeout!");
@@ -3700,11 +3706,21 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
 #if defined(WIN32) /* workaround winsock bug - give up CPU */
         if (!rd && no == 2)
         {
-	  FD_ZERO (&r);
-	  FD_SET (socket, &r);
 	  tv.tv_sec = 0;
 	  tv.tv_usec = w9x_workaround_sleep; /* see iphdr.h */
-	  if (!select (socket + 1, &r, 0, 0, &tv))
+	  FD_ZERO (&r);
+#ifdef BW_LIM
+	  limited = 0;
+	  if (check_rate_limit(&state.bw_recv, &tv))
+	    limited = 1;
+	  else
+#endif
+	    FD_SET (socket, &r);
+	  if (!select (socket + 1, &r, 0, 0, &tv)
+#ifdef BW_LIM
+	      && !limited
+#endif
+              )
 	  {
 	    t_out += w9x_workaround_sleep;
 	  } else { t_out = 0; }
