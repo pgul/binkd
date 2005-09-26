@@ -1,3 +1,7 @@
+2005/09/26 22:01:11 1.0a-457 gul
+protoco2.h,2.22,2.23 protocol.c,2.172,2.173 readcfg.c,2.83,2.84 sys.h,2.23,2.24 tools.c,2.65,2.66
+bw limits code partially rewrited (not tested)
+
 2005/09/23 17:09:24 1.0a-456 gul
 https.c,2.20,2.21
 Change sprintf() to snprintf() in https and ntlm code.
