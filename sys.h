@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.25  2005/09/27 20:15:43  gul
+ * Hopefully fixed compilation under windows
+ *
  * Revision 2.24  2005/09/26 19:01:03  gul
  * bw limits code partially rewrited (not tested)
  *
@@ -279,5 +282,11 @@ typedef unsigned long int uintmax_t;
 #endif
 
 #define UNUSED_ARG(s)  (void)(s)
+
+#ifdef HAVE_GETTIMEOFDAY
+#define gettvtime(tv)	gettimeofday(tv, NULL)
+#else
+#define gettvtime(tv)	((tv)->tv_sec=time(NULL),(tv)->tv_usec=0)
+#endif
 
 #endif

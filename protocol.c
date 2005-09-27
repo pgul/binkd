@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.174  2005/09/27 20:15:43  gul
+ * Hopefully fixed compilation under windows
+ *
  * Revision 2.173  2005/09/26 19:01:03  gul
  * bw limits code partially rewrited (not tested)
  *
@@ -2264,7 +2267,7 @@ static int check_rate_limit(BW *bw, struct timeval *tv)
   unsigned long dt;
 
   if (bw->rlim == 0) return 0;
-  gettimeofday(&ctime, NULL);
+  gettvtime(&ctime);
   if (ctime.tv_sec < bw->utime.tv_sec ||
       (ctime.tv_sec == bw->utime.tv_sec && ctime.tv_usec < bw->utime.tv_usec)) {
     Log(3, "System time steps back, reset rate-limiting");

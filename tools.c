@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67  2005/09/27 20:15:43  gul
+ * Hopefully fixed compilation under windows
+ *
  * Revision 2.66  2005/09/26 19:01:03  gul
  * bw limits code partially rewrited (not tested)
  *
@@ -1255,15 +1258,11 @@ int tz_off(time_t t, int tzoff)
 }
 
 #ifndef HAVE_GETTIMEOFDAY
-int gettimeofday(struct timeval *tv, struct timezone *tz)
+int gettvtime(struct timeval *tv)
 {
   if (tv) {
     tv->tv_sec = time(NULL);
     tv->tv_usec = 0;
-  }
-  if (tz) {
-    tz->tz_minuteswest = tz_off(time(NULL), -1);
-    tz->tz_dsttime = 0;
   }
   return 0;
 }
