@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2005/09/28 20:40:45  gul
+ * Optional parameter root-domain for domain config option.
+ *
  * Revision 2.8  2003/10/29 21:08:38  gul
  * Change include-files structure, relax dependences
  *
@@ -256,13 +259,17 @@ int ftnamask_cmpm (char *mask, int cnt, FTN_ADDR *fa) {
  *  2:5047/13.1 -> p1.f13.n5047.z2.fidonet.net.
  *  S should have space for MAXHOSTNAMELEN chars.
  */
-void ftnaddress_to_domain (char *s, FTN_ADDR *fa, char *root_domain)
+void ftnaddress_to_domain (char *s, FTN_ADDR *fa, FTN_DOMAIN *d, char *domain)
 {
   if (fa->p == 0)
     sprintf (s, "f%i.n%i.z%i.", fa->node, fa->net, fa->z);
   else
     sprintf (s, "p%i.f%i.n%i.z%i.", fa->p, fa->node, fa->net, fa->z);
-  strnzcat (s, root_domain, MAXHOSTNAMELEN);
+  d = get_domain_info(fa->domain, d);
+  if (d && d->idomain)
+    strnzcat (s, d->idomain, MAXHOSTNAMELEN);
+  else
+    strnzcat (s, domain, MAXHOSTNAMELEN);
 }
 
 

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.85  2005/09/28 20:40:45  gul
+ * Optional parameter root-domain for domain config option.
+ *
  * Revision 2.84  2005/09/26 19:01:03  gul
  * bw limits code partially rewrited (not tested)
  *
@@ -429,6 +432,7 @@ static void destroy_domains(void *p)
 
   xfree(pp->path);
   xfree(pp->dir);
+  xfree(pp->idomain);
 }
 
 static void destroy_evtflags(void *p)
@@ -1271,8 +1275,10 @@ static int read_domain_info (KEYWORD *key, int wordcount, char **words)
 
   UNUSED_ARG(key);
 
-  if (!isArgCount(3, wordcount))
+  if (wordcount != 3 && wordcount != 4) {
+    ConfigError("3 or 4 arguments required");
     return 0;
+  }
 
   if (get_domain_info (words[0], work_config.pDomains.first))
     return ConfigError("%s: duplicate domain", words[0]);
@@ -1284,6 +1290,8 @@ static int read_domain_info (KEYWORD *key, int wordcount, char **words)
   {
     if ((tmp_domain = get_domain_info (words[2], work_config.pDomains.first)) == 0)
       return ConfigError("%s: undefined domain", words[2]);
+    if (!isArgCount(3, wordcount))
+      return 0;
     new_domain.alias4 = tmp_domain;
   }
   else
@@ -1318,6 +1326,8 @@ static int read_domain_info (KEYWORD *key, int wordcount, char **words)
 
     new_domain.dir  = xstrdup(new_dir);
     new_domain.path = xstrdup(new_path);
+    if (wordcount == 4)
+      new_domain.idomain = xstrdup(words[3]);
   }
 
   simplelist_add(&work_config.pDomains.linkpoint, &new_domain, sizeof(new_domain));
@@ -1456,7 +1466,7 @@ int get_host_and_port (int n, char *host, unsigned short *port, char *src, FTN_A
       *t = 0;
 
     if (!strcmp (s, "*"))
-      ftnaddress_to_domain (host, fa, config->root_domain);
+      ftnaddress_to_domain (host, fa, config->pDomains.first, config->root_domain);
     else
       strnzcpy (host, s, MAXHOSTNAMELEN);
 

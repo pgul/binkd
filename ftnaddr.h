@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2005/09/28 20:40:45  gul
+ * Optional parameter root-domain for domain config option.
+ *
  * Revision 2.4  2003/10/29 21:08:38  gul
  * Change include-files structure, relax dependences
  *
@@ -80,7 +83,7 @@ void ftnaddress_to_filename_ (char *s, FTN_ADDR *fa, FTN_DOMAIN *pDomains);
  *  2:5047/13.1 -> p1.f13.n5047.z2.fidonet.net.
  *  S should have space for MAXHOSTNAMELEN chars.
  */
-void ftnaddress_to_domain (char *s, FTN_ADDR *fa, char *root_domain);
+void ftnaddress_to_domain (char *s, FTN_ADDR *fa, FTN_DOMAIN *d, char *domain);
 
 #define is4D(fa) ((fa)->z != -1 && (fa)->node != -1 && \
   (fa)->net != -1 && (fa)->p != -1)

@@ -569,3 +569,5 @@ NT/95:  ctrl-c problems fixed
 	New config parameters zlib-dll and bzlib2-dll for win32 versions
 	compiled with ZLIBDL support.
 
+	New optional parameter root-domain for 'domain' config option.
+

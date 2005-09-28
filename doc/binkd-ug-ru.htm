@@ -955,7 +955,7 @@ Brake!</FONT>&raquo;. ѕуть указываетс€ параметром этой директивы.
 дл€ ранее заданного домена.</P>
 <P>ѕервый формат:</P>
 <P><FONT FACE="Courier New, monospace">domain &lt;домен&gt; &lt;путь&gt;
-&lt;номер зоны&gt;</FONT></P>
+&lt;номер зоны&gt; [&lt;root-domain&gt;]</FONT></P>
 <P>¬торой формат:</P>
 <P><FONT FACE="Courier New, monospace">domain &lt;псевдоним&gt;
 alias-for &lt;домен&gt;</FONT></P>
@@ -963,7 +963,7 @@ alias-for &lt;домен&gt;</FONT></P>
 <P>ѕримеры:</P>
 <P><FONT FACE="Courier New, monospace">domain fidonet
 c:\\bbs\\outbound\\fidonet 2<BR>domain musicnet
-c:\\bbs\\outbound\\musicnet 333<BR>domain fido alias-for
+c:\\bbs\\outbound\\musicnet 333 musicnet.ru<BR>domain fido alias-for
 fidonet<BR>domain fidonet.org alias-for fidonet</FONT></P>
 <P>¬ приведЄнных примерах дл€ зоны 2 FTN-домена <FONT FACE="Courier New, monospace">fidonet</FONT>
 используетс€ каталог <FONT FACE="Courier New, monospace">c:\bbs\outbound\fidonet</FONT>,
@@ -979,6 +979,7 @@ fidonet<BR>domain fidonet.org alias-for fidonet</FONT></P>
 используетс€ домен <FONT FACE="Courier New, monospace">fidonet</FONT>.
 (“ака€ возможность реализована дл€ устранени€ последствий ошибочных
 конфигураций на удалЄнных узлах.)</P>
+<P>ƒополнительный необ€зательный параметр <FONT FACE="Courier New, monospace">&lt;root-domain&gt;</FONT> указываетс€ дл€ описани€, какой интернетовский домен использовать дл€ получени€ адреса узла, если в конфиге он прописан как &laquo;*&raquo;. ≈сли этот параметр не указан, используетс€ глобальный параметр <FONT FACE="Courier New, monospace">root-domain</FONT> (по умолчанию -  <FONT FACE="Courier New, monospace">fidonet.net</FONT>).</P>
 <H2>4.15. exec</H2>
 <P>ƒиректива <FONT FACE="Courier New, monospace">exec</FONT>
 <FONT FACE="Times New Roman, serif">описывает <FONT FACE="Times New Roman, serif">условие
@@ -2236,7 +2237,7 @@ manager). Ёто подпрограмма, котора€ производит периодический просмотр
 	<TBODY>
 		<TR VALIGN=TOP>
 			<TH WIDTH=6%>
-				<P>є</P>
+				<P>&#8470;</P>
 			</TH>
 			<TH WIDTH=84%>
 				<P>ƒействие</P>
