@@ -1,3 +1,8 @@
+2005/09/28 10:18:53 1.0a-460 gul
+sys.h,2.25,2.26 tools.c,2.68,2.69
+gettvtime() (time of day with more then second exactitude) for win32.
+Thanks to Alexander Reznikov.
+
 2005/09/27 23:16:29 1.0a-459 gul
 tools.c,2.67,2.68
 
