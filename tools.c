@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.69  2005/09/28 07:18:49  gul
+ * gettvtime() (time of day with more then second exactitude) for win32.
+ * Thanks to Alexander Reznikov.
+ *
  * Revision 2.68  2005/09/27 20:16:18  gul
  * *** empty log message ***
  *
@@ -1259,4 +1263,17 @@ int tz_off(time_t t, int tzoff)
   tm.tm_isdst = 0;
   return (int)(((long)mktime(&tm)-(long)gt)/60);
 }
+
+#ifdef WIN32
+#include <sys/timeb.h>
+
+void gettvtime(struct timeval *tv)
+{
+  struct _timeb tb;
+
+  _ftime(&tb);
+  tv->tv_sec = tb.time;
+  tv->tv_usec = tb.millitm * 1000;
+}
+#endif
 

@@ -17,6 +17,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.26  2005/09/28 07:18:49  gul
+ * gettvtime() (time of day with more then second exactitude) for win32.
+ * Thanks to Alexander Reznikov.
+ *
  * Revision 2.25  2005/09/27 20:15:43  gul
  * Hopefully fixed compilation under windows
  *
@@ -283,8 +287,10 @@ typedef unsigned long int uintmax_t;
 
 #define UNUSED_ARG(s)  (void)(s)
 
-#ifdef HAVE_GETTIMEOFDAY
+#if defined(HAVE_GETTIMEOFDAY)
 #define gettvtime(tv)	gettimeofday(tv, NULL)
+#elif defined(WIN32)
+void gettvtime(struct timeval *tv);
 #else
 #define gettvtime(tv)	((tv)->tv_sec=time(NULL),(tv)->tv_usec=0)
 #endif
