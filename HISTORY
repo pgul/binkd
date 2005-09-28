@@ -1,3 +1,7 @@
+2005/09/28 23:41:23 1.0a-462 gul
+!README.FIX,2.47,2.48 binkd.cfg,2.49,2.50 btypes.h,2.6,2.7 ftnaddr.c,2.8,2.9 ftnaddr.h,2.4,2.5 readcfg.c,2.84,2.85
+Optional parameter root-domain for domain config option.
+
 2005/09/28 22:02:33 1.0a-461 gul
 protocol.c,2.174,2.175
 Fixed unsigned int arithmetics in rate-limits
