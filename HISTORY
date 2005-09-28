@@ -1,3 +1,7 @@
+2005/09/28 22:02:33 1.0a-461 gul
+protocol.c,2.174,2.175
+Fixed unsigned int arithmetics in rate-limits
+
 2005/09/28 10:18:53 1.0a-460 gul
 sys.h,2.25,2.26 tools.c,2.68,2.69
 gettvtime() (time of day with more then second exactitude) for win32.
