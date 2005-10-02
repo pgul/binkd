@@ -1,3 +1,7 @@
+2005/10/02 21:03:31 1.0a-466 gul
+protocol.c,2.176,2.177
+Verbously report about mail/files for us when receive TRF from remote.
+
 2005/10/02 19:59:17 1.0a-465 gul
 getopt.h,2.3,2.4
 Avoid conflicts if getopt() exists but HAVE_GETOPT not defined
