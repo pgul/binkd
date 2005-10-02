@@ -1,3 +1,6 @@
+2005/10/02 19:35:27 1.0a-464 gul
+sys.h,2.26,2.27
+
 2005/10/02 18:03:16 1.0a-463 gul
 ftnq.c,2.34,2.35 ftnq.h,2.9,2.10 protocol.c,2.175,2.176
 Fileboxes did not works for unlisted nodes
