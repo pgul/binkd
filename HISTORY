@@ -1,3 +1,7 @@
+2005/10/03 00:47:41 1.0a-468 gul
+!README.perl,2.7,2.8 perlhooks.c,2.53,2.54 perlhooks.h,2.10,2.11 protocol.c,2.178,2.179
+set_rlimit() perl hook
+
 2005/10/02 23:48:47 1.0a-467 gul
 !README.perl,2.6,2.7 ftnq.c,2.35,2.36 perlhooks.c,2.52,2.53 protocol.c,2.177,2.178
 - add $traf_mail and $traf_files vars for on_call() and on_handshake() hooks;
