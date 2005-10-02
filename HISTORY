@@ -1,3 +1,7 @@
+2005/10/02 19:59:17 1.0a-465 gul
+getopt.h,2.3,2.4
+Avoid conflicts if getopt() exists but HAVE_GETOPT not defined
+
 2005/10/02 19:35:27 1.0a-464 gul
 sys.h,2.26,2.27
 
