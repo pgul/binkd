@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.179  2005/10/02 21:47:35  gul
+ * set_rlimit() perl hook
+ *
  * Revision 2.178  2005/10/02 20:48:40  gul
  * - add $traf_mail and $traf_files vars for on_call() and on_handshake() hooks;
  * - optimize queue scan in perl hooks;
@@ -2339,6 +2342,9 @@ static void setup_rate_limit (STATE *state, BINKD_CONFIG *config, BW *bw,
     else 
       bw->rlim = bw->abs ? bw->abs * (-rlim) / 100 : 0;
   }
+#ifdef WITH_PERL
+  perl_setup_rlimit(state, bw, fname);
+#endif
   if (bw->rlim)
     Log (3, "rate limit for %s is %d cps", fname, bw->rlim);
   else

@@ -36,10 +36,12 @@ Hooks Calling Scheme
                        |                           |
           /-----------/ \------------\             |
     there's a file to send   remote sends a file   |
-          |                          |             \  if error occurs
-    before_send()               before_recv()       \       |
-          |                          |              /   on_error()
-       sending                   receiving         /
+          |                          |             |
+    before_send()               before_recv()      \  if error occurs
+          |                          |              \       |
+    setup_rlimit()              setup_rlimit()      /   on_error()
+          |                          |             /
+       sending                   receiving         |
           |                          |             |
      after_sent()               after_recv()       |
           .                          .             |
@@ -257,6 +259,13 @@ Hooks Description
                     $lvl - log level of message
     - return non-zero if you want to update $_ and/or $lvl, otherwise message
       and level are both unchanged
+
+13) setup_rlimit()
+    - called before sending or receiving file
+    - defined vars: session level 2,
+                    $file   - network name of file
+                    $rlimit - config rate limit for the file in bps
+    - $rlimit can be changed. 0 - speed is unlimited.
 
 If a hook sub is not present, it won't be called. If an error occurs while
 running sub, the sub won't be disabled (so, error can occur again).
