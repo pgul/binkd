@@ -546,3 +546,5 @@ NT/95:  ctrl-c problems fixed
 
 	Do not run events with immediate-flag twice.
 
+	Fileboxes was not scanned for unlisted links.
+

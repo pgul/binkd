@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67.2.20  2005/10/02 15:23:35  gul
+ * Fileboxes was not scanned for unlisted links
+ *
  * Revision 2.67.2.19  2005/06/06 17:01:02  stream
  * Fixed broken ND-mode status.
  *
@@ -2394,7 +2397,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
 	  state.msgs_in_batch = 0;
 	  state.remote_EOB = state.local_EOB = 0;
 	  if (OK_SEND_FILES (&state))
-	    state.q = q_scan_boxes (state.q, state.fa, state.nfa);
+	    state.q = q_scan_boxes (state.q, state.fa, state.nfa, state.to ? 1 : 0);
 	  continue;
 	}
       }

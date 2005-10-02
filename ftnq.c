@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19.2.6  2005/10/02 15:23:35  gul
+ * Fileboxes was not scanned for unlisted links
+ *
  * Revision 2.19.2.5  2005/01/09 19:39:42  stream
  * Nodes in beginning of queue were ignored if a node with higher flavour
  * appeared later in the queue.
@@ -144,7 +147,7 @@ static const char out_flvrs[] = "icdohICDOH";
 
 static FTNQ *q_add_dir (FTNQ *q, char *dir, FTN_ADDR *fa1);
 FTNQ *q_add_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action, char type);
-static FTNQ *q_scan_boxes_nolock (FTNQ *q, FTN_ADDR *fa, int n);
+static FTNQ *q_scan_boxes_nolock (FTNQ *q, FTN_ADDR *fa, int n, int to);
 
 /*
  * q_free(): frees memory allocated by q_scan()
@@ -192,7 +195,7 @@ void q_free (FTNQ *q)
  */
 static int qn_scan (FTN_NODE *fn, void *arg)
 {
-  *(FTNQ **) arg = q_scan_boxes_nolock (*(FTNQ **) arg, &fn->fa, 1);
+  *(FTNQ **) arg = q_scan_boxes_nolock (*(FTNQ **) arg, &fn->fa, 1, 1);
   return 0;
 }
 
@@ -292,7 +295,7 @@ FTNQ *q_scan_addrs (FTNQ *q, FTN_ADDR *fa, int n, int to)
       }
     }
   }
-  q = q_scan_boxes (q, fa, n);
+  q = q_scan_boxes (q, fa, n, 1);
   return q;
 }
 
@@ -401,7 +404,7 @@ static FTNQ *q_scan_box (FTNQ *q, FTN_ADDR *fa, char *boxpath, char flvr, int de
 /*
  * Scans fileboxes for n akas stored in fa
  */
-static FTNQ *q_scan_boxes_nolock (FTNQ *q, FTN_ADDR *fa, int n)
+static FTNQ *q_scan_boxes_nolock (FTNQ *q, FTN_ADDR *fa, int n, int to)
 {
   FTN_NODE *node;
   int i;
@@ -413,15 +416,22 @@ static FTNQ *q_scan_boxes_nolock (FTNQ *q, FTN_ADDR *fa, int n)
 
   for (i = 0; i < n; ++i)
   {
+    node = get_node_info (fa + i);
+    if (!to && send_if_pwd)
+    {
+      /* do not give unsecure mail even to secure link when send-if-pwd */
+      if (node == NULL || node->pwd == NULL || strcmp(node->pwd, "-") == 0)
+        continue;
+    }
 #ifndef MAILBOX
-    if ((node = get_node_info (fa + i)) != NULL && node->obox != NULL)
+    if (node && node->obox)
     {
       q = q_scan_box (q, fa+i, node->obox, node->obox_flvr, 0);
     }
 #else
-    if ((node = get_node_info (fa + i)) != NULL && ((node->obox != NULL) || tfilebox[0] || bfilebox[0]))
+    if ((node && node->obox) || tfilebox[0] || bfilebox[0])
     {
-      if (node->obox)
+      if (node && node->obox)
         q = q_scan_box (q, fa+i, node->obox, node->obox_flvr, 0);
       if (bfilebox[0]) {
         strnzcpy (buf, bfilebox, sizeof (buf));
@@ -432,11 +442,11 @@ static FTNQ *q_scan_boxes_nolock (FTNQ *q, FTN_ADDR *fa, int n)
         sprintf(buf + strlen(buf),
 #endif
                 "%s.%u.%u.%u.%u.",
-                node->fa.domain,
-                node->fa.z,
-                node->fa.net,
-                node->fa.node,
-                node->fa.p);
+                fa[i].domain,
+                fa[i].z,
+                fa[i].net,
+                fa[i].node,
+                fa[i].p);
         s = buf + strlen(buf);
         for (j = 0; j < sizeof(brakeExt)/sizeof(brakeExt[0]); j++) {
           strnzcat (buf, brakeExt[j].ext, sizeof (buf));
@@ -454,10 +464,10 @@ static FTNQ *q_scan_boxes_nolock (FTNQ *q, FTN_ADDR *fa, int n)
         sprintf(buf + strlen(buf),
 #endif
                 "%u.%u.%u.%u",
-                node->fa.z,
-                node->fa.net,
-                node->fa.node,
-                node->fa.p);
+                fa[i].z,
+                fa[i].net,
+                fa[i].node,
+                fa[i].p);
         q = q_scan_box (q, fa+i, buf, 'f', deleteablebox);
         strnzcat ( buf, ".H", sizeof (buf));
 #ifdef UNIX
@@ -476,10 +486,10 @@ static FTNQ *q_scan_boxes_nolock (FTNQ *q, FTN_ADDR *fa, int n)
         sprintf(buf + strlen(buf),
 #endif
                 "%c%c%c%c%c%c%c%c.%c%c",
-                to32(node->fa.z/32),     to32(node->fa.z%32),
-                to32(node->fa.net/1024), to32((node->fa.net/32)%32), to32(node->fa.net%32),
-                to32(node->fa.node/1024),to32((node->fa.node/32)%32),to32(node->fa.node%32),
-                to32(node->fa.p/32),     to32(node->fa.p%32));
+                to32(fa[i].z/32),     to32(fa[i].z%32),
+                to32(fa[i].net/1024), to32((fa[i].net/32)%32), to32(fa[i].net%32),
+                to32(fa[i].node/1024),to32((fa[i].node/32)%32),to32(fa[i].node%32),
+                to32(fa[i].p/32),     to32(fa[i].p%32));
         q = q_scan_box (q, fa+i, buf, 'f', deleteablebox);
         strnzcat (buf, "H", sizeof (buf));
 #ifdef UNIX
@@ -497,10 +507,10 @@ static FTNQ *q_scan_boxes_nolock (FTNQ *q, FTN_ADDR *fa, int n)
   return q;
 }
 
-FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n)
+FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n, int to)
 {
   locknodesem();
-  q = q_scan_boxes_nolock (q, fa, n);
+  q = q_scan_boxes_nolock (q, fa, n, to);
   releasenodesem();
   return q;
 }
