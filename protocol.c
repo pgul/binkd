@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.177  2005/10/02 18:03:26  gul
+ * Verbously report about mail/files for us when receive TRF from remote.
+ *
  * Revision 2.176  2005/10/02 15:03:11  gul
  * Fileboxes did not works for unlisted nodes
  *
@@ -1378,6 +1381,13 @@ static int NUL (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
     state->major = atoi (a + 6);
     state->minor = atoi (b + 1);
     Log (6, "remote uses " PRTCLNAME " v.%i.%i", state->major, state->minor);
+  }
+  else if (!memcmp (s, "TRF ", 4))
+  {
+    char *mail, *files;
+    if ((mail = getwordx (s + 4, 1, 0)) != NULL &&
+        (files = getwordx (s + 4, 2, 0)) != NULL)
+      Log (2, "Remote has %sb of mail and %sb of files for us", mail, files);
   }
   else if (!memcmp (s, "OPT ", 4))
   {
