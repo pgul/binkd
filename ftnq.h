@@ -14,6 +14,9 @@
 /* $Id$
  *
  * $Log$
+ * Revision 2.10  2005/10/02 15:03:11  gul
+ * Fileboxes did not works for unlisted nodes
+ *
  * Revision 2.9  2004/08/04 11:32:29  gul
  * Attemp to support large files (>4G)
  *
@@ -96,7 +99,7 @@ FTNQ *q_scan_addrs (FTNQ *q, FTN_ADDR *fa, int n, int to, BINKD_CONFIG *config);
 /*
  * Scans fileboxes for n akas stored in fa
  */
-FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n, BINKD_CONFIG *config);
+FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n, int to, BINKD_CONFIG *config);
 
 /*
  * 0 = the queue is empty.

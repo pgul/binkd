@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.35  2005/10/02 15:03:11  gul
+ * Fileboxes did not works for unlisted nodes
+ *
  * Revision 2.34  2004/08/04 11:32:29  gul
  * Attemp to support large files (>4G)
  *
@@ -241,7 +244,7 @@ static int qn_scan (FTN_NODE *fn, void *arg)
 {
   struct qn_scan_params *params = arg;
 
-  *(params->pq) = q_scan_boxes (*(params->pq), &fn->fa, 1, params->config);
+  *(params->pq) = q_scan_boxes (*(params->pq), &fn->fa, 1, 1, params->config);
   return 0;
 }
 
@@ -340,7 +343,7 @@ FTNQ *q_scan_addrs (FTNQ *q, FTN_ADDR *fa, int n, int to, BINKD_CONFIG *config)
       }
     }
   }
-  q = q_scan_boxes (q, fa, n, config);
+  q = q_scan_boxes (q, fa, n, to, config);
   return q;
 }
 
@@ -462,7 +465,7 @@ static FTNQ *q_scan_box (FTNQ *q, FTN_ADDR *fa, char *boxpath, char flvr, int de
 /*
  * Scans fileboxes for n akas stored in fa
  */
-FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n, BINKD_CONFIG *config)
+FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n, int to, BINKD_CONFIG *config)
 {
   FTN_NODE *node;
   int i;
@@ -474,26 +477,33 @@ FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n, BINKD_CONFIG *config)
 
   for (i = 0; i < n; ++i)
   {
+    node = get_node_info (fa + i, config);
+    if (!to && config->send_if_pwd)
+    {
+      /* do not give unsecure mail even to secure link when send-if-pwd */
+      if (node == NULL || node->pwd == NULL || strcmp(node->pwd, "-") == 0)
+	continue;
+    }
 #ifndef MAILBOX
-    if ((node = get_node_info (fa + i, config)) != NULL && node->obox != NULL)
+    if (node && node->obox)
     {
       q = q_scan_box (q, fa+i, node->obox, node->obox_flvr, 0, config);
     }
 #else
-    if ((node = get_node_info (fa + i, config)) != NULL && ((node->obox != NULL) || config->tfilebox[0] || config->bfilebox[0]))
+    if ((node && node->obox) || config->tfilebox[0] || config->bfilebox[0])
     {
-      if (node->obox)
+      if (node && node->obox)
         q = q_scan_box (q, fa+i, node->obox, node->obox_flvr, 0, config);
       if (config->bfilebox[0]) {
         strnzcpy (buf, config->bfilebox, sizeof (buf));
         strnzcat (buf, PATH_SEPARATOR, sizeof (buf));
         snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
                 "%s.%u.%u.%u.%u.",
-                node->fa.domain,
-                node->fa.z,
-                node->fa.net,
-                node->fa.node,
-                node->fa.p);
+                fa[i].domain,
+                fa[i].z,
+                fa[i].net,
+                fa[i].node,
+                fa[i].p);
         s = buf + strlen(buf);
         for (j = 0; j < sizeof(brakeExt)/sizeof(brakeExt[0]); j++) {
           strnzcat (buf, brakeExt[j].ext, sizeof (buf));
@@ -507,10 +517,10 @@ FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n, BINKD_CONFIG *config)
         strnzcat ( buf, PATH_SEPARATOR, sizeof (buf));
         snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
                 "%u.%u.%u.%u",
-                node->fa.z,
-                node->fa.net,
-                node->fa.node,
-                node->fa.p);
+                fa[i].z,
+                fa[i].net,
+                fa[i].node,
+                fa[i].p);
         q = q_scan_box (q, fa+i, buf, 'f', config->deleteablebox, config);
         strnzcat ( buf, ".H", sizeof (buf));
 #ifdef UNIX
@@ -525,10 +535,10 @@ FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n, BINKD_CONFIG *config)
         strnzcat ( buf, PATH_SEPARATOR, sizeof (buf));
         snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
                 "%c%c%c%c%c%c%c%c.%c%c",
-                to32(node->fa.z/32),     to32(node->fa.z%32),
-                to32(node->fa.net/1024), to32((node->fa.net/32)%32), to32(node->fa.net%32),
-                to32(node->fa.node/1024),to32((node->fa.node/32)%32),to32(node->fa.node%32),
-                to32(node->fa.p/32),     to32(node->fa.p%32));
+                to32(fa[i].z/32),     to32(fa[i].z%32),
+                to32(fa[i].net/1024), to32((fa[i].net/32)%32), to32(fa[i].net%32),
+                to32(fa[i].node/1024),to32((fa[i].node/32)%32),to32(fa[i].node%32),
+                to32(fa[i].p/32),     to32(fa[i].p%32));
         q = q_scan_box (q, fa+i, buf, 'f', config->deleteablebox, config);
         strnzcat (buf, "H", sizeof (buf));
 #ifdef UNIX
