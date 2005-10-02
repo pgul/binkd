@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.178  2005/10/02 20:48:40  gul
+ * - add $traf_mail and $traf_files vars for on_call() and on_handshake() hooks;
+ * - optimize queue scan in perl hooks;
+ * - documentation for $rc var in after_session() hook.
+ *
  * Revision 2.177  2005/10/02 18:03:26  gul
  * Verbously report about mail/files for us when receive TRF from remote.
  *
@@ -1556,6 +1561,74 @@ static char * add_shared_akas(char * s, BINKD_CONFIG *config)
   return ad;
 }
 
+static void send_ADR (STATE *state, BINKD_CONFIG *config) {
+  char szFTNAddr[FTN_ADDR_SZ + 1];
+  char *szAkas;
+  int i, N;
+  struct akachain *ps;
+
+  Log(7, "send_ADR(): got %d remote addresses", state->nfa);
+
+  if (!state->pAddr) {
+    state->nAddr = config->nAddr;
+    state->pAddr = xalloc(state->nAddr * sizeof(FTN_ADDR));
+    memcpy(state->pAddr, config->pAddr, state->nAddr*sizeof(FTN_ADDR));
+  }
+
+  N = state->nAddr;
+  for (ps = config->akamask.first; ps; ps = ps->next)
+  {
+    int t = (ps->type & 0x7f);
+    int rc;
+
+    if (state->to)
+      rc = ftnamask_cmpm(ps->mask, 1, &(state->to->fa)) == (ps->type & 0x80 ? -1 : 0);
+    else
+      rc = ftnamask_cmpm(ps->mask, state->nfa, state->fa) == (ps->type & 0x80 ? -1 : 0);
+    /* hide aka */
+    if (t == ACT_HIDE && rc) {
+      i = 0;
+      while (i < state->nAddr)
+        if (ftnaddress_cmp(state->pAddr+i, &(ps->fa)) == 0) {
+          char buf[FTN_ADDR_SZ];
+          ftnaddress_to_str(buf, &(ps->fa));
+          Log(3, "hiding aka %s", buf);
+          if (i < state->nAddr-1)
+            memmove(state->pAddr+i, state->pAddr+i+1, (state->nAddr-1-i)*sizeof(FTN_ADDR));
+          state->nAddr--;
+        }
+        else i++;
+    }
+    /* present aka */
+    else if (t == ACT_PRESENT && rc) {
+      for (i = 0; i < state->nAddr+1; i++)
+        if (i == state->nAddr || ftnaddress_cmp(state->pAddr+i, &(ps->fa)) == 0) break;
+      if (i == state->nAddr) {
+        char buf[FTN_ADDR_SZ];
+        ftnaddress_to_str(buf, &(ps->fa));
+        Log(3, "presenting aka %s", buf);
+        state->nAddr++;
+        if (state->nAddr > N) {
+          state->pAddr = xrealloc(state->pAddr, state->nAddr * sizeof(FTN_ADDR));
+          N++;
+        }
+        memcpy(state->pAddr+state->nAddr-1, &(ps->fa), sizeof(FTN_ADDR));
+      }
+    }
+  }
+
+  szAkas = xalloc (state->nAddr * (FTN_ADDR_SZ + 1));
+  *szAkas = 0;
+  for (i = 0; i < state->nAddr; ++i)
+  {
+    ftnaddress_to_str (szFTNAddr, state->pAddr + i);
+    strcat (szAkas, " ");
+    strcat (szAkas, szFTNAddr);
+  }
+  msg_send2 (state, M_ADR, szAkas, 0);
+  free (szAkas);
+}
+
 static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 {
   int i, j, main_AKA_ok = 0;
@@ -1944,6 +2017,16 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 
   if (!state->to)
   {
+#ifdef WITH_PERL
+    char *s = perl_on_handshake(state, config);
+    if (s && *s) {
+      Log (1, "aborted by Perl on_handshake(): %s", s);
+      msg_send2 (state, M_ERR, s, 0);
+      return 0;
+    }
+#endif
+    if (state->delay_ADR) send_ADR (state, config);
+
     if (state->expected_pwd[0] && strcmp(state->expected_pwd, "-"))
     {
       state->ND_flag |= secure_ND;
@@ -3167,75 +3250,7 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
     return 1;
 }
 
-static void send_ADR (STATE *state, BINKD_CONFIG *config) {
-  char szFTNAddr[FTN_ADDR_SZ + 1];
-  char *szAkas;
-  int i, N;
-  struct akachain *ps;
-
-  Log(7, "send_ADR(): got %d remote addresses", state->nfa);
-
-  if (!state->pAddr) {
-    state->nAddr = config->nAddr;
-    state->pAddr = xalloc(state->nAddr * sizeof(FTN_ADDR));
-    memcpy(state->pAddr, config->pAddr, state->nAddr*sizeof(FTN_ADDR));
-  }
-
-  N = state->nAddr;
-  for (ps = config->akamask.first; ps; ps = ps->next)
-  {
-    int t = (ps->type & 0x7f);
-    int rc;
-
-    if (state->to)
-      rc = ftnamask_cmpm(ps->mask, 1, &(state->to->fa)) == (ps->type & 0x80 ? -1 : 0);
-    else
-      rc = ftnamask_cmpm(ps->mask, state->nfa, state->fa) == (ps->type & 0x80 ? -1 : 0);
-    /* hide aka */
-    if (t == ACT_HIDE && rc) {
-      i = 0;
-      while (i < state->nAddr)
-        if (ftnaddress_cmp(state->pAddr+i, &(ps->fa)) == 0) {
-          char buf[FTN_ADDR_SZ];
-          ftnaddress_to_str(buf, &(ps->fa));
-          Log(3, "hiding aka %s", buf);
-          if (i < state->nAddr-1)
-            memmove(state->pAddr+i, state->pAddr+i+1, (state->nAddr-1-i)*sizeof(FTN_ADDR));
-          state->nAddr--;
-        }
-        else i++;
-    }
-    /* present aka */
-    else if (t == ACT_PRESENT && rc) {
-      for (i = 0; i < state->nAddr+1; i++)
-        if (i == state->nAddr || ftnaddress_cmp(state->pAddr+i, &(ps->fa)) == 0) break;
-      if (i == state->nAddr) {
-        char buf[FTN_ADDR_SZ];
-        ftnaddress_to_str(buf, &(ps->fa));
-        Log(3, "presenting aka %s", buf);
-        state->nAddr++;
-        if (state->nAddr > N) {
-          state->pAddr = xrealloc(state->pAddr, state->nAddr * sizeof(FTN_ADDR));
-          N++;
-        }
-        memcpy(state->pAddr+state->nAddr-1, &(ps->fa), sizeof(FTN_ADDR));
-      }
-    }
-  }
-
-  szAkas = xalloc (state->nAddr * (FTN_ADDR_SZ + 1));
-  *szAkas = 0;
-  for (i = 0; i < state->nAddr; ++i)
-  {
-    ftnaddress_to_str (szFTNAddr, state->pAddr + i);
-    strcat (szAkas, " ");
-    strcat (szAkas, szFTNAddr);
-  }
-  msg_send2 (state, M_ADR, szAkas, 0);
-  free (szAkas);
-}
-
-static void banner (STATE *state, BINKD_CONFIG *config)
+static int banner (STATE *state, BINKD_CONFIG *config)
 {
   int tz;
   char szLocalTime[60];
@@ -3286,6 +3301,17 @@ static void banner (STATE *state, BINKD_CONFIG *config)
   msg_sendf (state, M_NUL,
     "VER " MYNAME "/" MYVER "%s " PRTCLNAME "/" PRTCLVER, get_os_string ());
 
+#ifdef WITH_PERL
+  if (state->to) {
+    char *s = perl_on_handshake(state, config);
+    if (s && *s) {
+      Log (1, "aborted by Perl on_handshake(): %s", s);
+      msg_send2 (state, M_ERR, s, 0);
+      return 0;
+    }
+  }
+#endif
+
   if (state->to || !state->delay_ADR) send_ADR (state, config);
 
   if (state->to) {
@@ -3302,6 +3328,7 @@ static void banner (STATE *state, BINKD_CONFIG *config)
     msg_send2(state, M_NUL, "OPT", szOpt);
     xfree(szOpt);
   }
+  return 1;
 }
 
 static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
@@ -3507,11 +3534,6 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
   socklen_t peer_name_len = sizeof (peer_name);
   char host[MAXHOSTNAMELEN + 1];
   const char *save_err = NULL;
-  int ADR_sent = 0;
-#ifdef WITH_PERL
-  int ok = 1;                         /* drop to 0 to abort session */
-  int perl_on_handshake_done = 0;
-#endif
 #ifdef BW_LIM
   int limited;
 #endif
@@ -3549,24 +3571,8 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
   else
     state.our_ip=peer_name.sin_addr.s_addr;
 
-#ifdef WITH_PERL
-  if (state.to) {
-    char *s = perl_on_handshake(&state, config);
-    perl_on_handshake_done = 1;
-    if (s && *s) {
-      Log (1, "aborted by Perl on_handshake(): %s", s);
-      msg_send2 (&state, M_ERR, s, 0);
-      ok = 0;
-    }
-  }
-  if (ok)
-#endif
-  banner (&state, config);
-#ifdef WITH_PERL
-  if (!ok) ;
-  else
-#endif
-  if (n_servers > config->max_servers && !to)
+  if (banner (&state, config) == 0) ;
+  else if (n_servers > config->max_servers && !to)
   {
     Log (1, "too many servers");
     msg_send2 (&state, M_BSY, "Too many servers", 0);
@@ -3707,18 +3713,6 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
 	if (!recv_block (&state, config))
 	  break;
       }
-#ifdef WITH_PERL
-      if (state.nfa && !perl_on_handshake_done) {
-        char *s = perl_on_handshake(&state, config);
-        perl_on_handshake_done = 1;
-        if (s && *s) {
-          Log (1, "aborted by Perl on_handshake(): %s", s);
-          msg_send2 (&state, M_ERR, s, 0);
-          break;
-        }
-      }
-#endif
-      if (!state.to && state.delay_ADR && state.nfa && !ADR_sent) { send_ADR (&state, config); ADR_sent = 1; }
       if (FD_ISSET (socket, &w))       /* Clear to send */
       {
 	no = send_block (&state, config);

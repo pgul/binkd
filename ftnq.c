@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.36  2005/10/02 20:48:39  gul
+ * - add $traf_mail and $traf_files vars for on_call() and on_handshake() hooks;
+ * - optimize queue scan in perl hooks;
+ * - documentation for $rc var in after_session() hook.
+ *
  * Revision 2.35  2005/10/02 15:03:11  gul
  * Fileboxes did not works for unlisted nodes
  *
@@ -1030,7 +1035,9 @@ void q_get_sizes (FTNQ *q, uintmax_t *netsize, uintmax_t *filessize)
     { FILE *f;
       char str[MAXPATHLEN+2];
 
-      if ((f = fopen(curr->path, "r")) != NULL)
+      if (curr->size)
+        *filessize += curr->size;
+      else if ((f = fopen(curr->path, "r")) != NULL)
       {
         curr->size = curr->time = 0;
         while (fgets (str, sizeof(str), f))
@@ -1050,10 +1057,16 @@ void q_get_sizes (FTNQ *q, uintmax_t *netsize, uintmax_t *filessize)
     }
     else if (curr->type == 's')
       *filessize += curr->size;
-    else if (stat(curr->path, &st) == 0) {
-      *(curr->type == 'm' ? netsize : filessize) += st.st_size;
-      curr->size = st.st_size;
-      curr->time = st.st_mtime;
+    else
+    {
+      if (curr->size == 0)
+      {
+        if (stat(curr->path, &st) == 0) {
+          curr->size = st.st_size;
+          curr->time = st.st_mtime;
+        }
+      }
+      *(curr->type == 'm' ? netsize : filessize) += curr->size;
     }
   }
 }

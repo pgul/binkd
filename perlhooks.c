@@ -14,6 +14,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.53  2005/10/02 20:48:39  gul
+ * - add $traf_mail and $traf_files vars for on_call() and on_handshake() hooks;
+ * - optimize queue scan in perl hooks;
+ * - documentation for $rc var in after_session() hook.
+ *
  * Revision 2.52  2005/09/23 12:24:33  gul
  * define $hosts variable for on_call() perl hook (can be changed).
  * Changes for $proxy and $socks are now local for the single outgoing call.
@@ -1671,6 +1676,8 @@ int perl_on_call(FTN_NODE *node, BINKD_CONFIG *cfg, char **hosts
 		) {
   char   buf[FTN_ADDR_SZ];
   int    rc;
+  uintmax_t netsize, filessize;
+  FTNQ   *q;
   SV     *svret, *svhosts, *sv;
 #ifdef HTTPS
   SV     *svproxy, *svsocks;
@@ -1680,6 +1687,10 @@ int perl_on_call(FTN_NODE *node, BINKD_CONFIG *cfg, char **hosts
     Log(LL_DBG, "perl_on_call(), perl=%p", Perl_get_context());
     if (!Perl_get_context()) return 1;
     { dSP;
+      q = q_scan_addrs (0, &(node->fa), 1, 1, cfg);
+      q_get_sizes (q, &netsize, &filessize);
+      VK_ADD_intz(sv, "traf_mail", (IV)netsize);
+      VK_ADD_intz(sv, "traf_file", (IV)filessize);
       ftnaddress_to_str(buf, &(node->fa));
       VK_ADD_str(sv, "addr", buf);
       if ((svhosts = perl_get_sv("hosts", TRUE))) sv_setpv(svhosts, *hosts);
@@ -1777,9 +1788,11 @@ char *perl_on_handshake(STATE *state, BINKD_CONFIG *cfg) {
   char buf[FTN_ADDR_SZ];
   char *prc;
   int i;
+  uintmax_t netsize, filessize;
+  FTNQ *q;
   STRLEN len;
   AV *he, *me;
-  SV *svret, **svp;
+  SV *svret, **svp, *sv;
   /* this pointer is used later */
   if (perl && perl_ok) 
     if (Perl_get_context()) {
@@ -1798,10 +1811,20 @@ char *perl_on_handshake(STATE *state, BINKD_CONFIG *cfg) {
           ftnaddress_to_str(buf, &(state->fa[i]));
           av_push(he, newSVpv(buf, 0));
         }
+        if (state->q)
+          q = state->q;
+        else if (OK_SEND_FILES (state, cfg))
+          q = state->q = q_scan_addrs (0, state->fa, state->nfa, 0, cfg);
+        else
+          q = NULL;
       } else {
-          ftnaddress_to_str(buf, &(state->to->fa));
-          av_push(he, newSVpv(buf, 0));
+        ftnaddress_to_str(buf, &(state->to->fa));
+        av_push(he, newSVpv(buf, 0));
+        q = q_scan_addrs (0, &(state->to->fa), 1, 1, cfg);
       }
+      q_get_sizes (q, &netsize, &filessize);
+      VK_ADD_intz(sv, "traf_mail", (IV)netsize);
+      VK_ADD_intz(sv, "traf_file", (IV)filessize);
       setup_session(state, 1);
       ENTER;
       SAVETMPS;

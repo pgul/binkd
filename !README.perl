@@ -130,8 +130,8 @@ Session Data
   $sysname       + +   remote system name
   $sysop         + +   remote sysop
   $location      + +   remote location
-  $traf_mail     + +   mail traffic in bytes
-  $traf_file     + +   other traffic in bytes
+  $traf_mail   + + +   mail traffic in bytes
+  $traf_file   + + +   other traffic in bytes
   %opt           + +   hash with keys: ND, NR, MD, crypt, GZ
   @he          + + +   array of remote aka
   @me          + + +   array of present our akas
@@ -182,6 +182,7 @@ Hooks Description
    - return 0 to abort the call, non-zero to proceed
    - defined vars: $addr  - node to be called,
                    $hosts - hosts lists for node (can be changed),
+                   $traf_mail, $traf_file - mail and other traffic in bytes,
                    $proxy, $socks - proxy or socks used for the call
                                     (can be changed).
 
@@ -208,7 +209,8 @@ Hooks Description
 
 7) after_session()
    - called after session ends
-   - defined vars: session level 3
+   - defined vars: session level 3,
+                   $rc   - 0 if session was unsuccessful
 
 8) before_recv()
    - called just before we receive a file (before skipmasks are checked)
