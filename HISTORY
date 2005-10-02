@@ -1,3 +1,9 @@
+2005/10/02 23:48:47 1.0a-467 gul
+!README.perl,2.6,2.7 ftnq.c,2.35,2.36 perlhooks.c,2.52,2.53 protocol.c,2.177,2.178
+- add $traf_mail and $traf_files vars for on_call() and on_handshake() hooks;
+- optimize queue scan in perl hooks;
+- documentation for $rc var in after_session() hook.
+
 2005/10/02 21:03:31 1.0a-466 gul
 protocol.c,2.176,2.177
 Verbously report about mail/files for us when receive TRF from remote.
