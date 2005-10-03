@@ -94,6 +94,11 @@ from Russian by Michael Dukelsky 2:5020/1042.
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/snapshot (main)
     ftp://ftp.grumbler.org/pub/binkd/current (the mirror is refreshed
                                               at 23:50 UTC+5)
+
+    Binkd port for Windows CE:
+    http://nicka-s.narod.ru/fido/index.html 
+      (Russia, Nickita Startcev)
+
     Documentation, log analyzers etc.:
     http://www.doe.carleton.ca/~nsoveiko/fido/binkd/
 

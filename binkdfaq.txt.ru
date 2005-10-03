@@ -91,6 +91,10 @@
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/snapshot (основной)
     ftp://ftp.grumbler.org/pub/binkd/current (зеркало, обновляется 23:50 UTC+5)
 
+    Binkd, портированный под Windows CE:
+    http://nicka-s.narod.ru/fido/index.html 
+      (Россия, Nickita Startcev)
+
     Документация (англ.), анализаторы логов и пр.:
     http://www.doe.carleton.ca/~nsoveiko/fido/binkd/
 
