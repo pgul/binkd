@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.180  2005/10/03 07:52:23  gul
+ * Fixed memory leak from 1.0a-466 (thanks to Roman Trunov)
+ *
  * Revision 2.179  2005/10/02 21:47:35  gul
  * set_rlimit() perl hook
  *
@@ -1395,7 +1398,11 @@ static int NUL (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
     char *mail, *files;
     if ((mail = getwordx (s + 4, 1, 0)) != NULL &&
         (files = getwordx (s + 4, 2, 0)) != NULL)
+    {
       Log (2, "Remote has %sb of mail and %sb of files for us", mail, files);
+      free(files);
+    }
+    if (mail) free(mail);
   }
   else if (!memcmp (s, "OPT ", 4))
   {
