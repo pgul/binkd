@@ -1,3 +1,7 @@
+2005/10/03 10:52:46 1.0a-470 gul
+protocol.c,2.179,2.180
+Fixed memory leak from 1.0a-466 (thanks to Roman Trunov)
+
 2005/10/03 09:49:10 1.0a-469 gul
 perlhooks.c,2.54,2.55 perlhooks.h,2.11,2.12
 Fixed typos in previous patch
