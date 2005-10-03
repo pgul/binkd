@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67.2.22  2005/10/03 07:55:16  gul
+ * Fixed memory leak (thanks to Roman Trunov)
+ *
  * Revision 2.67.2.21  2005/10/02 18:01:28  gul
  * Verbously report about mail/files for us when receive TRF from remote.
  *
@@ -913,7 +916,11 @@ static int NUL (STATE *state, char *buf, int sz)
     char *mail, *files;
     if ((mail = getwordx (s + 4, 1, 0)) != NULL &&
         (files = getwordx (s + 4, 2, 0)) != NULL)
+    {
       Log (2, "Remote has %sb of mail and %sb of files for us", mail, files);
+      free(files);
+    }
+    if (mail) free(mail);
   }
   else if (!memcmp (s, "OPT ", 4))
   {
