@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.55  2005/10/03 06:49:04  gul
+ * Fixed typos in previous patch
+ *
  * Revision 2.54  2005/10/02 21:47:34  gul
  * set_rlimit() perl hook
  *
@@ -2240,23 +2243,23 @@ int perl_on_recv(STATE *state, char *s, int size) {
 }
 
 #ifdef BW_LIM
-int perl_set_rlimit(STATE *state, BW *bw, char *fname)
+int perl_setup_rlimit(STATE *state, BW *bw, char *fname)
 {
   int    rc = 1;
   STRLEN len;
   SV     *sv, *svret;
 
-  if (perl_ok & (1 << PERL_SET_RLIMIT)) {
+  if (perl_ok & (1 << PERL_SETUP_RLIMIT)) {
     Log(LL_DBG2, "perl_set_rlimit(), perl=%p", Perl_get_context());
     { dSP;
       if (state->perl_set_lvl < 2) setup_session(state, 2);
       VK_ADD_str (sv, "file", fname);
-      VK_ADD_str (sv, "rlimit", bw->rlim); if (sv) { SvREADONLY_off(sv); }
+      VK_ADD_intz (sv, "rlimit", bw->rlim); if (sv) { SvREADONLY_off(sv); }
       ENTER;
       SAVETMPS;
       PUSHMARK(SP);
       PUTBACK;
-      perl_call_pv(perl_subnames[PERL_SET_RLIMIT], G_EVAL|G_SCALAR);
+      perl_call_pv(perl_subnames[PERL_SETUP_RLIMIT], G_EVAL|G_SCALAR);
       SPAGAIN;
       svret=POPs;
       /* if (SvOK(svret)) rc = SvIV(svret); else rc = 0; */
@@ -2272,7 +2275,7 @@ int perl_set_rlimit(STATE *state, BW *bw, char *fname)
         if (!p || len == 0 || *p == 0) rc = 0; 
         else {
           rc = 1;
-          sv = perl_get_sv("rlimit", FALSE); if (sv) bw->rlimit = SvIV(sv);
+          sv = perl_get_sv("rlimit", FALSE); if (sv) bw->rlim = SvIV(sv);
         }
       }
     }
