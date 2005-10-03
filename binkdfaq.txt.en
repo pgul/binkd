@@ -60,7 +60,7 @@ from Russian by Michael Dukelsky 2:5020/1042.
 
     In Internet:
 
-    Release versions, documenatation, log analyzers etc. (Pavel Gulchouck 
+    Release versions, documenatation, log analyzers etc. (Pavel Gulchouck
     2:463/68):
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/
     The mirrors:
@@ -89,15 +89,15 @@ from Russian by Michael Dukelsky 2:5020/1042.
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_8 binkd
        Retrieve the sources of the binkd 0.9.7-release:
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_7 binkd
-       
+
     Anonymous FTP:
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/snapshot (main)
     ftp://ftp.grumbler.org/pub/binkd/current (the mirror is refreshed
                                               at 23:50 UTC+5)
 
     Binkd port for Windows CE:
-    http://nicka-s.narod.ru/fido/index.html 
-      (Russia, Nickita Startcev)
+    http://nicka-s.narod.ru/fido/index.html
+      (Russia, Nickita Startcev 2:469/105.96 & 2:5030/777.319)
 
     Documentation, log analyzers etc.:
     http://www.doe.carleton.ca/~nsoveiko/fido/binkd/
@@ -665,14 +665,14 @@ BinkD to match both upper-case and lower-case letters, e.g. both *.REQ and
 
     exec "/ftn/bin/tmafreq *S" *.[rR][eE][qQ]
 
-    The following file request processors are compatible with BinkD (but 
+    The following file request processors are compatible with BinkD (but
 they are not the only ones, any other one supporting SRIF will do):
 
     Allfix by Harms Software Engineering: it is a fileecho processor with
 built-in file request processor and it has versions for DOS and OS/2;
 
-    ViReq by Michael Haase (2:2432/280): a specialized FREQ processor for 
-Windows, it is distributed by Michael Massenberg (2:2411/505) via modem, 
+    ViReq by Michael Haase (2:2432/280): a specialized FREQ processor for
+Windows, it is distributed by Michael Massenberg (2:2411/505) via modem,
 ISDN and Fido-over-IP.
 
 
@@ -992,13 +992,13 @@ time servers.
 
         30. BinkD Receives an Incoming Call Only After an Outgoing One.
 
-    Such a behaviour was observed for BinkD/w32 working as a service on a 
-computer with McAfee Firewall installed. The firewall starts after BinkD 
-start-up, does not detect any BinkD activity and does not allow to 
-establish a connection. Thus one must ensure that BinkD starts after 
+    Such a behaviour was observed for BinkD/w32 working as a service on a
+computer with McAfee Firewall installed. The firewall starts after BinkD
+start-up, does not detect any BinkD activity and does not allow to
+establish a connection. Thus one must ensure that BinkD starts after
 firewall has started.
 
-    The possible decisions: give up using BinkD as an independent Windows 
+    The possible decisions: give up using BinkD as an independent Windows
 NT service and start it from another service or start it as a usual program
 or stop using such a firewall.
 
@@ -1015,8 +1015,8 @@ or directory
     Such a situation may occur when you have created a poll with the command
     echo >> 12345678.ilo
 
-    The above mentioned line in the log file is the message from the echo 
-command on its current status of the output to the screen. See question 32 
+    The above mentioned line in the log file is the message from the echo
+command on its current status of the output to the screen. See question 32
 on how to correctly create a poll. See also question 09.
 
 
@@ -1034,7 +1034,7 @@ hexadecimal net number (first 4 characters), the hexadecimal node number
     Certainly you should not create the file, if it already exists. Moreover
 you should not overwrite it to avoid losing your mail.
 
-    The most universal command (it works under DOS, Windows, OS/2, UNIX 
+    The most universal command (it works under DOS, Windows, OS/2, UNIX
 clones, CP/M and many others) is
 
     cd . >>NNNNMMMM.flo
@@ -1049,34 +1049,34 @@ clones, CP/M and many others) is
     echo -n "" >>NNNNMMMM.flo
     >>NNNNMMMM.flo
     cat /dev/null >>NNNNMMMM.flo
-    
-    
+
+
 ----------------------------------------------------------------------------
 
 
         33. What Does the Number in Brackets in the Log Mean?
 
-    It is either PID (Process ID) in the multiprocess BinkD versions (for 
+    It is either PID (Process ID) in the multiprocess BinkD versions (for
 example, in the versions for UNIX-like OS), or TID (Thread ID) in the
 multithreaded BinkD versions (for example, in Windows versions).
-    The process (or the thread) number simplifies the log analysis: it 
-allows picking out messages from one BinkD process (or thread). In 
+    The process (or the thread) number simplifies the log analysis: it
+allows picking out messages from one BinkD process (or thread). In
 particular, it allows separating the messages from the different sessions.
-    
-    
+
+
 ----------------------------------------------------------------------------
 
 
         34. How to Configure BinkD for sending outgoing mail?
-        
+
     You should configure your netmail packer in such a way that your mail
 is packed to BSO (Binkley Style Outbound) packets. If you have not used
 such a program before then you should install it. In some modem mailers the
 possibility of packing netmail to BSO has been provided by their developers
 (for example, in T-Mail starting with the version 2500).
     See also the answer to question 17.
-    
-    
+
+
 ----------------------------------------------------------------------------
 
 
@@ -1089,24 +1089,24 @@ In the sample configuration file
     share 2:999/999 2:5020/52 2:5020/238
 
 the uplinks are 2:5020/52 and 2:5020/238 with the shared AKA 2:999/999 added.
-Then you configure packing netmail to 2:999/999 and BinkD will send it to 
+Then you configure packing netmail to 2:999/999 and BinkD will send it to
 those of the two uplinks, the session with which will occur earlier. If there
 is no connection to 2:5020/52 the netmail will go to 2:5020/238. If there is
 no connection to 2:5020/238 it will go to 2:5020/52.
-    
-    
+
+
 ----------------------------------------------------------------------------
 
 
         36. What for Does One Need the "ftrans" Directive in the Configuration File?
 
     It is necessary for placing BinkD and your tosser at different computers
-in the net, when outbound resides at a net drive and the paths to it are 
+in the net, when outbound resides at a net drive and the paths to it are
 different. Moreover the tosser may run on a computer with FAT and the paths
 of the d:\long\path\to type, and BinkD may run on a UNIX machine with paths
 of the /mnt/samba/wincomp1/path/to type.
 
-    
+
 ----------------------------------------------------------------------------
 
 
