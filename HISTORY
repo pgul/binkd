@@ -1,3 +1,7 @@
+2005/10/10 18:43:18 1.0a-471 stas
+crypt.h,2.2,2.3
+Prevent double include crypt.h
+
 2005/10/03 10:52:46 1.0a-470 gul
 protocol.c,2.179,2.180
 Fixed memory leak from 1.0a-466 (thanks to Roman Trunov)
