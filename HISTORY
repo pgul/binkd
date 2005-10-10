@@ -1,3 +1,7 @@
+2005/10/10 18:44:27 1.0a-472 stas
+crypt.h,2.3,2.4 crypt.c,2.3,2.4
+Move CRC32's define into crypt.h
+
 2005/10/10 18:43:18 1.0a-471 stas
 crypt.h,2.2,2.3
 Prevent double include crypt.h
