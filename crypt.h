@@ -3,6 +3,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.3  2005/10/10 15:43:12  stas
+ * Prevent double include crypt.h
+ *
  * Revision 2.2  2001/02/21 06:25:21  gul
  * changed crlf to cr in the source file
  *
@@ -14,8 +17,13 @@
  *
  *
  */
+#ifndef _BINKD_CRYPT_H_
+#define _BINKD_CRYPT_H_
+
 int  update_keys (unsigned long keys[3], int c);
 void init_keys (unsigned long keys[3], const char *passwd);
 int  decrypt_byte (unsigned long keys[3]);
 void decrypt_buf (char *buf, unsigned int bufsize, unsigned long keys[3]);
 void encrypt_buf (char *buf, unsigned int bufsize, unsigned long keys[3]);
+
+#endif
