@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.93  2005/10/10 16:31:43  stas
+ * Fix compiler warning 'string length is greater than the length 509  ISO C89 compilers are required to support'
+ *
  * Revision 2.92  2004/11/12 14:40:06  gul
  * Also one syntax error
  *
@@ -488,7 +491,8 @@ void usage (void)
 	  "  -t cmd   (start|stop|restart|status|install|uninstall) service\n"
 	  "  -S name  set WindowsNT service name\n"
 #endif
-	  "  -P node  poll a node\n"
+	  );
+  printf ("  -P node  poll a node\n"
 	  "  -p       run client only, poll, quit\n"
 	  "  -q       be quiet\n"
 	  "  -r       disable crypt traffic\n"
