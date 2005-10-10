@@ -1,3 +1,7 @@
+2005/10/10 19:24:28 1.0a-473 stas
+crypt.h,2.4,2.5 prothlp.c,2.7,2.8
+Change method for generate 8+3 bundle name from ASO bundle name
+
 2005/10/10 18:44:27 1.0a-472 stas
 crypt.h,2.3,2.4 crypt.c,2.3,2.4
 Move CRC32's define into crypt.h
