@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2005/10/10 16:24:22  stas
+ * Change method for generate 8+3 bundle name from ASO bundle name
+ *
  * Revision 2.7  2005/09/22 12:11:13  gul
  * Dequote filenames for compare in M_GET processing
  *
@@ -56,15 +59,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "prothlp.h"
 #include "tools.h"
+#include "crypt.h"
 
 int tfile_cmp (TFILE *a, char *netname, off_t size, time_t time)
 {
   int rc;
   char *anetname;
- 
+
   anetname = strdequote(a->netname);
   netname = strdequote(netname);
   rc = strcmp (a->netname, netname);
@@ -170,9 +176,14 @@ void netname_ (char *s, TFILE *q
 	if (aso && isarcmail(s))
 	{ /* "2:2/0 aso name shorter then bso */
 	  char ext[4];
-	  unsigned zone, net, node, p;
-	  if (sscanf(s, "%u.%u.%u.%u.%3s", &zone, &net, &node, &p, ext) == 5)
-	    sprintf(s, "%08lx.%s", rnd(), ext);
+	  unsigned long zone, net, node, p;
+	  struct stat sb;
+
+	  memset(&sb,0,sizeof(sb));
+	  stat(q->path, &sb);
+	  if (sscanf(s, "%lu.%lu.%lu.%lu.%3s", &zone, &net, &node, &p, ext) == 5)
+	    sprintf(s, "%08lx.%s",  /* Convert long name to CRC32 from zone,net,node,point numbers */
+	            CRC32(sb.st_size,CRC32(p,CRC32(node,CRC32(net,CRC32(zone,0))))), ext);
 	}
 #endif
       }
