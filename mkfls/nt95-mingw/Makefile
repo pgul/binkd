@@ -23,7 +23,7 @@ BINKDTYPE=mingw32
 
 CFLAGS+= -mno-cygwin -mthreads -pipe -funsigned-char \
          -Wall -Wno-char-subscripts -Wno-comment
-CDEFS+=  -DHAVE_THREADS -DHAVE_UNISTD        \
+CDEFS+=  -DHAVE_THREADS -DHAVE_UNISTD -DHAVE_INTMAX_T       \
          -DWIN32 -DHAVE_IO_H -DHAVE_DOS_H -DHAVE_STDARG_H     \
          -DHAVE_WAITPID -DHTTPS -DNTLM                        \
          -DAMIGADOS_4D_OUTBOUND -DHASATTRIBUTE -DNONAMELESSUNION
