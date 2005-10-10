@@ -1,3 +1,7 @@
+2005/10/10 19:31:49 1.0a-474 stas
+binkd.c,2.92,2.93
+Fix compiler warning 'string length is greater than the length 509  ISO C89 compilers are required to support'
+
 2005/10/10 19:24:28 1.0a-473 stas
 crypt.h,2.4,2.5 prothlp.c,2.7,2.8
 Change method for generate 8+3 bundle name from ASO bundle name
