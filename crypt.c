@@ -3,7 +3,7 @@
  *
  *  crypt.c is a part of binkd project
  *
- *  Copyright (c) 1990-2000 Info-ZIP.  
+ *  Copyright (c) 1990-2000 Info-ZIP.
  *  Copyright (C) 2001  Pavel Gulchouck <gul@gul.kiev.ua> 2:463/68
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -18,6 +18,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2005/10/10 15:44:24  stas
+ * Move CRC32's define into crypt.h
+ *
  * Revision 2.3  2001/02/21 06:25:21  gul
  * changed crlf to cr in the source file
  *
@@ -34,8 +37,6 @@
  */
 
 #include "crypt.h"
-
-#define CRC32(c, b) (crc_32_tab[((int)(c) ^ (b)) & 0xff] ^ ((c) >> 8))
 
 unsigned long crc_32_tab[256] = {
   0x00000000L, 0x77073096L, 0xee0e612cL, 0x990951baL, 0x076dc419L,
