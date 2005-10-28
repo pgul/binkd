@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.21  2005/10/28 07:13:28  stas
+ * Change poll flavour to 'direct' and allow specify poll flavour char at compile time using macro POLL_NODE_FLAVOUR
+ *
  * Revision 2.20  2004/09/21 08:27:49  val
  * distinguish nodes, listed in binkd config and passwords file - overwrite defnode parameters (e.g. host) for the later
  * (hope, it'll fix reported bug with not calling defnode)
@@ -182,7 +185,9 @@ void free_nodes(BINKD_CONFIG *config);
 /*
  * Create a poll for an address (in "z:n/n.p" format) (0 -- bad)
  */
-#define POLL_NODE_FLAVOUR 'i'
+#ifndef POLL_NODE_FLAVOUR
+#define POLL_NODE_FLAVOUR 'd'
+#endif
 int poll_node (char *s, BINKD_CONFIG *config);
 
 #endif
