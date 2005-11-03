@@ -1,3 +1,7 @@
+2005/11/03 13:39:31 1.0a-476 stas
+ftnq.c,2.36,2.37
+Fix warning about signed-unsigned incompatibility
+
 2005/10/28 10:13:49 1.0a-475 stas
 ftnnode.h,2.20,2.21
 Change poll flavour to 'direct' and allow specify poll flavour char at compile time using macro POLL_NODE_FLAVOUR
