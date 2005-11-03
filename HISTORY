@@ -1,3 +1,7 @@
+2005/11/03 13:42:42 1.0a-477 stas
+binkd.c,2.93,2.94
+New option '-n', may be used to config check with option '-d' or to make poll with '-P'
+
 2005/11/03 13:39:31 1.0a-476 stas
 ftnq.c,2.36,2.37
 Fix warning about signed-unsigned incompatibility
