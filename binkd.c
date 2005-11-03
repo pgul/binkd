@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.95  2005/11/03 13:15:46  stas
+ * Option '-n' recognization
+ *
  * Revision 2.94  2005/11/03 11:42:35  stas
  * New option '-n', may be used to config check with option '-d' or to make poll with '-P'
  *
@@ -551,7 +554,7 @@ int tray_flag = 0;                     /* minimize to tray */
 #endif
 #endif
 
-const char *optstring = "CchmP:pqrsvd-:?"
+const char *optstring = "CchmP:pqrsvd-:?n"
 #ifdef BINKD_DAEMONIZE
 			"D"
 #endif
