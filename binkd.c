@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.94  2005/11/03 11:42:35  stas
+ * New option '-n', may be used to config check with option '-d' or to make poll with '-P'
+ *
  * Revision 2.93  2005/10/10 16:31:43  stas
  * Fix compiler warning 'string length is greater than the length 509  ISO C89 compilers are required to support'
  *
@@ -501,6 +504,7 @@ void usage (void)
 	  "  -vv      dump version with compilation flags and quit\n"
 	  "  -d       dump parsed config and exit\n"
 	  "  -m       disable CRAM-MD5 authorization\n"
+	  "  -n       don't run binkd-client and binkd-server (check config, make polls)\n"
 	  "  -h       print this help\n"
 	  "\n"
 	  "Copyright (c) 1996-2004 Dima Maloff and others.\n"
@@ -532,6 +536,7 @@ int dumpcfg_flag = 0;		       /* Dump parsed config */
 int checkcfg_flag = 0;		       /* exit(3) on config change (-C) */
 int no_MD5 = 0;			       /* disable MD5 flag (-m) */
 int no_crypt = 0;		       /* disable CRYPT (-r) */
+int no_flag = 0;                       /* don't run client and server */
 
 static TYPE_LIST(maskchain) psPolls;   /* Create polls (-P) */
 
@@ -708,6 +713,10 @@ char *parseargs (int argc, char *argv[])
 	      /* getopt() already print error message
 	      Log (0, "%s: %s: unknown command line switch", extract_filename(argv[0]), argv[curind]);
 	      */ exit(1);
+
+	    case 'n':
+	      no_flag = 1;
+	      break;
 
 	    case 'h': /* display command line help */
 	      usage();
@@ -908,6 +917,11 @@ int main (int argc, char *argv[], char *envp[])
     for (psP = psPolls.first; psP; psP = psP->next)
       poll_node (psP->mask, current_config);
     simplelist_free(&psPolls.linkpoint, destroy_maskchain);
+  }
+
+  if (no_flag)
+  {
+    Log(0, "Exit on option '-n'");
   }
 
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
