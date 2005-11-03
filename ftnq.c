@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.37  2005/11/03 11:39:23  stas
+ * Fix warning about signed-unsigned incompatibility
+ *
  * Revision 2.36  2005/10/02 20:48:39  gul
  * - add $traf_mail and $traf_files vars for on_call() and on_handshake() hooks;
  * - optimize queue scan in perl hooks;
@@ -650,7 +653,8 @@ static FTNQ *q_add_dir (FTNQ *q, char *dir, FTN_ADDR *fa1, BINKD_CONFIG *config)
         memcpy (&fa2, fa1, sizeof(FTN_ADDR));
 
         if (sscanf(s = de->d_name, "%u.%u.%u.%u.%3s%n",
-	         &fa2.z, &fa2.net, &fa2.node, &fa2.p, ext, &matched) != 5 ||
+	         (unsigned*)(&fa2.z), (unsigned*)(&fa2.net), (unsigned*)(&fa2.node),
+	         (unsigned*)(&fa2.p), ext, &matched) != 5 ||
 	    (size_t)matched != nlen || strlen(ext) != 3)
 	  continue;
 
