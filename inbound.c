@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.37  2005/11/06 18:42:58  stas
+ * Fix warning about signed/unsigned compare
+ *
  * Revision 2.36  2005/08/08 10:12:04  val
  * fix segfault when a remote doesn't provide an address but sends a file
  * (bug reported by andrew clarke)
@@ -412,7 +415,7 @@ fopen_again:
     int req_free = ((state->state == P_SECURE) ? config->minfree : config->minfree_nonsecure);
 
     freespace2 = getfree(state->inbound);
-    if ( config->temp_inbound[0] && 
+    if ( config->temp_inbound[0] &&
          !strncmp(config->temp_inbound,buf,strlen(config->temp_inbound)) )
     {
       freespace = getfree(config->temp_inbound);
@@ -422,14 +425,14 @@ fopen_again:
       freespace = freespace2;
     if (sb.st_size > state->in.size)
     {
-      Log (1, "Partial size %" PRIuMAX " > %" PRIuMAX " (file size), delete partial", 
+      Log (1, "Partial size %" PRIuMAX " > %" PRIuMAX " (file size), delete partial",
            (uintmax_t) sb.st_size, (uintmax_t) state->in.size);
       fclose (f);
       if (trunc_file (buf) && sdelete (buf)) return 0;
       goto fopen_again;
     }
     if (req_free >= 0 &&
-	freespace < (state->in.size - sb.st_size + 1023) / 1024 + req_free)
+	freespace < (state->in.size - sb.st_size + 1023) / 1024 + (unsigned long)req_free)
     {
       Log (1, "no enough free space in %s (%luK, req-d %" PRIuMAX "K)",
 	   (freespace == freespace2) ? state->inbound : config->temp_inbound,
@@ -465,7 +468,7 @@ int inb_reject (STATE *state, BINKD_CONFIG *config)
 }
 
 /* val: check if pkt header is one of the session aka */
-int check_pkthdr(STATE *state, char *netname, char *tmp_name, 
+int check_pkthdr(STATE *state, char *netname, char *tmp_name,
                  char *real_name, BINKD_CONFIG *config) {
   FTN_NODE *node;
   FILE *PKT;
@@ -484,7 +487,7 @@ int check_pkthdr(STATE *state, char *netname, char *tmp_name,
       else if (node->HC_flag == HC_ON) check = 1;
     }
   /* consider default values, if check is not forced */
-  if (!check && 
+  if (!check &&
        ( (config->pkthdr_type == 0) ||
          (config->pkthdr_type == A_PROT && !secure) ||
          (config->pkthdr_type == A_UNPROT && secure) ||
@@ -505,11 +508,11 @@ int check_pkthdr(STATE *state, char *netname, char *tmp_name,
     /* do check */
     for (i = 0; i < state->nallfa; i++)
       if ( (cz < 0 || (state->fa+i)->z == cz) &&
-           (cn < 0 || (state->fa+i)->net == cn ) && 
+           (cn < 0 || (state->fa+i)->net == cn ) &&
            ( (state->fa+i)->node == cf ) &&
            (cp < 0 || (state->fa+i)->p == cp) ) {
                                              if (PKT != NULL) fclose(PKT);
-                                             return 1;                 
+                                             return 1;
                                            }
   }
   if (PKT != NULL) fclose(PKT);
