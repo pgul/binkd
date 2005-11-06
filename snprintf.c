@@ -247,6 +247,8 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
 	  value = (short int) va_arg (args, /*short*/ int); /* gcc warning */
 	else if (cflags == DP_C_LONG)
 	  value = va_arg (args, long int);
+	else if (cflags == DP_C_LDOUBLE)
+	  value = va_arg (args, long long);
 	else
 	  value = va_arg (args, int);
 	fmtint (buffer, &currlen, maxlen, value, 10, min, max, flags);
@@ -257,6 +259,8 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
 	  value = (unsigned short int) va_arg (args, unsigned /*short*/ int);
 	else if (cflags == DP_C_LONG)
 	  value = va_arg (args, unsigned long int);
+	else if (cflags == DP_C_LDOUBLE)
+	  value = va_arg (args, unsigned long long);
 	else
 	  value = va_arg (args, unsigned int);
 	fmtint (buffer, &currlen, maxlen, value, 8, min, max, flags);
@@ -267,6 +271,8 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
 	  value = (unsigned short int) va_arg (args, unsigned /*short*/ int);
 	else if (cflags == DP_C_LONG)
 	  value = va_arg (args, unsigned long int);
+	else if (cflags == DP_C_LDOUBLE)
+	  value = va_arg (args, unsigned long long);
 	else
 	  value = va_arg (args, unsigned int);
 	fmtint (buffer, &currlen, maxlen, value, 10, min, max, flags);
@@ -279,6 +285,8 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
 	  value = (unsigned short int) va_arg (args, unsigned /*short*/ int);
 	else if (cflags == DP_C_LONG)
 	  value = va_arg (args, unsigned long int);
+	else if (cflags == DP_C_LDOUBLE)
+	  value = va_arg (args, unsigned long long);
 	else
 	  value = va_arg (args, unsigned int);
 	fmtint (buffer, &currlen, maxlen, value, 16, min, max, flags);
@@ -331,6 +339,12 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
 	{
 	  long int *num;
 	  num = va_arg (args, long int *);
+	  *num = currlen;
+        }
+	else if (cflags == DP_C_LDOUBLE)
+	{
+	  long long *num;
+	  num = va_arg (args, long long *);
 	  *num = currlen;
         }
 	else
