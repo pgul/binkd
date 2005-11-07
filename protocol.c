@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.181  2005/11/07 17:54:00  stas
+ * rtrim
+ *
  * Revision 2.180  2005/10/03 07:52:23  gul
  * Fixed memory leak from 1.0a-466 (thanks to Roman Trunov)
  *
@@ -762,7 +765,7 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to, BINKD_CONFI
   return 1;
 }
 
-/* 
+/*
  * Close file currently receiving,
  * remove .hr and .dt if it's partial pkt or zero-length
  */
@@ -1698,8 +1701,8 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
   /* set expected password on outgoing session
    * for drop remote AKAs with another passwords */
   if (state->to)
-    memcpy(state->expected_pwd, 
-           state->to->out_pwd ? state->to->out_pwd : "-", 
+    memcpy(state->expected_pwd,
+           state->to->out_pwd ? state->to->out_pwd : "-",
            sizeof(state->expected_pwd));
 
   for (i = 1; (w = getwordx (s, i, 0)) != 0; ++i)
@@ -1940,9 +1943,9 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 #ifdef BW_LIM
       if (pn && pn->listed) {
         if (pn->bw_send == 0) bw_send_unlim = 1;
-        else if (pn->bw_send < 0 
-                 && (!state->bw_send.rel 
-                 || (unsigned long)(-pn->bw_send) < state->bw_send.rel)) 
+        else if (pn->bw_send < 0
+                 && (!state->bw_send.rel
+                 || (unsigned long)(-pn->bw_send) < state->bw_send.rel))
           state->bw_send.rel = -pn->bw_send;
         else if (pn->bw_send > 0
                  && (!state->bw_send.abs
@@ -1950,9 +1953,9 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
           state->bw_send.abs = pn->bw_send;
 
         if (pn->bw_recv == 0) bw_recv_unlim = 1;
-        else if (pn->bw_recv < 0 
-                 && (!state->bw_recv.rel 
-                 || (unsigned long)(-pn->bw_recv) < state->bw_recv.rel)) 
+        else if (pn->bw_recv < 0
+                 && (!state->bw_recv.rel
+                 || (unsigned long)(-pn->bw_recv) < state->bw_recv.rel))
           state->bw_recv.rel = -pn->bw_recv;
         else if (pn->bw_recv > 0
                  && (!state->bw_recv.abs
@@ -2062,7 +2065,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
     else state->bw_send.rel = -pn->bw_send;
   }
   if (state->bw_send.abs || state->bw_send.rel)
-    Log (7, "Session send rate limit is %s cps or %d%%", 
+    Log (7, "Session send rate limit is %s cps or %d%%",
             describe_rate(state->bw_send.abs), state->bw_send.rel);
 
   if (bw_recv_unlim) state->bw_recv.abs = state->bw_recv.rel = 0;
@@ -2072,7 +2075,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
     else state->bw_recv.rel = -pn->bw_recv;
   }
   if (state->bw_recv.abs || state->bw_recv.rel)
-    Log (7, "Session recv rate limit is %s cps or %d%%", 
+    Log (7, "Session recv rate limit is %s cps or %d%%",
             describe_rate(state->bw_recv.abs), state->bw_recv.rel);
 #endif
 
@@ -2343,10 +2346,10 @@ static void setup_rate_limit (STATE *state, BINKD_CONFIG *config, BW *bw,
   if (rlim == 0) bw->rlim = 0;
   else {
     /* if mask set to specific rate, adjust to remote percent rate */
-    if (rlim > 0) 
+    if (rlim > 0)
       bw->rlim = bw->rel ? rlim * bw->rel / 100 : rlim;
     /* if mask set to relative rate, adjust node absolute rate by it */
-    else 
+    else
       bw->rlim = bw->abs ? bw->abs * (-rlim) / 100 : 0;
   }
 #ifdef WITH_PERL
@@ -2413,7 +2416,7 @@ static int check_rate_limit(BW *bw, struct timeval *tv)
   else if (dt >= BW_TIME_INT) bw->cps = cps;
   else bw->cps = ((BW_TIME_INT - dt) * bw->cps + cps * dt) / BW_TIME_INT;
   Log (9, "current cps is %u, avg. cps is %u", (int)cps, (int)bw->cps);
-  if (bw->cps <= bw->rlim) 
+  if (bw->cps <= bw->rlim)
     return 0;
   dt = (unsigned long) (bw->cpsN * (bw->cps / bw->rlim - 1) + 1000);
   setmintv(tv, dt);
