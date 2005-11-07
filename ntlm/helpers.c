@@ -230,11 +230,11 @@ static int debase64(char *s, unsigned char *rc)
 int getNTLM1(char *udata, char *result, size_t res_size)
 {
   Type1message m;
-  int i;
+  unsigned int i;
   char *td = strdup(udata);
   char *host;
   char *domain = strrchr(td, '/');
-  if (!domain) 
+  if (!domain)
   {
     free(td);
     return 1;
@@ -271,7 +271,8 @@ int getNTLM1(char *udata, char *result, size_t res_size)
   */
 int getNTLM2(char *udata, char *req, char *result, size_t res_size)
 {
-  int i, j;
+  unsigned int i;
+  int j;
   Type3message m;
   unsigned char nonce[8];
   char *user = strdup(udata);
