@@ -271,8 +271,7 @@ int getNTLM1(char *udata, char *result, size_t res_size)
   */
 int getNTLM2(char *udata, char *req, char *result, size_t res_size)
 {
-  unsigned int i;
-  int j;
+  unsigned int i, j;
   Type3message m;
   unsigned char nonce[8];
   char *user = strdup(udata);
