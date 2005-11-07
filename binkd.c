@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30.2.10  2005/11/07 18:56:28  stas
+ * MFC: New option '-n', may be used to config check with option '-d' or to make poll with '-P'
+ *
  * Revision 2.30.2.9  2004/11/08 12:05:33  gul
  * 0.9.8 release
  *
@@ -280,7 +283,7 @@ void usage (void)
 	AllocTempConsole();
 #endif
 
-  printf ("usage: binkd [-Ccpqrsvmh"
+  printf ("usage: binkd [-nCcpqrsvmh"
 #if defined(HAVE_DAEMON) || defined(HAVE_SETSID) || defined(HAVE_TIOCNOTTY)
 	  "D"
 #endif
@@ -323,6 +326,7 @@ void usage (void)
 	  "  -s       run server only\n"
 	  "  -v       be verbose / dump version and quit\n"
 	  "  -m       disable CRAM-MD5 authorization\n"
+	  "  -n       doing not call or listen (only check cfg and make polls)\n"
 	  "  -h       print this help\n"
 	  "\n"
 	  "Copyright (c) 1996-2004 Dima Maloff and others.\n"
@@ -354,6 +358,7 @@ int verbose_flag = 0;		       /* Be verbose / print version (-v) */
 int checkcfg_flag = 0;		       /* exit(3) on config change (-C) */
 int no_MD5 = 0;			       /* disable MD5 flag (-m) */
 int no_crypt = 0;		       /* disable CRYPT (-r) */
+int no_flag = 0;		       /* do not run server and client */
 
 #ifdef BINKDW9X
 extern const char *Win9xStartService;  /* 'Run as win9x service' option */
@@ -463,6 +468,9 @@ int main (int argc, char *argv[], char *envp[])
 	      /* fallthrough */
 	    case 'r':
 	      no_crypt = 1;
+	      break;
+	    case 'n':
+	      no_flag = 1;
 	      break;
 	    case 'v':
 	      ++verbose_flag;
@@ -613,6 +621,11 @@ int main (int argc, char *argv[], char *envp[])
     exit (0);
   }
 #endif
+
+  if (no_flag)
+  {
+    Log(0, "Exit on option '-n'");
+  }
 
 #ifdef BINKD_DAEMONIZE
   if (daemon_flag)
