@@ -72,6 +72,16 @@
 # endif
 #endif
 
+#ifdef _MSC_VER
+typedef __int64 int64_t;
+typedef unsigned __int64 uint64_t;
+typedef __int64* pint64_t;
+#else
+typedef long long int64_t;
+typedef unsigned long long uint64_t;
+typedef long long * pint64_t;
+#endif
+
 /*int snprintf (char *str, size_t count, const char *fmt, ...);*/
 /*int vsnprintf (char *str, size_t count, const char *fmt, va_list arg);*/
 
@@ -80,7 +90,7 @@ static void dopr (char *buffer, size_t maxlen, const char *format,
 static void fmtstr (char *buffer, size_t *currlen, size_t maxlen,
 		    char *value, int flags, int min, int max);
 static void fmtint (char *buffer, size_t *currlen, size_t maxlen,
-		    long value, int base, int min, int max, int flags);
+		    int64_t value, int base, int min, int max, int flags);
 static void fmtfp (char *buffer, size_t *currlen, size_t maxlen,
 		   long double fvalue, int min, int max, int flags);
 static void dopr_outch (char *buffer, size_t *currlen, size_t maxlen, char c );
@@ -119,7 +129,7 @@ static void dopr_outch (char *buffer, size_t *currlen, size_t maxlen, char c );
 static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
 {
   char ch;
-  long value;
+  int64_t value;
   long double fvalue;
   char *strvalue;
   int min;
@@ -248,7 +258,7 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
 	else if (cflags == DP_C_LONG)
 	  value = va_arg (args, long int);
 	else if (cflags == DP_C_LDOUBLE)
-	  value = va_arg (args, long long);
+	  value = va_arg (args, int64_t);
 	else
 	  value = va_arg (args, int);
 	fmtint (buffer, &currlen, maxlen, value, 10, min, max, flags);
@@ -260,7 +270,7 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
 	else if (cflags == DP_C_LONG)
 	  value = va_arg (args, unsigned long int);
 	else if (cflags == DP_C_LDOUBLE)
-	  value = va_arg (args, unsigned long long);
+	  value = va_arg (args, uint64_t);
 	else
 	  value = va_arg (args, unsigned int);
 	fmtint (buffer, &currlen, maxlen, value, 8, min, max, flags);
@@ -272,7 +282,7 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
 	else if (cflags == DP_C_LONG)
 	  value = va_arg (args, unsigned long int);
 	else if (cflags == DP_C_LDOUBLE)
-	  value = va_arg (args, unsigned long long);
+	  value = va_arg (args, uint64_t);
 	else
 	  value = va_arg (args, unsigned int);
 	fmtint (buffer, &currlen, maxlen, value, 10, min, max, flags);
@@ -286,7 +296,7 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
 	else if (cflags == DP_C_LONG)
 	  value = va_arg (args, unsigned long int);
 	else if (cflags == DP_C_LDOUBLE)
-	  value = va_arg (args, unsigned long long);
+	  value = va_arg (args, uint64_t);
 	else
 	  value = va_arg (args, unsigned int);
 	fmtint (buffer, &currlen, maxlen, value, 16, min, max, flags);
@@ -343,8 +353,8 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
         }
 	else if (cflags == DP_C_LDOUBLE)
 	{
-	  long long *num;
-	  num = va_arg (args, long long *);
+	  pint64_t num;
+	  num = va_arg (args, pint64_t);
 	  *num = currlen;
         }
 	else
@@ -423,10 +433,10 @@ static void fmtstr (char *buffer, size_t *currlen, size_t maxlen,
 /* Have to handle DP_F_NUM (ie 0x and 0 alternates) */
 
 static void fmtint (char *buffer, size_t *currlen, size_t maxlen,
-		    long value, int base, int min, int max, int flags)
+		    int64_t value, int base, int min, int max, int flags)
 {
   int signvalue = 0;
-  unsigned long uvalue;
+  uint64_t uvalue;
   char convert[20];
   int place = 0;
   int spadlen = 0; /* amount to space pad */
