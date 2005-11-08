@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.38  2005/11/08 13:35:23  gul
+ * Remove old .hr files without .dt from temp-inbound
+ *
  * Revision 2.37  2005/11/06 18:42:58  stas
  * Fix warning about signed/unsigned compare
  *
@@ -243,12 +246,14 @@ static int creat_tmp_name (char *s, TFILE *file, FTN_ADDR *from, char *inbound)
 
 static int to_be_deleted (char *tmp_name, char *netname, off_t filesize, BINKD_CONFIG *config)
 {
-  struct stat sb;
+  struct stat sb, sd, *sp;
 
+  if (config->kill_old_partial_files == 0) return 0;
+  if (stat (tmp_name, &sd) != 0) return 0;
   strcpy (strrchr (tmp_name, '.'), ".dt");
-  if (stat (tmp_name, &sb) == 0 && config->kill_old_partial_files != 0 &&
-      time (0) - sb.st_mtime > config->kill_old_partial_files &&
-      sb.st_size != filesize)
+  sp = &sb;
+  if (((stat (tmp_name, &sb) == 0 && sb.st_size != filesize) || (sp = &sd)) &&
+      time (0) - sp->st_mtime > config->kill_old_partial_files)
   {
     Log (4, "found old .dt/.hr files for %s", netname);
     return 1;
