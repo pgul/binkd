@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.70  2005/11/09 14:15:57  stas
+ * Increase loglevel for low-level file operation 'remove file' to dont double log lines
+ *
  * Revision 2.69  2005/09/28 07:18:49  gul
  * gettvtime() (time of day with more then second exactitude) for win32.
  * Thanks to Alexander Reznikov.
@@ -987,7 +990,7 @@ int sdelete (char *path)
 
   for (i=0; i<5; i++) {
     if ((rc = unlink (path)) == 0) {
-      Log (5, "unlinked `%s'", path);
+      Log (6, "unlinked `%s'", path);
       return 0;
     }
     else if (errno == EPERM || errno == EACCES || errno == EAGAIN)
