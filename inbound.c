@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.40  2005/11/09 14:13:57  stas
+ * Remove empty old .hr files
+ *
  * Revision 2.39  2005/11/08 13:58:26  gul
  * Fixed logic in condition in previous patch
  *
@@ -299,11 +302,21 @@ static int find_tmp_name (char *s, TFILE *file, STATE *state, BINKD_CONFIG *conf
     if (i < 8 || STRICMP (de->d_name + 8, ".hr"))
       continue;
     strnzcat (s, de->d_name, MAXPATHLEN);
-    if ((f = fopen (s, "r")) == 0 || !fgets (buf, sizeof (buf), f))
+
+    if ((f = fopen (s, "r")) == NULL)
     {
       Log (1, "find_tmp_name: %s: %s", de->d_name, strerror (errno));
-      if (f)
-	fclose (f);
+    }
+    else if (fgets (buf, sizeof (buf), f)==NULL)
+    {  /* This .hr is empty, now checks to old */
+      char*s1=strdup(s);
+      if(to_be_deleted (s1, "unknown", 0, config))
+      {
+        fclose (f);
+        if (!sdelete (s))
+          Log (5, "old empty partial file %s is removed", de->d_name);
+      }
+      free(s1);
     }
     else
     {
