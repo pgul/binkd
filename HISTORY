@@ -1,3 +1,7 @@
+2005/11/09 16:16:01 1.0a-488 stas
+tools.c,2.69,2.70
+Increase loglevel for low-level file operation 'remove file' to dont double log lines
+
 2005/11/09 16:14:05 1.0a-487 stas
 inbound.c,2.39,2.40
 Remove empty old .hr files
