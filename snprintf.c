@@ -238,10 +238,23 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
       case 'l':
 	cflags = DP_C_LONG;
 	ch = *format++;
+	if(ch=='l') /* %llu, %lli */
+	{
+	  cflags = DP_C_LDOUBLE;
+	  ch = *format++;
+	}
 	break;
       case 'L':
 	cflags = DP_C_LDOUBLE;
 	ch = *format++;
+	break;
+      case 'I':
+	if(format[0]=='6' && format[1]=='4') /* %I64u, %I64i */
+	{
+	  cflags = DP_C_LDOUBLE;
+	  format++;format++;
+	  ch = *format++;
+	}
 	break;
       default:
 	break;
