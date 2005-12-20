@@ -1,3 +1,7 @@
+2005/12/20 18:55:57 1.0a-490 gul
+readcfg.c,2.85,2.86
+Added '\n' after diag message
+
 2005/12/13 22:36:43 1.0a-489 stas
 snprintf.c,1.5,1.6
 Add support for sprintf() templates %I64i, %I64u and %lli, %llu
