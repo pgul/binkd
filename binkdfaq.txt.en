@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of October 03 2005
+        Version of December 15 2005
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -350,15 +350,15 @@ connected to the internet. Thus BinkD cannot make a direct connection to
 the remote node and one must use the proxy server.  Proxy servers support
 was included in versions 0.9.3.https, 0.9.4 and the later ones.
 
-    One can use BinkD via a HTTP proxy only if CONNECT host 24554 command is
-allowed in the proxy server or the CONNECT command is allowed for all
-remote ports.  The command is usually used for the secure HTTP protocol (URLs
-of the "HTTPS://..." type), it is also known as S-HTTP. Because of that
-such a proxy is quite often referred as a HTTPS proxy.
+    One can use BinkD via a HTTP proxy only if CONNECT host 24554 command
+is allowed in the proxy server or the CONNECT command is allowed for all
+remote ports.  The command is usually used for the secure HTTP protocol
+(URLs of the "HTTPS://..." type), it is also known as S-HTTP. Because of
+that such a proxy is quite often referred to as a HTTPS proxy.
 
-    If BinkD reports of an authorization error then the necessary command is
-prohibited in the proxy configuration or it is allowed for the port 443
-only (that is inessential for us).
+    If BinkD reports of an authorization error then the necessary command
+is prohibited in the proxy configuration or it is allowed for some ports
+only (usually 443).
 
     Suppose the connected to the Internet computer has the IP address
 192.168.0.1 in its LAN and the proxy server at the computer responds on
@@ -395,7 +395,8 @@ Forbidden)
     ? 31 Mar 16:48:44 [40423] unable to connect: {13} Permission denied
 
     In such a case you may try to use http tunnelling for instance with the
-help of httport (one can take it at http://www.htthost.com/).
+help of httport (one can take it at http://www.htthost.com/) or you may
+find a node receiving BinkP connections at port 443.
 
 
 ----------------------------------------------------------------------------
@@ -796,28 +797,33 @@ and Novell TCP/IP Client for Win 3.11 (see the answer to the question
 
     Suppose there are two domains (with different zone numbers though it
 does not matter).  Mail can be successfully sent to the first domain but
-not to the second one. This situation may be produced if the tosser,
-tracker and other your FTN programs do not support 5D outbound.
+not to the second one. This situation may arise if the tosser, the tracker
+and the other your FTN programs do not support 5D BSO.
 
     This is a typical BinkD configuration for two FTN domains and 5D
 outbound:
 
-    domain fidonet c:\\ftn\\outbound\\fido 2
-    domain omeganet c:\\ftn\\outbound\\omega 11
+    domain fidonet c:\\ftn\\outbound\\fidonet 2
+    domain omeganet c:\\ftn\\outbound\\omeganet 11
     address 2:5070/222@fidonet 11:58/6@omeganet
 
-    One must configure not the default zone for 'domain' keyword but the zone
-that should not be added to the outbound name (i.e. for the zone denoted in
-the 'domain' line outbound extensions are not treated).
+    One must configure not the zone of your own address for 'domain'
+keyword as one might think but the zone that should not be appended to the
+outbound name (i.e. the outbound subdirectory extensions are not processed
+for the zone denoted in the 'domain' line).
 
-    If your tosser created bundles for omeganet in omega directory then you
-should write 11.  But since it creates them in omega.00b (or how do you
-name it?) you should write 2 this way:
+    If your tosser would create bundles for omeganet in the omeganet
+directory then you should write as indicated above. But since it does not
+work with 5D and it creates the bundles in fidonet.00b then you should
+write this way:
 
-    domain fidonet c:\\ftn\\outbound\\fido 2
-    domain omeganet c:\\ftn\\outbound\\omega 2
+    domain fidonet c:\\ftn\\outbound\\fidonet 2
+    domain omeganet c:\\ftn\\outbound\\omeganet 2
     address 2:5070/222@fidonet 11:58/6@omeganet
 
+    It is obligatory to configure all your addresses with domains. The
+outbound directory and the path should be the same everywhere (4D tosser
+considers all addresses to belong to one domain).
 
 ----------------------------------------------------------------------------
 
@@ -1083,16 +1089,22 @@ possibility of packing netmail to BSO has been provided by their developers
         35. What for Does One Need the "share" Directive in the Configuration File?
 
     Shared AKA is used for sending netmail to one of the alternative routes
-and is your protection for the case when your netmail link goes down.
-In the sample configuration file
+and is your protection for the case when your netmail link goes down.  In
+the sample configuration file
 
     share 2:999/999 2:5020/52 2:5020/238
 
-the uplinks are 2:5020/52 and 2:5020/238 with the shared AKA 2:999/999 added.
-Then you configure packing netmail to 2:999/999 and BinkD will send it to
-those of the two uplinks, the session with which will occur earlier. If there
-is no connection to 2:5020/52 the netmail will go to 2:5020/238. If there is
-no connection to 2:5020/238 it will go to 2:5020/52.
+the uplinks are 2:5020/52 and 2:5020/238 with the shared AKA 2:999/999
+added.  Then you configure packing netmail to 2:999/999 and BinkD will send
+it to those of the two uplinks, the session with which will occur earlier.
+If there is no connection to 2:5020/52 the netmail will go to 2:5020/238.
+If there is no connection to 2:5020/238 it will go to 2:5020/52. The
+package addressee will be replaced by the real one.
+
+    P.S. For netmail to be processed correctly at every node, the netmail
+processor at the node should be aware of the shared AKA password. In
+practice the password should be absent in the PKTs and the netmail tracker
+should process PKT from you without a password at every link.
 
 
 ----------------------------------------------------------------------------
