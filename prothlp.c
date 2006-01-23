@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2006/01/23 07:03:45  stas
+ * Fix (null) suffix after ASO->BSO bundle name conversion
+ *
  * Revision 2.8  2005/10/10 16:24:22  stas
  * Change method for generate 8+3 bundle name from ASO bundle name
  *
@@ -181,9 +184,11 @@ void netname_ (char *s, TFILE *q
 
 	  memset(&sb,0,sizeof(sb));
 	  stat(q->path, &sb);
-	  if (sscanf(s, "%lu.%lu.%lu.%lu.%3s", &zone, &net, &node, &p, ext) == 5)
+	  if (sscanf(s, "%lu.%lu.%lu.%lu.%3s", &zone, &net, &node, &p, ext) == 5){
+	    unsigned long C = CRC32(sb.st_size,CRC32(p,CRC32(node,CRC32(net,CRC32(zone,0)))));
 	    sprintf(s, "%08lx.%s",  /* Convert long name to CRC32 from zone,net,node,point numbers */
-	            CRC32(sb.st_size,CRC32(p,CRC32(node,CRC32(net,CRC32(zone,0))))), ext);
+	            C, ext);
+	  }
 	}
 #endif
       }
