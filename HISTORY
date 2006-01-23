@@ -1,3 +1,7 @@
+2006/01/23 09:03:52 1.0a-491 stas
+prothlp.c,2.8,2.9
+Fix (null) suffix after ASO->BSO bundle name conversion
+
 2005/12/20 18:55:57 1.0a-490 gul
 readcfg.c,2.85,2.86
 Added '\n' after diag message
