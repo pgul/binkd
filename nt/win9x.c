@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.28  2006/02/02 18:44:06  stas
+ * fix mingw warnings (binkd/9x)
+ *
  * Revision 2.27  2004/02/07 14:06:06  hbrew
  * Macros: RTLDLL-->RTLSTATIC, BINKDW9X-->BINKD9X
  *
@@ -274,7 +277,8 @@ int win9x_process(int argc, char **argv)
 
   case w32_run_as_service:                     /* Run  binkd9x as service */
     {
-      char *tmp, *path = NULL;
+      char *tmp = NULL;
+      unsigned char *path = NULL;
       int pathlen;
       HINSTANCE hl;
       HKEY hk;
@@ -287,7 +291,7 @@ int win9x_process(int argc, char **argv)
         size = 0;
         if ((RegQueryValueEx(hk, Win9xRegParm_Path, NULL, &reg_type, NULL, &size)==ERROR_SUCCESS)&&(reg_type == REG_SZ))
         {
-          path = (char *)malloc(size);
+          path = (unsigned char *)malloc(size);
           if ((RegQueryValueEx(hk, Win9xRegParm_Path, NULL, &reg_type, path, &size) != ERROR_SUCCESS)||(reg_type != REG_SZ))
           {
             free(path); path = NULL;
@@ -303,7 +307,7 @@ int win9x_process(int argc, char **argv)
         pathlen = tmp-argv[0];
         if (pathlen>0)
         {
-          path = (char *)malloc(pathlen+1);
+          path = (unsigned char *)malloc(pathlen+1);
           memcpy(path, argv[0], pathlen);
           path[pathlen] = 0;
         }
@@ -311,7 +315,7 @@ int win9x_process(int argc, char **argv)
 
       if (path)
       {
-        SetCurrentDirectory(path);
+        SetCurrentDirectory((char*)path);
         free(path);
       }
 
@@ -448,7 +452,7 @@ int win9x_service_start(char *name)
 {
   HKEY hk;
   int k;
-  char *cmdline;
+  unsigned char *cmdline;
   DWORD size, reg_type;
 
   if (RegOpenKey(HKEY_LOCAL_MACHINE, Win9xRegServ, &hk)!=ERROR_SUCCESS)
@@ -461,10 +465,10 @@ int win9x_service_start(char *name)
 
   if(k)
   {
-        cmdline = (char *)malloc(size);
+        cmdline = (unsigned char *)malloc(size);
         k = RegQueryValueEx(hk, name, NULL, &reg_type, cmdline, &size) == ERROR_SUCCESS;
 
-        if(k)  k = win9xExec(cmdline);
+        if(k)  k = win9xExec((char*)cmdline);
         free(cmdline);
   }
 
@@ -789,7 +793,7 @@ int win9x_service_un_install(int argc, char **argv)
 
     *sp = '\0';
 
-    if (RegSetValueEx(hk, service_name, 0, REG_SZ, path, len-1) != ERROR_SUCCESS)
+    if (RegSetValueEx(hk, service_name, 0, REG_SZ, (unsigned char *)path, len-1) != ERROR_SUCCESS)
       rc = 0;
 
     free(path);
@@ -810,7 +814,7 @@ int win9x_service_un_install(int argc, char **argv)
         j = GetCurrentDirectory(0, NULL);
         path = (char *)malloc(j);
         GetCurrentDirectory(j, path);
-        if (RegSetValueEx(hk, Win9xRegParm_Path, 0, REG_SZ, path, j-1) != ERROR_SUCCESS)
+        if (RegSetValueEx(hk, Win9xRegParm_Path, 0, REG_SZ, (unsigned char *)path, j-1) != ERROR_SUCCESS)
           rc = 0;
         free(path);
 
