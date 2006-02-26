@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of December 15 2005
+        Version of February 24 2006
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -689,7 +689,12 @@ one may put the following line to T-Mail mailer configuration file:
 
     BinkStyle_Pack_For All
 
-    If your mailer can work with AMA (arcmail-attach) only you have to change
+    If your mailer can work with AMA (arcmail-attach) only you may try to 
+use fileboxes and/or find programs that can convert your mailer's queue to
+BSO or fileboxes. For example, Mail2dir utility allows using fileboxes with 
+FrontDoor. Such a means disables a possibility of sending your mail to the
+same link both by IP and by modem (for instance, when one of the channels 
+failed). There is another more radical but more flexible way: you may change
 your mailer.
     See also question 34.
 
