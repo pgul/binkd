@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.26.2.2  2006/03/02 20:08:06  stas
+ * ifcico/qico passwords file support
+ *
  * Revision 2.26.2.1  2003/06/30 22:49:39  hbrew
  * Allow to override -ip, -sip, -md, -nomd in add_node()
  *
@@ -366,7 +369,7 @@ static int check_outbox(char *obox)
     if (pd->alias4)
       continue;
     if (pd->path)
-    { 
+    {
       char *s;
 #ifdef UNIX
       if (obox==strstr(obox, pd->path))
@@ -436,7 +439,7 @@ static void check_config(void)
 static void add_to_config_list(const char *path)
 {
   struct conflist_type *pc;
-    
+
   if (config_list)
   {
     for (pc = config_list; pc->next; pc = pc->next);
@@ -561,11 +564,11 @@ static void include (KEYWORD *key, char *s)
 static void passwords (KEYWORD *key, char *s)
 {
   FILE *in;
-  char buf[MAXCFGLINE + 1];  
+  char buf[MAXCFGLINE + 1];
   char *w = getword(s, 2);
   FTN_ADDR fa;
 
-  if(!w) 
+  if(!w)
     Log (0, "%s: %i: password filename expected", path, line);
   if((in=fopen(w, "rt"))==NULL)
     Log (0, "%s: %i: unable to open password file (%s)", path, line, w);
@@ -580,14 +583,20 @@ static void passwords (KEYWORD *key, char *s)
     if (!fgets (buf, sizeof (buf), in))
       break;
     for(w=buf;isspace(w[0]);w++);  /* skip spaces */
-    if(w!=buf) strcpy(buf, w); 
+    if (STRICMP(w,"password")==0)  /* ifcico/qico password file */
+    {
+      w += 8;
+      for(;isspace(w[0]);w++);
+    }
+
+    if(w!=buf) strcpy(buf, w);
     for(w=buf;(w[0])&&(!isspace(w[0]));w++);
     while(isspace(w[0]))           /* go to the password */
     {
       w[0]=0;
       w++;
     }
-    if((!w[0])||(!parse_ftnaddress (buf, &fa))) 
+    if((!w[0])||(!parse_ftnaddress (buf, &fa)))
       continue;     /* Do not process if any garbage found */
     exp_ftnaddress (&fa);
     strcpy(buf, w);
@@ -716,7 +725,7 @@ static void read_node_info (KEYWORD *key, char *s)
   memset (w, 0, sizeof (w));
   i = 0;			       /* index in w[] */
   j = 2;			       /* number of word in the source string */
-  
+
   if(key->option1) /* defnode */
   {
 	  w[i++]=xstrdup("0:0/0.0@defnode");
