@@ -579,6 +579,9 @@ kill -HUP `cat /var/run/binkd.pid`
     BndStat 1.01. With sources. BinkD statistics generator. Compiled for all
     platforms. Included win32 binaries. (C) Dmitry Rusov, 2:5090/94
 
+    Комплект генераторов статистики binkd и qico для *nix (c) Vasily Krysin,
+    2:5054/84: http://deep.perm.ru/files/fido/fustat-0.02.tar.gz
+
 ----------------------------------------------------------------------------
 
 
