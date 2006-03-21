@@ -62,7 +62,7 @@
     Зеркала
     ftp://cheetah.itpark.com.ua/pub/fido/binkd/
       (Украина, Pavel Gulchouck 2:463/68)
-    ftp://fido.thunderdome.ws/pub/mirror/binkd/
+    ftp://fido.thunderdome.us/pub/mirror/binkd/
       (США, Matt Bedynek 1:106/1)
     ftp://ftp.alexblues.ru/pub/binkd/
       (Россия, Alexander Gladchenko 2:5080/111, обновляется в 23:00 UTC)
