@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of March 21 2006
+        Version of April 3 2006
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -613,6 +613,9 @@ http://www.doe.carleton.ca/~nsoveiko/fido/binkd/statistics_generators/
 
     A set of statistics generators for BinkD and qico under *nix (c) Vasily
 Krysin, 2:5054/84: http://deep.perm.ru/files/fido/fustat-0.02.tar.gz
+
+    binkdstat (‘) val khokhlov, Dmitry Kolvakh
+    http://www.pstu.ru/~keu/binkdstat.zip
 
 
 ----------------------------------------------------------------------------

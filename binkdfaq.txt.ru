@@ -582,6 +582,9 @@ kill -HUP `cat /var/run/binkd.pid`
     Комплект генераторов статистики binkd и qico для *nix (c) Vasily Krysin,
     2:5054/84: http://deep.perm.ru/files/fido/fustat-0.02.tar.gz
 
+    binkdstat (С) val khokhlov, Dmitry Kolvakh
+    http://www.pstu.ru/~keu/binkdstat.zip
+
 ----------------------------------------------------------------------------
 
 
