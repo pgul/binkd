@@ -98,9 +98,6 @@
     Документация (англ.), анализаторы логов и пр.:
     http://www.doe.carleton.ca/~nsoveiko/fido/binkd/
 
-    Анализатор логов от val khokhlov (perl):
-    http://www.vk.kiev.ua/create/soft.html#bnkds
-
     Man page, описание binkp, бинарники и пр. (Stas Degteff 2:5080/102):
     http://binkd.grumbler.org/
 
@@ -566,11 +563,6 @@ kill -HUP `cat /var/run/binkd.pid`
 
     Существует множество Perl'овых скриптов, к примеру вот:
 
-    binkdstat версия 0.1 beta4 от 6.01.2002
-    Генератор статистики для binkd
-    (c) Dmitry Sergienko, 2:464/910@fidonet, trooper@unity.net 14.08.2000
-    http://www.unity.net/~trooper/fido/binkdstat
-
     Несколько разных генераторов лежат у Nick Soveiko:
     http://www.doe.carleton.ca/~nsoveiko/fido/binkd/statistics_generators/
 
@@ -581,6 +573,9 @@ kill -HUP `cat /var/run/binkd.pid`
 
     Комплект генераторов статистики binkd и qico для *nix (c) Vasily Krysin,
     2:5054/84: http://deep.perm.ru/files/fido/fustat-0.02.tar.gz
+
+    Анализатор логов от val khokhlov (perl):
+    http://www.vk.kiev.ua/create/soft.html#bnkds
 
     binkdstat (С) val khokhlov, Dmitry Kolvakh
     http://www.pstu.ru/~keu/binkdstat.zip

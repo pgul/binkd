@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of April 3 2006
+        Version of April 10 2006
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -101,9 +101,6 @@ from Russian by Michael Dukelsky 2:5020/1042.
 
     Documentation, log analyzers etc.:
     http://www.doe.carleton.ca/~nsoveiko/fido/binkd/
-
-    Log analyzer by val khokhlov (perl):
-    http://www.vk.kiev.ua/create/soft.html#bnkds
 
     Man page, binkp description, binaries etc. (Stas Degteff 2:5080/102):
     http://binkd.grumbler.org/
@@ -598,11 +595,6 @@ BinkP protocol whereas T-mail/IP uses EMSI etc.
 
     There exist many Perl scripts. For example here:
 
-    binkdstat version 0.1 beta4  6.01.2002
-    Statistics generator for BinkD
-    (c) Dmitry Sergienko, 2:464/910@fidonet, trooper@unity.net 14.08.2000
-    http://www.unity.net/~trooper/fido/binkdstat
-
     You can find several different generators at Nick Soveiko's site:
 http://www.doe.carleton.ca/~nsoveiko/fido/binkd/statistics_generators/
 
@@ -613,6 +605,9 @@ http://www.doe.carleton.ca/~nsoveiko/fido/binkd/statistics_generators/
 
     A set of statistics generators for BinkD and qico under *nix (c) Vasily
 Krysin, 2:5054/84: http://deep.perm.ru/files/fido/fustat-0.02.tar.gz
+
+    Log analyzer by val khokhlov (perl):
+    http://www.vk.kiev.ua/create/soft.html#bnkds
 
     binkdstat (‘) val khokhlov, Dmitry Kolvakh
     http://www.pstu.ru/~keu/binkdstat.zip
