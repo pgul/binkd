@@ -561,7 +561,14 @@ kill -HUP `cat /var/run/binkd.pid`
 
     13. Существует ли в природе хоть один лог анализер под unix?
 
-    Существует множество Perl'овых скриптов, к примеру вот:
+    Существует множество Perl'овых скриптов и несколько win32-бинарников,
+    к примеру вот:
+
+    binkdstat 0.1 beta4 Christmas version 6.01.2002
+    Statistics generator for BinkD
+    (c) Dmitry Sergienko, 2:464/910@fidonet, dmitry@trifle.net 14.08.2000
+    http://web.apex.dp.ua/~trooper/binkdstat
+    http://binkd.grumbler.org/loganalisers/binkdstat-ds.0.1_beta4_Christmas
 
     Несколько разных генераторов лежат у Nick Soveiko:
     http://www.doe.carleton.ca/~nsoveiko/fido/binkd/statistics_generators/
@@ -576,9 +583,12 @@ kill -HUP `cat /var/run/binkd.pid`
 
     Анализатор логов от val khokhlov (perl):
     http://www.vk.kiev.ua/create/soft.html#bnkds
+    http://binkd.grumbler.org/loganalisers/stat-binkd.pl.gz
 
-    binkdstat (С) val khokhlov, Dmitry Kolvakh
+    binkdstat (С) val khokhlov, Dmitry Kolvakh, обновлён в апреле 2006
     http://www.pstu.ru/~keu/binkdstat.zip
+    http://binkd.grumbler.org/loganalisers/binkdstat.zip
+
 
 ----------------------------------------------------------------------------
 
