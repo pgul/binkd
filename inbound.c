@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.41  2006/05/22 19:04:30  stas
+ * Fix deletion fault .hr/.dt pair. Bugreport from Alexey Fayans 2:5030/1997
+ *
  * Revision 2.40  2005/11/09 14:13:57  stas
  * Remove empty old .hr files
  *
@@ -194,15 +197,10 @@
 /* Removes both xxxxx.hr and it's xxxxx.dt */
 static void remove_hr (char *path)
 {
-  int rc;
-
   strcpy (strrchr (path, '.'), ".dt");
-  rc = delete (path);
+  delete (path);
   strcpy (strrchr (path, '.'), ".hr");
-  if (rc == 0)
-  {
-    sdelete (path);
-  }
+  delete (path);
 }
 
 static int creat_tmp_name (char *s, TFILE *file, FTN_ADDR *from, char *inbound)
