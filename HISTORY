@@ -1,3 +1,7 @@
+2006/05/22 22:04:37 1.0a-493 stas
+inbound.c,2.40,2.41
+Fix deletion fault .hr/.dt pair. Bugreport from Alexey Fayans 2:5030/1997
+
 2006/02/02 20:44:14 1.0a-492 stas
 win9x.c,2.27,2.28
 fix mingw warnings (binkd/9x)
