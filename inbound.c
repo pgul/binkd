@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12.2.5  2006/05/22 19:03:32  stas
+ * Fix deletion fault .hr/.dt pair. Bugreport from Alexey Fayans 2:5030/1997
+ *
  * Revision 2.12.2.4  2005/08/08 11:07:45  gul
  * Applied patch from current:
  * fix segfault when a remote doesn't provide an address but sends a file
@@ -112,15 +115,10 @@
 /* Removes both xxxxx.hr and it's xxxxx.dt */
 static void remove_hr (char *path)
 {
-  int rc;
-
   strcpy (strrchr (path, '.'), ".dt");
-  rc = delete (path);
+  delete (path);
   strcpy (strrchr (path, '.'), ".hr");
-  if (rc == 0)
-  {
-    delete (path);
-  }
+  delete (path);
 }
 
 static int creat_tmp_name (char *s, char *file, off_t size,
@@ -318,7 +316,7 @@ fopen_again:
     if (freespace > freespace2) freespace = freespace2;
     if (sb.st_size > size)
     {
-      Log (1, "Partial size %lu > %lu (file size), delete partial", 
+      Log (1, "Partial size %lu > %lu (file size), delete partial",
            (unsigned long) sb.st_size, (unsigned long) size);
       fclose (f);
       if (trunc_file (buf) && delete (buf)) return 0;
