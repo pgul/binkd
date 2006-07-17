@@ -21,6 +21,7 @@ WINDRES=windres
 OUTDIR=bin/mingw32
 BINKDTYPE=mingw32
 
+CC?=gcc
 CFLAGS+= -mno-cygwin -mthreads -pipe -funsigned-char \
          -Wall -Wno-char-subscripts -Wno-comment
 CDEFS+=  -DHAVE_THREADS -DHAVE_UNISTD -DHAVE_INTMAX_T \
