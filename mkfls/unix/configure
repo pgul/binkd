@@ -1756,6 +1756,36 @@ fi
 rm -f conftest*
 
 
+echo $ac_n "checking for MSG_NOSIGNAL""... $ac_c" 1>&6
+echo "configure:1761: checking for MSG_NOSIGNAL" >&5
+cat > conftest.$ac_ext <<EOF
+#line 1763 "configure"
+#include "confdefs.h"
+
+#include <sys/types.h>
+#include <sys/socket.h>
+
+int main() {
+
+  return MSG_NOSIGNAL;
+
+; return 0; }
+EOF
+if { (eval echo configure:1775: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  cat >> confdefs.h <<\EOF
+#define HAVE_MSG_NOSIGNAL 1
+EOF
+ echo "$ac_t""yes" 1>&6
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  echo "$ac_t""no" 1>&6
+fi
+rm -f conftest*
+
+
 # Check whether --with-debug or --without-debug was given.
 if test "${with_debug+set}" = set; then
   withval="$with_debug"

@@ -117,6 +117,20 @@ AC_MSG_RESULT(cross-compiling. No assumptions made)
 )
 
 dnl -------------------------------------------------------------------------
+dnl Check for MSG_NOSIGNAL
+
+AC_MSG_CHECKING(for MSG_NOSIGNAL)
+AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/socket.h>
+], [
+  return MSG_NOSIGNAL;
+], AC_DEFINE(HAVE_MSG_NOSIGNAL) AC_MSG_RESULT(yes),
+AC_MSG_RESULT(no),
+AC_MSG_RESULT(cross-compiling. No assumptions made)
+)
+
+dnl -------------------------------------------------------------------------
 dnl Optional features
 
 AC_ARG_WITH(debug,
