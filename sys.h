@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.28  2006/07/24 21:00:32  gul
+ * use MSG_NOSIGNAL in send()
+ *
  * Revision 2.27  2005/10/02 16:35:21  gul
  * *** empty log message ***
  *
@@ -198,6 +201,10 @@
 
 #ifndef F_OK
   #define F_OK 0
+#endif
+
+#ifndef HAVE_MSG_NOSIGNAL
+  #define MSG_NOSIGNAL 0
 #endif
 
 #if defined(UNIX) || defined(AMIGA)

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.96  2006/07/24 21:00:32  gul
+ * use MSG_NOSIGNAL in send()
+ *
  * Revision 2.95  2005/11/03 13:15:46  stas
  * Option '-n' recognization
  *
@@ -879,6 +882,10 @@ int main (int argc, char *argv[], char *envp[])
   /* Set up break handler, set up exit list if needed */
   if (!set_break_handlers ())
     Log (0, "cannot install break handlers");
+
+#if defined(SIGPIPE) && !defined(HAVE_MSG_NOSIGNAL)
+  signal(SIGPIPE, SIG_IGN);
+#endif
 
 #if defined(WITH_ZLIB) && defined(ZLIBDL)
   if (current_config->zlib_dll[0]) {

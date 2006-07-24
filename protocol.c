@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.182  2006/07/24 21:00:32  gul
+ * use MSG_NOSIGNAL in send()
+ *
  * Revision 2.181  2005/11/07 17:54:00  stas
  * rtrim
  *
@@ -938,7 +941,7 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
   if (state->optr && state->oleft)
   {
     Log (7, "sending %i byte(s)", state->oleft);
-    n = send (state->s, state->optr, state->oleft, 0);
+    n = send (state->s, state->optr, state->oleft, MSG_NOSIGNAL);
 #ifdef BW_LIM
     state->bw_send.bytes += n;
 #endif
