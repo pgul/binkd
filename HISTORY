@@ -1,3 +1,7 @@
+2006/07/25 00:01:40 1.0a-494 gul
+binkd.c,2.95,2.96 protocol.c,2.181,2.182 sys.h,2.27,2.28
+use MSG_NOSIGNAL in send()
+
 2006/05/22 22:04:37 1.0a-493 stas
 inbound.c,2.40,2.41
 Fix deletion fault .hr/.dt pair. Bugreport from Alexey Fayans 2:5030/1997
