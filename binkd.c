@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30.2.11  2006/08/09 07:35:18  gul
+ * Minor fix in binkd restart
+ *
  * Revision 2.30.2.10  2005/11/07 18:56:28  stas
  * MFC: New option '-n', may be used to config check with option '-d' or to make poll with '-P'
  *
@@ -477,8 +480,12 @@ int main (int argc, char *argv[], char *envp[])
 	      break;
 #ifdef BINKD_DAEMONIZE
 	    case 'D':
+	      if (daemon_flag) continue;
 	      daemon_flag = 1;
 	      /* remove this switch from saved_argv */
+	      if (argv[i][2])
+	        strcpy(saved_argv[i]+(s-argv[i]), saved_argv[i]+(s-argv[i])+1);
+	      else
 	      { int j;
 	        free(saved_argv[i]);
 	        for (j=i; j<argc; j++)
@@ -673,8 +680,8 @@ binkdrestart:
     exitfunc();
     print_args (tmp, sizeof (tmp), saved_argc - 1, saved_argv + 1);
     Log (2, "exec %s%s", saved_argv[0], tmp);
-    if (execv (saved_argv[0], saved_argv) == -1)
-      Log (1, "execv: %s", strerror (errno));
+    if (execvp (saved_argv[0], saved_argv) == -1)
+      Log (1, "execvp: %s", strerror (errno));
   }
   else
   {
