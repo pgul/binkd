@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22.2.4  2006/08/09 07:09:49  gul
+ * cosmetic fix
+ *
  * Revision 2.22.2.3  2004/10/21 17:02:05  gul
  * Rename trunc() -> trunc_file() due to conflicts under OS/2 EMX and SuSE
  *
@@ -916,7 +919,7 @@ char **mkargv (int argc, char **argv)
   int i;
   char **p;
 
-  p = (char **) xalloc ((argc + 1) * sizeof (p));
+  p = (char **) xalloc ((argc + 1) * sizeof (*p));
 
   for (i = 0; i < argc; i++)
     p[i] = xstrdup (argv[i]);
