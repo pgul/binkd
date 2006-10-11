@@ -1,0 +1,19 @@
+Log level values.
+
+-1 : (win32-only) messages about operations with windows service
+ 0 : critical error (error, next exit)
+ 1 : ordinary error; reason of stop
+ 2 : error on connection attempt; binkp protocol state; path translation;
+     config file change
+ 3 : binkp extensions on/off; files receiving or sending; exec of the external
+     programs; removing the empty fileboxes
+ 4 : start binkd (and command line string); child return code; poll; server
+     error; high-level file operations; & etc.
+ 5 : DNS events; open/close files and sockets; files truncations and renaming;
+     & etc.
+ 6 : binkp protocol events; relative paths
+ 7 : addresses in ND mode; receiving and sending of data blocks
+ 8 : file naming conversions; timeout in Windows 9x; remote system addresses;
+     operation time; & etc.
+ 9 : information about receiving process
+10 : debug messages about interconnection with proxy
