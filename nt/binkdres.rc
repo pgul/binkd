@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 1.10  2006/10/19 09:55:47  stas
+ * Update copyrigth year
+ *
  * Revision 1.9  2005/01/30 10:24:34  hbrew
  * Update copyright
  *
@@ -92,7 +95,7 @@ BEGIN
       VALUE "InternalName", RES_STR(BINKDNAME) "\0"
 
 /*   LegalCopyright: Specifies all copyright notices that apply to the file. This should include the full text of all notices, legal symbols, copyright dates, and so on-for example, "Copyrightc Microsoft Corporation 1990-1999". This string is optional. */
-      VALUE "LegalCopyright", "Copyright © 1996-2005 Dima Maloff and binkd Team. Distributed under General Public License (GPL).\0"
+      VALUE "LegalCopyright", "Copyright © 1996-2006 Dima Maloff and binkd Team. Distributed under General Public License (GPL).\0"
 
 /*   LegalTrademarks: Specifies all trademarks and registered trademarks that apply to the file. This should include the full text of all notices, legal symbols, trademark numbers, and so on. This string is optional. */
 /*    VALUE "LegalTrademarks", "\0" */
