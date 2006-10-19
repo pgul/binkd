@@ -17,3 +17,5 @@ Log level values.
      operation time; & etc.
  9 : information about receiving process
 10 : debug messages about interconnection with proxy
+
+$Id$

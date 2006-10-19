@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.29  2006/10/19 11:12:54  stas
+ * Fix segmentation fault in mingw build (illegal fprintf format string)
+ *
  * Revision 2.28  2006/07/24 21:00:32  gul
  * use MSG_NOSIGNAL in send()
  *
@@ -274,14 +277,20 @@ typedef unsigned short int u16;
 typedef unsigned long int u32;
 #endif
 
+#ifndef HAVE_INTMAX_T
+ typedef long int intmax_t;
+ #undef PRIdMAX
+ #define PRIdMAX "ld"
+ typedef unsigned long int uintmax_t;
+ #undef PRIuMAX
+ #define PRIuMAX "lu"
+#endif
+
 #ifndef PRIdMAX
 #define PRIdMAX "ld"
 #define PRIuMAX "lu"
 #endif
-#ifndef HAVE_INTMAX_T
-typedef long int intmax_t;
-typedef unsigned long int uintmax_t;
-#endif
+
 #ifndef HAVE_STRTOUMAX
 #define strtoumax(ptr, endptr, base)	strtoul(ptr, endptr, base)
 #endif
