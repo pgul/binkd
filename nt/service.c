@@ -18,6 +18,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.54  2006/10/25 09:49:03  stas
+ * Minimize required rigths for Windows NT/2000/XP/2003 service process.
+ *
  * Revision 2.53  2006/10/25 09:04:53  stas
  * Change requirements of access rigths for service in Windows 2000.
  *
@@ -525,7 +528,7 @@ static void try_open_SCM(void)
         Log(1, "OpenSCManager failed: %s",w32err(err));
       else if(err==ERROR_ACCESS_DENIED)
       {
-        Log(isService()?1:-1, "R/W access to NT service controls is denied.");
+        Log(isService()?1:-1, "%s access to NT service controls is denied.", isService()? "Any" : "R/W");
       }
     }
   }
@@ -535,7 +538,7 @@ static void try_open_service(void)
 {
   try_open_SCM();
   if(sman && !shan)
-    shan=OpenService(sman, srvname, SERVICE_ALL_ACCESS);
+    shan=OpenService(sman, srvname, isService()? SERVICE_CONTROL_INTERROGATE : SERVICE_ALL_ACCESS);
 }
 
 
