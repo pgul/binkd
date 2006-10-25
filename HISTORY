@@ -1,3 +1,7 @@
+2006/10/25 12:49:08 1.0a-498 stas
+service.c,2.53,2.54
+Minimize required rigths for Windows NT/2000/XP/2003 service process.
+
 2006/10/25 12:04:57 1.0a-497 stas
 service.c,2.52,2.53
 Change requirements of access rigths for service in Windows 2000.
