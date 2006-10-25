@@ -10,10 +10,17 @@
  *  the Free Software Foundation; either version 2 of the License, or
  *  (at your option) any later version. See COPYING.
  */
+/* About Windows NT services see http://www.microsoft.com/msj/0298/service.aspx
+    Jeffrey Richter. 
+    "Manipulate Windows NT Services by Writing a Service Control Program"
+ */
 /*
  * $Id$
  *
  * $Log$
+ * Revision 2.53  2006/10/25 09:04:53  stas
+ * Change requirements of access rigths for service in Windows 2000.
+ *
  * Revision 2.52  2004/01/24 01:07:01  hbrew
  * Fix warning
  *
@@ -511,7 +518,7 @@ static void try_open_SCM(void)
 {
   if(!sman)
   {
-    sman = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+    sman = OpenSCManager(NULL, NULL, isService()? SC_MANAGER_CONNECT : SC_MANAGER_ALL_ACCESS);
     if(!sman)
     { int err = GetLastError();
       if(res_checkservice)
@@ -789,7 +796,7 @@ int service(int argc, char **argv, char **envp)
 
   j=checkservice();
 
-  if(j==CHKSRV_CANT_INSTALL){
+  if(j==CHKSRV_CANT_INSTALL && !isService()){
       Log(0, "Can't operate witn Windows NT services...");
   }
 
