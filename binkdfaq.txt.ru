@@ -590,6 +590,14 @@ kill -HUP `cat /var/run/binkd.pid`
     http://www.pstu.ru/~keu/binkdstat.zip
     http://binkd.grumbler.org/loganalisers/binkdstat.zip
 
+    T-Hist (c) Michael Markowsky, 2:5020/378 (KLUG's BBS)
+    Анализатор бинарного лог-файла разных мейлеров, в том числе Binkd.
+    Работает под DOS, Windows NT (2000, XP, 2003) и OS/2.
+    Страница программы: http://www.stopka.ru/klug/t-hist.htm
+    Последняя версия: 0.30.alpha7 от 17.06.2003, дистрибутивный архив:
+    http://www.stopka.ru/klug/hist30a7.zip
+    ftp://ftp.grumbler.org/pub/binkd/hist30a7.zip
+
 
 ----------------------------------------------------------------------------
 
