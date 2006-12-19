@@ -18,6 +18,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.55  2006/12/19 14:11:02  stas
+ * Minimize required access rights to operate with Windows NT/2000/XP/2003 services
+ *
  * Revision 2.54  2006/10/25 09:49:03  stas
  * Minimize required rigths for Windows NT/2000/XP/2003 service process.
  *
@@ -520,12 +523,28 @@ static void cleanup_service(void)
 static void try_open_SCM(void)
 {
   if(!sman)
-  {
-    sman = OpenSCManager(NULL, NULL, isService()? SC_MANAGER_CONNECT : SC_MANAGER_ALL_ACCESS);
+  { DWORD sc_manager_desired_access=0;
+    if( isService() )
+      sc_manager_desired_access=SC_MANAGER_CONNECT;
+    else switch(service_flag){
+      case w32_installservice:
+        sc_manager_desired_access=SC_MANAGER_CREATE_SERVICE;
+           break;
+      case w32_uninstallservice:
+      case w32_startservice:
+      case w32_stopservice:
+      case w32_restartservice:
+      case w32_queryservice:
+      case w32_run_as_service:
+        sc_manager_desired_access=SC_MANAGER_CONNECT;
+           break;
+      default: return;
+    }
+    sman = OpenSCManager(NULL, NULL, sc_manager_desired_access);
     if(!sman)
     { int err = GetLastError();
       if(res_checkservice)
-        Log(1, "OpenSCManager failed: %s",w32err(err));
+        Log(isService()?1:-1, "OpenSCManager failed: %s",w32err(err));
       else if(err==ERROR_ACCESS_DENIED)
       {
         Log(isService()?1:-1, "%s access to NT service controls is denied.", isService()? "Any" : "R/W");
@@ -537,8 +556,34 @@ static void try_open_SCM(void)
 static void try_open_service(void)
 {
   try_open_SCM();
-  if(sman && !shan)
-    shan=OpenService(sman, srvname, isService()? SERVICE_CONTROL_INTERROGATE : SERVICE_ALL_ACCESS);
+  if( sman && !shan ){
+    DWORD service_desired_access;
+    switch(service_flag){
+      case w32_installservice:
+        service_desired_access=SERVICE_ALL_ACCESS;
+           break;
+      case w32_uninstallservice:
+        service_desired_access=DELETE|SERVICE_STOP|SERVICE_QUERY_STATUS;
+           break;
+      case w32_startservice:
+        service_desired_access=SERVICE_START|SERVICE_QUERY_STATUS;
+           break;
+      case w32_stopservice:
+        service_desired_access=SERVICE_STOP|SERVICE_QUERY_STATUS;
+           break;
+      case w32_restartservice:
+        service_desired_access=SERVICE_STOP|SERVICE_START|SERVICE_QUERY_STATUS;
+           break;
+      case w32_queryservice:
+        service_desired_access=SERVICE_QUERY_STATUS;
+           break;
+      case w32_run_as_service:
+        service_desired_access=SERVICE_INTERROGATE; /* SERVICE_CONTROL_INTERROGATE */
+           break;
+      default: return;
+    }
+    shan=OpenService(sman, srvname, service_desired_access);
+  }
 }
 
 
@@ -699,8 +744,17 @@ static int start_service(void)
   if(!sman) try_open_service();
   if(!sman) return -1;
   if(!shan)
-  {
-    Log(-1, "Service \"%s\" is not installed, can't start service.", service_name);
+  { DWORD err=GetLastError();
+    switch( err ){
+    case ERROR_SERVICE_DOES_NOT_EXIST:
+      Log(-1, "Service \"%s\" is not installed, can't start service.", service_name);
+      break;
+    case ERROR_ACCESS_DENIED:
+      Log(1, "Access to starting service \"%s\" is denied...", service_name);
+      break;
+    default:
+      Log(1, "Error at starting service \"%s\": %s", err, service_name, w32err(err) );
+    }
     return -1;
   }
   if( query_service(SERVICE_RUNNING)==0 )
@@ -731,8 +785,17 @@ static int stop_service(void)
   if(!sman) try_open_service();
   if(!sman) return -1;
   if(!shan)
-  {
-    Log(-1, "Service \"%s\" is not installed...", service_name);
+  { DWORD err=GetLastError();
+    switch( err ){
+    case ERROR_SERVICE_DOES_NOT_EXIST:
+      Log(-1, "Service \"%s\" is not installed...", service_name);
+      break;
+    case ERROR_ACCESS_DENIED:
+      Log(1, "Access to control service \"%s\" is denied!", service_name);
+      break;
+    default:
+      Log(1, "Error at stopping service \"%s\": %s", err, service_name, w32err(err) );
+    }
     return -1;
   }
 
@@ -745,7 +808,7 @@ static int stop_service(void)
   if( ControlService(shan, SERVICE_CONTROL_STOP, &sstat) &&
       wait_service_operation(SERVICE_STOP_PENDING,SERVICE_STOPPED) )
   {
-    Log(1, "Unable to stop service '%s'!", service_name);
+    Log(1, "Unable to service '%s'!", service_name);
     return -1;
   }
 
@@ -759,8 +822,17 @@ static int uninstall_service(void)
   if(!sman) try_open_service();
   if(!sman) return -1;
   if(!shan)
-  {
-    Log(-1, "Service \"%s\" is not installed...", service_name);
+  { DWORD err=GetLastError();
+    switch( err ){
+    case ERROR_SERVICE_DOES_NOT_EXIST:
+      Log(-1, "Service \"%s\" is not installed...", service_name);
+      break;
+    case ERROR_ACCESS_DENIED:
+      Log(1, "Access to uninstalling service \"%s\" is denied!", service_name);
+      break;
+    default:
+      Log(1, "Error at uninstalling service \"%s\": %s", err, service_name, w32err(err) );
+    }
     return -1;
   }
 
@@ -799,6 +871,9 @@ int service(int argc, char **argv, char **envp)
 
   j=checkservice();
 
+  if(j==CHKSRV_ERROR){
+      Log(0, "Can't operate witn Windows NT services: %s", w32err(GetLastError()));
+  }
   if(j==CHKSRV_CANT_INSTALL && !isService()){
       Log(0, "Can't operate witn Windows NT services...");
   }
@@ -842,8 +917,7 @@ int service(int argc, char **argv, char **envp)
     break;
 
   case w32_restartservice:
-    stop_service();
-    start_service();
+    if( !stop_service() ) start_service();
     cleanup_service();
     exit(0);
     break;
@@ -895,7 +969,15 @@ int checkservice(void)
   if(!sman)
     return res_checkservice=CHKSRV_CANT_INSTALL;
   if(!shan)
-    return res_checkservice=CHKSRV_NOT_INSTALLED;
+  { DWORD err=GetLastError();
+    switch( err )
+    {
+      case ERROR_SERVICE_DOES_NOT_EXIST:
+        return res_checkservice=CHKSRV_NOT_INSTALLED;
+      default:
+        return res_checkservice=CHKSRV_ERROR;
+    }
+  }
 
   return res_checkservice=CHKSRV_INSTALLED;
 }
