@@ -96,6 +96,11 @@
     http://nicka-s.narod.ru/fido/index.html
       (Россия, Nickita Startcev 2:469/105.96 & 2:5030/777.319)
 
+    Binkd/2 1.0a (current, EMX), скомпилированный еженощно:
+    FREQ c узла 2:221/1, алиас файла: binkd2e. Можно скачать также с BBS узла
+    2:221/1 (доступна по telnet:rbb.cjb.net)
+      (Финляндия, Tommi Koivula 2:221/1 & 2:221/360 & 2:221/361)
+
     Документация (англ.), анализаторы логов и пр.:
     http://www.doe.carleton.ca/~nsoveiko/fido/binkd/
 
