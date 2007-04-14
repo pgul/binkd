@@ -35,7 +35,7 @@ Request&raquo; (&laquo;FREQ&raquo;), &laquo;FREQ processor&raquo;
 &laquo;proxy&raquo; (&laquo;прокси&raquo;). Не помешает также
 знакомство с семиуровневой моделью OSI. Наличие представлений о
 перечисленном не является обязательным, но поможет в понимании
-написанного и, в итоге, поможет в поиске ошибок в настройке <FONT FACE="Courier New, monospace">binkd</FONT>.</P>
+текста и, в итоге, поможет в поиске ошибок в настройке <FONT FACE="Courier New, monospace">binkd</FONT>.</P>
 <P>При составлении этого документа использовались: страница <FONT FACE="Courier New, monospace">man
 binkd</FONT>, комментарии к файлу конфигурации из дистрибутива <FONT FACE="Courier New, monospace">binkd</FONT>,
 исходные тексты <FONT FACE="Courier New, monospace">binkd</FONT> и
@@ -63,7 +63,7 @@ Documentation License, FDL)</A>.</P>
 позволяет передавать почту FIDOnet через Internet и по локальным
 сетям.</P>
 <P>В представленном документе описан <FONT FACE="Courier New, monospace">binkd</FONT>
-версии 0.9.8 (релиз), выпущенный в ноябре 2004 года.</P>
+версии 0.9.9 (версия с исправлениями после релиза 0.9.8, выпущенного в ноябре 2004 года).</P>
 <H2>0.2. Основные возможности binkd.</H2>
 <UL>
 	<LI><P>Binkd &ndash; открытое ПО: freeware, распространяется под
@@ -154,7 +154,7 @@ Documentation License, FDL)</A>.</P>
 	<LI><P><A HREF="http://binkd.grumbler.org/">http://binkd.grumbler.org/</A><BR>Исполняемые
 	файлы для Windows, страницы man, FAQ, документация по binkd и
 	протоколу binkp. Администрируется одним из разработчиков Стасом
-	Дёгтевым (Stas Degteff 2:5080/102 g@ural.org)</P>
+	Дёгтевым (Stas Degteff 2:5080/102 g@grumbler.org)</P>
 </UL>
 <H2>0.4. История создания binkd.</H2>
 <P>С распространением Internet в России у фидошного сообщества
@@ -266,9 +266,9 @@ TCP-соединения и запускает очередной экземпляр серверного процесса
 буква.</P>
 <P>Начиная с версии 0.9.5 сделаны две ветки: стабильная, в которой
 только исправлялись ошибки, и ветка активной разработки. Стабильная
-ветка названа 0.9.5-stable и к ней относятся версии 0.9.6, 0.9.8,
-являющиеся исправленными релизами после 0.9.5. Следующая ветка
-обозначена как 1.0 и версии в ней нумеруются так:
+ветка названа 0.9.5-stable и к ней относятся версии 0.9.6, 0.9.7,
+0.9.8, 0.9.9, являющиеся исправленными релизами после 0.9.5.
+Следующая ветка обозначена как 1.0 и версии в ней нумеруются так:
 1.0a-номер_исправления, например binkd 1.0a-295. По окончании
 разработки версии 1.0 будет выпущен релиз 1.0 и от него будет вестись
 ветка 1.0-stable, в случае обнаружения и исправления ошибок будут
@@ -562,7 +562,7 @@ BINKD9X=1</FONT></P>
 использованных опций компиляции Вы получите каталог Release,
 Release-w9x, Release-dll либо Release-w9x-dll с помещённым в него
 исполняемым файлом (binkd.exe, binkd9x.exe, binkd-dll.exe либо
-binkd9x-dll.exe). 
+binkd9x-dll.exe).
 </P>
 <P>После успешной сборки с помощью  MinGW32 исполняемый файл будет
 располагаться в каталоге с исходными текстами.</P>
@@ -694,8 +694,10 @@ binkd необходимы только исполняемый файл и файл конфигурации, но
 <P>Укажите в строке &laquo;domain&raquo; использующийся в Вашей сети
 домен FTN (для сети FIDOnet укажите слово fidonet), через пробел
 укажите путь к каталогу почтовой очереди для зоны Вашего адреса и
-затем через пробел &ndash; номер этой зоны. Во всех ОС кроме
-семейства UNIX обратные слэши &laquo;\&raquo; необходимо дублировать.</P>
+затем через пробел &ndash; номер этой зоны. Используемые в качестве
+разделителей каталогов обратные слэши &laquo;\&raquo; необходимо
+дублировать. (В ОС семейства unix разделители каталогов - прямые слэши
+и их дублировать не нужно.)</P>
 <P>Укажите в строке &laquo;inbound&raquo; путь к каталогу, в который
 будут помещаться файлы, принятые во время сеансов связи, защищенных
 паролем. Этот каталог должен совпадать с каталогом, используемым
@@ -706,7 +708,7 @@ fileechoprocessor, FREQ manager и др.)</P>
 защищенных паролем. Он также должен совпадать с аналогичным для
 других программ.</P>
 <P>Укажите в строке &laquo;log&raquo; путь к файлу, в который будет
-записываться протокол работы binkd. 
+записываться протокол работы binkd.
 </P>
 <P>Пример:</P>
 <P><FONT FACE="Courier New, monospace">domain fidonet
@@ -822,7 +824,7 @@ Outbound (BSO), используемого по умолчанию.</FONT></P>
 FTN-системы, которая обратилась к <FONT FACE="Courier New, monospace">binkd</FONT>
 нашей FTN-системы. Такая операция требует некоторого времени
 (особенно в случае отсутствия адреса удалённой системы в DNS), на
-которое произойдёт задержка в процессе установлении сеанса связи. 
+которое произойдёт задержка в процессе установлении сеанса связи.
 </P>
 <P>Эта директива является необязательной.</P>
 <P>Пример:</P>
@@ -1754,7 +1756,7 @@ proxy.ntlm.my.dom:1080/login/password/myhost/domain</FONT></P>
 <P>В случае использования socks 4 указывается только адрес и порт, в
 случае использования socks 5 без аутентификации в конец строки
 добавляется символ косой черты &laquo;/&raquo;, в случае
-использования socks 5 с аутентификацией используется полный формат. 
+использования socks 5 с аутентификацией используется полный формат.
 </P>
 <P>Значение по умолчанию не установлено (прокси стандарта socks не
 используется).</P>
@@ -1966,7 +1968,18 @@ CRAM-MD5, см. FSP-1019), таким образом, <FONT FACE="Courier New, monospace">bink
 в директиве <FONT FACE="Courier New, monospace">node</FONT>.</P>
 <P>Пример:</P>
 <P><FONT FACE="Courier New, monospace">binkd -m binkd.cfg</FONT></P>
-<H2>5.07. -P (прописная буква &laquo;P&raquo;).</H2>
+<H2>5.07. -n (строчная буква &laquo;n&raquo;).</H2>
+<P>Опция &laquo;<FONT FACE="Courier New, monospace">-n</FONT>&raquo;
+появилась в binkd 0.9.9. Она указывает binkd не осуществлять и не
+принимать вызовы, таким образом, после чтения файла конфигурации и
+выполнения действий, заданных другими опциями командной строки, binkd
+завершит работу . Опция &laquo;<FONT FACE="Courier New, monospace">-n</FONT>&raquo;
+обычно используется совместно с опцией &laquo;<FONT FACE="Courier New, monospace">-P</FONT>&raquo;
+или &laquo;<FONT FACE="Courier New, monospace">-vvv</FONT>&raquo;.</P>
+<P>Примеры:</P>
+<P><FONT FACE="Courier New, monospace">binkd -n -P2:5076/207 -P
+3:712/848 binkd.cfg<BR>binkd -nvvv binkd.cfg</FONT></P>
+<H2>5.08. -P (прописная буква &laquo;P&raquo;).</H2>
 <P>Опция &laquo;<FONT FACE="Courier New, monospace">-P</FONT>&raquo;
 задаёт адрес линка, на который <FONT FACE="Courier New, monospace">binkd</FONT>
 создаст <FONT FACE="Courier New, monospace">poll</FONT> (создаст
@@ -1979,7 +1992,7 @@ CRAM-MD5, см. FSP-1019), таким образом, <FONT FACE="Courier New, monospace">bink
 <P>Примеры:</P>
 <P><FONT FACE="Courier New, monospace">binkd -P2:5076/207 -P
 3:712/848 binkd.cfg<BR>binkd -P2:5080/102 -p binkd.cfg</FONT></P>
-<H2>5.08. -p (строчная буква &laquo;p&raquo;).</H2>
+<H2>5.09. -p (строчная буква &laquo;p&raquo;).</H2>
 <P>Если в командной строке указана опция &laquo;<FONT FACE="Courier New, monospace">-p</FONT>&raquo;,
 <FONT FACE="Courier New, monospace">binkd</FONT> запустится в режиме
 клиента (будет осуществлять только исходящие соединения) и по
@@ -1991,7 +2004,7 @@ CRAM-MD5, см. FSP-1019), таким образом, <FONT FACE="Courier New, monospace">bink
 и несовместима с опций &laquo;<FONT FACE="Courier New, monospace">-s</FONT>&raquo;.</P>
 <P>Пример:</P>
 <P><FONT FACE="Courier New, monospace">binkd -p binkd.cfg</FONT></P>
-<H2>5.09. -q (строчная буква &laquo;q&raquo;).</H2>
+<H2>5.10. -q (строчная буква &laquo;q&raquo;).</H2>
 <P>Опция &laquo;<FONT FACE="Courier New, monospace">-q</FONT>&raquo;
 запрещает <FONT FACE="Courier New, monospace">binkd</FONT> выводить
 что бы то ни было на консоль (на экран). Используется обычно в строке
@@ -1999,14 +2012,14 @@ CRAM-MD5, см. FSP-1019), таким образом, <FONT FACE="Courier New, monospace">bink
 <FONT FACE="Courier New, monospace">inetd</FONT>.</P>
 <P>Пример:</P>
 <P><FONT FACE="Courier New, monospace">binkd -q binkd.cfg</FONT></P>
-<H2>5.10. -r (строчная буква &laquo;r&raquo;).</H2>
+<H2>5.11. -r (строчная буква &laquo;r&raquo;).</H2>
 <P>Опция &laquo;<FONT FACE="Courier New, monospace">-r</FONT>&raquo;
 запрещает <FONT FACE="Courier New, monospace">binkd</FONT>
 использовать шифрование трафика согласно расширению CRYPT протокола
 <FONT FACE="Courier New, monospace">binkp</FONT>.</P>
 <P>Пример:</P>
 <P><FONT FACE="Courier New, monospace">binkd -r binkd.cfg</FONT></P>
-<H2>5.11. -S (прописная буква &laquo;S&raquo;).</H2>
+<H2>5.12. -S (прописная буква &laquo;S&raquo;).</H2>
 <P>Опция &laquo;<FONT FACE="Courier New, monospace">-S</FONT>&raquo;
 служит в <FONT FACE="Courier New, monospace">binkd/w32</FONT> и
 <FONT FACE="Courier New, monospace">binkd/w9x</FONT> для указания
@@ -2018,20 +2031,20 @@ CRAM-MD5, см. FSP-1019), таким образом, <FONT FACE="Courier New, monospace">bink
 используется совместно с опциями &laquo;<FONT FACE="Courier New, monospace">-i</FONT>&raquo;
 или &laquo;<FONT FACE="Courier New, monospace">-u</FONT>&raquo;. Эта
 опция имеет смысл только для <FONT FACE="Courier New, monospace">binkd/w32</FONT>
-и <FONT FACE="Courier New, monospace">binkd/w9x</FONT><FONT FACE="Times New Roman, serif">
-</FONT>и в других вариантах <FONT FACE="Courier New, monospace">binkd</FONT>
+и <FONT FACE="Courier New, monospace">binkd/w9x</FONT>
+и в других вариантах <FONT FACE="Courier New, monospace">binkd</FONT>
 не воспринимается.</P>
 <P>Примеры:</P>
 <P><FONT FACE="Courier New, monospace">binkd -i -S &laquo;Binkd
 service&raquo; binkd.cfg<BR>binkd -u -S &laquo;Binkd service&raquo;</FONT></P>
-<H2>5.12. -s (строчная буква &laquo;s&raquo;).</H2>
+<H2>5.13. -s (строчная буква &laquo;s&raquo;).</H2>
 <P>Опция &laquo;<FONT FACE="Courier New, monospace">-s</FONT>&raquo;
 запрещает <FONT FACE="Courier New, monospace">binkd</FONT>
 осуществлять исходящие соединения, т.е. в <FONT FACE="Courier New, monospace">binkd</FONT>
 работает только серверная часть.</P>
 <P>Пример:</P>
 <P><FONT FACE="Courier New, monospace">binkd -s binkd.cfg</FONT></P>
-<H2>5.13. -T (прописная буква &laquo;T&raquo;).</H2>
+<H2>5.14. -T (прописная буква &laquo;T&raquo;).</H2>
 <P>Опция &laquo;<FONT FACE="Courier New, monospace">-T</FONT>&raquo;
 задаёт режим работы <FONT FACE="Courier New, monospace">binkd/w32</FONT>,
 в котором в свёрнутом состоянии <FONT FACE="Courier New, monospace">binkd</FONT>
@@ -2050,7 +2063,7 @@ service&raquo; binkd.cfg<BR>binkd -u -S &laquo;Binkd service&raquo;</FONT></P>
 <P><FONT FACE="Times New Roman, serif">Во втором примере <FONT FACE="Courier New, monospace">binkd</FONT>
 устанавливает себя сервисом, который будет сворачиваться в system
 tray.</FONT></P>
-<H2>5.14. -t (строчная буква &laquo;t&raquo;).</H2>
+<H2>5.15. -t (строчная буква &laquo;t&raquo;).</H2>
 <P>Опция &laquo;<FONT FACE="Courier New, monospace">-t</FONT>&raquo;
 служит для управления сервисом в <FONT FACE="Courier New, monospace">binkd</FONT>,
 скомпилированного для ОC Windows 95 (98, Me). Команда управления
@@ -2071,7 +2084,7 @@ tray.</FONT></P>
 <P>Примеры:</P>
 <P><FONT FACE="Courier New, monospace">binkd9x -t start<BR>binkd9x
 -tstop<BR>binkd9x -t status -S binkd<BR>binkd9x -trestart -Sbinkd</FONT></P>
-<H2>5.15. -u (строчная буква &laquo;u&raquo;).</H2>
+<H2>5.16. -u (строчная буква &laquo;u&raquo;).</H2>
 <P>В 32-хбитных ОС семейства Windows опция &laquo;<FONT FACE="Courier New, monospace">-u</FONT>&raquo;
 используется для удаления ранее установленного сервиса <FONT FACE="Courier New, monospace">binkd</FONT>.
 Перед удалением сервиса в Windows он будет остановлен. Опция &laquo;<FONT FACE="Courier New, monospace">-u</FONT>&raquo;
@@ -2179,7 +2192,7 @@ binkd.cfg<BR>binkd -v -v -v binkd.cfg</FONT><BR><FONT FACE="Courier New, monospa
 а в случае удачи проводит сеанс связи, затем записывает результат
 работы в файл <FONT FACE="Courier New, monospace">*.try</FONT> в
 каталоге почтовой очереди и завершается с кодом возврата, сообщающим
-об успешной работе (код 0) или об ошибке. 
+об успешной работе (код 0) или об ошибке.
 </P>
 <P>Работой клиентской части <FONT FACE="Courier New, monospace">binkd</FONT>
 управляет так называемый &laquo;менеджер клиентов&raquo; (client
@@ -2485,7 +2498,7 @@ binkd.cfg</FONT></P>
 необязательно принимать входящие соединения, а иногда он и не имеет
 такой возможности, например, в случае, когда компьютер не имеет
 публичного IP адреса и используется NAT - Network Address
-Translation). 
+Translation).
 </P>
 <P>Для работы в режиме клиента используется опция командной строки
 &laquo;<FONT FACE="Courier New, monospace">-c</FONT>&raquo; без
@@ -2559,7 +2572,7 @@ binkp. Далее такая информация о себе отсылается для удалённой
 (удалённого клиента), и в случае успешной проверки пароля,
 производится проверка файлов-флагов занятости адресов, предъявленных
 удалённой стороной (файлов *.BSY). Если для каких-то адресов
-файлы-флаги занятости существуют, эти адреса исключаются из списка. 
+файлы-флаги занятости существуют, эти адреса исключаются из списка.
 </P>
 <P>Далее формируется список файлов на отправку и производится обмен
 файлами.</P>
@@ -2857,7 +2870,7 @@ IP компьютера, на котором работает binkd, по протоколу TCP на порт
 задаётся в директиве файла конфигурации &laquo;<FONT FACE="Courier New, monospace">flag</FONT>&raquo;.
 (См. п.4.19) Появление соответствующего файла может обыть отслежено
 другими программами, которые произведут необходимые действия
-(запустят обработку). 
+(запустят обработку).
 </P>
 <P>Другой вариант действий при выполнении условия &ndash; запуск
 программ прямо из binkd. Это действие задаётся в директиве файла
