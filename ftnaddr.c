@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2.2.1  2007/04/14 12:09:32  stas
+ * Remove always-true condition
+ *
  * Revision 2.2  2003/02/22 21:32:46  gul
  * Amiga Style Outbound support
  *
@@ -134,7 +137,7 @@ int parse_ftnaddress (char *s, FTN_ADDR *fa)
   {
     FTN_DOMAIN *d;
 
-    if (token[1].c != ':' || token_type (token[i + 1]) != T_WORD)
+    if (token_type (token[i + 1]) != T_WORD)
       return 0;
 
     strcpy (fa->domain, (d = get_domain_info (token[i + 1].s)) ?
