@@ -3095,7 +3095,106 @@ DOS образуют расширение файла). Адрес линка закодирован в имени
 <P STYLE="margin-left: 2cm"><FONT FACE="Courier New, monospace">^D:\Ftn\Outbound\Fidonet\d08a1f00.mo0<BR>#D:\Ftn\Outbound\Fileout\nodediff.z74<BR>#D:\Ftn\Outbound\Fileout\17h2n539.tic</FONT></P>
 <H3>7.1.2. ASO.</H3>
 <H3>7.1.3. Файлбоксы, совместимые с мейлером &laquo;T-Mail&raquo;.</H3>
+<P>Binkd способен отправлять файлы, помещённые мейлером T-Mail в специальные каталоги,
+называемые файлбоксами. У T-mail есть два вида файлбоксов: традиционные &laquo;короткие&raquo;,
+подчиняющиеся правилам именования файлов в DOS (8.3) и реализованные в T-mail/NT и T-mail/2 &laquo;длинные&raquo;.
+Файлбоксы формата T-mail используют 4D-адресацию FTN (без домена).</P>
+<P>&laquo;Короткие&raquo; файлбоксы формата T-mail представляют собой подкаталоги с именами стиля DOS в базовом каталоге. Имя каждого подкаталога-файлбокса сгенерировано из адреса
+FTN системы назначения с использованием 32-ричной системы счисления, в которой цифры от &laquo;0&raquo;
+до &laquo;F&raquo; совпадают с 16-ричными цифрами, а цифрам от 15 до 31 назначены буквы латинского
+(английского) алфавита от &laquo;E&raquo; до &laquo;V&raquo;, все буквы - прописные (заглавные).
+Под номер зоны отведены два символа, под номер сети и номер узла - по три знака, под номер пойнта - два
+первых знака после точки (у узла ставится &laquo;00&raquo;). Третий знак после точки может использоваться
+для атрибута &laquo;hold&raquo;, для чего используется буква &laquo;H&raquo;. Таким образом, файлбокс
+&laquo;короткого&raquo; формата T-mail имеет ограничения:
+для адресов узлов от 1:1/0 до 1023:32767/32767 и для номеров пойнтов от 0 до 1023.</P>
+
+<P>Формат короткого файлбокса T-mail:
+<BR>
+<FONT FACE="Courier New, monospace"><FONT COLOR="#355e00"><B>Н</B>омерзоны</FONT><FONT COLOR="#355e00"><B>Н</B>омерсети</FONT><FONT COLOR="#355e00"><B>Н</B>омерузла</FONT>.<FONT COLOR="#355e00"><B>Н</B>омерпойнта</FONT>[<FONT COLOR="#355e00"><B>А</B>трибут</FONT>]
+<BR>
+<UL>
+	<LI><FONT COLOR="#355e00"><B>Н</B>омерзоны</FONT><BR>
+	Две 32-ричные цифры номера зоны (от &laquo;01&raquo; до &laquo;VV&raquo;).
+	<LI><FONT COLOR="#355e00"><B>Н</B>омерсети</FONT><BR>
+	Три 32-ричные цифры номера сети (от &laquo;001&raquo; до &laquo;VVV&raquo;).
+	<LI><FONT COLOR="#355e00"><B>Н</B>омерузла</FONT><BR>
+	Три 32-ричные цифры номера узла (от &laquo;000&raquo; до &laquo;VVV&raquo;).
+	<LI><FONT COLOR="#355e00"><B>Н</B>омерпойнта</FONT><BR>
+	Две 32-ричные цифры номера пойнта (от &laquo;00&raquo; до &laquo;VV&raquo;).
+	<LI><FONT COLOR="#355e00"><B>А</B>трибут</FONT><BR>
+	Атрибут файлбокса &laquo;hold&raquo; обозначается буквой &laquo;H&raquo;,
+	при отсутствии буквы &laquo;H&raquo; файлбокс имеет атрибут &laquo;normal&raquo;.
+	Другие атрибуты не поддерживаются.
+</UL>
+</P>
+<P>Примеры коротких файлбоксов T-mail:</P>
+<P>Файлбокс с атрибутом &laquo;normal&raquo; для отправки файлов координатору зоны 2:</P>
+<P STYLE="margin-left: 2cm"><FONT FACE="Courier New, monospace">D:\Ftn\fileboxT\02002000.00</FONT></P>
+<P>Файлбокс с атрибутом &laquo;hold&raquo; для пойнта 2:5080/102.63</P>
+<P STYLE="margin-left: 2cm"><FONT FACE="Courier New, monospace">D:\Ftn\fileboxT\024UO036.1VH</FONT></P>
+
+<P>&laquo;Длинные&raquo; файлбоксы формата T-mail представляют собой подкаталоги с длинными именами в базовом каталоге.
+Имя каждого подкаталога-файлбокса состоит из цифр адреса FTN системы назначения с использованием десятичной системы счисления, разделённых точками. В конце для указания атрибута &laquo;hold&raquo; может стоять &laquo;.H&raquo; или &laquo;.h&raquo;. Таким образом, файлбокс &laquo;длинного&raquo; стиля T-mail не имеет ограничений.</P>
+<P>Формат длинного файлбокса T-mail:
+<BR>
+<FONT FACE="Courier New, monospace"><FONT COLOR="#355e00"><B>Н</B>омерзоны</FONT>.<FONT COLOR="#355e00"><B>Н</B>омерсети</FONT>.<FONT COLOR="#355e00"><B>Н</B>омерузла</FONT>.<FONT COLOR="#355e00"><B>Н</B>омерпойнта</FONT>[.<FONT COLOR="#355e00"><B>А</B>трибут</FONT>]
+<BR>
+<UL>
+	<LI><FONT COLOR="#355e00"><B>Н</B>омерзоны</FONT><BR>
+	Десятичные цифры номера зоны.
+	<LI><FONT COLOR="#355e00"><B>Н</B>омерсети</FONT><BR>
+	Десятичные цифры номера сети.
+	<LI><FONT COLOR="#355e00"><B>Н</B>омерузла</FONT><BR>
+	Десятичные цифры номера узла.
+	<LI><FONT COLOR="#355e00"><B>Н</B>омерпойнта</FONT><BR>
+	Десятичные цифры номера пойнта.
+	<LI><FONT COLOR="#355e00"><B>А</B>трибут</FONT><BR>
+	Атрибут файлбокса &laquo;hold&raquo; обозначается буквой &laquo;H&raquo; или &laquo;h&raquo;, при отсутствии
+	буквы атрибута файлбокс имеет атрибут &laquo;normal&raquo;. Другие атрибуты не поддерживаются.
+</UL>
+</P>
+<P>Примеры длинных файлбоксов T-mail:</P>
+<P>Файлбокс с атрибутом &laquo;normal&raquo; для отправки файлов координатору зоны 2:</P>
+<P STYLE="margin-left: 2cm"><FONT FACE="Courier New, monospace">D:\Ftn\fileboxT\2.2.0.0</FONT></P>
+<P>Файлбокс с атрибутом &laquo;hold&raquo; для пойнта 2:5080/102.63</P>
+<P STYLE="margin-left: 2cm"><FONT FACE="Courier New, monospace">D:\Ftn\fileboxT\2.5080.102.63.H</FONT></P>
+
 <H3>7.1.4. Файлбоксы, совместимые с мейлером &laquo;The Brake!&raquo;.</H3>
+<P>Файлбоксы формата The Brake! представляют собой подкаталоги с длинными именами в базовом каталоге.
+Имя каждого подкаталога-файлбокса состоит из домена и цифр адреса FTN системы назначения с использованием десятичной системы счисления, разделённых точками. В конце, после точки, указан атрибут. Таким образом, файлбокс формата The Brake! не имеет ограничений.</P>
+<P>Формат файлбокса The Brake!:
+<BR>
+<FONT COLOR="#355e00"><B>Д</B>омен</FONT>.<FONT FACE="Courier New, monospace"><FONT
+COLOR="#355e00"><B>Н</B>омерзоны</FONT>.<FONT COLOR="#355e00"><B>Н</B>омерсети</FONT>.<FONT
+COLOR="#355e00"><B>Н</B>омерузла</FONT>.<FONT COLOR="#355e00"><B>Н</B>омерпойнта</FONT>.<FONT
+COLOR="#355e00"><B>А</B>трибут</FONT>
+<BR>
+<UL>
+	<LI><FONT COLOR="#355e00"><B>Д</B>омен</FONT><BR>
+	Имя домена FTN, строчными буквами.
+	<LI><FONT COLOR="#355e00"><B>Н</B>омерзоны</FONT><BR>
+	Десятичные цифры номера зоны.
+	<LI><FONT COLOR="#355e00"><B>Н</B>омерсети</FONT><BR>
+	Десятичные цифры номера сети.
+	<LI><FONT COLOR="#355e00"><B>Н</B>омерузла</FONT><BR>
+	Десятичные цифры номера узла.
+	<LI><FONT COLOR="#355e00"><B>Н</B>омерпойнта</FONT><BR>
+	Десятичные цифры номера пойнта.
+	<LI><FONT COLOR="#355e00"><B>А</B>трибут</FONT><BR>
+	Атрибут файлбокса. Возможные значения:
+	&laquo;immediate&raquo;, &laquo;Immediate&raquo;,
+	&laquo;crash&raquo;, &laquo;Crash&raquo;,
+	&laquo;direct&raquo;, &laquo;Direct&raquo;,
+	&laquo;normal&raquo;, &laquo;Normal&raquo;,
+	&laquo;hold&raquo;, &laquo;Hold&raquo;.
+</UL>
+</P>
+<P>Примеры файлбоксов формата The Brake!</P>
+<P>Файлбокс с атрибутом &laquo;normal&raquo; для отправки файлов координатору зоны 2 сети fidonet:</P>
+<P STYLE="margin-left: 2cm"><FONT FACE="Courier New, monospace">D:\Ftn\fileboxTheBrake\fidonet.2.2.0.0.normal</FONT></P>
+<P>Файлбокс с атрибутом &laquo;hold&raquo; для пойнта 2:5080/102.63@fidonet</P>
+<P STYLE="margin-left: 2cm"><FONT FACE="Courier New, monospace">D:\Ftn\fileboxTheBrake\fidonet.2.5080.102.63.Hold</FONT></P>
 <H2>7.2. Форматы файлов</H2>
 <H3>7.2.1. Файл паролей.</H3>
 <P>Binkd способен читать пароли из текстового файла паролей,
