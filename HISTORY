@@ -1,3 +1,7 @@
+2007/09/04 01:46:45 1.0a-500 gul
+protocol.c,2.182,2.183
+Remove workaround for asymmentric NR-mode
+
 2006/12/19 16:11:11 1.0a-499 stas
 service.c,2.54,2.55 service.h,2.14,2.15
 Minimize required access rights to operate with Windows NT/2000/XP/2003 services
