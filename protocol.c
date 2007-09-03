@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.183  2007/09/03 22:46:34  gul
+ * Remove workaround for asymmentric NR-mode
+ *
  * Revision 2.182  2006/07/24 21:00:32  gul
  * use MSG_NOSIGNAL in send()
  *
@@ -2254,17 +2257,19 @@ static int PWD (STATE *state, char *pwd, int sz, BINKD_CONFIG *config)
   if ((state->ND_flag & WE_ND) == 0 && (state->ND_flag & CAN_NDA) == 0)
     state->ND_flag &= ~THEY_ND;
 
+#if 0 /* Workaround switched off. Waiting for bugs in other software */
+      /* Will try to make more clean (software-version dependent) workaround */
+
   if ((state->NR_flag & WANT_NR) &&
       !(state->ND_flag & CAN_NDA) && !(state->ND_flag & WE_ND))
   { /* workaround bug of old binkd */
     /* force symmetric NR-mode with it */
-#if 1
     if (state->major * 100 + state->minor > 100)
       state->NR_flag |= WE_NR;
     else
-#endif
       state->NR_flag &= ~WANT_NR;
   }
+#endif
 
   szOpt = xstrdup(" EXTCMD");
   if (state->NR_flag & WANT_NR) xstrcat(&szOpt, " NR");
