@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.56  2007/09/04 06:07:03  gul
+ * Memory leak
+ *
  * Revision 2.55  2005/10/03 06:49:04  gul
  * Fixed typos in previous patch
  *
@@ -832,23 +835,34 @@ static XS(perl_warn)
 
 /* handle multi-line perl eval error message */
 static void sub_err(int sub) {
-STRLEN len;
-char *s, *p;
+  STRLEN len;
+  char *s, *p;
   p = SvPV(ERRSV, len);
-  if (len) { s = xalloc(len+1); strnzcpy(s, p, len+1); }
-    else s = "(empty error message)";
+  if (len) {
+    s = xalloc(len+1);
+    strnzcpy(s, p, len+1);
+  }
+  else
+    s = xstrdup("(empty error message)");
   if ( strchr(s, '\n') == NULL )
     Log(LL_ERR, "Perl %s error: %s", perl_subnames[sub], s);
-    else {
-      p = s;
-      Log(LL_ERR, "Perl %s error below:", perl_subnames[sub]);
-      while ( *p && (*p != '\n' || *(p+1)) ) {
-        char *r = strchr(p, '\n');
-        if (r) { *r = 0; Log(LL_ERR, "  %s", p); p = r+1; }
-        else { Log(LL_ERR, "  %s", p); break; }
+  else {
+    p = s;
+    Log(LL_ERR, "Perl %s error below:", perl_subnames[sub]);
+    while ( *p && (*p != '\n' || *(p+1)) ) {
+      char *r = strchr(p, '\n');
+      if (r) {
+        *r = 0;
+        Log(LL_ERR, "  %s", p);
+        p = r+1;
+      }
+      else {
+        Log(LL_ERR, "  %s", p);
+        break;
       }
     }
-  free(s);
+  }
+  xfree(s);
 }
 
 /* =========================== xs ========================== */
