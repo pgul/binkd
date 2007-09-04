@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.184  2007/09/04 06:04:50  gul
+ * Use workaround of NR-mode bug only for binkd/0.9.4
+ *
  * Revision 2.183  2007/09/03 22:46:34  gul
  * Remove workaround for asymmentric NR-mode
  *
@@ -1401,6 +1404,11 @@ static int NUL (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
     state->major = atoi (a + 6);
     state->minor = atoi (b + 1);
     Log (6, "remote uses " PRTCLNAME " v.%i.%i", state->major, state->minor);
+    if (memcmp(s + 4, "binkd/0.9.4/", 12) == 0)
+    {
+      state->buggy_NR = 1;
+      Log (5, "remote has NR bug, use workaround");
+    }
   }
   else if (!memcmp (s, "TRF ", 4))
   {
@@ -2256,20 +2264,12 @@ static int PWD (STATE *state, char *pwd, int sz, BINKD_CONFIG *config)
     state->ND_flag |= THEY_ND;
   if ((state->ND_flag & WE_ND) == 0 && (state->ND_flag & CAN_NDA) == 0)
     state->ND_flag &= ~THEY_ND;
-
-#if 0 /* Workaround switched off. Waiting for bugs in other software */
-      /* Will try to make more clean (software-version dependent) workaround */
-
-  if ((state->NR_flag & WANT_NR) &&
-      !(state->ND_flag & CAN_NDA) && !(state->ND_flag & WE_ND))
+  if (state->buggy_NR && (state->NR_flag & WANT_NR))
   { /* workaround bug of old binkd */
     /* force symmetric NR-mode with it */
-    if (state->major * 100 + state->minor > 100)
-      state->NR_flag |= WE_NR;
-    else
-      state->NR_flag &= ~WANT_NR;
+    state->NR_flag |= WE_NR;
+    Log (5, "Turn on NR-mode with this link (remote has buggy NR)");
   }
-#endif
 
   szOpt = xstrdup(" EXTCMD");
   if (state->NR_flag & WANT_NR) xstrcat(&szOpt, " NR");

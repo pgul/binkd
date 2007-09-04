@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.24  2007/09/04 06:04:50  gul
+ * Use workaround of NR-mode bug only for binkd/0.9.4
+ *
  * Revision 2.23  2005/09/26 19:01:03  gul
  * bw limits code partially rewrited (not tested)
  *
@@ -240,6 +243,7 @@ struct _STATE
 #endif
   int delay_ADR, delay_EOB;     /* delay sending of the command */
   int extcmd;			/* remote can accept extra params for cmds */
+  int buggy_NR;			/* remote has bug in NR-mode (binkd/0.9.4) */
 /* define BW_LIM <bytes-per-second> to limit xmit bandwidth to this value */
 /*#define BW_LIM 16384*/
 #ifdef BW_LIM
