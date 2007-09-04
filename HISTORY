@@ -1,3 +1,7 @@
+2007/09/04 09:07:05 1.0a-502 gul
+perlhooks.c,2.55,2.56
+Memory leak
+
 2007/09/04 09:04:51 1.0a-501 gul
 protocol.c,2.183,2.184 protoco2.h,2.23,2.24
 Use workaround of NR-mode bug only for binkd/0.9.4
