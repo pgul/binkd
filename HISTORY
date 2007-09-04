@@ -1,3 +1,7 @@
+2007/09/04 09:04:51 1.0a-501 gul
+protocol.c,2.183,2.184 protoco2.h,2.23,2.24
+Use workaround of NR-mode bug only for binkd/0.9.4
+
 2007/09/04 01:46:45 1.0a-500 gul
 protocol.c,2.182,2.183
 Remove workaround for asymmentric NR-mode
