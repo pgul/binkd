@@ -1,3 +1,4 @@
+- large files (win32)
 - rexx hooks
 - set root-domain for every FTN-domain
 - do not kill attaches (save and ignore) if drive missing (unmounted)
