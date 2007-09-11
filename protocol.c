@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.185  2007/09/11 11:18:34  gul
+ * Use NR workaround for all binkd versions before 0.9.5
+ *
  * Revision 2.184  2007/09/04 06:04:50  gul
  * Use workaround of NR-mode bug only for binkd/0.9.4
  *
@@ -1404,7 +1407,12 @@ static int NUL (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
     state->major = atoi (a + 6);
     state->minor = atoi (b + 1);
     Log (6, "remote uses " PRTCLNAME " v.%i.%i", state->major, state->minor);
-    if (memcmp(s + 4, "binkd/0.9.4/", 12) == 0)
+    if (!memcmp(s + 4, "binkd/0.9/", 10) ||
+        !memcmp(s + 4, "binkd/0.9.1/", 12) ||
+        !memcmp(s + 4, "binkd/0.9.2/", 12) ||
+        !memcmp(s + 4, "binkd/0.9.3/", 12) ||
+        (!memcmp(s + 4, "binkd/0.9.3", 11) && isalpha(s[15]) && s[16]=='/') ||
+        !memcmp(s + 4, "binkd/0.9.4/", 12))
     {
       state->buggy_NR = 1;
       Log (5, "remote has NR bug, use workaround");
