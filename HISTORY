@@ -1,3 +1,7 @@
+2007/09/11 14:18:36 1.0a-503 gul
+protocol.c,2.184,2.185
+Use NR workaround for all binkd versions before 0.9.5
+
 2007/09/04 09:07:05 1.0a-502 gul
 perlhooks.c,2.55,2.56
 Memory leak
