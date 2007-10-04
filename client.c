@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.63  2007/10/04 17:30:28  gul
+ * SIGHUP handler (thx to Sergey Babitch)
+ *
  * Revision 2.62  2005/09/23 13:32:46  gul
  * Bugfix in work via proxy with authorization
  *
@@ -301,7 +304,11 @@ static void alrm (int signo)
 #else
 void SLEEP (time_t s)
 {
-  while ((s = sleep (s)) > 0 && !binkd_exit);
+  while ((s = sleep (s)) > 0 && !binkd_exit
+#ifdef HAVE_FORK
+         && !got_sighup
+#endif
+         );
 }
 #endif
 

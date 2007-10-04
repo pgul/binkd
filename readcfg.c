@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.87  2007/10/04 17:30:28  gul
+ * SIGHUP handler (thx to Sergey Babitch)
+ *
  * Revision 2.86  2005/12/20 16:55:52  gul
  * Added '\n' after diag message
  *
@@ -1138,8 +1141,15 @@ int checkcfg(void)
 {
   struct stat sb;
   struct conflist_type *pc;
+  int need_reload;
 
-  if (!checkcfg_flag)
+#ifdef HAVE_FORK
+  need_reload = got_sighup;
+  got_sighup = 0;
+#else
+  need_reload = 0;
+#endif
+  if (!checkcfg_flag && !need_reload)
     return 0;
 
   for (pc = current_config->config_list.first; pc; pc = pc->next)
@@ -1153,14 +1163,17 @@ int checkcfg(void)
       /* If reload failed, this will keep us from constant reload */
       pc->mtime = sb.st_mtime;
 
-      Log(2, "%s changed! Reloading configuration...", pc->path);
-
-      /* Reload starting from first file in list */
-      pc = current_config->config_list.first;
-      return readcfg(pc->path);
+      Log(2, "%s changed!", pc->path);
+      need_reload = 1;
     }
   }
-  return 0;
+
+  if (!need_reload)
+    return 0;
+  /* Reload starting from first file in list */
+  Log(2, "Reloading configuration...");
+  pc = current_config->config_list.first;
+  return readcfg(pc->path);
 }
 
 /*

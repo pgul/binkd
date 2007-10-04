@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.40  2007/10/04 17:30:28  gul
+ * SIGHUP handler (thx to Sergey Babitch)
+ *
  * Revision 2.39  2004/11/07 13:20:13  stream
  * Lock config of server manager so it can be safely reloaded in SIGHUP
  *
@@ -280,6 +283,10 @@ static int do_server(BINKD_CONFIG *config)
     int n;
     fd_set r;
 
+    /* Test config mtime */
+    if (checkcfg())
+      return 0;
+
     FD_ZERO (&r);
     FD_SET (sockfd, &r);
     tv.tv_usec = 0;
@@ -289,23 +296,16 @@ static int do_server(BINKD_CONFIG *config)
     blockchld();
     switch (n)
     { case 0: /* timeout */
-      /* Test config mtime */
-      if (checkcfg())
-        return 0;
-      continue;
-    case -1:
-      if (TCPERRNO == EINTR)
         continue;
-      save_errno = TCPERRNO;
-      if (!binkd_exit) /* Suppress servmgr socket error at binkd exit */
-        Log (1, "servmgr select(): %s", TCPERR ());
-      goto accepterr;
+      case -1:
+        if (TCPERRNO == EINTR)
+          continue;
+        save_errno = TCPERRNO;
+        if (!binkd_exit) /* Suppress servmgr socket error at binkd exit */
+          Log (1, "servmgr select(): %s", TCPERR ());
+        goto accepterr;
     }
-
-    /* Test config mtime */
-    if (checkcfg())
-      return 0;
-
+ 
     client_addr_len = sizeof (client_addr);
     if ((new_sockfd = accept (sockfd, (struct sockaddr *) & client_addr,
                               &client_addr_len)) == INVALID_SOCKET)
