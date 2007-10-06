@@ -1,3 +1,7 @@
+2007/10/06 13:20:09 1.0a-506 gul
+client.c,2.63,2.64 readcfg.c,2.87,2.88 server.c,2.40,2.41
+more accurate checkcfg()
+
 2007/10/06 12:35:16 1.0a-505 gul
 binkd.c,2.97,2.98
 Retranslate SIGHUP from servermgr to clientmgr
