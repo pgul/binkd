@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.88  2007/10/06 10:20:04  gul
+ * more accurate checkcfg()
+ *
  * Revision 2.87  2007/10/04 17:30:28  gul
  * SIGHUP handler (thx to Sergey Babitch)
  *
@@ -859,12 +862,19 @@ static int isDefined(char *value, char *name)
   return 1;
 }
 
-static void add_to_config_list(const char *path)
+static void add_to_config_list(const char *path, FILE *f)
 {
   struct  conflist_type new_entry;
+  struct  stat sb;
 
   new_entry.path  = xstrdup(path);
-  new_entry.mtime = 0;
+  if (f != NULL && fstat(fileno(f), &sb) == 0)
+    new_entry.mtime = sb.st_mtime;
+  else
+  {
+    Log(2, "Cannot get modification time for %s: %s", path, strerror(errno));
+    new_entry.mtime = 0;
+  }
   simplelist_add(&work_config.config_list.linkpoint, &new_entry, sizeof(new_entry));
 }
 
@@ -942,6 +952,7 @@ static int read_passwords(char *filename)
   if ((in = fopen(filename, "rt")) == NULL)
     return ConfigError("unable to open password file (%s)", filename);
 
+  add_to_config_list(filename, in);
   while (fgets (linebuf, sizeof (linebuf), in))
   {
     char *node, *password;
@@ -991,7 +1002,7 @@ static int readcfg0 (char *path)
   current_line = 0;
   current_path = path;
 
-  add_to_config_list (path);
+  add_to_config_list (path, in);
 
   for (success = 1; success && fgets (linebuf, sizeof (linebuf), in); )
   {
@@ -1245,7 +1256,6 @@ static int passwords (KEYWORD *key, int wordcount, char **words)
 {
   if (!read_string(key, wordcount, words))
     return 0;
-  add_to_config_list(words[0]);
   return 1;
 }
 

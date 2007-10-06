@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.41  2007/10/06 10:20:05  gul
+ * more accurate checkcfg()
+ *
  * Revision 2.40  2007/10/04 17:30:28  gul
  * SIGHUP handler (thx to Sergey Babitch)
  *
@@ -283,10 +286,6 @@ static int do_server(BINKD_CONFIG *config)
     int n;
     fd_set r;
 
-    /* Test config mtime */
-    if (checkcfg())
-      return 0;
-
     FD_ZERO (&r);
     FD_SET (sockfd, &r);
     tv.tv_usec = 0;
@@ -296,10 +295,16 @@ static int do_server(BINKD_CONFIG *config)
     blockchld();
     switch (n)
     { case 0: /* timeout */
+        if (checkcfg())
+          return 0;
         continue;
       case -1:
         if (TCPERRNO == EINTR)
+        {
+          if (checkcfg())
+            return 0;
           continue;
+        }
         save_errno = TCPERRNO;
         if (!binkd_exit) /* Suppress servmgr socket error at binkd exit */
           Log (1, "servmgr select(): %s", TCPERR ());
@@ -381,9 +386,6 @@ void servmgr (void)
   srand(time(0));
   setproctitle ("server manager");
   Log (4, "servmgr started");
-
-  /* Store initial value for Binkd config's mtime */
-  checkcfg ();
 
 #ifdef HAVE_FORK
   blockchld();
