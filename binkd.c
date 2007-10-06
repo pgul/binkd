@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.98  2007/10/06 09:35:12  gul
+ * Retranslate SIGHUP from servermgr to clientmgr
+ *
  * Revision 2.97  2007/10/04 17:30:28  gul
  * SIGHUP handler (thx to Sergey Babitch)
  *
@@ -450,6 +453,7 @@ static void hup (int signo)
 {
   Log (2, "got SIGHUP");
   got_sighup = 1;
+  if (pidcmgr) kill (pidcmgr, signo);
 }
 #endif
 
@@ -967,11 +971,12 @@ int main (int argc, char *argv[], char *envp[])
   }
 #endif
 
+#if defined(HAVE_FORK)
+  signal (SIGHUP, hup);
+#endif
+
   if (client_flag && !server_flag)
   {
-#if defined(HAVE_FORK)
-    signal (SIGHUP, hup);
-#endif
     clientmgr (0);
     exit (0);
   }
@@ -981,10 +986,6 @@ int main (int argc, char *argv[], char *envp[])
   {
     Log (0, "cannot branch out");
   }
-
-#if defined(HAVE_FORK)
-  signal (SIGHUP, hup);
-#endif
 
   if (*current_config->pid_file)
   {
