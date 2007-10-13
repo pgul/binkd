@@ -1,3 +1,7 @@
+2007/10/13 08:35:19 1.0a-507 gul
+client.c,2.64,2.65
+play around checkcfg()
+
 2007/10/06 13:20:09 1.0a-506 gul
 client.c,2.63,2.64 readcfg.c,2.87,2.88 server.c,2.40,2.41
 more accurate checkcfg()
