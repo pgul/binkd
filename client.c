@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.65  2007/10/13 05:35:15  gul
+ * play around checkcfg()
+ *
  * Revision 2.64  2007/10/06 10:20:04  gul
  * more accurate checkcfg()
  *
@@ -446,7 +449,7 @@ void clientmgr (void *arg)
   setproctitle ("client manager");
   Log (4, "clientmgr started");
 
-  do
+  for (;;)
   {
     BINKD_CONFIG *config;
 
@@ -454,14 +457,15 @@ void clientmgr (void *arg)
     status = do_client(config);
     unlock_config_structure(config);
 
+    if (status != 0 || binkd_exit) break;
+
     if (
 #ifdef HAVE_THREADS
         !server_flag && 
 #endif
         !poll_flag)
       checkcfg();
-
-  } while (status == 0 && !binkd_exit);
+  }
 
   Log (5, "downing clientmgr...");
   unblockchld();
