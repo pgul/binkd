@@ -98,7 +98,7 @@
 
     Binkd для DOS с использованием стека (драйверов IP) Waterloo TCP/IP:
     http://mik.mkw.ru/dos-stuff/binkd.zip
-      (Россия, Michael Kostylev mailto:mik@niipt.ru)
+      (Россия, Michael Kostylev 2:5030/1530 mik@niipt.ru)
 
     Binkd/2 1.0a (current, EMX), скомпилированный еженощно:
     FREQ c узла 2:221/1, алиас файла: binkd2e. Можно скачать также с BBS узла
