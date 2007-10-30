@@ -571,3 +571,7 @@ NT/95:  ctrl-c problems fixed
 
 	New optional parameter root-domain for 'domain' config option.
 
+	New config option dont-send-empty - inhibit sending empty
+	(zero-size) files.
+
+

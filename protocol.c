@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.186  2007/10/30 07:33:25  gul
+ * New config option dont-send-empty
+ *
  * Revision 2.185  2007/09/11 11:18:34  gul
  * Use NR workaround for all binkd versions before 0.9.5
  *
@@ -3480,10 +3483,29 @@ static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
   Log(9, "Dont waiting for M_GOT");
   state->out.start = safe_time();
   netname (state->out.netname, &state->out, config);
-  if (ispkt(state->out.netname) && state->out.size <= 60)
+  if ((state->out.type == 'm' || (ispkt(state->out.netname) && config->dontsendempty >= EMPTY_ARCMAIL)) && state->out.size <= 60)
   {
     Log (3, "skip empty pkt %s, %" PRIuMAX " bytes", state->out.path,
 	 (uintmax_t) state->out.size);
+    if (state->out.f) fclose(state->out.f);
+    remove_from_spool (state, state->out.flo,
+                       state->out.path, state->out.action, config);
+    TF_ZERO (&state->out);
+    return 0;
+  }
+  if (config->dontsendempty >= EMPTY_ARCMAIL &&
+      state->out.size == 0 && isarcmail(state->out.netname))
+  {
+    Log (3, "skip empty arcmail %s", state->out.path);
+    if (state->out.f) fclose(state->out.f);
+    remove_from_spool (state, state->out.flo,
+                       state->out.path, state->out.action, config);
+    TF_ZERO (&state->out);
+    return 0;
+  }
+  if (config->dontsendempty == EMPTY_ALL && state->out.size == 0)
+  {
+    Log (3, "skip empty attach %s", state->out.path);
     if (state->out.f) fclose(state->out.f);
     remove_from_spool (state, state->out.flo,
                        state->out.path, state->out.action, config);

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.89  2007/10/30 07:33:25  gul
+ * New config option dont-send-empty
+ *
  * Revision 2.88  2007/10/06 10:20:04  gul
  * more accurate checkcfg()
  *
@@ -654,6 +657,7 @@ static int read_rfrule (KEYWORD *key, int wordcount, char **words);
 static int read_mask (KEYWORD *key, int wordcount, char **words);
 static int read_akachain (KEYWORD *key, int wordcount, char **words);
 static int read_inboundcase (KEYWORD *key, int wordcount, char **words);
+static int read_dontsendempty (KEYWORD *key, int wordcount, char **words);
 static int read_port (KEYWORD *key, int wordcount, char **words);
 static int read_skip (KEYWORD *key, int wordcount, char **words);
 static int read_check_pkthdr (KEYWORD *key, int wordcount, char **words);
@@ -740,6 +744,7 @@ static KEYWORD keywords[] =
   {"inboundcase", read_inboundcase, &work_config.inboundcase, 0, 0},
   {"deletedirs", read_bool, &work_config.deletedirs, 0, 0},
   {"overwrite", read_mask, &work_config.overwrite, 0, 0},
+  {"dont-send-empty", read_dontsendempty, &work_config.dontsendempty, 0, 0},
 
   /* shared akas definitions */
   {"share", read_shares, 0, 0, 0},
@@ -1681,6 +1686,25 @@ static int read_inboundcase (KEYWORD *key, int wordcount, char **words)
     *target = INB_LOWER;
   else if (!STRICMP (words[0], "mixed"))
     *target = INB_MIXED;
+  else
+    return SyntaxError(key);
+
+  return 1;
+}
+
+static int read_dontsendempty (KEYWORD *key, int wordcount, char **words)
+{
+  enum inbcasetype *target = (enum inbcasetype *) (key->var);
+
+  if (!isArgCount(1, wordcount))
+    return 0;
+
+  if (!STRICMP (words[0], "no"))
+    *target = EMPTY_NO;
+  else if (!STRICMP (words[0], "arcmail"))
+    *target = EMPTY_ARCMAIL;
+  else if (!STRICMP (words[0], "yes"))
+    *target = EMPTY_ALL;
   else
     return SyntaxError(key);
 

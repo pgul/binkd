@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.35  2007/10/30 07:33:25  gul
+ * New config option dont-send-empty
+ *
  * Revision 2.34  2004/11/07 13:52:40  stream
  * Automatically rescan outbound after reload of configuration
  *
@@ -253,6 +256,7 @@ struct _BINKD_CONFIG
   enum inbcasetype inboundcase;
   int        deletedirs;
   int        havedefnode;
+  enum dontsendemptytype dontsendempty;
 #ifdef AMIGADOS_4D_OUTBOUND
   int        aso;
 #endif
