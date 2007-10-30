@@ -1,3 +1,7 @@
+2007/10/30 09:43:12 1.0a-509 gul
+protocol.c,2.186,2.187
+Removed copy/pasted code from prev patch
+
 2007/10/30 09:33:27 1.0a-508 gul
 !README.FIX,2.48,2.49 binkd.cfg,2.52,2.53 btypes.h,2.7,2.8 protocol.c,2.185,2.186 readcfg.c,2.88,2.89 readcfg.h,2.34,2.35
 New config option dont-send-empty
