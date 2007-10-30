@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.187  2007/10/30 07:43:11  gul
+ * Removed copy/pasted code from prev patch
+ *
  * Revision 2.186  2007/10/30 07:33:25  gul
  * New config option dont-send-empty
  *
@@ -3370,7 +3373,7 @@ static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
 {
   struct stat sb;
   FILE *f = NULL;
-  int action = -1, i;
+  int action = -1, i, dontsend = 0;
   char *extra;
 
   if (state->out.f)
@@ -3487,25 +3490,21 @@ static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
   {
     Log (3, "skip empty pkt %s, %" PRIuMAX " bytes", state->out.path,
 	 (uintmax_t) state->out.size);
-    if (state->out.f) fclose(state->out.f);
-    remove_from_spool (state, state->out.flo,
-                       state->out.path, state->out.action, config);
-    TF_ZERO (&state->out);
-    return 0;
+    dontsend = 1;
   }
-  if (config->dontsendempty >= EMPTY_ARCMAIL &&
+  else if (config->dontsendempty >= EMPTY_ARCMAIL &&
       state->out.size == 0 && isarcmail(state->out.netname))
   {
     Log (3, "skip empty arcmail %s", state->out.path);
-    if (state->out.f) fclose(state->out.f);
-    remove_from_spool (state, state->out.flo,
-                       state->out.path, state->out.action, config);
-    TF_ZERO (&state->out);
-    return 0;
+    dontsend = 1;
   }
-  if (config->dontsendempty == EMPTY_ALL && state->out.size == 0)
+  else if (config->dontsendempty == EMPTY_ALL && state->out.size == 0)
   {
     Log (3, "skip empty attach %s", state->out.path);
+    dontsend = 1;
+  }
+  if (dontsend)
+  {
     if (state->out.f) fclose(state->out.f);
     remove_from_spool (state, state->out.flo,
                        state->out.path, state->out.action, config);
