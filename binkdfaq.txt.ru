@@ -96,7 +96,8 @@
     http://nicka-s.narod.ru/fido/index.html
       (Россия, Nickita Startcev 2:469/105.96 & 2:5030/777.319)
 
-    Binkd для DOS с использованием стека (драйверов IP) Waterloo TCP/IP:
+    Binkd для DOS-DPMI с использованием стека (драйверов IP) Watt-32 авторства
+    Gisle Vanem giva@bgnett.no (http://www.bgnett.no/~giva/):
     http://mik.mkw.ru/dos-stuff/binkd.zip
       (Россия, Michael Kostylev 2:5030/1530 mik@niipt.ru)
 
