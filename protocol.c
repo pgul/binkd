@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.188  2008/01/14 11:42:53  gul
+ * Fixed bug in protocol logic (partial files send without NR-mode)
+ *
  * Revision 2.187  2007/10/30 07:43:11  gul
  * Removed copy/pasted code from prev patch
  *
@@ -3659,7 +3662,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
       }
 
       /* No more files to send in this batch, so send EOB */
-      if (!state.q && !state.local_EOB && state.state != P_NULL && state.sent_fls == 0)
+      if (!state.out.f && !state.q && !state.local_EOB && state.state != P_NULL && state.sent_fls == 0)
       {
         /* val: don't send EOB for binkp/1.0 if delay_EOB is set */
 	if (!state.delay_EOB || (state.major * 100 + state.minor > 100)) {
@@ -3719,22 +3722,22 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
       }
 
 #if defined(WIN32) /* workaround winsock bug */
-    if (t_out < u_nettimeout)
-    {
+      if (t_out < u_nettimeout)
+      {
 #endif
-      Log (8, "tv.tv_sec=%lu, tv.tv_usec=%lu",
+	Log (8, "tv.tv_sec=%lu, tv.tv_usec=%lu",
 	   (unsigned long) tv.tv_sec, (unsigned long) tv.tv_usec);
-      no = select (socket + 1, &r, &w, 0, &tv);
-      if (no < 0)
-        save_err = TCPERR ();
-      Log (8, "selected %i (r=%i, w=%i)", no, FD_ISSET (socket, &r), FD_ISSET (socket, &w));
+	no = select (socket + 1, &r, &w, 0, &tv);
+	if (no < 0)
+	  save_err = TCPERR ();
+	Log (8, "selected %i (r=%i, w=%i)", no, FD_ISSET (socket, &r), FD_ISSET (socket, &w));
 #if defined(WIN32) /* workaround winsock bug */
-    }
-    else
-    {
-      Log (8, "win9x winsock workaround: timeout detected (nettimeout=%u sec, t_out=%lu sec)", config->nettimeout, t_out/1000000);
-      no = 0;
-    }
+      }
+      else
+      {
+	Log (8, "win9x winsock workaround: timeout detected (nettimeout=%u sec, t_out=%lu sec)", config->nettimeout, t_out/1000000);
+	no = 0;
+      }
 #endif
       bsy_touch (config);		       /* touch *.bsy's */
       if (no == 0
