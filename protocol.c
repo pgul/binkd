@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67.2.24  2008/01/14 11:45:46  gul
+ * Fixed bug in protocol logic (partial files send without NR-mode)
+ *
  * Revision 2.67.2.23  2006/07/24 20:47:47  gul
  * Use MSG_NOSIGNAL flag for send()
  *
@@ -2380,7 +2383,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr)
       }
 
       /* No more files to send in this batch, so send EOB */
-      if (!state.q && !state.local_EOB && state.state != P_NULL && state.sent_fls == 0)
+      if (!state.out.f && !state.q && !state.local_EOB && state.state != P_NULL && state.sent_fls == 0)
       {
 	state.local_EOB = 1;
 	msg_send2 (&state, M_EOB, 0, 0);

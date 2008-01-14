@@ -548,3 +548,5 @@ NT/95:  ctrl-c problems fixed
 
 	Fileboxes was not scanned for unlisted links.
 
+	Fixed bug in sending partial files without NR- or ND-mode.
+
