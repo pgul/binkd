@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12.2.6  2008/01/14 20:46:39  gul
+ * Workaroud bug of earlyer binkd versions with partial files and not NR-mode
+ *
  * Revision 2.12.2.5  2006/05/22 19:03:32  stas
  * Fix deletion fault .hr/.dt pair. Bugreport from Alexey Fayans 2:5030/1997
  *
@@ -351,7 +354,6 @@ int inb_reject (char *netname, off_t size,
   }
   else
   {
-    Log (2, "rejecting %s", netname);
     /* Replacing .dt with .hr and removing temp. file */
     strcpy (strrchr (tmp_name, '.'), ".hr");
     remove_hr (tmp_name);
