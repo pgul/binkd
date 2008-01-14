@@ -449,7 +449,7 @@ NT/95:  ctrl-c problems fixed
 	"-nomd" (disable md5 on outgoing calls) in "node" line
 	(Dima Afanasiev <da@4u.net>)
 
-0.9.5
+0.9.5	(Thu Sep 04 2003 18:18:04)
 -----
 	64-bit integer fix (Tobias Ernst 2:2476/418).
 
