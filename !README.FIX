@@ -574,4 +574,5 @@ NT/95:  ctrl-c problems fixed
 	New config option dont-send-empty - inhibit sending empty
 	(zero-size) files.
 
+	Fixed bug in sending partial files without NR- or ND-mode.
 
