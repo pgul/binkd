@@ -1,3 +1,7 @@
+2008/01/14 22:45:46 1.0a-511 gul
+inbound.c,2.41,2.42 protocol.c,2.188,2.189
+Workaroud bug of earlyer binkd versions with partial files and not NR-mode
+
 2008/01/14 13:42:55 1.0a-510 gul
 protocol.c,2.187,2.188
 Fixed bug in protocol logic (partial files send without NR-mode)
