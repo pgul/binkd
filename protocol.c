@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.189  2008/01/14 20:45:44  gul
+ * Workaroud bug of earlyer binkd versions with partial files and not NR-mode
+ *
  * Revision 2.188  2008/01/14 11:42:53  gul
  * Fixed bug in protocol logic (partial files send without NR-mode)
  *
@@ -809,6 +812,7 @@ static int close_partial (STATE *state, BINKD_CONFIG *config)
       Log (4, "%s: empty partial", state->in.netname);
     }
     fclose (state->in.f);
+    state->in.f = NULL;
     if (s == 0)
       inb_reject (state, config);
   }
@@ -3050,7 +3054,21 @@ static int EOB (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
   state->remote_EOB = 1;
   if (state->in.f)
   {
-    close_partial(state, config);
+    off_t offset;
+ 
+    offset = ftello (state->in.f);
+    if ((state->NR_flag & THEY_NR) == 0 && offset != 0)
+    {
+      fclose (state->in.f);
+      state->in.f = NULL;
+      Log (1, "receiving of %s interrupted", state->in.netname);
+      Log (2, "Remove partially received %s (%" PRIuMAX " of %" PRIuMAX " bytes) due to remote bug",
+          state->in.netname, (uintmax_t) offset, (uintmax_t) state->in.size);
+      inb_reject (state, config);
+      TF_ZERO (&state->in);
+    }
+    else
+      close_partial (state, config);
   }
   if ((state->ND_flag & THEY_ND) && state->in_complete.netname[0])
   { /* rename complete received file to its true form */
