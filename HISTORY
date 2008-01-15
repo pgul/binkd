@@ -1,3 +1,7 @@
+2008/01/15 13:19:05 1.0a-513 gul
+confopt.h,2.4,2.5
+Show bwlim setting on "binkd -vv" output
+
 2008/01/15 13:10:34 1.0a-512 gul
 perlhooks.c,2.56,2.57
 Compatibility with new perl versions (Perl_sv_2uv_flags()), not tested
