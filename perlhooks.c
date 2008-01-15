@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.58  2008/01/15 11:53:58  gul
+ * typo in perlhooks.c rev. 2.57
+ *
  * Revision 2.57  2008/01/15 11:10:22  gul
  * Compatibility with new perl versions (Perl_sv_2uv_flags()), not tested
  *
@@ -480,7 +483,7 @@ PERL_CALLCONV char* hl_Perl_sv_2pv_flags(pTHX_ SV* sv, STRLEN* lp, I32 flags) {
   else return dl_Perl_sv_2pv(aTHX_ sv, lp);
 }
 VK_MAKE_DFL(UV, dl_Perl_sv_2uv, (pTHX_ SV* sv));
-VK_MAKE_DFL(UV, dl_Perl_sv_2uv_flags, (pTHX_ SV* sv, I32 flags);
+VK_MAKE_DFL(UV, dl_Perl_sv_2uv_flags, (pTHX_ SV* sv, I32 flags));
 PERL_CALLCONV UV hl_Perl_sv_2uv(pTHX_ SV* sv) {
   if (dl_Perl_sv_2uv) return dl_Perl_sv_2uv(aTHX_ sv);
   else return dl_Perl_sv_2uv_flags(aTHX_ sv, SV_GMAGIC);
