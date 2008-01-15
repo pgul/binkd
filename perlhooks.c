@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.57  2008/01/15 11:10:22  gul
+ * Compatibility with new perl versions (Perl_sv_2uv_flags()), not tested
+ *
  * Revision 2.56  2007/09/04 06:07:03  gul
  * Memory leak
  *
@@ -250,7 +253,8 @@
 #ifdef PERLDL
 # define Perl_sv_2pv_flags		(hl_Perl_sv_2pv_flags)
 # define Perl_sv_2pv			(hl_Perl_sv_2pv)
-# define Perl_sv_2uv			(*dl_Perl_sv_2uv)
+# define Perl_sv_2uv			(hl_Perl_sv_2uv)
+# define Perl_sv_2uv_flags		(hl_Perl_sv_2uv_flags)
 # define Perl_sv_2mortal		(*dl_Perl_sv_2mortal)
 # define Perl_newSViv			(*dl_Perl_newSViv)
 # define Perl_av_store			(*dl_Perl_av_store)
@@ -476,6 +480,15 @@ PERL_CALLCONV char* hl_Perl_sv_2pv_flags(pTHX_ SV* sv, STRLEN* lp, I32 flags) {
   else return dl_Perl_sv_2pv(aTHX_ sv, lp);
 }
 VK_MAKE_DFL(UV, dl_Perl_sv_2uv, (pTHX_ SV* sv));
+VK_MAKE_DFL(UV, dl_Perl_sv_2uv_flags, (pTHX_ SV* sv, I32 flags);
+PERL_CALLCONV UV hl_Perl_sv_2uv(pTHX_ SV* sv) {
+  if (dl_Perl_sv_2uv) return dl_Perl_sv_2uv(aTHX_ sv);
+  else return dl_Perl_sv_2uv_flags(aTHX_ sv, SV_GMAGIC);
+}
+PERL_CALLCONV UV hl_Perl_sv_2uv_flags(pTHX_ SV* sv, I32 flags) {
+  if (dl_Perl_sv_2uv_flags) return dl_Perl_sv_2uv_flags(aTHX_ sv, flags);
+  else return dl_Perl_sv_2uv(aTHX_ sv);
+}
 
 VK_MAKE_DFL(SV*, dl_Perl_sv_2mortal, (pTHX_ SV* sv));
 VK_MAKE_DFL(SV*, dl_Perl_newSViv, (pTHX_ IV i));
@@ -602,6 +615,7 @@ struct perl_dlfunc { void **f; char *name; } perl_dlfuncs[] = {
   VK_MAKE_DLFUNC(Perl_sv_2pv),
 #endif*/
   VK_MAKE_DLFUNC(Perl_sv_2uv),
+  VK_MAKE_DLFUNC(Perl_sv_2uv_flags),
   VK_MAKE_DLFUNC(Perl_sv_2mortal),
   VK_MAKE_DLFUNC(Perl_newSViv),
   VK_MAKE_DLFUNC(Perl_av_store),
@@ -1146,6 +1160,11 @@ int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
         return 0;
         Log(LL_ERR, "perl_init(): can't load method Perl_sv_2pv or Perl_sv_2pv_flags");
       }
+      if (!DosQueryProcAddr(hl, 0, "Perl_sv_2uv", (PFN*)dl_Perl_sv_2uv) &&
+          !DosQueryProcAddr(hl, 0, "Perl_sv_2uv_flags", (PFN*)dl_Perl_sv_2uv_flags)) {
+        return 0;
+        Log(LL_ERR, "perl_init(): can't load method Perl_sv_2uv or Perl_sv_2uv_flags");
+      }
       if (!DosQueryProcAddr(hl, 0, "Perl_sv_setsv", (PFN*)dl_Perl_sv_setsv) &&
           !DosQueryProcAddr(hl, 0, "Perl_sv_setsv_flags", (PFN*)dl_Perl_sv_setsv_flags)) {
         return 0;
@@ -1158,6 +1177,12 @@ int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
       (void*)dl_Perl_sv_2pv_flags = GetProcAddress(hl, "Perl_sv_2pv_flags");
       if (!dl_Perl_sv_2pv && !dl_Perl_sv_2pv_flags) {
         Log(LL_ERR, "perl_init(): can't load method Perl_sv_2pv or Perl_sv_2pv_flags");
+        return 0;
+      }
+      (void*)dl_Perl_sv_2uv = GetProcAddress(hl, "Perl_sv_2uv");
+      (void*)dl_Perl_sv_2uv_flags = GetProcAddress(hl, "Perl_sv_2uv_flags");
+      if (!dl_Perl_sv_2uv && !dl_Perl_sv_2uv_flags) {
+        Log(LL_ERR, "perl_init(): can't load method Perl_sv_2uv or Perl_sv_2uv_flags");
         return 0;
       }
       (void*)dl_Perl_sv_setsv = GetProcAddress(hl, "Perl_sv_setsv");
