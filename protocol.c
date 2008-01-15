@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.190  2008/01/15 23:08:16  stas
+ * Log message with recommendation about NR mode to workaround remote bug
+ *
  * Revision 2.189  2008/01/14 20:45:44  gul
  * Workaroud bug of earlyer binkd versions with partial files and not NR-mode
  *
@@ -3059,11 +3062,14 @@ static int EOB (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
     offset = ftello (state->in.f);
     if ((state->NR_flag & THEY_NR) == 0 && offset != 0)
     {
+      char nodestr[FTN_ADDR_SZ];
+      ftnaddress_to_str (nodestr, state->fa[0]);
       fclose (state->in.f);
       state->in.f = NULL;
       Log (1, "receiving of %s interrupted", state->in.netname);
       Log (2, "Remove partially received %s (%" PRIuMAX " of %" PRIuMAX " bytes) due to remote bug",
           state->in.netname, (uintmax_t) offset, (uintmax_t) state->in.size);
+      Log (1, "Turn on the NR mode for node %s in config to prevent this error, please", nodestr);
       inb_reject (state, config);
       TF_ZERO (&state->in);
     }
