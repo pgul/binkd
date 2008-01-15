@@ -1,3 +1,7 @@
+2008/01/15 13:10:34 1.0a-512 gul
+perlhooks.c,2.56,2.57
+Compatibility with new perl versions (Perl_sv_2uv_flags()), not tested
+
 2008/01/14 22:45:46 1.0a-511 gul
 inbound.c,2.41,2.42 protocol.c,2.188,2.189
 Workaroud bug of earlyer binkd versions with partial files and not NR-mode
