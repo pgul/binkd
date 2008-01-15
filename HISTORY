@@ -1,3 +1,7 @@
+2008/01/15 13:54:04 1.0a-514 gul
+perlhooks.c,2.57,2.58
+typo in perlhooks.c rev. 2.57
+
 2008/01/15 13:19:05 1.0a-513 gul
 confopt.h,2.4,2.5
 Show bwlim setting on "binkd -vv" output
