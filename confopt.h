@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.5  2008/01/15 11:19:01  gul
+ * Show bwlim setting on "binkd -vv" output
+ *
  * Revision 2.4  2004/02/07 14:06:06  hbrew
  * Macros: RTLDLL-->RTLSTATIC, BINKDW9X-->BINKD9X
  *
@@ -124,7 +127,13 @@
 #else
 #  define _DBNKD_AMIGADOS_4D_OUTBOUND
 #endif
+#ifdef BW_LIM
+#  define _DBNKD_BW_LIM ", bwlim"
+#else
+#  define _DBNKD_BW_LIM
+#endif
 
 #define _DBNKD _DBNKD_COMPILER _DBNKD_BINKD9X _DBNKD_RTLSTATIC _DBNKD_DEBUG \
                _DBNKD_DEBUGCHILD _DBNKD_ZLIB _DBNKD_BZLIB2 _DBNKD_PERL      \
-               _DBNKD_HTTPS _DBNKD_NTLM _DBNKD_AMIGADOS_4D_OUTBOUND
+               _DBNKD_HTTPS _DBNKD_NTLM _DBNKD_AMIGADOS_4D_OUTBOUND         \
+               _DBNKD_BW_LIM
