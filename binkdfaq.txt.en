@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of March 09 2007
+        Version of December 24 2007
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -60,7 +60,7 @@ from Russian by Michael Dukelsky 2:5020/1042.
 
     In Internet:
 
-    Release versions, documenatation, log analyzers etc. (Pavel Gulchouck
+    Release versions, documentation, log analyzers etc. (Pavel Gulchouck
     2:463/68):
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/
     The mirrors:
@@ -137,10 +137,10 @@ compiler and the way of building the program.
         02. What Is Binkd?
 
     Binkd is a fidonet mailer working via Internet and using binkp protocol
-(FSP-1011). This protocol is also supported by such mailers as Argus
-(win32; RitLabs; http://www.ritlabs.com), BForce (unix), Internet Rex
-program (DOS/W32/OS2) and BeeMail (win32; Stephen Proffitt, 1:105/10;
-http://beemail.gexonline.net/)
+(FSP-1018 & other). This protocol is also supported by such mailers as Argus
+(win32; RitLabs; http://www.ritlabs.com) and it's clones Radius and Taurus,
+BForce (unix), Internet Rex program (DOS/W32/OS2) and BeeMail (win32; Stephen
+Proffitt, 1:105/10; http://beemail.gexonline.net/)
 
     Binkd features:
     - freeware, open source;
@@ -678,7 +678,7 @@ BinkD to match both upper-case and lower-case letters, e.g. both *.REQ and
 
     exec "\\ftn\\allfix\\allfix.exe RP -SRIF *S" *.req
 
-    exec "/ftn/bin/tmafreq *S" *.[rR][eE][qQ]
+    exec "/ftn/bin/tmafreq-srif *S" *.[rR][eE][qQ]
 
     The following file request processors are compatible with BinkD (but
 they are not the only ones, any other one supporting SRIF will do):
@@ -689,6 +689,11 @@ built-in file request processor and it has versions for DOS and OS/2;
     ViReq by Michael Haase (2:2432/280): a specialized FREQ processor for
 Windows, it is distributed by Michael Massenberg (2:2411/505) via modem,
 ISDN and Fido-over-IP.
+
+    tmafreq by Maxim Timofeyev <tmahome@mail.tma.spb.ru>: FREQ processor
+is created for unix-like OS and ported into Windows. Obtain tmafreq may from
+different BBS and FTP with fileecho archives, or may get tmafreq sources from
+anonymous CVS :pserver:anoncvs@tma.spb.ru:/cvsroot, module "tmafreq".
 
 
 ----------------------------------------------------------------------------

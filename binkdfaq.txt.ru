@@ -139,9 +139,10 @@ OS, компилятор и способ сборки.
     02. Что такое binkd
 
     Бинкд - фидошный мэйлер, работающий через интернет по протоколу binkp
-(FSP-1011). Этот протокол поддерживается также мэйлерами Аргус (win32; RitLabs;
-http://www.ritlabs.com), BForce (unix), программой Internet Rex (DOS/W32/OS2) и
-BeeMail (win32; Stephen Proffitt, 1:105/10; http://beemail.gexonline.net/)
+(FSP-1018 и др.). Этот протокол поддерживается также мэйлерами Аргус (win32;
+RitLabs; http://www.ritlabs.com) и его клонами Radius и Taurus, BForce (unix),
+программой Internet Rex (DOS/W32/OS2) и BeeMail (win32; Stephen Proffitt,
+1:105/10; http://beemail.gexonline.net/)
 
     Характеристики:
     - freeware, открытые исходники;
@@ -660,7 +661,7 @@ nnnnmmmm.REQ и поместить его в outbound рядом с файлами *.?ut и *.?lo,
 
     exec "\\ftn\\allfix\\allfix.exe RP -SRIF *S" *.req
 
-    exec "/ftn/bin/tmafreq *S" *.[rR][eE][qQ]
+    exec "/ftn/bin/tmafreq-srif *S" *.[rR][eE][qQ]
 
     С binkd совместимы следующие FREQ-процессоры (но не только эти, подойдет
 любой FREQ-процессор, поддерживающий SRIF):
@@ -669,6 +670,10 @@ nnnnmmmm.REQ и поместить его в outbound рядом с файлами *.?ut и *.?lo,
     ViReq от Michael Haase (2:2432/280): специализированный FREQ-процессор
 под Windows, распространяется Michael Massenberg (2:2411/505) посредством
 Fido-over-IP, по модему и ISDN.
+    tmafreq от Maxim Timofeyev <tmahome@mail.tma.spb.ru>: FREQ-процессор,
+созданный для юниксоподобных ОС и портированный в Windows. Получить tmafreq
+можно на разных BBS и FTP с архивами файлэх, либо можно взять исходники с
+анонимного CVS :pserver:anoncvs@tma.spb.ru:/cvsroot, модуль "tmafreq".
 
 
 ----------------------------------------------------------------------------
