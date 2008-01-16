@@ -1,0 +1,187 @@
+Binkp/1.0
+The protocol description
+
+
+Binkp works via a bidirectional character channel committing no errors during
+data transfer. Any data each of the partners write into the channel has the
+following common format:
+
+   binkp's frames:
+
+    +---------------------- 0=data block, 1=message(command)
+    |                +---- data block size / msg's argument size
+    |                |
+    7 6543210 76543210
+   +-+-------+--------+--- ..... ---+
+   | |   HI      LO   |             | -- data block / msg's argument
+   +-+-------+--------+--- ..... ---+
+   |<-    2 bytes   ->|<- 32K max ->|
+
+
+The frame header contains two bytes defining the type and the length (in bytes)
+of the data that follows the header. If the most significant bit of the header
+is reset, then all the data received with the frame should be appended to the
+current file being received if the file has been opened, otherwise the data
+should be discarded. If the bit is set, the data should be considered as a
+command changing the protocol state. The first data byte in the frame is the
+command number. The rest of the bytes form an argument. A command argument is
+an arbitrary character set not required to be bounded with a '\0'. A command
+without arguments (for example M_OK) may look roughly this way:
+
+
+    7 6543210 76543210 76543210
+   +-+-------+--------+--------+
+   |1|      0        1|       4|
+   +-+-------+--------+--------+
+    |                |        +----- the command number (no arguments)
+    |                +-------- length of the frame without the header - 1 byte
+    +- this is a command
+
+
+
+The commands which binkd/0.8 understands and their arguments:
+
+
+   M_NUL  0
+
+   The command argument is ignored (and is possibly logged). This is the way
+   we transmit the nodelist information, the sysopТs name and so on.
+
+   eg, "ZYZ Dima Maloff"
+
+
+   M_ADR  1
+
+   A list of 5D addresses delimited by spaces.
+   eg, "2:5047/13@fidonet 2:5047/0@fidonet"
+
+
+   M_PWD  2
+
+   A password. After the successful processing of the password received from
+   the remote, the binkd server rescans the queue.
+
+   eg, "pAsSwOrD"
+
+
+   M_OK   4
+
+   A reply to the correct password. The binkd client rescans the queue after
+   receiving the message. The command argument is ignored.
+
+   eg, ""
+
+
+   M_FILE 3
+
+   The properties of the next file. They are delimited by
+   spaces: filename without spaces, size, UNIX-time, the offset to transfer the
+   file. All the numbers are decimal. All the data blocks received after that
+   relate to this file until the next M_FILE is received. There is no special
+   end-of-file marker since the file size is known beforehand. Binkd will
+   append the "excessive" blocks to the current file. We start transmitting
+   every new file from the offset 0. On receiving M_GET from the remote system
+   we must do the seek operation.
+
+   eg, "config.sys 125 2476327846 0"
+
+   Or, answering to M_GET with offset 100:
+
+   "config.sys 125 2476327846 100"
+
+
+   M_EOB  5
+
+   End-of-Batch. EOB is transmitted after all the files have been sent. If we
+   are in the EOB state (all the files are sent), we get EOB from the remote
+   (no more files for us), we received all acknowledgements for all the sent
+   files, we received all the files resent in reply to GET, then the session
+   is considered to be successfully completed.
+
+   eg, ""
+
+
+   M_GOT  6
+
+   It is sent as an acknowledgement by the system which has received a file
+   after receiving the last portion of the file data. The arguments are copies
+   of the FILE command arguments received from the remote system except the
+   last one, the offset which should not be returned to the system which sent
+   M_FILE. GOT may also be sent during the process of receiving a file; the
+   sending partner should react to it with the destructive skip.
+
+   eg, "config.sys 125 2476327846"
+
+
+   M_ERR  7
+
+   A fatal error. The partner who has sent M_ERR aborts the session. The
+   argument contains the text explaining the reason and it is logged. Binkd
+   sends M_ERR in response to an incorrect password.
+
+   eg, "Incorrect password"
+
+
+   M_BSY  8
+
+   Our system sends it if it is busy. The receiving partner ignores the
+   argument (logs it).
+
+   eg, "Too many servers are running already"
+
+
+   M_GET  9
+
+   M_GET is used as a request to resend a file. The M_GET arguments copy the
+   arguments of the M_FILE command which weТd like to see from the remote
+   system. :) Binkd sends it as a response to M_FILE if it does not like the
+   offset from which the file transmission has been started by the remote
+   system.
+
+   eg, "config.sys 125 2476327846 100"
+
+   At present binkd handles it as follows: according to the first fields
+   (name/size/UNIX-time) it determines whether the M_GET argument is the file
+   we currently transmit (or the file has been transmitted and we are waiting
+   for M_GOT for it). If this is the case it seeks the specified offset in the
+   file and sends M_FILE after that. For the example above M_FILE will have the
+   following arguments:
+
+   "config.sys 125 2476327846 100"
+
+
+   M_SKIP 10
+
+   Non destructive skip. An example of the argument line:
+
+   "config.sys 125 2476327846"
+
+
+
+A typical session between two binkd mailers:
+
+ The calling partner sends              The answering partner sends
+
+ M_NUL "SYS ..."                        M_NUL "SYS ..."
+ M_NUL "ZYZ ..."                        M_NUL "ZYZ ..."
+ M_NUL "LOC ..."                        M_NUL "LOC ..."
+ M_NUL "VER ..."                        M_NUL "VER ..."
+ M_ADR "2:2/2.2@fidonet"                M_ADR "3:3/3.3@fidonet"
+ M_PWD "password"                       (Waiting for a password from the remote
+                                                                       system.)
+                                        M_OK "" or M_ERR "Bad password"
+ (Waiting for M_OK)                     M_FILE "file2 200 42342434 0"
+ M_FILE "file1 100 423424244 0"         data
+ data                                   data
+ data                                   data
+ M_EOB                                  (получили file1 целиком, подтверждаем)
+ (file2 is received, acknowledging it)  M_GOT "file1 100 423424244"
+ M_GOT "file2 200 42342434"             data
+                                        M_EOB
+
+
+
+(c) Copyright 1996-97 by Dima Maloff
+Id: binkp.html,v 1.5 1998/10/08 07:31:48 maloff Exp
+
+Translated from Russian by Michael Dukelsky

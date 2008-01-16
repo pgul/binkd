@@ -1,0 +1,57 @@
+Binkp/1.1
+
+1. The previous binkp/1.0-compatible mailers could send a message M_NUL of
+the type "VER mailer-version binkp/1.0". Binkp/1.1 suggests that any mailer
+compatible with binkp version 1.1 and higher will form and parse such a
+message (in the format "VER mailer-version binkp/1.1") after receiving it
+at the other side.
+
+This message should have been sent up to the moment when the server and the
+client exchange with password and login acknowledgement. If the message has
+not been received up to the moment we can consider the protocol version of
+the opposite side to be equal 1.0
+
+2. One more M_NUL message, which one should understand as far as possible is
+M_NUL "OPT XXX YYY ...".  It is a way to send arbitrary options (the list of
+option names is case sensitive and delimited by spaces). Binkd/0.9 understands
+"NR" option: a request to change to NR mode (an example of the request: M_NUL
+"OPT NR"). Generally speaking we cannot be sure that the remote side will
+comply with our request after we have sent such a command and in general we
+have no way to know its decision (except we stipulate especially for necessity
+to send back a reply for the XXX option).  In case of NR any behavior of the
+remote side should not confuse us (see below).
+
+3. In order to have a possibility to receive requests (in particular file
+requests) and to send the results back during the same session in case the
+other side runs binkp/1.1 or higher, binkd 0.9 follows such an agreement:
+when both sides have exchanged with EOB the session does not finish but it
+restarts by resetting binkp to the state it had just after login (i.e. a
+rescan is made and sending of the found files starts). The session is
+considered successfully finished, if between two consecutive exchanges with
+EOF the sides did not send and did not receive a binkp command.
+
+4. One must react correctly to M_FILE "name size time -1" that is to reply
+with an appropriate M_GET (see below).
+
+5. Previously binkd always started to send every new file from the offset 0.
+The other side could make a new request for the file with another offset, if
+it had found a partially received file in its inbound directory. The problem
+is that such an optimization makes a link absolutely unable to work if
+timeouts are frequent: at the moment, when the sender gets M_GET its buffer
+and TCP window are already overfilled with the data of the same file being
+sent from 0 and they do not have time to free for the data from a new offset
+before the connection fails. Now the senders have an option at unreliable
+links only (since such a behavior is nevertheless really ineffective) to
+request really necessary to the receiver offset in the transmitted file using
+M_FILE "name size time -1" before sending every new file. No preliminary
+agreement with the opposite side is necessary before sending the command
+(besides the confidence that the remote side has binkp version > 1.0).
+
+I call it "NR mode" (i.e. "Not Reliable link"). Thus we can at any moment
+switch to the NR mode on our own or we can at any moment ask the remote side
+to switch to the NR mode by M_NUL "OPT NR" command.
+
+
+(c) Copyright 1997 by Dima Maloff
+Id: binkp11.html,v 1.4 1998/10/08 07:32:21 maloff Exp
+Translated from Russian by Michael Dukelsky
