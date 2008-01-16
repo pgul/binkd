@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.191  2008/01/16 10:05:43  gul
+ * Fix for previous patch
+ *
  * Revision 2.190  2008/01/15 23:08:16  stas
  * Log message with recommendation about NR mode to workaround remote bug
  *
@@ -3063,7 +3066,7 @@ static int EOB (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
     if ((state->NR_flag & THEY_NR) == 0 && offset != 0)
     {
       char nodestr[FTN_ADDR_SZ];
-      ftnaddress_to_str (nodestr, state->fa[0]);
+      ftnaddress_to_str (nodestr, state->fa);
       fclose (state->in.f);
       state->in.f = NULL;
       Log (1, "receiving of %s interrupted", state->in.netname);
