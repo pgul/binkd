@@ -1,0 +1,181 @@
+    binkd9x is a special binkd version compiled for working in Win9x systems
+(Windows 95/98/ME). The fact is that these systems have a documented and
+rather an ugly bug in the console subsystem. Because of the bug a console
+does not receive any signals (messages) except the keyboard messages
+CTRL_C_EVENT and CTRL_BREAK_EVENT. In practice it leads to impossibility
+of an automatic binkd shutdown when the OS is shut down or restarted.
+
+    binkd9x is not a console application and it creates a window which
+receives the system messages. In fact classic binkd is still working but
+without console (in a hidden mode). This is the first disadvantage. At that
+none needs a separate binary for Win9x systems. This is the second
+disadvantage.
+
+    binkd9x can also work as a service in Win9x systems. Certainly one cannot
+compare this mode with the service mode in Windows NT/2000/XP as far as
+functionality is concerned but it may be necessary in some cases in Win9x.
+For example, if you log off frequently. When binkd9x is installed to work
+as a service it is loaded at the system start before anybody logs on and
+it does not stop at a logoff.
+
+    Unlike the regular Win32 ("Win32") binkd, binkd9x identifies itself as
+"Win9x". However such a behavior may be easily corrected in config.h
+
+    In some situations binkd9x activates a temporary console. Pressing any key
+is awaited to close it.
+
+    Distinctions of binkd9x options from the regular Win32 binkd options:
+
+"-T minimize to Tray" is not available in binkd9x since there is nothing
+to minimize because of the console absence.
+
+"-v be verbose / dump version and quit", "-h print this help",
+undocumented "--help" and also starting binkd9x without arguments activates 
+a temporary console before the corresponding action.
+
+    The new options:
+
+"-i       install Win9x service"
+ Installs a service.
+
+    The services are written to the registry branch
+"HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\RunServices".
+
+    The current path at the moment of binkd9x service installation is also 
+written to the "HKEY_LOCAL_MACHINE\Software\binkd9x" registry branch.
+This path is made current when binkd9x service starts. If binkd9x was
+started at the installation from command.com or from a shell (for example, 
+from Far) then the binkd9x process command line contains short file name
+and short path. If you want to insert the long file name into the registry
+during installation then you may use "start" command. For example:
+start binkd9x-mingw -i binkd.cfg
+
+    If commands "-i", "-u", "-t" are used binkd9x starts a temporary console.
+"-q" option blocks starting the temporary console for all three commands.
+At that binkd9x informs its user of important errors using pop-up messages. 
+Such a mode is useful mainly for automatic control of services with "-t"
+command. If a service installation is successful then binkd9x tries to
+start the service.
+
+"-u       UNinstall Win9x service"
+ Uninstalls the service. Works similar to the "-i" command. You may uninstall
+ all the registered services using "-S name" option with the name "all".
+ Example:
+1. binkd9x -u        ==> uninstall binkd9x-service
+2. binkd9x -u -S Zol ==> uninstall binkd9x-service-Zol
+3. binkd9x -u -S all ==> uninstall all binkd9x services
+
+
+"-t cmd   (start|stop|restart|status|install|uninstall) service(s)"
+ It is the command for service control.
+
+ "-t install" installs a service.
+
+    The services are written to the registry branch
+ "HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\RunServices".
+
+    The current path at the moment of binkd9x service installation is also 
+ written to the "HKEY_LOCAL_MACHINE\Software\binkd9x" registry branch.
+ This path is made current when binkd9x service starts. If binkd9x was
+ started at the installation from command.com or from a shell (for example, 
+ from Far) then the binkd9x process command line contains short file name
+ and short path. If you want to insert the long file name into the registry
+ during installation then you may use "start" command. For example:
+ start binkd9x-mingw -t install binkd.cfg
+
+    If commands "-i", "-u", "-t" are used binkd9x starts a temporary console.
+ "-q" option blocks starting the temporary console for all three commands.
+ At that binkd9x informs its user of important errors using pop-up messages.
+ Such a mode is useful mainly for automatic control of services with "-t"
+ command. If a service installation is successful then binkd9x tries to
+ start the service.
+
+ "-t uninstall" uninstalls the service. Works similar to the "-i" command.
+ You may uninstall all the registered services using "-S name" option with
+ the name "all".
+ Example:
+ 1. binkd9x -u        ==> uninstall binkd9x-service
+ 2. binkd9x -u -S Zol ==> uninstall binkd9x-service-Zol
+ 3. binkd9x -u -S all ==> uninstall all binkd9x services
+
+
+ "-t status" shows the status of binkd9x services in registry.
+ "-t start" starts services.
+ "-t stop" stops services.
+ "-t restart" restarts services.
+
+    On default all actions refer to "binkd9x-service". You may indicate the 
+service name using "-S name" option. If you indicate "all" instead of the
+service name then the operation is done to all services registered in the
+system registry.
+
+    There is no much sense in using "-q" option with "-t status" command.
+
+ Example:
+1. binkd9x -t status    ==> Prints the status of the binkd9x-service
+2. binkd9x -t status -S local
+                        ==> Prints the status of the binkd9x-service-local
+3. binkd9x -t status -S all
+                        ==> Prints the status of all registered services
+4. binkd9x -t status -S all -q
+                        ==> see 2., but there is no practical sense in it
+                            (there is no console)
+5. binkd9x -t start     ==> Starts binkd9x-service, if it has not been started
+6. binkd9x -t start -S local
+                        ==> see 5., but for binkd9x-service-local
+7. binkd9x -t start -S all
+                        ==> see 5., but for all services
+9. binkd9x -t start -q  ==> см. 5., but does not create console (it is
+                            convinient for using in scripts or bat-files).
+10. binkd9x -t stop -q  ==> similar to 9., but the service is stopped.
+ ... and so on...
+
+"-S name  set Win9x service name, all - use all services"
+ It indicates the name of the service with which "-t" command will work. The 
+ service real name which is written to registry is built in the following way:
+ "binkd9x-service[-name]", where "binkd9x-service" is the compulsory part,
+ and "-name" is appended if "-S name" is present. For all commands except
+ "-t install" special service name "all" is allowed. In this case the indicated
+ operation will be done to all installed services. If you indicate 
+ "binkd9x-service" or "binkd9x-service-*" as a service name then the service
+ name will be used as is, without prepending an additional "binkd9x-service"
+ prefix. Examples:
+
+1. binkd9x -t install binkd.cfg                    ==> binkd9x-service
+2. binkd9x -t install -S local binkd.cfg           ==> binkd9x-service-local
+3. binkd9x -t install -S binkd9x-service binkd.cfg ==> binkd9x-service
+4. binkd9x -t install -S binkd9x-service-local binkd.cfg
+                                                   ==> binkd9x-service-local
+5. binkd9x -t status -S all                        ==> status of all installed
+                                                        services is printed
+
+How to make binkd9x:
+
+    At present binkd9x is compiled with the help of MSVC and MinGW.
+The technology is practically the same as for the regular binkd.
+
+    For MSVC it is only necessary to indicate "BINKD9X" macro for using with 
+nmake, for instance:
+ 1. nmake BINKD9X=1                          ==> makes binkd9x with the
+                                                 Release configuration
+ 2. nmake BINKD9X=1 DEBUG=1                  ==> makes binkd9x with the
+                                                 Debug configuration
+ 3. nmake BINKD9X=1 STATIC=1                 ==> makes binkd9x using static
+                                                 RTL library
+
+    For MinGW it is similar:
+ make BINKD9X=1
+
+    ATTENTION! If you alternately compile binkd and binkd9x using MinGW then
+it is necessary to "make clean" or to manually delete *.o, nt/*.o and
+ntlm/*.o files. If you do not do it compilation errors or improper work
+of binkd and binkd9x is possible.
+
+    I shall be glad, if binkd9x come in useful to anybody besides me.
+
+Alexander Reznikov, 2:4600/220@fidonet
+                    homebrewer@yandex.ru
+
+$Id$
+
+Translated from Russian by Michael Dukelsky, 2:5020/1042@fidonet
