@@ -1,3 +1,7 @@
+2008/01/16 12:05:45 1.0a-517 gul
+protocol.c,2.190,2.191
+Fix for previous patch
+
 2008/01/16 01:08:20 1.0a-516 stas
 protocol.c,2.189,2.190
 Log message with recommendation about NR mode to workaround remote bug
