@@ -104,6 +104,7 @@
     Binkd/2 1.0a (current, EMX), скомпилированный еженощно:
     FREQ c узла 2:221/1, алиас файла: binkd2e. Можно скачать также с BBS узла
     2:221/1 (доступна по telnet:rbb.cjb.net)
+    http://rbb.homeip.net/pub/os2/comm/bbs/binkd2e.rar
       (Финляндия, Tommi Koivula 2:221/1 & 2:221/360 & 2:221/361)
 
     Документация (англ.), анализаторы логов и пр.:
