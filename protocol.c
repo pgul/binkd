@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.192  2008/02/25 10:38:10  gul
+ * Fixed incorrect byte counters in log message about compressed files
+ *
  * Revision 2.191  2008/01/16 10:05:43  gul
  * Fix for previous patch
  *
@@ -1186,7 +1189,7 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
         {
           Log(4, "Compressed %" PRIuMAX " bytes to %" PRIuMAX " for %s, ratio %.1f%%",
               (uintmax_t)state->z_osize, (uintmax_t)state->z_cosize,
-              state->out.netname, 100.0 * state->z_cosize / state->z_osize);
+              state->out.netname, 100.0 * state->z_cosize / (state->z_osize ? state->z_osize : 1));
           compress_deinit(state->z_send, state->z_odata);
           state->z_odata = NULL;
           state->z_send = 0;
@@ -2742,6 +2745,7 @@ static void z_send_init(STATE *state, BINKD_CONFIG *config, char **extra)
         *extra = "";
         state->z_send = 0;
       }
+    state->z_osize = state->z_cosize = 0;
   }
 }
 
