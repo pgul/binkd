@@ -1,3 +1,7 @@
+2008/02/25 12:38:16 1.0a-518 gul
+protocol.c,2.191,2.192
+Fixed incorrect byte counters in log message about compressed files
+
 2008/01/16 12:05:45 1.0a-517 gul
 protocol.c,2.190,2.191
 Fix for previous patch
