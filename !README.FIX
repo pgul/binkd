@@ -537,7 +537,7 @@ NT/95:  ctrl-c problems fixed
 
 	Fixed compilation under SuSe and OS2-emx.
 
-0.9.9	(Sun Feb 24 11:15:00 EET 2007)
+0.9.9	(Sun Feb 24 11:15:00 EET 2008)
 -----
 	Fixed bug in client manager, sometimes node was not polled
 	(Roman Trunov).
@@ -549,7 +549,4 @@ NT/95:  ctrl-c problems fixed
 	Fileboxes was not scanned for unlisted links.
 
 	Fixed bug in sending partial files without NR- or ND-mode.
-
-0.9.10
-------
 
