@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2008/04/17 15:19:44  gul
+ * Fixed sending files with space or control chars in name
+ *
  * Revision 2.9  2006/01/23 07:03:45  stas
  * Fix (null) suffix after ASO->BSO bundle name conversion
  *
@@ -76,7 +79,7 @@ int tfile_cmp (TFILE *a, char *netname, off_t size, time_t time)
 
   anetname = strdequote(a->netname);
   netname = strdequote(netname);
-  rc = strcmp (a->netname, netname);
+  rc = strcmp (anetname, netname);
   free(anetname);
   free(netname);
   if (rc) return rc;
