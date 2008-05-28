@@ -552,3 +552,6 @@ NT/95:  ctrl-c problems fixed
 
 0.9.10
 ------
+	Fixed bug in sending files with space or control characters
+	in file name (was broken in 0.9.9).
+
