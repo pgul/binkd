@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.26.2.4  2008/05/28 11:16:31  gul
+ * Ignore comments in passwords file
+ *
  * Revision 2.26.2.3  2006/03/02 20:27:10  stas
  * print warning if password file is invalid
  *
@@ -585,28 +588,29 @@ static void passwords (KEYWORD *key, char *s)
   {
     if (!fgets (buf, sizeof (buf), in))
       break;
-    for(w=buf;isspace(w[0]);w++);  /* skip spaces */
-    if (STRNICMP(w,"password",8)==0)  /* ifcico/qico password file */
+    for (w = buf; isspace(w[0]); w++);  /* skip spaces */
+    if (STRNICMP(w, "password", 8)==0)  /* ifcico/qico password file */
     {
       w += 8;
-      for(;isspace(w[0]);w++);
+      while (isspace(*w)) w++;
     }
 
-    if(w!=buf) strcpy(buf, w);
-    for(w=buf;(w[0])&&(!isspace(w[0]));w++);
-    while(isspace(w[0]))           /* go to the password */
+    if (w != buf) strcpy(buf, w);
+    for (w = buf; (w[0]) && (!isspace(w[0])); w++);
+    while (w[0] && isspace(w[0]))           /* go to the password */
     {
-      w[0]=0;
+      w[0] = 0;
       w++;
     }
-    if((!w[0])||(!parse_ftnaddress (buf, &fa)))
+    if ((!w[0]) || (!parse_ftnaddress (buf, &fa)))
     {
-      if(*w) Log (1, "%s: invalid FTN address", buf);
+      if (*w && *buf != ';' && *buf != '#')
+	Log (1, "%s: invalid FTN address", buf);
       continue;     /* Do not process if any garbage found */
     }
     exp_ftnaddress (&fa);
     strcpy(buf, w);
-    for(w=buf;(w[0])&&(!isspace(w[0]));w++);
+    for (w=buf; (w[0]) && (!isspace(w[0])); w++);
     w[0]=0;
     if (!add_node (&fa, NULL, buf, '-', NULL, NULL,
                    NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD))
