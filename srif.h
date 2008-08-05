@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2008/08/05 06:05:17  gul
+ * Optimize srif functions params
+ *
  * Revision 2.5  2005/07/04 18:24:43  gul
  * Move events checking and running to inb_test() for reducing repeated code;
  * do not run immediate events twice;
@@ -66,8 +69,7 @@ int evt_test (EVTQ **eq, char *filename, EVT_FLAG *evt_flags);
  * Runs external programs using S.R.I.F. interface
  * if the name matches one of our "exec"'s
  */
-FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename0, FTN_ADDR *fa,
-               int nfa, int prot, int listed, char *peer_name, int imm_freq,
+FTNQ *evt_run (FTNQ *q, char *filename0, int imm_freq,
                STATE *st, BINKD_CONFIG *config);
 
 /*

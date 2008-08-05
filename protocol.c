@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.193  2008/08/05 06:05:16  gul
+ * Optimize srif functions params
+ *
  * Revision 2.192  2008/02/25 10:38:10  gul
  * Fixed incorrect byte counters in log message about compressed files
  *
@@ -878,9 +881,7 @@ static FTNQ *process_rcvdlist (STATE *state, FTNQ *q, BINKD_CONFIG *config)
   Log (6, "processing rcvd list");
   for (i = 0; i < state->n_rcvdlist; ++i)
   {
-    q = evt_run(&(state->evt_queue), q, state->rcvdlist[i].name, state->fa,
-		state->nfa, state->state == P_SECURE, state->listed_flag,
-		state->peer_name, 1, state, config);
+    q = evt_run(q, state->rcvdlist[i].name, 1, state, config);
   }
   return q;
 }

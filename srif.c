@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19  2008/08/05 06:05:17  gul
+ * Optimize srif functions params
+ *
  * Revision 2.18  2005/07/04 18:24:43  gul
  * Move events checking and running to inb_test() for reducing repeated code;
  * do not run immediate events twice;
@@ -105,6 +108,7 @@
 #include "run.h"
 #include "ftnq.h"
 #include "prothlp.h"
+#include "protocol.h"
 
 static EVTQ *evt_queue(EVTQ *eq, char evt_type, char *path)
 {
@@ -197,15 +201,15 @@ static int mksrifpaths (FTN_ADDR *fa, char *srf, char *rsp, BINKD_CONFIG *config
 }
 
 static int srif_fill (char *path, FTN_ADDR *fa, int nfa,
-		       char *req, char *rsp,
-		       int prot, int listed, char *peer_name)
+		       char *req, char *rsp, int prot, int listed,
+		       char *peer_name, char *peer_sysop)
 {
   FILE *out;
   int i;
 
   if ((out = fopen (path, "w")) != 0)
   {
-    fprintf (out, "Sysop sysop\n");
+    fprintf (out, "Sysop %s\n", peer_sysop);
     for (i = 0; i < nfa; ++i)
     {
       char adr[FTN_ADDR_SZ + 1];
@@ -269,12 +273,11 @@ static FTNQ *parse_response (FTNQ *q, char *rsp, FTN_ADDR *fa, BINKD_CONFIG *con
 }
 
 static char valid_filename_chars[]=".\\-_:/@";
-static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa,
-             int nfa, int prot, int listed, char *peer_name, STATE *st, int imm)
+static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, STATE *st, int imm)
 {
   char *sp, *w;
   char *fn=filename0;
-  char *pn=peer_name?peer_name:"";
+  char *pn=st->peer_name ? st->peer_name : "";
   char ipaddr[16];
   char aka[4];
   char adr[FTN_ADDR_SZ + 2];
@@ -283,24 +286,24 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa,
   size_t sw=1024;
   int use_fn=0;
 
-  for(i=0;fn[i];i++)
-  if((!isalnum(fn[i])) && (!strchr(valid_filename_chars, fn[i])))
+  for (i=0; fn[i]; i++)
+  if ((!isalnum(fn[i])) && (!strchr(valid_filename_chars, fn[i])))
   {
     fn="-";
     Log(4, "Invalid filename (%s) received!", filename0);
     break;
   }
-  for(i=0;pn[i];i++)
-  if((!isalnum(pn[i])) && (!strchr(valid_filename_chars, pn[i])))
+  for (i=0; pn[i]; i++)
+  if ((!isalnum(pn[i])) && (!strchr(valid_filename_chars, pn[i])))
   {
     i=0;
     break;
   }
-  if(!i)
+  if (!i)
   {
     struct sockaddr_in sin;
     socklen_t si = sizeof (struct sockaddr_in);
-    if((!st) || (getpeername (st->s, (struct sockaddr *) &sin, &si) == -1))
+    if ((!st) || (getpeername (st->s, (struct sockaddr *) &sin, &si) == -1))
       strcpy(ipaddr, "-");
     else  /* We don't like inet_ntoa ;-) */
     {
@@ -314,13 +317,13 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa,
     pn=ipaddr;
   }
 
-  if(sw<=strlen(cmd)) sw=strlen(cmd)+1;
+  if (sw<=strlen(cmd)) sw=strlen(cmd)+1;
   w=(char*)xalloc(sw);
   strcpy(w, cmd);
 
   strcpy(aka, "*A0");
 
-  for(l=0; (l<strlen(w)) && ((sp=strchr(w+l, '*'))!=NULL); l++)
+  for (l=0; (l<strlen(w)) && ((sp=strchr(w+l, '*'))!=NULL); l++)
   {
     l=sp-w;
     switch(toupper(sp[1]))
@@ -330,7 +333,7 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa,
         {
           char ts[MAXPATHLEN+1];
           i=GetShortPathName(filename0, ts, sizeof(ts));
-          if((i<1) || (i>MAXPATHLEN))
+          if ((i<1) || (i>MAXPATHLEN))
           {
             Log(2, "GetShortPathName() fails %d", GetLastError());
             use_fn=1;
@@ -351,14 +354,14 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa,
 	if (sp[2] == '@' || sp[2] == '*')
 	{
 	  char *pa, *addrlist;
-	  pa = addrlist = malloc(nfa*(FTN_ADDR_SZ+1l));
+	  pa = addrlist = malloc(st->nfa*(FTN_ADDR_SZ+1l));
 	  if (addrlist == NULL)
-	  { Log(1, "Not enough memory, %ld bytes needed", nfa*(FTN_ADDR_SZ+1l));
+	  { Log(1, "Not enough memory, %ld bytes needed", st->nfa*(FTN_ADDR_SZ+1l));
 	    break;
 	  }
-	  for (i=0; i<nfa; i++)
+	  for (i=0; i<st->nfa; i++)
 	  { if (pa != addrlist) *pa++=' ';
-	    ftnaddress_to_str (pa, fa+i);
+	    ftnaddress_to_str (pa, st->fa+i);
 	    pa += strlen(pa);
 	  }
 	  aka[2]=sp[2];
@@ -367,12 +370,12 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa,
 	  break;
 	}
         i=isdigit(sp[2])?(sp[2]-'0'):0;
-        if(i<nfa)
-          ftnaddress_to_str (adr, fa+i);
+        if (i<st->nfa)
+          ftnaddress_to_str (adr, st->fa+i);
         else
           strcpy(adr, "-");
         aka[2]=sp[2];
-        if(!isdigit(sp[2]))  /* If you will remove it, *A *A1 may not work */
+        if (!isdigit(sp[2]))  /* If you will remove it, *A *A1 may not work */
         {
           i=strlen(adr);
           adr[i++]=sp[2];
@@ -381,10 +384,10 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa,
         w = ed (w, aka, adr, &sw);
         break;
       case 'P': /* protected ? */
-        w = ed (w, "*P", prot?"1":"0", &sw);
+        w = ed (w, "*P", st->state == P_SECURE ? "1" : "0", &sw);
         break;
       case 'L': /* listed ? */
-        w = ed (w, "*L", listed?"1":"0", &sw);
+        w = ed (w, "*L", st->listed_flag ? "1" : "0", &sw);
         break;
       case 'H': /* hostname or IP */
         w = ed (w, "*H", pn, &sw);
@@ -392,8 +395,8 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa,
     }
   }
 
-  if((fn!=filename0) && (use_fn))
-    Log(1, "Security problem. Execution aborted...");
+  if ((fn!=filename0) && (use_fn))
+    Log (1, "Security problem. Execution aborted...");
   else if (imm) /* immediate event */
     run(w);
   else
@@ -406,10 +409,8 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, FTN_ADDR *fa,
  * Runs external programs using S.R.I.F. interface
  * if the name matches one of our "exec"'s
  */
-FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename,
-	       FTN_ADDR *fa, int nfa,
-	       int prot, int listed, char *peer_name, int imm_freq,
-	       STATE *st, BINKD_CONFIG *config)
+FTNQ *evt_run (FTNQ *q, char *filename, int imm_freq,
+               STATE *st, BINKD_CONFIG *config)
 {
   EVT_FLAG *curr;
 
@@ -422,19 +423,21 @@ FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename,
 	if (imm_freq)
 	{
 	  char srf[MAXPATHLEN + 1], rsp[MAXPATHLEN + 1];
-	  if (mksrifpaths (fa, srf, rsp, config))
+	  if (mksrifpaths (st->fa, srf, rsp, config))
 	  {
 	    char *w = ed (curr->command, "*S", srf, NULL);
 
-	    if (srif_fill (srf, fa, nfa, filename, rsp, prot, listed, peer_name))
+	    if (srif_fill (srf, st->fa, st->nfa, filename, rsp,
+	                   st->state == P_SECURE, st->listed_flag,
+	                   st->peer_name, st->sysop))
 	    {
-	      if (!run_args (NULL, w, filename, fa, nfa, prot, listed, peer_name, st, 1))
+	      if (!run_args (NULL, w, filename, st, 1))
 	        delete(filename);
 	    }
 	    else
 	      Log (1, "srif_fill: error");
 	    free (w);
-	    q = parse_response (q, rsp, fa, config);
+	    q = parse_response (q, rsp, st->fa, config);
 	    delete (srf);
 	    delete (rsp);
 	  }
@@ -444,7 +447,7 @@ FTNQ *evt_run (EVTQ **eq, FTNQ *q, char *filename,
 	  add_to_rcvdlist (&st->rcvdlist, &st->n_rcvdlist, filename);
       }
       else
-	*eq = run_args(*eq, curr->command, filename, fa, nfa, prot, listed, peer_name, st, curr->imm);
+	st->evt_queue = run_args(st->evt_queue, curr->command, filename, st, curr->imm);
     }
   }
   return q;

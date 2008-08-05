@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.43  2008/08/05 06:05:16  gul
+ * Optimize srif functions params
+ *
  * Revision 2.42  2008/01/14 20:45:43  gul
  * Workaroud bug of earlyer binkd versions with partial files and not NR-mode
  *
@@ -663,9 +666,8 @@ int inb_done (TFILE *file, STATE *state, BINKD_CONFIG *config)
   {
     /* Set flags */
     if (evt_test(&(state->evt_queue), real_name, config->evt_flags.first))
-      state->q = evt_run(&(state->evt_queue), state->q, real_name, state->fa,
-               state->nfa, state->state == P_SECURE, state->listed_flag,
-               state->peer_name, state->delay_EOB > 0, state, config);
+      state->q = evt_run(state->q, real_name, state->delay_EOB > 0,
+                         state, config);
   }
   if (state->delay_EOB && isreq(file->netname))
     state->delay_EOB--;
