@@ -3,7 +3,7 @@
  *
  *  binkd.c is a part of binkd project
  *
- *  Copyright (C) 1996-2004  Dima Maloff 5047/13 and others
+ *  Copyright (C) 1996-2008  Dima Maloff 5047/13 and others
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30.2.12  2008/10/02 05:38:43  gul
+ * Copyright date
+ *
  * Revision 2.30.2.11  2006/08/09 07:35:18  gul
  * Minor fix in binkd restart
  *
@@ -332,7 +335,7 @@ void usage (void)
 	  "  -n       doing not call or listen (only check cfg and make polls)\n"
 	  "  -h       print this help\n"
 	  "\n"
-	  "Copyright (c) 1996-2004 Dima Maloff and others.\n"
+	  "Copyright (c) 1996-2008 Dima Maloff and others.\n"
 #if defined(WIN32) && !defined(BINKDW9X)
 	  ,s?s:"", s?s+3:""
 #endif
