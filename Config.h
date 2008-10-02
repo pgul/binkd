@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10.2.23  2008/10/02 05:48:16  gul
+ * 0.9.10 release
+ *
  * Revision 2.10.2.22  2008/02/24 09:19:27  gul
  * 0.9.10-stable continues (I hope)
  *
@@ -161,7 +164,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.10-stable"
+#define MYVER "0.9.10"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 

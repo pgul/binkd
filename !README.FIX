@@ -550,7 +550,7 @@ NT/95:  ctrl-c problems fixed
 
 	Fixed bug in sending partial files without NR- or ND-mode.
 
-0.9.10
+0.9.10	(Thu Oct  2 08:36:21 EEST 2008)
 ------
 	Fixed bug in sending files with space or control characters
 	in file name (was broken in 0.9.9).
