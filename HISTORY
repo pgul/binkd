@@ -1,3 +1,7 @@
+2008/11/25 11:35:31 1.0a-521 gul
+inbound.c,2.43,2.44
+Segfault if garbage in *.hr
+
 2008/08/05 09:05:19 1.0a-520 gul
 inbound.c,2.42,2.43 protocol.c,2.192,2.193 srif.c,2.18,2.19 srif.h,2.5,2.6
 Optimize srif functions params
