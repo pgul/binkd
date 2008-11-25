@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12.2.7  2008/11/25 09:48:02  gul
+ * Segfault if garbage in *.hr
+ *
  * Revision 2.12.2.6  2008/01/14 20:46:39  gul
  * Workaroud bug of earlyer binkd versions with partial files and not NR-mode
  *
@@ -235,7 +238,7 @@ int find_tmp_name (char *s, char *file, off_t size,
       for (i = 0; i < 4; ++i)
 	w[i] = getwordx (buf, i + 1, GWX_NOESC);
 
-      if (!strcmp (w[0], file) && parse_ftnaddress (w[3], &fa))
+      if (w[3] && !strcmp (w[0], file) && parse_ftnaddress (w[3], &fa))
       {
 	for (i = 0; i < nfa; i++)
 	  if (!ftnaddress_cmp (&fa, from + i))
@@ -252,7 +255,7 @@ int find_tmp_name (char *s, char *file, off_t size,
 	  remove_hr (s);
 	}
       }
-      else if (to_be_deleted (s, w[0]))
+      else if (to_be_deleted (s, w[0] ? w[0] : "unknown"))
       {
 	remove_hr (s);
       }
