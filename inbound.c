@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.44  2008/11/25 09:35:26  gul
+ * Segfault if garbage in *.hr
+ *
  * Revision 2.43  2008/08/05 06:05:16  gul
  * Optimize srif functions params
  *
@@ -313,14 +316,12 @@ static int find_tmp_name (char *s, TFILE *file, STATE *state, BINKD_CONFIG *conf
     }
     else if (fgets (buf, sizeof (buf), f)==NULL)
     {  /* This .hr is empty, now checks to old */
-      char*s1=strdup(s);
-      if(to_be_deleted (s1, "unknown", 0, config))
+      if (to_be_deleted (s, "unknown", (off_t)-1, config))
       {
         fclose (f);
-        if (!sdelete (s))
-          Log (5, "old empty partial file %s is removed", de->d_name);
+        Log (5, "old empty partial file %s is removed", de->d_name);
+        remove_hr (s);
       }
-      free(s1);
     }
     else
     {
@@ -331,51 +332,61 @@ static int find_tmp_name (char *s, TFILE *file, STATE *state, BINKD_CONFIG *conf
       FA_ZERO (&fa);
       for (i = 0; i < 4; ++i)
 	w[i] = getwordx (buf, i + 1, GWX_NOESC);
-
-      i = -1;
-      if (parse_ftnaddress (w[3], &fa, config->pDomains.first))
-	for (i = 0; i < state->nallfa; i++)
-	  if (!ftnaddress_cmp (&fa, state->fa + i))
-	    break;
-
-      if (file == NULL)
+      if (!w[3])
       {
-	if (i >= 0 && i < state->nallfa && !state->skip_all_flag)
+	if (to_be_deleted (s, "unknown", (off_t)-1, config))
 	{
-	  Log (5, "partial file %s removed", w[0]);
+	  Log (5, "old partial file %s with garbage is removed", de->d_name);
 	  remove_hr (s);
 	}
       }
-      else if (i >= 0 && !strcmp (w[0], file->netname))
+      else
       {
-	if (file->size == (off_t) strtoul (w[1], NULL, 10) &&
-	    (file->time & ~1) == (time_t) (strtoul (w[2], NULL, 10) & ~1) &&
-	    i < state->nallfa)
-	{ /* non-destructive skip file from busy aka */
-	  if (i >= state->nfa)
+	i = -1;
+	if (parse_ftnaddress (w[3], &fa, config->pDomains.first))
+	  for (i = 0; i < state->nallfa; i++)
+	    if (!ftnaddress_cmp (&fa, state->fa + i))
+	      break;
+
+	if (file == NULL)
+	{
+	  if (i >= 0 && i < state->nallfa && !state->skip_all_flag)
 	  {
-	    Log (2, "Skip partial file %s: aka %s busy", w[0], w[3]);
-	    for (i = 0; i < 4; ++i)
-	      xfree (w[i]);
-	    return 0;
+	    Log (5, "partial file %s removed", w[0]);
+	    remove_hr (s);
 	  }
-	  else
-	    found = 1;
 	}
-	else if (config->kill_dup_partial_files && i < state->nallfa)
+	else if (i >= 0 && !strcmp (w[0], file->netname))
 	{
-	  Log (5, "dup partial file %s removed", w[0]);
+	  if (file->size == (off_t) strtoul (w[1], NULL, 10) &&
+	      (file->time & ~1) == (time_t) (strtoul (w[2], NULL, 10) & ~1) &&
+	      i < state->nallfa)
+	  { /* non-destructive skip file from busy aka */
+	    if (i >= state->nfa)
+	    {
+	      Log (2, "Skip partial file %s: aka %s busy", w[0], w[3]);
+	      for (i = 0; i < 4; ++i)
+	        xfree (w[i]);
+	      return 0;
+	    }
+	    else
+	      found = 1;
+	  }
+	  else if (config->kill_dup_partial_files && i < state->nallfa)
+	  {
+	    Log (5, "dup partial file %s removed", w[0]);
+	    remove_hr (s);
+	  }
+	}
+	else if (to_be_deleted (s, w[0], strtoul (w[1], NULL, 10), config))
+	{
+	  Log (5, "old partial file %s removed", w[0]);
 	  remove_hr (s);
 	}
-      }
-      else if (to_be_deleted (s, w[0], strtoul (w[1], NULL, 10), config))
-      {
-	Log (5, "old partial file %s removed", w[0]);
-	remove_hr (s);
-      }
 
-      for (i = 0; i < 4; ++i)
-	xfree (w[i]);
+	for (i = 0; i < 4; ++i)
+	  xfree (w[i]);
+      }
     }
     if (found)
       break;
