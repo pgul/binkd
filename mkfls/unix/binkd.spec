@@ -1,6 +1,6 @@
 Summary: Binkd - the binkp daemon
 Name: binkd
-Version: 0.9.9
+Version: 0.9.11
 Release: g1
 Copyright: GPL
 Source: %{name}-%{version}.tar.gz
