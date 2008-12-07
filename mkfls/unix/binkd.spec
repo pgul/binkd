@@ -6,7 +6,7 @@ Copyright: GPL
 Source: %{name}-%{version}.tar.gz
 URL: ftp://happy.kiev.ua/pub/fidosoft/mailer/binkd/
 Provides: binkd
-Requires: perl >= 5.8.3, zlib >= 1.2.3, bzip >= 1.0.3
+Requires: 
 BuildRoot: /var/tmp/%{name}-%{version}-root
 Group: Applications/Internet
 
@@ -22,8 +22,7 @@ cp -p mkfls/unix/{Makefile*,configure*,install-sh,mkinstalldirs} .
         --prefix=%{_prefix} \
         --sysconfdir=%{_sysconfdir} \
         --localstatedir=%{_localstatedir} \
-        --with-https --with-bwlim --with-perl \
-        --with-zlib --with-bzip2
+        --with-https --with-ntlm 
 make
 
 %install
