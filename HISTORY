@@ -1,3 +1,7 @@
+2008/12/09 11:04:13 1.0a-522 gul
+readcfg.c,2.89,2.90
+Use binkp from /etc/services if exists as iport/oport by default
+
 2008/11/25 11:35:31 1.0a-521 gul
 inbound.c,2.43,2.44
 Segfault if garbage in *.hr

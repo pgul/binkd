@@ -1,6 +1,7 @@
 Summary: Binkd - the binkp daemon
 Name: binkd
-Version: 1.0a.521
+Version: 
+
 Release: g1
 Copyright: GPL
 Source: %{name}-%{version}.tar.gz
@@ -45,3 +46,4 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Tue Mar 25 2008 Gremlin from Kremlin <gremlin-at-owl.openwall.com> 1.0a.518
 - first build
+ build
