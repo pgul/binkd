@@ -7,8 +7,6 @@ AC_PROG_AWK
 AC_PROG_CC
 AC_PROG_INSTALL
 
-CFLAGS=
-
 dnl Checks for header files.
 AC_CHECK_HEADERS(inttypes.h stdint.h unistd.h)
 AC_CHECK_HEADERS(sys/vfs.h sys/statfs.h sys/statvfs.h sys/param.h)
