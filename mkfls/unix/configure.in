@@ -219,15 +219,15 @@ esac
 
 AC_ARG_WITH(aso,
             [  --with-aso              Amiga Style Outbound (ASO) support (default no)],
-            AC_DEFINE(AMIGADOS_4D_OUTBOUND), )
+            [ test "x$withval" = "xyes" && AC_DEFINE(AMIGADOS_4D_OUTBOUND)])
 
 AC_ARG_WITH(bwlim,
             [  --with-bwlim            Bandwidth limiting support (default no)],
-            AC_DEFINE(BW_LIM), )
+            [ test "x$withval" = "xyes" && AC_DEFINE(BW_LIM)])
 
 AC_ARG_WITH(perl,
             [  --with-perl             Perl hooks (default no)],
-            do_perl=yes, do_perl=no)
+            [ do_perl=$withval])
 
 case x$do_perl in
   xyes)
