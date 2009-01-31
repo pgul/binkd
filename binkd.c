@@ -3,7 +3,7 @@
  *
  *  binkd.c is a part of binkd project
  *
- *  Copyright (C) 1996-2004  Dima Maloff 5047/13 and others
+ *  Copyright (C) 1996-2009  Dima Maloff 5047/13 and others
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.99  2009/01/31 16:57:59  gul
+ * Update year in copyright line
+ *
  * Revision 2.98  2007/10/06 09:35:12  gul
  * Retranslate SIGHUP from servermgr to clientmgr
  *
@@ -520,7 +523,7 @@ void usage (void)
 	  "  -n       don't run binkd-client and binkd-server (check config, make polls)\n"
 	  "  -h       print this help\n"
 	  "\n"
-	  "Copyright (c) 1996-2004 Dima Maloff and others.\n"
+	  "Copyright (c) 1996-2009 Dima Maloff and others.\n"
 	  );
 
   puts ("\n"
