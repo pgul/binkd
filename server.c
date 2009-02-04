@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.42  2009/02/04 20:13:47  gul
+ * Possible remote DoS (thx to Konstantin Kuzov 2:5019/40)
+ *
  * Revision 2.41  2007/10/06 10:20:05  gul
  * more accurate checkcfg()
  *
@@ -323,6 +326,7 @@ static int do_server(BINKD_CONFIG *config)
 #ifdef UNIX
         if (save_errno == ECONNRESET ||
             save_errno == ETIMEDOUT ||
+            save_errno == ECONNABORTED ||
             save_errno == EHOSTUNREACH)
           continue;
 #endif
