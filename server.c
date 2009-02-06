@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.23.2.3  2009/02/06 06:41:57  gul
+ * Possible remote DoS (thx to Konstantin Kuzov 2:5019/40)
+ *
  * Revision 2.23.2.2  2004/08/03 19:52:56  gul
  * Change SIGCHLD handling, make signal handler more clean,
  * prevent occasional hanging (mutex deadlock) under linux kernel 2.6.
@@ -315,6 +318,7 @@ void servmgr (void *arg)
 #ifdef UNIX
 	if (save_errno == ECONNRESET ||
 	    save_errno == ETIMEDOUT ||
+	    save_errno == ECONNABORTED ||
 	    save_errno == EHOSTUNREACH)
 	   continue;
 #endif
