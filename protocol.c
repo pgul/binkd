@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67.2.26  2009/02/14 13:16:10  gul
+ * Bugfix: segfault on crafted input sequences,
+ * possible remote DoS for multithread versions (win32 and OS/2).
+ * Thanks to Dennis Yurichev.
+ *
  * Revision 2.67.2.25  2008/01/14 20:46:39  gul
  * Workaroud bug of earlyer binkd versions with partial files and not NR-mode
  *
@@ -1273,6 +1278,7 @@ static char *select_inbound (FTN_ADDR *fa, int secure_flag)
   FTN_NODE *node;
   char *p;
 
+  if (!fa) return inbound_nonsecure; /* or drop the session? */
   locknodesem();
   node = get_node_info(fa);
   p = ((node && node->ibox) ? node->ibox :

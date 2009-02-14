@@ -559,3 +559,6 @@ NT/95:  ctrl-c problems fixed
 ------
 	Bugfix: segfault if garbage in temp inbound files (*.hr).
 
+	Bugfix: segfault on some crafted input from remote (possible DoS),
+	thanks to Dennis Yurichev.
+
