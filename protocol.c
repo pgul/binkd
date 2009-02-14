@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.194  2009/02/14 13:14:43  gul
+ * Bugfix: segfault on crafted input sequences,
+ * possible remote DoS for multithread versions (win32 and OS/2).
+ * Thanks to Dennis Yurichev.
+ *
  * Revision 2.193  2008/08/05 06:05:16  gul
  * Optimize srif functions params
  *
@@ -2154,11 +2159,11 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 
 static char *select_inbound (FTN_ADDR *fa, int secure_flag, BINKD_CONFIG *config)
 {
-  FTN_NODE *node;
+  FTN_NODE *node = NULL;
   char *p;
 
-  node = get_node_info(fa, config);
-  p = ((node && node->ibox) ? node->ibox :
+  if (fa) node = get_node_info(fa, config);
+  p = ((fa && node && node->ibox) ? node->ibox :
 	  (secure_flag == P_SECURE ? config->inbound : config->inbound_nonsecure));
   return p;
 }
@@ -2228,7 +2233,7 @@ static int PWD (STATE *state, char *pwd, int sz, BINKD_CONFIG *config)
   { Log (1, "unexpected password from the remote on outgoing call: `%s'", pwd);
     return 1;
   }
-  if ((no_password)&&(bad_pwd))
+  if (no_password && bad_pwd)
   {
     do_prescan (state, config);
     state->state = P_NONSECURE;
@@ -2237,29 +2242,29 @@ static int PWD (STATE *state, char *pwd, int sz, BINKD_CONFIG *config)
   }
   else
   {
-    if((state->MD_flag == 1) || ((!bad_pwd) && (state->MD_challenge)))
+    if ((state->MD_flag == 1) || (!bad_pwd && state->MD_challenge))
     {
       char *sp;
-      if((bad_pwd)&&(state->MD_flag))
+      if (bad_pwd && state->MD_flag)
       {
         msg_send2(state, M_ERR, "You must support MD5", 0);
-        Log(1, "Caller does not support MD5");
+        Log (1, "Caller does not support MD5");
         return 0;
       }
-      if((sp=MD_buildDigest(state->expected_pwd, state->MD_challenge))!=NULL)
+      if ((sp=MD_buildDigest(state->expected_pwd, state->MD_challenge))!=NULL)
       {
-        if((bad_pwd=STRICMP(sp, pwd))==0) state->MD_flag=1;
-	free(sp);
+        if ((bad_pwd=STRICMP(sp, pwd))==0) state->MD_flag=1;
+        free(sp);
         sp=NULL;
       }
       else {
-        Log(2, "Unable to build Digest");
+        Log (2, "Unable to build Digest");
         bad_pwd=1;
       }
     }
     else bad_pwd=(state->expected_pwd[0] == 0 || strcmp (state->expected_pwd, pwd));
 
-    if ((bad_pwd)&&(!no_password)) /* I don't check password if we do not need one */
+    if (bad_pwd && !no_password) /* I don't check password if we do not need one */
     {
       msg_send2 (state, M_ERR, "Bad password", 0);
       Log (1, "`%s': incorrect password", pwd);
@@ -2267,18 +2272,18 @@ static int PWD (STATE *state, char *pwd, int sz, BINKD_CONFIG *config)
     }
     else
     {
-      if(no_password)
+      if (no_password)
       {
         state->state = P_NONSECURE;
         do_prescan (state, config);
-        if(bad_pwd) {
+        if (bad_pwd) {
           Log (1, "unexpected password digest from the remote");
           state->state_ext = P_WE_NONSECURE;
         }
       }
       else
       {
-	state->state = P_SECURE;
+        state->state = P_SECURE;
         do_prescan (state, config);
       }
     }
@@ -2313,8 +2318,8 @@ static int PWD (STATE *state, char *pwd, int sz, BINKD_CONFIG *config)
 #ifdef WITH_BZLIB2
   if (state->z_canrecv & 2) xstrcat(&szOpt, " BZ2");
 #endif
-  msg_send2(state, M_NUL, "OPT", szOpt);
-  xfree(szOpt);
+  msg_send2 (state, M_NUL, "OPT", szOpt);
+  xfree (szOpt);
   msg_send2 (state, M_OK, state->state==P_SECURE ? "secure" : "non-secure", 0);
   return complete_login (state, config);
 }
