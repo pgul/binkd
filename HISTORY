@@ -1,3 +1,9 @@
+2009/02/14 15:14:46 1.0a-525 gul
+protocol.c,2.193,2.194
+Bugfix: segfault on crafted input sequences,
+possible remote DoS for multithread versions (win32 and OS/2).
+Thanks to Dennis Yurichev.
+
 2009/02/04 22:13:50 1.0a-524 gul
 server.c,2.41,2.42
 Possible remote DoS (thx to Konstantin Kuzov 2:5019/40)
