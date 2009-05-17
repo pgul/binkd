@@ -405,7 +405,7 @@ if test ".$do_bzip2" != ".no" ; then
 	  AC_MSG_RESULT(no)
 	  LIBS="$save_LIBS"
 	  CFLAGS="$save_CFLAGS"
-	  if test ".$do_bzlib2" != ".auto"; then
+	  if test ".$do_bzip2" != ".auto"; then
 	    AC_ERROR(bz2 lib not found in $bzlib2_paths)
 	  fi
 	fi

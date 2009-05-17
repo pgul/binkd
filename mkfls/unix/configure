@@ -7513,7 +7513,7 @@ _ACEOF
 $as_echo "no" >&6; }
 	  LIBS="$save_LIBS"
 	  CFLAGS="$save_CFLAGS"
-	  if test ".$do_bzlib2" != ".auto"; then
+	  if test ".$do_bzip2" != ".auto"; then
 	    { { $as_echo "$as_me:$LINENO: error: bz2 lib not found in $bzlib2_paths" >&5
 $as_echo "$as_me: error: bz2 lib not found in $bzlib2_paths" >&2;}
    { (exit 1); exit 1; }; }
