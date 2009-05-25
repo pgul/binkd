@@ -1,31 +1,24 @@
 - large files (win32)
+- "IN SRV" DNS records
 - rexx hooks
-- set root-domain for every FTN-domain
 - do not kill attaches (save and ignore) if drive missing (unmounted)
 - no incoming calls under BeOS (file locking problem)
 - no syslog support under BeOS
 - charsets support, unicode
-- 3 passwords in passwd-file - "incoming,pkt,outgoing"
 - aftersession
 - "empty queue" flag (exit if "-p")
 - exit immediately after session in "-p" mode
 - force rescan by signal (SIGUSR1)
 - check netname (not realname) on "exec" and "flag"
-- do not send files with hidden attribute from filebox
-- do not send r/o file from filebox with infinite session
 - binkd/dos: waterloo tcpip
 - single-thread version
 - put session time in "done" line
 - send-hold-on-outgoing option
-- option -snr - force send in NR mode on binkp/1.1
 - turn on NR-mode if exists incomplete files from this link (optional?)
-- option -mc - must crypt. Drop session if remote does not support crypt mode
 - xBSO
 - TheBrake long style outbound
 - go to tray under windows
-- compression:
-  - configurable dll paths
-  - no-compression node switch
+- no-compression node switch
 ? ssl
 ? true multibatch mode
 ? hide attaches and remove bsy during a session
