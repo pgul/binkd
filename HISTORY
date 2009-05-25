@@ -1,3 +1,8 @@
+2009/05/25 19:24:10 1.0a-526 gul
+!README.perl,2.8,2.9 perlhooks.c,2.59,2.60
+Add forgotten vars in perl hooks,
+inhibit warnings
+
 2009/02/14 15:14:46 1.0a-525 gul
 protocol.c,2.193,2.194
 Bugfix: segfault on crafted input sequences,
