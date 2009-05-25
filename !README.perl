@@ -70,7 +70,7 @@ Common Data Structures
 
 %domain - hash, each element corresponds to a domain (or alias):
               key - domain name
-              value - pointer to hash with keys: path, dir, defzone
+              value - pointer to hash with keys: path, dir, defzone, root_domain
 
 @addr   - array of the node's addresses
 
@@ -86,7 +86,7 @@ Common Data Structures
 %node   - hash, each element corresponds to a node record:
               key - node address
               value - pointer to hash with keys:
-                        hosts, pwd, ibox, obox, NR, ND, MD, HC, IP
+                        hosts, pwd, ibox, obox, NR, ND, MD, HC, IP, NP
 
 All these structures are read-only. All addresses are 5d.
 Address type (in %skip, $config{check_pkthdr}) is enum, symbolic names for

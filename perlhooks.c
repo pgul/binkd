@@ -14,6 +14,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.60  2009/05/25 16:24:08  gul
+ * Add forgotten vars in perl hooks,
+ * inhibit warnings
+ *
  * Revision 2.59  2008/01/15 12:39:03  gul
  * Perl_sv_2iv_flags()
  *
@@ -802,6 +806,11 @@ struct perl_const { char *name; int value; } perl_consts[] = {
     if (_v) sv_setpv(_sv, _v); else sv_setsv(_sv, &sv_undef); \
     SvREADONLY_on(_sv);                                       \
   }
+#define VK_ADD_strs(_sv, _name, _v)                           \
+  if ( (_sv = perl_get_sv(_name, TRUE)) != NULL ) {           \
+    sv_setpv(_sv, _v);                                        \
+    SvREADONLY_on(_sv);                                       \
+  }
 #define B4(l) (l>>24 & 0xff), (l>>16 & 0xff), (l>>8 & 0xff), (l & 0xff)
 #define VK_ADD_ip(_sv, _name, _v)                             \
   if ( (_sv = perl_get_sv(_name, TRUE)) != NULL ) {           \
@@ -1304,6 +1313,7 @@ static int add_node_to_hv(FTN_NODE *node, void *hv)
   VK_ADD_HASH_int(hv2, sv, "MD", node->MD_flag);
   VK_ADD_HASH_int(hv2, sv, "HC", node->HC_flag);
   VK_ADD_HASH_int(hv2, sv, "IP", node->restrictIP);
+  VK_ADD_HASH_int(hv2, sv, "NP", node->NP_flag);
   sv = newRV_noinc( (SV*)hv2 );
   ftnaddress_to_str(buf, &(node->fa));
   VK_ADD_HASH_sv((HV *)hv, sv, buf);
@@ -1367,10 +1377,16 @@ void perl_setup(BINKD_CONFIG *cfg) {
         VK_ADD_HASH_str(hv2, sv, "path", cur->path);
         VK_ADD_HASH_str(hv2, sv, "dir", cur->dir);
         VK_ADD_HASH_int(hv2, sv, "defzone", cur->z[0]);
+        if (cur->idomain) {
+          VK_ADD_HASH_str(hv2, sv, "root_domain", cur->idomain);
+        }
       } else {
         VK_ADD_HASH_str(hv2, sv, "path", cur->alias4->path);
         VK_ADD_HASH_str(hv2, sv, "dir", cur->alias4->dir);
         VK_ADD_HASH_int(hv2, sv, "defzone", cur->alias4->z[0]);
+        if (cur->idomain) {
+          VK_ADD_HASH_str(hv2, sv, "root_domain", cur->idomain);
+        }
       }
       sv = newRV_noinc( (SV*)hv2 );
       VK_ADD_HASH_sv(hv, sv, cur->name);
@@ -1588,6 +1604,12 @@ static void setup_session(STATE *state, int lvl) {
     VK_ADD_intz(sv, "z_send", state->z_send);
     VK_ADD_intz(sv, "z_recv", state->z_recv);
 #endif
+#ifdef BW_LIM
+	if (state->bw_send.rlim)
+      VK_ADD_intz(sv, "bw_send", state->bw_send.rlim);
+	if (state->bw_recv.rlim)
+      VK_ADD_intz(sv, "bw_recv", state->bw_recv.rlim);
+#endif
     state->perl_set_lvl = 2;
   }
   /* lvl 3 */
@@ -1762,7 +1784,7 @@ int perl_on_call(FTN_NODE *node, BINKD_CONFIG *cfg, char **hosts
       VK_ADD_intz(sv, "traf_mail", (IV)netsize);
       VK_ADD_intz(sv, "traf_file", (IV)filessize);
       ftnaddress_to_str(buf, &(node->fa));
-      VK_ADD_str(sv, "addr", buf);
+      VK_ADD_strs(sv, "addr", buf);
       if ((svhosts = perl_get_sv("hosts", TRUE))) sv_setpv(svhosts, *hosts);
 #ifdef HTTPS
       if ((svproxy = perl_get_sv("proxy", TRUE))) sv_setpv(svproxy, *proxy);
@@ -1831,7 +1853,7 @@ int perl_on_error(FTN_ADDR *addr, const char *error, const int where) {
     if (!Perl_get_context()) return 1;
     { dSP;
       ftnaddress_to_str(buf, addr);
-      VK_ADD_str (sv, "addr", buf);
+      VK_ADD_strs(sv, "addr", buf);
       VK_ADD_str (sv, "error", error);
       VK_ADD_intz(sv, "where", where);
       ENTER;
@@ -2158,7 +2180,7 @@ int perl_after_sent(STATE *state, int n) {
       VK_ADD_intz(sv, "time", state->sent_fls[n].time);
       VK_ADD_intz(sv, "start", state->sent_fls[n].start);
       buf[0] = state->sent_fls[n].action; buf[1] = 0;
-      VK_ADD_str (sv, "action", buf); if (sv) { SvREADONLY_off(sv); }
+      VK_ADD_strs(sv, "action", buf); if (sv) { SvREADONLY_off(sv); }
       ENTER;
       SAVETMPS;
       PUSHMARK(SP);
