@@ -14,6 +14,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.61  2009/05/25 17:02:07  gul
+ * Perl 5.10 compatibility,
+ * avoid warnings.
+ *
  * Revision 2.60  2009/05/25 16:24:08  gul
  * Add forgotten vars in perl hooks,
  * inhibit warnings
@@ -819,21 +823,21 @@ struct perl_const { char *name; int value; } perl_consts[] = {
     SvREADONLY_on(_sv);                                       \
   }
 
-#define VK_ADD_HASH_sv(_hv,_sv,_name)                  \
-    if (_sv != NULL) {                                 \
-      SvREADONLY_on(_sv);                              \
-      hv_store(_hv, _name, strlen(_name), _sv, 0);     \
+#define VK_ADD_HASH_sv(_hv,_sv,_name)                         \
+    if (_sv != NULL) {                                        \
+      SvREADONLY_on(_sv);                                     \
+      (void) hv_store(_hv, _name, strlen(_name), _sv, 0);     \
     }
 #define VK_ADD_HASH_str(_hv,_sv,_name,_value)                            \
     if ( (_value != NULL) && (_sv = newSVpv(_value, 0)) != NULL ) {      \
       SvREADONLY_on(_sv);                                                \
-      hv_store(_hv, _name, strlen(_name), _sv, 0);                       \
+      (void) hv_store(_hv, _name, strlen(_name), _sv, 0);                \
     }                                                                    \
-    else hv_store(_hv, _name, strlen(_name), &sv_undef, 0);
+    else (void) hv_store(_hv, _name, strlen(_name), &sv_undef, 0);
 #define VK_ADD_HASH_intz(_hv,_sv,_name,_value)                           \
     if ( (_sv = newSViv(_value)) != NULL ) {                             \
       SvREADONLY_on(_sv);                                                \
-      hv_store(_hv, _name, strlen(_name), _sv, 0);                       \
+      (void) hv_store(_hv, _name, strlen(_name), _sv, 0);                \
     }
 #define VK_ADD_HASH_int(_hv,_sv,_name,_value)                            \
     if (_value) { VK_ADD_HASH_intz(_hv,_sv,_name,_value) }
@@ -1132,6 +1136,7 @@ int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
   int rc, i;
   SV *sv;
   char *cmd;
+  char **perlargv = (char **)perlargs;
 
   Log(LL_DBG, "perl_init(): %s", perlfile);
   /* try to find out the actual path to perl script and set dir to -I */
@@ -1234,7 +1239,7 @@ int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
   /* init perl */
   perl = perl_alloc();
   perl_construct(perl);
-  rc = perl_parse(perl, xs_init, i, perlargs, NULL);
+  rc = perl_parse(perl, xs_init, i, perlargv, NULL);
   Log(LL_DBG, "perl_init(): parse rc=%d", rc);
   /* can't parse */
   if (rc) {
