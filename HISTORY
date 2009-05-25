@@ -1,3 +1,8 @@
+2009/05/25 20:02:09 1.0a-527 gul
+perlhooks.c,2.60,2.61
+Perl 5.10 compatibility,
+avoid warnings.
+
 2009/05/25 19:24:10 1.0a-526 gul
 !README.perl,2.8,2.9 perlhooks.c,2.59,2.60
 Add forgotten vars in perl hooks,
