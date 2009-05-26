@@ -1,3 +1,9 @@
+2009/05/26 16:04:39 1.0a-528 gul
+!README.perl,2.9,2.10 binkd.c,2.99,2.100 perlhooks.c,2.61,2.62 perlhooks.h,2.12,2.13 readcfg.c,2.90,2.91 readcfg.h,2.35,2.36
+New perl hooks:
+need_reload() - is it needed to reload config
+config_loaded() - after successful reading config
+
 2009/05/25 20:02:09 1.0a-527 gul
 perlhooks.c,2.60,2.61
 Perl 5.10 compatibility,
