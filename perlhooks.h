@@ -14,6 +14,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2009/05/26 13:04:35  gul
+ * New perl hooks:
+ * need_reload() - is it needed to reload config
+ * config_loaded() - after successful reading config
+ *
  * Revision 2.12  2005/10/03 06:49:04  gul
  * Fixed typos in previous patch
  *
@@ -104,6 +109,9 @@ int perl_on_log(char *, int, int *);   /* when writing string to log */
 
 int perl_on_send(STATE *, t_msg *, char **, char **); /* on msg_send2 */
 int perl_on_recv(STATE *, char *, int);               /* when recv a block */
+
+int perl_need_reload(struct conflist_type *, int);    /* need to reload config? */
+void perl_config_loaded(void);                        /* after load config */
 
 #ifdef BW_LIM
 int perl_setup_rlimit(STATE *, BW *, char *);

@@ -14,7 +14,7 @@ Hooks Calling Scheme
                              |
                          on_start()
                              |
-           /=---------------/ \----------------\
+           /----------------/ \----------------\
            |                                   |
     (server manager)                    (client manager)
            |                                   |
@@ -55,7 +55,10 @@ Hooks Calling Scheme
                                     |
                                  on_exit()
 
-               on_log() - before writing a string to log
+               on_log()        - before writing a string to log
+               config_loaded() - after reading and loading config
+               need_reload()   - need to reload config?
+
 
 Common Data Structures
 
@@ -266,6 +269,16 @@ Hooks Description
                     $file   - network name of file
                     $rlimit - config rate limit for the file in bps
     - $rlimit can be changed. 0 - speed is unlimited.
+
+14) need_reload()
+    - called with rescan_delay interval
+    - defined vars: $_        - is any config file changed since last readcfg
+                    @conflist - list of config files
+    - return 1 if you want to reload config, 2 - do not reload,
+      0 or undef - use binkd logic
+
+15) config_loaded()
+    - called after successfully loading config
 
 If a hook sub is not present, it won't be called. If an error occurs while
 running sub, the sub won't be disabled (so, error can occur again).

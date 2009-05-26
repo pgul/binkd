@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.100  2009/05/26 13:04:35  gul
+ * New perl hooks:
+ * need_reload() - is it needed to reload config
+ * config_loaded() - after successful reading config
+ *
  * Revision 2.99  2009/01/31 16:57:59  gul
  * Update year in copyright line
  *
@@ -923,7 +928,9 @@ int main (int argc, char *argv[], char *envp[])
 #ifdef WITH_PERL
   if (current_config->perl_script[0]) {
     int ok = perl_init(current_config->perl_script, current_config);
-    if (current_config->perl_strict && !ok)
+    if (ok)
+      perl_config_loaded();
+    else if (current_config->perl_strict)
       Log (0, "error parsing Perl script %s", current_config->perl_script);
   }
 #endif

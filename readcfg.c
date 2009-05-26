@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.91  2009/05/26 13:04:35  gul
+ * New perl hooks:
+ * need_reload() - is it needed to reload config
+ * config_loaded() - after successful reading config
+ *
  * Revision 2.90  2008/12/09 09:04:09  gul
  * Use binkp from /etc/services if exists as iport/oport by default
  *
@@ -369,6 +374,10 @@
 #include "ftndom.h"
 #include "ftnq.h"
 
+#ifdef WITH_PERL
+#include "perlhooks.h"
+#endif
+
 /*
  * Pointer to actual config used by all processes
  */
@@ -383,13 +392,6 @@ static char *current_path = "<command line>";
 static int   current_line;
 static char  linebuf[MAXCFGLINE + 1];
 static char  spaces[] = " \n\t";
-
-struct conflist_type
-{
-  struct conflist_type *next;
-  char                 *path;
-  time_t                mtime;
-};
 
 /*
  * Add static object to list (allocate new entry and copy static data)
@@ -1160,7 +1162,7 @@ int checkcfg(void)
 {
   struct stat sb;
   struct conflist_type *pc;
-  int need_reload;
+  int need_reload, ok;
 
 #ifdef HAVE_FORK
   need_reload = got_sighup;
@@ -1187,12 +1189,26 @@ int checkcfg(void)
     }
   }
 
+#ifdef WITH_PERL
+  ok = perl_need_reload(current_config->config_list.first, need_reload);
+  if (ok == 1)
+    need_reload = 1;
+  else if (ok == 2)
+    need_reload = 0;
+#endif
+
   if (!need_reload)
     return 0;
   /* Reload starting from first file in list */
   Log(2, "Reloading configuration...");
   pc = current_config->config_list.first;
-  return readcfg(pc->path);
+  ok = readcfg(pc->path);
+
+#ifdef WITH_PERL
+  if (ok) perl_config_loaded();
+#endif
+
+  return ok;
 }
 
 /*

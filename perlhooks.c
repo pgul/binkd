@@ -14,6 +14,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.62  2009/05/26 13:04:35  gul
+ * New perl hooks:
+ * need_reload() - is it needed to reload config
+ * config_loaded() - after successful reading config
+ *
  * Revision 2.61  2009/05/25 17:02:07  gul
  * Perl 5.10 compatibility,
  * avoid warnings.
@@ -744,7 +749,8 @@ typedef enum {
   PERL_ON_START, PERL_ON_EXIT, PERL_ON_CALL, PERL_ON_ERROR,
   PERL_ON_HANDSHAKE, PERL_AFTER_HANDSHAKE, PERL_AFTER_SESSION, 
   PERL_BEFORE_RECV, PERL_AFTER_RECV, PERL_BEFORE_SEND, PERL_AFTER_SENT,
-  PERL_ON_LOG, PERL_ON_SEND, PERL_ON_RECV, PERL_SETUP_RLIMIT
+  PERL_ON_LOG, PERL_ON_SEND, PERL_ON_RECV, PERL_SETUP_RLIMIT,
+  PERL_NEED_RELOAD, PERL_CONFIG_LOADED
 } perl_subs;
 /* if 0, perl is disabled; if non-0, some subs are enabled */
 int perl_ok = 0;
@@ -764,7 +770,9 @@ char *perl_subnames[] = {
   "on_log",
   "on_send",
   "on_recv",
-  "setup_rlimit"
+  "setup_rlimit",
+  "need_reload",
+  "config_loaded"
 };
 /* if set, queue is managed from perl: sorting, etc (binkd logic is off) */
 int perl_manages_queue = 0;
@@ -2375,4 +2383,73 @@ int perl_setup_rlimit(STATE *state, BW *bw, char *fname)
   return 1;
 }
 #endif
+
+/* need reload config? */
+int perl_need_reload(struct conflist_type *conflist, int need_reload)
+{
+  struct conflist_type *pc;
+  int    rc;
+  AV     *av;
+  SV     *sv, *svret;
+
+  if (perl_ok & (1 << PERL_NEED_RELOAD)) {
+    Log(LL_DBG, "perl_need_reload(), perl=%p", Perl_get_context());
+    if (!Perl_get_context()) return 1;
+    { dSP;
+      av = perl_get_av("conflist", TRUE);
+      av_clear(av);
+      for (pc = conflist; pc; pc = pc->next) {
+        sv = newSVpv(pc->path, 0);
+        SvREADONLY_on(sv);
+        av_push(av, sv);
+      }
+      Log(LL_DBG2, "perl_need_reload(): @conflist done");
+      VK_ADD_intz (sv, "_", need_reload);
+      ENTER;
+      SAVETMPS;
+      PUSHMARK(SP);
+      PUTBACK;
+      perl_call_pv(perl_subnames[PERL_NEED_RELOAD], G_EVAL|G_SCALAR);
+      SPAGAIN;
+      svret=POPs;
+      if (SvOK(svret)) rc = SvIV(svret); else rc = 0;
+      PUTBACK;
+      FREETMPS;
+      LEAVE;
+      if (SvTRUE(ERRSV)) {
+        sub_err(PERL_NEED_RELOAD);
+        rc = 0;
+      }
+    }
+    Log(LL_DBG, "perl_need_reload() end, returns %i", rc);
+    return rc;
+  }
+  return 0;
+}
+
+/* config loaded */
+void perl_config_loaded(void)
+{
+  if (perl_ok & (1 << PERL_CONFIG_LOADED)) {
+    Log(LL_DBG, "perl_config_loaded(), perl=%p", Perl_get_context());
+    if (!Perl_get_context()) return;
+    { dSP;
+      ENTER;
+      SAVETMPS;
+      PUSHMARK(SP);
+      PUTBACK;
+      perl_call_pv(perl_subnames[PERL_CONFIG_LOADED], G_EVAL|G_SCALAR);
+      SPAGAIN;
+      PUTBACK;
+      FREETMPS;
+      LEAVE;
+      if (SvTRUE(ERRSV)) {
+        sub_err(PERL_CONFIG_LOADED);
+      }
+    }
+    Log(LL_DBG, "perl_config_loaded() end");
+    return;
+  }
+  return;
+}
 

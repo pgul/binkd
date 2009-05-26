@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.36  2009/05/26 13:04:35  gul
+ * New perl hooks:
+ * need_reload() - is it needed to reload config
+ * config_loaded() - after successful reading config
+ *
  * Revision 2.35  2007/10/30 07:33:25  gul
  * New config option dont-send-empty
  *
@@ -210,6 +215,14 @@ struct ratechain
   long rate;
 };
 #endif
+
+struct conflist_type
+{
+  struct conflist_type *next;
+  char                 *path;
+  time_t                mtime;
+};
+
 
 struct _BINKD_CONFIG
 {
