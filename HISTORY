@@ -1,3 +1,8 @@
+2009/05/27 12:33:55 1.0a-529 gul
+!README.perl,2.10,2.11 binkd.cfg,2.53,2.54 perlhooks.c,2.62,2.63 readcfg.c,2.91,2.92 readcfg.h,2.36,2.37 todo.lst,2.48,2.49
+perl-var config keyword
+update $hosts by on_call() perl hook not only if it returns 2
+
 2009/05/26 16:04:39 1.0a-528 gul
 !README.perl,2.9,2.10 binkd.c,2.99,2.100 perlhooks.c,2.61,2.62 perlhooks.h,2.12,2.13 readcfg.c,2.90,2.91 readcfg.h,2.35,2.36
 New perl hooks:
