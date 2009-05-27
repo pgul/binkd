@@ -19,6 +19,7 @@
 - TheBrake long style outbound
 - go to tray under windows
 - no-compression node switch
+- restart perl on reload config (should we call on_start() hook this case?)
 ? ssl
 ? true multibatch mode
 ? hide attaches and remove bsy during a session

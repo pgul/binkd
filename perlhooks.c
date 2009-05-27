@@ -14,6 +14,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.63  2009/05/27 09:33:52  gul
+ * perl-var config keyword
+ * update $hosts by on_call() perl hook not only if it returns 2
+ *
  * Revision 2.62  2009/05/26 13:04:35  gul
  * New perl hooks:
  * need_reload() - is it needed to reload config
@@ -1378,6 +1382,14 @@ void perl_setup(BINKD_CONFIG *cfg) {
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
   VK_ADD_HASH_intz(hv, sv, "zminsize", cfg->zminsize);
 #endif
+  /* perl_vars */
+  {
+    struct perl_var *cur = cfg->perl_vars.first;
+	while (cur) {
+      VK_ADD_HASH_str(hv, sv, cur->name, cur->val);
+	  cur = cur->next;
+	}
+  }
   Log(LL_DBG2, "perl_setup(): %%config done");
   /* domain */
   hv = perl_get_hv("domain", TRUE);
@@ -1815,7 +1827,7 @@ int perl_on_call(FTN_NODE *node, BINKD_CONFIG *cfg, char **hosts
       FREETMPS;
       LEAVE;
       if (SvTRUE(ERRSV)) sub_err(PERL_ON_CALL);
-      else if (rc == 2) {
+      else if (rc && SvOK(svret)) {
           STRLEN len;
           char *s;
           sv = perl_get_sv("hosts", FALSE);

@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.92  2009/05/27 09:33:52  gul
+ * perl-var config keyword
+ * update $hosts by on_call() perl hook not only if it returns 2
+ *
  * Revision 2.91  2009/05/26 13:04:35  gul
  * New perl hooks:
  * need_reload() - is it needed to reload config
@@ -672,6 +676,9 @@ static int read_zrule (KEYWORD *key, int wordcount, char **words);
 #ifdef BW_LIM
 static int read_rate (KEYWORD *key, int wordcount, char **words);
 #endif
+#ifdef WITH_PERL
+static int read_perlvar (KEYWORD *key, int wordcount, char **words);
+#endif
 
 /* Helper functions for shared akas implementation */
 static int read_shares (KEYWORD *key, int wordcount, char **words);
@@ -764,6 +771,7 @@ static KEYWORD keywords[] =
   {"perl-hooks", read_string, work_config.perl_script, 'f', 0},
   {"perl-dll", read_string, work_config.perl_dll, 'f', 0},
   {"perl-strict", read_bool, &work_config.perl_strict, 0, 0},
+  {"perl-var", read_perlvar, &work_config.perl_vars, 0, 0},
 #endif
 
   {"nolog", read_mask, &work_config.nolog, 0, 0},
@@ -2436,3 +2444,19 @@ static int read_shares (KEYWORD *key, int wordcount, char **words)
 
   return 1;
 }
+
+#ifdef WITH_PERL
+static int read_perlvar (KEYWORD *key, int wordcount, char **words)
+{
+  struct perl_var new_entry;
+
+  if (wordcount != 2)
+    return SyntaxError(key);
+
+  new_entry.name = xstrdup(words[0]);
+  new_entry.val  = xstrdup(words[1]);
+  simplelist_add(key->var, &new_entry, sizeof(new_entry));
+  return 1;
+}
+#endif
+

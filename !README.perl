@@ -70,6 +70,7 @@ Common Data Structures
               filebox, brakebox, root_domain, check_pkthdr, pkthdr_badext
               (if compiled with zlib support:)
               zblksize, zminsize
+              and keys defined in binkd config as perl-var
 
 %domain - hash, each element corresponds to a domain (or alias):
               key - domain name

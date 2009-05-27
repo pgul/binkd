@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.37  2009/05/27 09:33:52  gul
+ * perl-var config keyword
+ * update $hosts by on_call() perl hook not only if it returns 2
+ *
  * Revision 2.36  2009/05/26 13:04:35  gul
  * New perl hooks:
  * need_reload() - is it needed to reload config
@@ -223,6 +227,11 @@ struct conflist_type
   time_t                mtime;
 };
 
+struct perl_var
+{
+  struct perl_var *next;
+  char            *name, *val;
+};
 
 struct _BINKD_CONFIG
 {
@@ -289,6 +298,9 @@ struct _BINKD_CONFIG
 #endif
 #ifdef BW_LIM
   DEFINE_LIST(ratechain)     rates;
+#endif
+#ifdef WITH_PERL
+  DEFINE_LIST(perl_var)      perl_vars;
 #endif
 
   /*
