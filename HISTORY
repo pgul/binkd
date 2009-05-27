@@ -1,3 +1,7 @@
+2009/05/27 12:49:54 1.0a-530 gul
+readcfg.c,2.92,2.93
+Free perl-vars on unloading config
+
 2009/05/27 12:33:55 1.0a-529 gul
 !README.perl,2.10,2.11 binkd.cfg,2.53,2.54 perlhooks.c,2.62,2.63 readcfg.c,2.91,2.92 readcfg.h,2.36,2.37 todo.lst,2.48,2.49
 perl-var config keyword
