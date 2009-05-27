@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.93  2009/05/27 09:49:52  gul
+ * Free perl-vars on unloading config
+ *
  * Revision 2.92  2009/05/27 09:33:52  gul
  * perl-var config keyword
  * update $hosts by on_call() perl hook not only if it returns 2
@@ -519,6 +522,16 @@ static void destroy_rate(void *p)
 }
 #endif
 
+#ifdef WITH_PERL
+static void destroy_perlvars(void *p)
+{
+  struct perl_var *pp = p;
+
+  xfree(pp->name);
+  xfree(pp->val);
+}
+#endif
+
 /*#ifdef HTTPS
 static void destroy_proxy(void *p)
 {
@@ -600,6 +613,9 @@ void unlock_config_structure(BINKD_CONFIG *c)
 #endif
 #ifdef BW_LIM
     simplelist_free(&c->rates.linkpoint,       destroy_rate);
+#endif
+#ifdef WITH_PERL
+    simplelist_free(&c->perl_vars.linkpoint,   destroy_perlvars);
 #endif
 
 /*
