@@ -149,11 +149,9 @@ Session Data
   $z_send        +     use compression on being sent file if set to 1
   $z_recv        +     use compression on being received file if set to 1
 
-  Queue (@queue) is available to hooks if $want_queue is set. If, in addition,
-  $manage_queue is set then @queue is transferred back to binkd upon successful
-  Perl subroutine call. In this case binkd logic for queue sorting is off, 
-  so you can (actually, _should_) sort queue manually in Perl.
-
+  Queue (@queue) can me modified (including reordering) only in following hooks:
+  after_handshake, after_recv, before_send.
+ 
   In level 3 session hooks (after_session) queue still can be defined, but it
   is of little use at that time.
 
@@ -165,7 +163,7 @@ Session Data
     sent   - 1 if file is being sent or is already sent
     flvr   - flavour (upper- or lowercase chars "icdofh")
     action - action to be done upon completion ('d'elete, 't'runcate, '')
-    type   - file type ('m'ail, 'f'ilelist, 'r'equst, 's'tatus, '')
+    type   - file type ('m'ail, 'l'o, 'r'equst, 's'tatus, 'd'ir, '')
     addr   - aka the file is destined for
 
   Actually, binkd doesn't always care to provide size and time :-) And the

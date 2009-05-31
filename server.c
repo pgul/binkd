@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.43  2009/05/31 07:16:17  gul
+ * Warning: many changes, may be unstable.
+ * Perl interpreter is now part of config and rerun on config reload.
+ * Perl 5.10 compatibility.
+ * Changes in outbound queue managing and sorting.
+ *
  * Revision 2.42  2009/02/04 20:13:47  gul
  * Possible remote DoS (thx to Konstantin Kuzov 2:5019/40)
  *
@@ -241,7 +247,7 @@ static void serv (void *arg)
   del_socket(h);
   soclose (h);
   free (arg);
-  unlock_config_structure(config);
+  unlock_config_structure(config, 0);
   rel_grow_handles (-6);
 #ifdef HAVE_THREADS
   threadsafe(--n_servers);
@@ -406,7 +412,7 @@ void servmgr (void)
 
     config = lock_current_config();
     status = do_server(config);
-    unlock_config_structure(config);
+    unlock_config_structure(config, 0);
 
     soclose(sockfd);
     sockfd = INVALID_SOCKET;

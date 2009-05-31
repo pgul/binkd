@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.41  2009/05/31 07:16:16  gul
+ * Warning: many changes, may be unstable.
+ * Perl interpreter is now part of config and rerun on config reload.
+ * Perl 5.10 compatibility.
+ * Changes in outbound queue managing and sorting.
+ *
  * Revision 2.40  2004/10/18 15:22:19  gul
  * Change handle perl errors method
  *
@@ -280,24 +286,16 @@ void exitfunc (void)
     bsy_remove_all (config);
   sock_deinit ();
   nodes_deinit ();
-#ifdef WITH_PERL
-#  ifdef HAVE_FORK
-Log(7, "exitfunc(): pid=%d, cmgr=%d, smgr=%d, inetd=%d", getpid(), pidCmgr, pidsmgr, inetd_flag);
-  if (inetd_flag) perl_done(1);
-  else if (!pidsmgr && pidCmgr == (int) getpid()) perl_done(1);
-  else if (pidsmgr == (int) getpid()) perl_done(1);
-  else perl_done(0);
-#  else
-  perl_done(1);
-#  endif
-#endif
   if (config)
   {
     if (*config->pid_file && pidsmgr == (int) getpid ())
       delete (config->pid_file);
-    unlock_config_structure(config);
-
-  /*  unlock_config_structure(config); */ /* completely unload config */
+	/* completely unload config */
+#ifdef HAVE_FORK
+    unlock_config_structure(config, inetd_flag || (!pidsmgr && pidCmgr == (int) getpid()) || (pidsmgr == (int) getpid()));
+#else
+    unlock_config_structure(config, 1);
+#endif
   }
   CleanSem (&config_sem);
   CleanSem (&hostsem);

@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.66  2009/05/31 07:16:16  gul
+ * Warning: many changes, may be unstable.
+ * Perl interpreter is now part of config and rerun on config reload.
+ * Perl 5.10 compatibility.
+ * Changes in outbound queue managing and sorting.
+ *
  * Revision 2.65  2007/10/13 05:35:15  gul
  * play around checkcfg()
  *
@@ -389,7 +395,7 @@ static int do_client(BINKD_CONFIG *config)
       args.config = config;
       if ((pid = branch (call, &args, sizeof (args))) < 0)
       {
-        unlock_config_structure(config);
+        unlock_config_structure(config, 0);
         rel_grow_handles (-6);
         threadsafe(--n_clients);
         PostSem(&eothread);
@@ -403,7 +409,7 @@ static int do_client(BINKD_CONFIG *config)
       {
         Log (5, "started client #%i, id=%i", n_clients, pid);
 #if defined(HAVE_FORK) && !defined(AMIGA)
-        unlock_config_structure(config); /* Forked child has own copy */
+        unlock_config_structure(config, 0); /* Forked child has own copy */
 #endif
       }
 #endif
@@ -434,6 +440,10 @@ static int do_client(BINKD_CONFIG *config)
 void clientmgr (void *arg)
 {
   int status;
+  BINKD_CONFIG *config = NULL;
+#if defined(WITH_PERL) && defined(HAVE_THREADS)
+  void *cperl = NULL;
+#endif
 
   UNUSED_ARG(arg);
 
@@ -446,16 +456,32 @@ void clientmgr (void *arg)
   pidcmgr = PID();
 #endif
 
+  config = lock_current_config();
+#if defined(WITH_PERL) && defined(HAVE_THREADS)
+  if (server_flag)
+    perl_init_clone(config);
+#endif
+
   setproctitle ("client manager");
   Log (4, "clientmgr started");
 
   for (;;)
   {
-    BINKD_CONFIG *config;
-
-    config = lock_current_config();
+    if (config != current_config)
+    {
+#if defined(WITH_PERL) && defined(HAVE_THREADS)
+      if (server_flag && cperl)
+        perl_done_clone(cperl);
+#endif
+      if (config)
+        unlock_config_structure(config, 0);
+      config = lock_current_config();
+#if defined(WITH_PERL) && defined(HAVE_THREADS)
+      if (server_flag)
+        cperl = perl_init_clone(config);
+#endif
+	}
     status = do_client(config);
-    unlock_config_structure(config);
 
     if (status != 0 || binkd_exit) break;
 
@@ -468,6 +494,13 @@ void clientmgr (void *arg)
   }
 
   Log (5, "downing clientmgr...");
+
+#if defined(WITH_PERL) && defined(HAVE_THREADS)
+  if (server_flag && cperl)
+    perl_done_clone(cperl);
+#endif
+  unlock_config_structure(config, 0);
+
   unblockchld();
 #ifdef HAVE_THREADS
   pidcmgr = 0;
@@ -761,7 +794,7 @@ static void call (void *arg)
 #if defined(WITH_PERL) && defined(HAVE_THREADS)
   perl_done_clone(cperl);
 #endif
-  unlock_config_structure(a->config);
+  unlock_config_structure(a->config, 0);
   free (arg);
   rel_grow_handles(-6);
 #ifdef HAVE_THREADS

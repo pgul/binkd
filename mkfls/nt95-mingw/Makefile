@@ -26,8 +26,8 @@ CFLAGS+= -mno-cygwin -mthreads -pipe -funsigned-char \
          -Wall -Wno-char-subscripts -Wno-comment
 
 CDEFS+=  -DHAVE_THREADS -DHAVE_UNISTD -DHAVE_INTTYPES_H -DHAVE_INTMAX_T \
-         -DWIN32 -DHAVE_IO_H -DHAVE_DOS_H -DHAVE_STDARG_H     \
-         -DHAVE_WAITPID -DHTTPS -DNTLM                        \
+         -DWIN32 -DHAVE_IO_H -DHAVE_DOS_H -DHAVE_STDARG_H               \
+         -DHAVE_WAITPID -DHTTPS -DNTLM -DHAVE_SNPRINTF -DHAVE_VSNPRINTF \
          -DAMIGADOS_4D_OUTBOUND -DHASATTRIBUTE -DNONAMELESSUNION
 
 LIBS+=   -lwsock32
@@ -91,6 +91,10 @@ endif
 
 ifdef PERL
 
+ifndef PERL_BASE
+PERL_BASE=${shell perl -mConfig -e 'print $$Config::Config{prefix};'}
+endif
+
 ifdef PERL_BASE
 PERL_INCL=$(PERL_BASE)/lib/CORE
 else
@@ -103,6 +107,7 @@ C_DIRS+= -idirafter "$(PERL_INCL)"
 
 ifdef PERLDL
 CDEFS+= -DPERLDL
+CFLAGS+= -fno-strict-aliasing
 BINKDNAME:=$(BINKDNAME)-perldl
 OUTDIR:=$(OUTDIR)-perldl
 BINKDTYPE:=$(BINKDTYPE), perldl
@@ -127,8 +132,8 @@ CDEFS+= -DWITH_ZLIB
 ZLIB_BZLIB2=1
 
 ifdef ZLIB_BASE
-C_DIRS+= -I "$(ZLIB_BASE)"
-L_DIRS+= -L "$(ZLIB_BASE)"
+C_DIRS+= -I "$(ZLIB_BASE)/include"
+L_DIRS+= -L "$(ZLIB_BASE)/lib"
 endif
 
 ifndef ZLIBDL
@@ -153,8 +158,8 @@ CDEFS+= -DWITH_BZLIB2
 ZLIB_BZLIB2=1
 
 ifdef BZLIB2_BASE
-C_DIRS+= -I "$(BZLIB2_BASE)"
-L_DIRS+= -L "$(BZLIB2_BASE)"
+C_DIRS+= -I "$(BZLIB2_BASE)/include"
+L_DIRS+= -L "$(BZLIB2_BASE)/lib"
 endif
 
 ifndef ZLIBDL

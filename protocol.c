@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.195  2009/05/31 07:16:17  gul
+ * Warning: many changes, may be unstable.
+ * Perl interpreter is now part of config and rerun on config reload.
+ * Perl 5.10 compatibility.
+ * Changes in outbound queue managing and sorting.
+ *
  * Revision 2.194  2009/02/14 13:14:43  gul
  * Bugfix: segfault on crafted input sequences,
  * possible remote DoS for multithread versions (win32 and OS/2).
@@ -774,7 +780,7 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to, BINKD_CONFI
 #endif
   state->delay_ADR = (config->akamask.first != NULL) ? 1 : 0;
 #ifdef WITH_PERL
-  state->delay_ADR |= (perl_ok & (1<<4)) != 0;
+  state->delay_ADR |= (config->perl_ok & (1<<4)) != 0;
 #endif
   state->delay_EOB = 0;
   state->state_ext = P_NA;
@@ -802,6 +808,7 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to, BINKD_CONFI
   state->ND_addr.z = -1;
   state->start_time = safe_time();
   state->evt_queue = NULL;
+  state->config = config;
   Log (6, "binkp init done, socket # is %i", state->s);
   return 1;
 }
@@ -2081,7 +2088,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
   if (!state->to)
   {
 #ifdef WITH_PERL
-    char *s = perl_on_handshake(state, config);
+    char *s = perl_on_handshake(state);
     if (s && *s) {
       Log (1, "aborted by Perl on_handshake(): %s", s);
       msg_send2 (state, M_ERR, s, 0);
@@ -2173,6 +2180,8 @@ static int complete_login (STATE *state, BINKD_CONFIG *config)
   state->inbound = select_inbound (state->fa, state->state, config);
   if (OK_SEND_FILES (state, config) && state->q == NULL)
     state->q = q_scan_addrs (0, state->fa, state->nfa, state->to ? 1 : 0, config);
+  if (OK_SEND_FILES (state, config))
+    state->q = q_sort (state->q, state->fa, state->nfa, config);
   state->msgs_in_batch = 0;	       /* Forget about login msgs */
   if (state->state == P_SECURE)
     Log (2, "pwd protected session (%s)",
@@ -3381,7 +3390,7 @@ static int banner (STATE *state, BINKD_CONFIG *config)
 
 #ifdef WITH_PERL
   if (state->to) {
-    char *s = perl_on_handshake(state, config);
+    char *s = perl_on_handshake(state);
     if (s && *s) {
       Log (1, "aborted by Perl on_handshake(): %s", s);
       msg_send2 (state, M_ERR, s, 0);
@@ -3753,7 +3762,10 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
 	  state.msgs_in_batch = 0;
 	  state.remote_EOB = state.local_EOB = 0;
 	  if (OK_SEND_FILES (&state, config))
+      {
 	    state.q = q_scan_boxes (state.q, state.fa, state.nfa, state.to ? 1 : 0, config);
+        state.q = q_sort(state.q, state.fa, state.nfa, config);
+      }
 	  continue;
 	}
       }

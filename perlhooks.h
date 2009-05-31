@@ -14,6 +14,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2009/05/31 07:16:17  gul
+ * Warning: many changes, may be unstable.
+ * Perl interpreter is now part of config and rerun on config reload.
+ * Perl 5.10 compatibility.
+ * Changes in outbound queue managing and sorting.
+ *
  * Revision 2.13  2009/05/26 13:04:35  gul
  * New perl hooks:
  * need_reload() - is it needed to reload config
@@ -70,33 +76,24 @@
 
 enum perl_skip_type { SKIP_ND=1, SKIP_D=2 };
 
-extern int perl_ok;            /* if sub is ok to run, its bit set to 1 */
 extern char *perl_subnames[];  /* names for perl subs */
 
-extern int perl_manages_queue; /* queue is managed from perl: sorting, etc */
-extern int perl_wants_queue;   /* export queue to perl subs */
-
-extern int perl_errpid;        /* pid or tid which handle perl errors */
-
 int perl_init(char *, BINKD_CONFIG *); /* init root perl, parse hooks file, return success */
-void perl_setup(BINKD_CONFIG *);       /* set config vars to root perl */
-void perl_done(int);                   /* deallocate root perl, call on_exit() if arg=1 */
+void perl_done(BINKD_CONFIG *, int);   /* deinit perl */
 #ifdef HAVE_THREADS
 void *perl_init_clone(BINKD_CONFIG *); /* clone root perl */
 void perl_done_clone(void *);          /* destruct a clone */
 #endif
 
-void perl_on_start(void);              /* start, after init */
-void perl_on_exit(void);               /* exit, just before destruction */
-
+void perl_on_start(BINKD_CONFIG *cfg); /* start, after init */
 int perl_on_call(FTN_NODE *, BINKD_CONFIG *, char **hosts
 #ifdef HTTPS
 		 , char **proxy, char **socks
 #endif
 			); /* before outgoing call */
-int perl_on_error(FTN_ADDR *, const char *, const int); /* on errors: bad_try() */
-char *perl_on_handshake(STATE *, BINKD_CONFIG *);       /* before xmitting ADR */
-char *perl_after_handshake(STATE *);   /* after handshake complete */
+int perl_on_error(BINKD_CONFIG *, FTN_ADDR *, const char *, const int); /* on errors: bad_try() */
+char *perl_on_handshake(STATE *);       /* before xmitting ADR */
+char *perl_after_handshake(STATE *);    /* after handshake complete */
 void perl_after_session(STATE *, char *); /* after session done */
 
 int perl_before_recv(STATE *, off_t offs); /* before receiving file */
@@ -110,8 +107,8 @@ int perl_on_log(char *, int, int *);   /* when writing string to log */
 int perl_on_send(STATE *, t_msg *, char **, char **); /* on msg_send2 */
 int perl_on_recv(STATE *, char *, int);               /* when recv a block */
 
-int perl_need_reload(struct conflist_type *, int);    /* need to reload config? */
-void perl_config_loaded(void);                        /* after load config */
+void perl_config_loaded(BINKD_CONFIG *cfg); /* config loaded */
+int perl_need_reload(BINKD_CONFIG *, struct conflist_type *, int);    /* need to reload config? */
 
 #ifdef BW_LIM
 int perl_setup_rlimit(STATE *, BW *, char *);

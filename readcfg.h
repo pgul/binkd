@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.38  2009/05/31 07:16:17  gul
+ * Warning: many changes, may be unstable.
+ * Perl interpreter is now part of config and rerun on config reload.
+ * Perl 5.10 compatibility.
+ * Changes in outbound queue managing and sorting.
+ *
  * Revision 2.37  2009/05/27 09:33:52  gul
  * perl-var config keyword
  * update $hosts by on_call() perl hook not only if it returns 2
@@ -345,6 +351,8 @@ struct _BINKD_CONFIG
   char       perl_script[MAXPATHLEN + 1];
   char       perl_dll[MAXPATHLEN + 1];
   int        perl_strict;
+  void       *perl;
+  int        perl_ok;
 #endif
 
 };
@@ -359,7 +367,7 @@ extern int syslog_facility;
  * Parses and reads the path as a config
  * Return 1 if config has been loaded Ok
  */
-int readcfg (char *path);
+BINKD_CONFIG *readcfg (char *path);
 
 /*
  * Checking for changed config files and reloading if necessary.
@@ -386,7 +394,7 @@ void lock_config_structure(BINKD_CONFIG *c);
 /*
  * Release config structure after usage
  */
-void unlock_config_structure(BINKD_CONFIG *c);
+void unlock_config_structure(BINKD_CONFIG *c, int on_exit);
 
 /*
  * Lists

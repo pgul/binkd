@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.101  2009/05/31 07:16:16  gul
+ * Warning: many changes, may be unstable.
+ * Perl interpreter is now part of config and rerun on config reload.
+ * Perl 5.10 compatibility.
+ * Changes in outbound queue managing and sorting.
+ *
  * Revision 2.100  2009/05/26 13:04:35  gul
  * New perl hooks:
  * need_reload() - is it needed to reload config
@@ -852,12 +858,16 @@ int main (int argc, char *argv[], char *envp[])
 
   if (configpath)
   {
-    readcfg (configpath);
+    current_config = readcfg (configpath);
+    if (!current_config)
+      Log (0, "error in configuration, aborting");
     if (dumpcfg_flag)
     {
       debug_readcfg ();
       exit(0);
     }
+    InitLog(current_config->loglevel, current_config->conlog,
+            current_config->logpath, current_config->nolog.first);
   }
   else if (verbose_flag)
   {
@@ -927,11 +937,13 @@ int main (int argc, char *argv[], char *envp[])
 
 #ifdef WITH_PERL
   if (current_config->perl_script[0]) {
-    int ok = perl_init(current_config->perl_script, current_config);
-    if (ok)
-      perl_config_loaded();
-    else if (current_config->perl_strict)
-      Log (0, "error parsing Perl script %s", current_config->perl_script);
+    if (!perl_init(current_config->perl_script, current_config)) {
+      if (current_config->perl_strict)
+        Log (0, "error parsing Perl script %s", current_config->perl_script);
+    } else {
+      perl_on_start(current_config);
+      perl_config_loaded(current_config);
+    }
   }
 #endif
 

@@ -14,6 +14,12 @@
 /* $Id$
  *
  * $Log$
+ * Revision 2.11  2009/05/31 07:16:17  gul
+ * Warning: many changes, may be unstable.
+ * Perl interpreter is now part of config and rerun on config reload.
+ * Perl 5.10 compatibility.
+ * Changes in outbound queue managing and sorting.
+ *
  * Revision 2.10  2005/10/02 15:03:11  gul
  * Fileboxes did not works for unlisted nodes
  *
@@ -100,6 +106,11 @@ FTNQ *q_scan_addrs (FTNQ *q, FTN_ADDR *fa, int n, int to, BINKD_CONFIG *config);
  * Scans fileboxes for n akas stored in fa
  */
 FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n, int to, BINKD_CONFIG *config);
+
+/*
+ * Sort files in the queue
+ */
+FTNQ *q_sort (FTNQ *q, FTN_ADDR *fa, int nAka, BINKD_CONFIG *cfg);
 
 /*
  * 0 = the queue is empty.

@@ -17,6 +17,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30  2009/05/31 07:16:17  gul
+ * Warning: many changes, may be unstable.
+ * Perl interpreter is now part of config and rerun on config reload.
+ * Perl 5.10 compatibility.
+ * Changes in outbound queue managing and sorting.
+ *
  * Revision 2.29  2006/10/19 11:12:54  stas
  * Fix segmentation fault in mingw build (illegal fprintf format string)
  *
@@ -224,7 +230,7 @@
 #endif
 
 #ifdef __MINGW32__
-  #define sleep(a) _sleep((a)*1000ul)
+  #define sleep(a) Sleep((a)*1000)
   #define pipe(h)  _pipe(h, 0, 64)
 #endif
 

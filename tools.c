@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.72  2009/05/31 07:16:17  gul
+ * Warning: many changes, may be unstable.
+ * Perl interpreter is now part of config and rerun on config reload.
+ * Perl 5.10 compatibility.
+ * Changes in outbound queue managing and sorting.
+ *
  * Revision 2.71  2006/08/09 07:09:11  gul
  * cosmetic fix
  *
@@ -593,7 +599,7 @@ void Log (int lev, char *s,...)
   if (!perl_on_log(buf, sizeof(buf), &lev)) ok = 0;
 #endif
   /* match against nolog */
-  if ( mask_test(buf, current_nolog) != NULL ) ok = 0;
+  if (mask_test(buf, current_nolog) != NULL ) ok = 0;
   /* log output */
   if (ok)
 { /* if (ok) */

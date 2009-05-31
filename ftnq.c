@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.38  2009/05/31 07:16:16  gul
+ * Warning: many changes, may be unstable.
+ * Perl interpreter is now part of config and rerun on config reload.
+ * Perl 5.10 compatibility.
+ * Changes in outbound queue managing and sorting.
+ *
  * Revision 2.37  2005/11/03 11:39:23  stas
  * Fix warning about signed-unsigned incompatibility
  *
@@ -407,8 +413,7 @@ static struct {
 
 static FTNQ *q_scan_box (FTNQ *q, FTN_ADDR *fa, char *boxpath, char flvr, int deleteempty, BINKD_CONFIG *config)
 {
-  FTNQ *files = NULL;
-  int n_files = 0, i;
+  int n_files = 0;
   DIR *dp;
   char buf[MAXPATHLEN + 1], *s;
   struct dirent *de;
@@ -442,12 +447,8 @@ static FTNQ *q_scan_box (FTNQ *q, FTN_ADDR *fa, char *boxpath, char flvr, int de
 #endif
          )
       {
-	files = xrealloc (files, sizeof (FTNQ) * (n_files + 1));
-	strcpy (files[n_files].path, buf);
-	files[n_files].time = sb.st_mtime;
-	memcpy (&files[n_files].fa, fa, sizeof (FTN_ADDR));
-	files[n_files].flvr = flvr;
-	++n_files;
+        q = q_add_file (q, buf, fa, flvr, 'd', 0, config);
+        n_files++;
       }
       *s = 0;
     }
@@ -458,14 +459,6 @@ static FTNQ *q_scan_box (FTNQ *q, FTN_ADDR *fa, char *boxpath, char flvr, int de
       else
         Log (1, "Cannot delete empty filebox %s: %s", boxpath, strerror (errno));
     }
-  }
-  if (files)
-  {
-    qsort (files, n_files, sizeof (FTNQ),
-	   (int (*) (const void *, const void *)) cmp_filebox_files);
-    for (i = 0; i < n_files; ++i)
-      q = q_add_file (q, files[i].path, &files[i].fa, files[i].flvr, 'd', 0, config);
-    free (files);
   }
   return q;
 }
@@ -953,74 +946,88 @@ void q_list (FILE *out, FTNQ *q, BINKD_CONFIG *config)
   }
 }
 
+static int q_cmp(FTNQ *a, FTNQ *b, FTN_ADDR *fa, int nAka)
+{
+  int i;
+
+  /* 1. Do not sort sent files, move its to the end of queue */
+  if (a->sent || b->sent)
+    return b->sent - a->sent;
+  /* 2. Compare AKA */
+  if (!ftnaddress_cmp (&a->fa, &b->fa)) {
+    if (FA_ISNULL(&a->fa)) return -1;
+    if (FA_ISNULL(&b->fa)) return 1;
+    for (i = 0; i < nAka; i++) {
+      if (!ftnaddress_cmp (&a->fa, fa + i)) return -1;
+      if (!ftnaddress_cmp (&b->fa, fa + i)) return 1;
+    }
+    /* Files for different unknown akas? Hmm... */
+  }
+  /* 3. Compare status */
+  if (a->type != b->type) {
+    char typeorder[] = { 's', 'r', 'm', 'l', 'd' };
+    for (i = 0; i < sizeof(typeorder)/sizeof(typeorder[0]); i++) {
+      if (a->type == typeorder[i]) return -1;
+      if (b->type == typeorder[i]) return 1;
+    }
+    /* Different unknown types? Hmm... */
+  }
+  /* 4. Compare files in filebox */
+  if (a->type == 'd' && b->type == 'd') {
+    return cmp_filebox_files(a, b);
+  }
+  /* No differences */
+  return 0;
+}
+
+FTNQ *q_sort (FTNQ *q, FTN_ADDR *fa, int nAka, BINKD_CONFIG *cfg)
+{
+  /*
+   * InsertSort
+   * You're free to improve this function, replace it with 
+   * quick/merge/heap or any other effective sorting algorithm
+   */
+  FTNQ *head, *tail, *qnext, *cur;
+
+  if (q == NULL) return q;
+  qnext = q->next;
+  head = tail = q;
+  q->next = NULL;
+  while ((q = qnext)) {
+    qnext = q->next;
+    /* insert q into new queue */
+    for (cur = head; cur; cur = cur->next) {
+      if (q_cmp(cur, q, fa, nAka) > 0)
+        break;
+    }
+    q->next = cur;
+    if (cur) {
+      q->prev = cur->prev;
+      if (cur->prev)
+        cur->prev->next = q;
+      else
+        head = q;
+      cur->prev = q;
+    } else {
+      q->prev = tail;
+      tail->next = q;
+      tail = q;
+    }
+  }
+  return head;
+}
+
 /*
  * Selects from q the next file for fa (Returns a pointer to a q element)
  */
 FTNQ *select_next_file (FTNQ *q, FTN_ADDR *fa, int nAka)
 {
-  int j, k;
   FTNQ *curr;
 
-#ifdef WITH_PERL
-  if (perl_manages_queue) { 
-    for (curr = q; curr; curr = curr->next) {
-      if (!curr->sent) { curr->sent = 1; return curr; }
-    }
-    return NULL;
+  for (curr = q; curr; curr = curr->next) {
+    if (!curr->sent) { curr->sent = 1; return curr; }
   }
-#endif
-
-  for (k = 0; k < nAka; ++k)
-  {
-    for (curr = q; curr; curr = curr->next)	/* Status first */
-    {
-      if (!curr->sent &&
-	  (FA_ISNULL (&curr->fa) || !ftnaddress_cmp (&curr->fa, fa + k)) &&
-	  curr->type == 's')
-      {
-	curr->sent = 1;
-	return curr;
-      }
-    }
-    for (curr = q; curr; curr = curr->next)	/* Freq before netmail */
-    {
-      if (!curr->sent &&
-	  (FA_ISNULL (&curr->fa) || !ftnaddress_cmp (&curr->fa, fa + k)) &&
-	  curr->type == 'r')
-      {
-	curr->sent = 1;
-	return curr;
-      }
-    }
-    for (j = 0; prio[j]; ++j)
-    {
-      for (curr = q; curr; curr = curr->next)	/* Netmail before files */
-      {
-	if (!curr->sent &&
-	    (FA_ISNULL (&curr->fa) || !ftnaddress_cmp (&curr->fa, fa + k)) &&
-	    curr->flvr == prio[j] &&
-	    curr->type == 'm')
-	{
-	  curr->sent = 1;
-	  return curr;
-	}
-      }
-    }
-    for (j = 0; prio[j]; ++j)
-    {
-      for (curr = q; curr; curr = curr->next)	/* Then go files and .flo */
-      {
-	if (!curr->sent &&
-	    (FA_ISNULL (&curr->fa) || !ftnaddress_cmp (&curr->fa, fa + k)) &&
-	    curr->flvr == prio[j])
-	{
-	  curr->sent = 1;
-	  return curr;
-	}
-      }
-    }
-  }
-  return 0;
+  return NULL;
 }
 
 /*
@@ -1262,7 +1269,7 @@ void bad_try (FTN_ADDR *fa, const char *error, const int where, BINKD_CONFIG *co
   unsigned nok, nbad;
 
 #ifdef WITH_PERL
-  perl_on_error(fa, error, where);
+  perl_on_error(config, fa, error, where);
 #else
   UNUSED_ARG(where);
 #endif

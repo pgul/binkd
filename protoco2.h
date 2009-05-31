@@ -2,6 +2,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.25  2009/05/31 07:16:17  gul
+ * Warning: many changes, may be unstable.
+ * Perl interpreter is now part of config and rerun on config reload.
+ * Perl 5.10 compatibility.
+ * Changes in outbound queue managing and sorting.
+ *
  * Revision 2.24  2007/09/04 06:04:50  gul
  * Use workaround of NR-mode bug only for binkd/0.9.4
  *
@@ -154,8 +160,8 @@ typedef struct _STATE STATE;
 struct _STATE
 {
   SOCKET s;
-  FTN_NODE *to;			/* Dest. address (if an outbound *
-				   connection) */
+  struct _BINKD_CONFIG *config;
+  FTN_NODE *to;			/* Dest. address (if an outbound connection) */
   char expected_pwd[MAXPWDLEN + 1];
 
   /* binkp buffres */

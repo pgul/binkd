@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.94  2009/05/31 07:16:17  gul
+ * Warning: many changes, may be unstable.
+ * Perl interpreter is now part of config and rerun on config reload.
+ * Perl 5.10 compatibility.
+ * Changes in outbound queue managing and sorting.
+ *
  * Revision 2.93  2009/05/27 09:49:52  gul
  * Free perl-vars on unloading config
  *
@@ -582,7 +588,7 @@ void lock_config_structure(BINKD_CONFIG *c)
  * Deregister config usage. When config is not used anymore,
  * free all dynamically allocated entries in configuration data
  */
-void unlock_config_structure(BINKD_CONFIG *c)
+void unlock_config_structure(BINKD_CONFIG *c, int on_exit)
 {
   int  usage;
 
@@ -593,6 +599,14 @@ void unlock_config_structure(BINKD_CONFIG *c)
   if (usage == 0)
   {
     /* Free all dynamic data here */
+
+    if (c != &work_config && !binkd_exit)
+      Log(4, "previous config is no longer in use, unloading");
+
+#ifdef WITH_PERL
+    if (c->perl)
+      perl_done(c, on_exit);
+#endif
 
     xfree(c->pAddr);
 
@@ -625,10 +639,7 @@ void unlock_config_structure(BINKD_CONFIG *c)
 */
 
     if (c != &work_config && !binkd_exit)
-    {
-      Log(4, "previous config is no longer in use, unloading");
       free(c);
-    }
   }
 }
 
@@ -1076,10 +1087,9 @@ static int readcfg0 (char *path)
 /*
  * Parses and reads _path as config.file
  */
-int readcfg (char *path)
+BINKD_CONFIG *readcfg (char *path)
 {
-  int  success = 0;
-  BINKD_CONFIG *new_config, *old_config;
+  BINKD_CONFIG *new_config = NULL;
 
   memset(&work_config, 0, sizeof(work_config));
   lock_config_structure(&work_config);
@@ -1141,40 +1151,23 @@ int readcfg (char *path)
 
       /* All checks passed! */
 
-      success = 1;
-
-      /* Set this config as current */
-
       new_config = xalloc(sizeof(work_config));
       memcpy(new_config, &work_config, sizeof(work_config));
-
-      InitLog(new_config->loglevel, new_config->conlog,
-              new_config->logpath, new_config->nolog.first);
-
-      LockSem(&config_sem);
-      old_config = current_config;
-      current_config = new_config;
-      ReleaseSem(&config_sem);
-
-      if (old_config)
-        unlock_config_structure(old_config);
 
     } while (0);
   }
 
-  if (!success)
+  if (!new_config)
   {
     /* Config error. Abort or continue? */
-    if (current_config == NULL)
-      Log(0, "error in configuration, aborting");
-    else
+    if (current_config)
     {
       Log(1, "error in configuration, using old config");
-      unlock_config_structure(&work_config);
+      unlock_config_structure(&work_config, 0);
     }
   }
 
-  return success;
+  return new_config;
 }
 
 /*
@@ -1186,7 +1179,8 @@ int checkcfg(void)
 {
   struct stat sb;
   struct conflist_type *pc;
-  int need_reload, ok;
+  int need_reload;
+  BINKD_CONFIG *new_config, *old_config;
 
 #ifdef HAVE_FORK
   need_reload = got_sighup;
@@ -1214,11 +1208,10 @@ int checkcfg(void)
   }
 
 #ifdef WITH_PERL
-  ok = perl_need_reload(current_config->config_list.first, need_reload);
-  if (ok == 1)
-    need_reload = 1;
-  else if (ok == 2)
-    need_reload = 0;
+  switch (perl_need_reload(current_config, current_config->config_list.first, need_reload))
+  { case 1: need_reload = 1; break;
+    case 2: need_reload = 0; break;
+  }
 #endif
 
   if (!need_reload)
@@ -1226,13 +1219,58 @@ int checkcfg(void)
   /* Reload starting from first file in list */
   Log(2, "Reloading configuration...");
   pc = current_config->config_list.first;
-  ok = readcfg(pc->path);
+  new_config = readcfg(pc->path);
 
 #ifdef WITH_PERL
-  if (ok) perl_config_loaded();
+#if defined(HAVE_THREADS) || defined(PERL_MULTIPLICITY)
+  if (new_config && new_config->perl_script[0])
+  {
+    if (!perl_init(new_config->perl_script, new_config))
+      if (new_config->perl_strict)
+      {
+        Log (1, "error parsing Perl script %s, using old config", new_config->perl_script);
+        unlock_config_structure(new_config, 0);
+        new_config = NULL;
+      }
+  }
+#else
+  if (new_config)
+  {
+    if (current_config && current_config->perl)
+      perl_done(current_config, 0);
+    if (new_config->perl_script[0])
+    {
+      if (!perl_init(new_config->perl_script, new_config))
+        if (new_config->perl_strict)
+          Log (0, "error parsing Perl script %s", new_config->perl_script);
+    }
+  }
+#endif
 #endif
 
-  return ok;
+  if (new_config)
+  {
+    InitLog(new_config->loglevel, new_config->conlog,
+            new_config->logpath, new_config->nolog.first);
+
+#ifdef WITH_PERL
+    /* before change current_config,
+     * because clone to clientmanager should be after config_loaded() call
+     */
+    perl_config_loaded(new_config);
+#endif
+
+    LockSem(&config_sem);
+    old_config = current_config;
+    current_config = new_config;
+    ReleaseSem(&config_sem);
+
+    if (old_config)
+      unlock_config_structure(old_config, 0);
+
+  }
+
+  return (new_config ? 1 : 0);
 }
 
 /*
