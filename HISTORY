@@ -1,3 +1,10 @@
+2009/05/31 10:16:50 1.0a-531 gul
+!README.perl,2.11,2.12 binkd.c,2.100,2.101 client.c,2.65,2.66 exitproc.c,2.40,2.41 ftnq.c,2.37,2.38 ftnq.h,2.10,2.11 perlhooks.c,2.63,2.64 perlhooks.h,2.13,2.14 protoco2.h,2.24,2.25 protocol.c,2.194,2.195 readcfg.c,2.93,2.94 readcfg.h,2.37,2.38 server.c,2.42,2.43 sys.h,2.29,2.30 tools.c,2.71,2.72
+Warning: many changes, may be unstable.
+Perl interpreter is now part of config and rerun on config reload.
+Perl 5.10 compatibility.
+Changes in outbound queue managing and sorting.
+
 2009/05/27 12:49:54 1.0a-530 gul
 readcfg.c,2.92,2.93
 Free perl-vars on unloading config
