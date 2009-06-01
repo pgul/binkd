@@ -50,7 +50,7 @@ install: compile .version
 	./mkinstalldirs $(prefix)/sbin
 	$(INSTALL) $(APPL) $(prefix)/sbin/$(APPL)-`cat .version`
 	rm -f $(prefix)/sbin/$(APPL)
-	ln -s $(prefix)/sbin/$(APPL)-`cat .version` $(prefix)/sbin/$(APPL)
+	(VER=`cat .version` ; cd $(prefix)/sbin ; ln -s $(APPL)-$$VER $(APPL) )
 	./mkinstalldirs $(prefix)/man/man8
 	$(INSTALL) -m 644 $(APPL).8 $(prefix)/man/man8/$(APPL).8
 	./mkinstalldirs $(CONFDIR)
