@@ -23,19 +23,42 @@ ifdef NOFORK
 CFLAGS+=-DDEBUGCHILD
 endif
 
+ifdef PERL
+PERLDIR=$(shell perl -MConfig -e "print $$Config{archlib}")
+CFLAGS+= -DWITH_PERL -DPERL_MULTITHREAD -DDOSISH -DEMBED -DOS2=2 \
+         -D_EMX_CRT_REV_=64 -I$(PERLDIR)/CORE
+#CFLAGS+= -D__ST_MT_ERRNO__
+LFLAGS+= -L$(PERLDIR)/CORE -Zstack 16000
+LIBS:= $(PERLDIR)/auto/DynaLoader/DynaLoader.lib \
+       -llibperl -lm -lbsd -ldb $(LIBS)
+SRCS+= perlhooks.c
+endif
+
 ifdef ZLIB
 COMPRESS=1
 CFLAGS+= -DWITH_ZLIB=1
+ifdef ZLIB_DIR
+CFLAGS+= -I$(ZLIB_DIR)/include
+endif
 ifndef ZLIBDL
 LIBS:=-lz $(LIBS)
+ifdef ZLIB_DIR
+LFLAGS+= -L$(ZLIB_DIR)/lib
+endif
 endif
 endif
 
 ifdef BZLIB2
 COMPRESS=1
 CFLAGS+= -DWITH_BZLIB2=1
+ifdef BZLIB2_DIR
+CFLAGS+= -I$(BZLIB2_DIR)/include
+endif
 ifndef ZLIBDL
 LIBS:=-lbz2 $(LIBS)
+ifdef BZLIB2_DIR
+LFLAGS+= -L$(BZLIB2_DIR)/lib
+endif
 endif
 endif
 
@@ -58,6 +81,8 @@ all: binkd2eo.exe
 .c.obj:
 	@echo Compiling $<...
 	@$(CC) -c $(CFLAGS) -o $@ $<
+
+.DELETE_ON_ERROR:
 
 binkd2eo.exe: $(OBJS)
 	@echo Linking $@...

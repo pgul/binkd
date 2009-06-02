@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.73  2009/06/02 17:09:35  gul
+ * Build binkd for OS/2 with perl support
+ *
  * Revision 2.72  2009/05/31 07:16:17  gul
  * Warning: many changes, may be unstable.
  * Perl interpreter is now part of config and rerun on config reload.
@@ -1114,6 +1117,13 @@ char **mkargv (int argc, char **argv)
 {
   int i;
   char **p;
+
+  if (argv == NULL)
+    return NULL;
+
+  if (argc == 0)
+    while (argv[argc])
+      argc++;
 
   p = (char **) xalloc ((argc + 1) * sizeof (*p));
 

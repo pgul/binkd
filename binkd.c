@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.102  2009/06/02 17:09:34  gul
+ * Build binkd for OS/2 with perl support
+ *
  * Revision 2.101  2009/05/31 07:16:16  gul
  * Warning: many changes, may be unstable.
  * Perl interpreter is now part of config and rerun on config reload.
@@ -453,6 +456,7 @@ static SOCKET inetd_socket = 0;
 #endif
 
 char *configpath = NULL;               /* Config file name */
+char **saved_envp;
 
 #ifdef HAVE_FORK
 
@@ -802,6 +806,8 @@ int main (int argc, char *argv[], char *envp[])
 #else
   configpath = parseargs(argc, argv);
 #endif
+
+  saved_envp = mkargv (0, envp);
 
 #ifdef WIN32
   if (service_flag==w32_installservice && !configpath)

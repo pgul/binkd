@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2009/06/02 17:09:35  gul
+ * Build binkd for OS/2 with perl support
+ *
  * Revision 2.12  2004/01/03 12:17:43  stas
  * Implement full icon support (winNT/2k/XP)
  *
@@ -172,6 +175,13 @@ extern EVENTSEM exitcmgr;
 #define lockresolvsem()		LockSem(&resolvsem)
 #define releaseresolvsem()	ReleaseSem(&resolvsem)
 #define threadsafe(exp)		LockSem(&varsem); exp; ReleaseSem(&varsem)
+#if defined(PERL_MULTITHREAD)
+#define lockperlsem()		LockSem(&perlsem);
+#define releaseperlsem()	ReleaseSem(&perlsem);
+#else
+#define lockperlsem()
+#define releaseperlsem()
+#endif
 #ifdef OS2
 extern MUTEXSEM fhsem;
 #endif
@@ -183,6 +193,8 @@ extern MUTEXSEM iconsem;
 #define releasehostsem()
 #define lockresolvsem()
 #define releaseresolvsem()
+#define lockperlsem()
+#define releaseperlsem()
 #define threadsafe(exp)		exp
 #endif
 

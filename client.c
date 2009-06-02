@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67  2009/06/02 17:09:35  gul
+ * Build binkd for OS/2 with perl support
+ *
  * Revision 2.66  2009/05/31 07:16:16  gul
  * Warning: many changes, may be unstable.
  * Perl interpreter is now part of config and rerun on config reload.
@@ -459,7 +462,7 @@ void clientmgr (void *arg)
   config = lock_current_config();
 #if defined(WITH_PERL) && defined(HAVE_THREADS)
   if (server_flag)
-    perl_init_clone(config);
+    cperl = perl_init_clone(config);
 #endif
 
   setproctitle ("client manager");
@@ -480,7 +483,7 @@ void clientmgr (void *arg)
       if (server_flag)
         cperl = perl_init_clone(config);
 #endif
-	}
+    }
     status = do_client(config);
 
     if (status != 0 || binkd_exit) break;
