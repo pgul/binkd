@@ -1,3 +1,7 @@
+2009/06/02 20:10:12 1.0a-532 gul
+binkd.c,2.101,2.102 client.c,2.66,2.67 common.h,2.14,2.15 exitproc.c,2.41,2.42 perlhooks.c,2.64,2.65 perlhooks.h,2.14,2.15 sem.h,2.12,2.13 tools.c,2.72,2.73
+Build binkd for OS/2 with perl support
+
 2009/05/31 10:16:50 1.0a-531 gul
 !README.perl,2.11,2.12 binkd.c,2.100,2.101 client.c,2.65,2.66 exitproc.c,2.40,2.41 ftnq.c,2.37,2.38 ftnq.h,2.10,2.11 perlhooks.c,2.63,2.64 perlhooks.h,2.13,2.14 protoco2.h,2.24,2.25 protocol.c,2.194,2.195 readcfg.c,2.93,2.94 readcfg.h,2.37,2.38 server.c,2.42,2.43 sys.h,2.29,2.30 tools.c,2.71,2.72
 Warning: many changes, may be unstable.
