@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.67  2009/06/03 13:25:46  gul
+ * Fixed updating $hosts by on_hook() (broken in 1.0a-529)
+ *
  * Revision 2.66  2009/06/03 07:50:49  gul
  * $_ mistakenly set as read-only in need_reload() perl hook, fixed.
  *
@@ -1892,7 +1895,7 @@ int perl_on_call(FTN_NODE *node, BINKD_CONFIG *cfg, char **hosts
 #endif
 		) {
   char   buf[FTN_ADDR_SZ];
-  int    rc;
+  int    rc, rcok;
   uintmax_t netsize, filessize;
   FTNQ   *q;
   SV     *svret, *svhosts, *sv;
@@ -1923,12 +1926,14 @@ int perl_on_call(FTN_NODE *node, BINKD_CONFIG *cfg, char **hosts
       perl_call_pv(perl_subnames[PERL_ON_CALL], G_EVAL|G_SCALAR);
       SPAGAIN;
       svret=POPs;
-      if (!SvOK(svret)) rc = 1; else rc = SvIV(svret);
+      rcok = SvOK(svret);
+      if (rcok) rc = SvIV(svret);
+      else rc = 1;
       PUTBACK;
       FREETMPS;
       LEAVE;
       if (SvTRUE(ERRSV)) sub_err(PERL_ON_CALL);
-      else if (rc && SvOK(svret)) {
+      else if (rc && rcok) {
           STRLEN len;
           char *s;
           sv = perl_get_sv("hosts", FALSE);
