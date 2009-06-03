@@ -1,3 +1,7 @@
+2009/06/03 16:25:50 1.0a-534 gul
+perlhooks.c,2.66,2.67
+Fixed updating $hosts by on_hook() (broken in 1.0a-529)
+
 2009/06/03 10:50:57 1.0a-533 gul
 perlhooks.c,2.65,2.66
 $_ mistakenly set as read-only in need_reload() perl hook, fixed.
