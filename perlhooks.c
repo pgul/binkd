@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.66  2009/06/03 07:50:49  gul
+ * $_ mistakenly set as read-only in need_reload() perl hook, fixed.
+ *
  * Revision 2.65  2009/06/02 17:09:35  gul
  * Build binkd for OS/2 with perl support
  *
@@ -2567,7 +2570,7 @@ int perl_need_reload(BINKD_CONFIG *cfg, struct conflist_type *conflist, int need
         av_push(av, sv);
       }
       Log(LL_DBG2, "perl_need_reload(): @conflist done");
-      VK_ADD_intz (sv, "_", need_reload);
+      VK_ADD_intz (sv, "_", need_reload); if (sv) { SvREADONLY_off(sv); }
       ENTER;
       SAVETMPS;
       PUSHMARK(SP);
