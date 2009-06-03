@@ -1,3 +1,7 @@
+2009/06/03 10:50:57 1.0a-533 gul
+perlhooks.c,2.65,2.66
+$_ mistakenly set as read-only in need_reload() perl hook, fixed.
+
 2009/06/02 20:10:12 1.0a-532 gul
 binkd.c,2.101,2.102 client.c,2.66,2.67 common.h,2.14,2.15 exitproc.c,2.41,2.42 perlhooks.c,2.64,2.65 perlhooks.h,2.14,2.15 sem.h,2.12,2.13 tools.c,2.72,2.73
 Build binkd for OS/2 with perl support
