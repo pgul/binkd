@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.45  2009/06/12 17:42:56  gul
+ * close .hr
+ *
  * Revision 2.44  2008/11/25 09:35:26  gul
  * Segfault if garbage in *.hr
  *
@@ -230,25 +233,25 @@ static int creat_tmp_name (char *s, TFILE *file, FTN_ADDR *from, char *inbound)
     {
       if ((f = fopen (s, "w")) == 0)
       {
-	Log (1, "%s: %s", s, strerror (errno));
-	delete (s);
-	return 0;
+        Log (1, "%s: %s", s, strerror (errno));
+        delete (s);
+        return 0;
       }
       if (from) ftnaddress_to_str (node, from); else strcpy(node, "0:0/0.0@unknown");
       if (fprintf (f, "%s %" PRIuMAX " %" PRIuMAX " %s\n", file->netname,
                    (uintmax_t) file->size,
                    (uintmax_t) file->time, node) <= 0)
       {
-	Log (1, "%s: %s", s, strerror (errno));
-	fclose (f);
-	delete (s);
-	return 0;
+        Log (1, "%s: %s", s, strerror (errno));
+        fclose (f);
+        delete (s);
+        return 0;
       }
       if (fclose (f))
       {
-	Log (1, "%s: %s", s, strerror (errno));
-	delete (s);
-	return 0;
+        Log (1, "%s: %s", s, strerror (errno));
+        delete (s);
+        return 0;
       }
       break;
     }
@@ -305,7 +308,7 @@ static int find_tmp_name (char *s, TFILE *file, STATE *state, BINKD_CONFIG *conf
   {
     for (i = 0; i < 8; ++i)
       if (!isxdigit (de->d_name[i]))
-	break;
+        break;
     if (i < 8 || STRICMP (de->d_name + 8, ".hr"))
       continue;
     strnzcat (s, de->d_name, MAXPATHLEN);
@@ -316,9 +319,9 @@ static int find_tmp_name (char *s, TFILE *file, STATE *state, BINKD_CONFIG *conf
     }
     else if (fgets (buf, sizeof (buf), f)==NULL)
     {  /* This .hr is empty, now checks to old */
+      fclose (f);
       if (to_be_deleted (s, "unknown", (off_t)-1, config))
       {
-        fclose (f);
         Log (5, "old empty partial file %s is removed", de->d_name);
         remove_hr (s);
       }
@@ -331,61 +334,61 @@ static int find_tmp_name (char *s, TFILE *file, STATE *state, BINKD_CONFIG *conf
       fclose (f);
       FA_ZERO (&fa);
       for (i = 0; i < 4; ++i)
-	w[i] = getwordx (buf, i + 1, GWX_NOESC);
+        w[i] = getwordx (buf, i + 1, GWX_NOESC);
       if (!w[3])
       {
-	if (to_be_deleted (s, "unknown", (off_t)-1, config))
-	{
-	  Log (5, "old partial file %s with garbage is removed", de->d_name);
-	  remove_hr (s);
-	}
+        if (to_be_deleted (s, "unknown", (off_t)-1, config))
+        {
+          Log (5, "old partial file %s with garbage is removed", de->d_name);
+          remove_hr (s);
+        }
       }
       else
       {
-	i = -1;
-	if (parse_ftnaddress (w[3], &fa, config->pDomains.first))
-	  for (i = 0; i < state->nallfa; i++)
-	    if (!ftnaddress_cmp (&fa, state->fa + i))
-	      break;
+        i = -1;
+        if (parse_ftnaddress (w[3], &fa, config->pDomains.first))
+          for (i = 0; i < state->nallfa; i++)
+            if (!ftnaddress_cmp (&fa, state->fa + i))
+              break;
 
-	if (file == NULL)
-	{
-	  if (i >= 0 && i < state->nallfa && !state->skip_all_flag)
-	  {
-	    Log (5, "partial file %s removed", w[0]);
-	    remove_hr (s);
-	  }
-	}
-	else if (i >= 0 && !strcmp (w[0], file->netname))
-	{
-	  if (file->size == (off_t) strtoul (w[1], NULL, 10) &&
-	      (file->time & ~1) == (time_t) (strtoul (w[2], NULL, 10) & ~1) &&
-	      i < state->nallfa)
-	  { /* non-destructive skip file from busy aka */
-	    if (i >= state->nfa)
-	    {
-	      Log (2, "Skip partial file %s: aka %s busy", w[0], w[3]);
-	      for (i = 0; i < 4; ++i)
-	        xfree (w[i]);
-	      return 0;
-	    }
-	    else
-	      found = 1;
-	  }
-	  else if (config->kill_dup_partial_files && i < state->nallfa)
-	  {
-	    Log (5, "dup partial file %s removed", w[0]);
-	    remove_hr (s);
-	  }
-	}
-	else if (to_be_deleted (s, w[0], strtoul (w[1], NULL, 10), config))
-	{
-	  Log (5, "old partial file %s removed", w[0]);
-	  remove_hr (s);
-	}
+        if (file == NULL)
+        {
+          if (i >= 0 && i < state->nallfa && !state->skip_all_flag)
+          {
+            Log (5, "partial file %s removed", w[0]);
+            remove_hr (s);
+          }
+        }
+        else if (i >= 0 && !strcmp (w[0], file->netname))
+        {
+          if (file->size == (off_t) strtoul (w[1], NULL, 10) &&
+              (file->time & ~1) == (time_t) (strtoul (w[2], NULL, 10) & ~1) &&
+              i < state->nallfa)
+          { /* non-destructive skip file from busy aka */
+            if (i >= state->nfa)
+            {
+              Log (2, "Skip partial file %s: aka %s busy", w[0], w[3]);
+              for (i = 0; i < 4; ++i)
+                xfree (w[i]);
+              return 0;
+            }
+            else
+              found = 1;
+          }
+          else if (config->kill_dup_partial_files && i < state->nallfa)
+          {
+            Log (5, "dup partial file %s removed", w[0]);
+            remove_hr (s);
+          }
+        }
+        else if (to_be_deleted (s, w[0], strtoul (w[1], NULL, 10), config))
+        {
+          Log (5, "old partial file %s removed", w[0]);
+          remove_hr (s);
+        }
 
-	for (i = 0; i < 4; ++i)
-	  xfree (w[i]);
+        for (i = 0; i < 4; ++i)
+          xfree (w[i]);
       }
     }
     if (found)
@@ -435,7 +438,7 @@ fopen_again:
     Log (1, "%s: %s", buf, strerror (errno));
     return 0;
   }
-  fseek (f, 0, SEEK_END);	       /* Work-around MSVC bug */
+  fseek (f, 0, SEEK_END);               /* Work-around MSVC bug */
 
 #if defined(OS2)
   DosSetFHState(fileno(f), OPEN_FLAGS_NOINHERIT);
@@ -468,12 +471,12 @@ fopen_again:
       goto fopen_again;
     }
     if (req_free >= 0 &&
-	freespace < (state->in.size - sb.st_size + 1023) / 1024 + (unsigned long)req_free)
+        freespace < (state->in.size - sb.st_size + 1023) / 1024 + (unsigned long)req_free)
     {
       Log (1, "no enough free space in %s (%luK, req-d %" PRIuMAX "K)",
-	   (freespace == freespace2) ? state->inbound : config->temp_inbound,
-	   freespace,
-	   (uintmax_t) (state->in.size - sb.st_size + 1023) / 1024 + req_free);
+           (freespace == freespace2) ? state->inbound : config->temp_inbound,
+           freespace,
+           (uintmax_t) (state->in.size - sb.st_size + 1023) / 1024 + req_free);
       fclose (f);
       return 0;
     }
@@ -608,7 +611,7 @@ int inb_done (TFILE *file, STATE *state, BINKD_CONFIG *config)
       if (!RENAME (tmp_name, real_name))
       {
         Log (1, "%s -> %s%s", netname, real_name, unlinked?" (overwrited)":"");
-	break;
+        break;
       }
       if ((errno != EEXIST && errno != EACCES && errno != EAGAIN) || i==10)
       {
@@ -650,7 +653,7 @@ int inb_done (TFILE *file, STATE *state, BINKD_CONFIG *config)
           return 0;
         }
         Log (2, "error renaming `%s' to `%s': %s",
-	     netname, real_name, strerror (errno));
+             netname, real_name, strerror (errno));
       }
 
       if (isalpha (*s) && toupper (*s) != 'Z')
@@ -662,7 +665,7 @@ int inb_done (TFILE *file, STATE *state, BINKD_CONFIG *config)
       else if (*--s == '.' || *s == '\\' || *s == '/')
       {
         Log (1, "cannot rename %s to it's realname! (data stored in %s)",
-	     netname, tmp_name);
+             netname, tmp_name);
         *real_name = 0;
         return 0;
       }
@@ -696,7 +699,7 @@ int inb_done (TFILE *file, STATE *state, BINKD_CONFIG *config)
  * Checks if the file already exists in our inbound. !0=ok, 0=failed.
  */
 int inb_test (char *filename, off_t size, time_t t,
-	       char *inbound, char fp[])
+               char *inbound, char fp[])
 {
   char *s, *u;
   struct stat sb;
