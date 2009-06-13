@@ -1,4 +1,10 @@
-binkd1 (1.0-a.531) unstable; urgency=low
+binkd1 (1.0~a.535) unstable; urgency=low
+
+  * Fix man page path
+
+ -- Stas Degteff <stas_degteff@users.sourceforge.net>  Sun, 14 Jun 2009 04:21:47 +0500
+
+binkd1 (1.0~a.531) unstable; urgency=low
 
   * Initial Release, debianized by Stas Degteff
 
