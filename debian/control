@@ -3,19 +3,20 @@ Section: contrib/mail
 Priority: optional
 Maintainer: Stas Degteff <stas_degteff@users.sourceforge.net>
 Homepage: http://binkd.grumbler.org
-Build-Depends: debhelper (>> 4.0.0), perl (>= 5.8.8)
+Build-Depends: debhelper (>> 4.0.0), perl, libperl-dev (>=5.8.8)
+Standards-Version: 3.6.1
 
 Package: binkd1
 Architecture: any
 Depends: ${shlibs:Depends}, perl (>= 5.8.8)
 Description: Binkd - the binkp daemon for FTN communications.
-  Binkd is a Fidonet mailer designed to operate  via  TCP/IP
-  networks.  As  a  FTN-compatible internet daemon, it makes
-  possible efficient utilization of TCP/IP protocol suite as
-  a  transport  layer in FTN-based (Fido Technology Network)
-  networks.
-  .
-  This 'alpha' version may be unstable. Use with care.
-  .
-  Official site: http://binkd.grumbler.org
-  Sources: ftp://happy.kiev.ua/pub/fidosoft/mailer/binkd/
+ Binkd is a Fidonet mailer designed to operate  via  TCP/IP
+ networks.  As  a  FTN-compatible internet daemon, it makes
+ possible efficient utilization of TCP/IP protocol suite as
+ a  transport  layer in FTN-based (Fido Technology Network)
+ networks.
+ .
+ This 'alpha' version may be unstable. Use with care.
+ .
+ Official site: http://binkd.grumbler.org
+ Sources: ftp://happy.kiev.ua/pub/fidosoft/mailer/binkd/

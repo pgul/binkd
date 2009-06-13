@@ -7,7 +7,7 @@ export DH_COMPAT=4
 #export DEBIAN=1
 #export PACKAGE=binkd1
 export VERSION=1.0.a.`sed -n "/PATCHLEVEL/s/.*PATCHLEVEL[ \t]\([0-9]\+\)\n\?$/\1/p" Config.h`
-CONFIGURE_OPTIONS += --with-zlib --with-https --with-ntlm --with-bwlim --with-perl --sysconfdir=$(CURDIR)/debian/binkd1/etc/fido --prefix=$(CURDIR)/debian/binkd1
+CONFIGURE_OPTIONS += --with-zlib --with-https --with-ntlm --with-bwlim --with-perl --sysconfdir=$(CURDIR)/debian/binkd1/etc/fido --prefix=$(CURDIR)/debian/binkd1 --mandir=$(CURDIR)/debian/binkd1/usr/hare/man
 PREFIX=$(CURDIR)/debian/binkd1
 
 # These are used for cross-compiling and for saving the configure script
