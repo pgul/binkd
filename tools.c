@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.74  2009/06/15 19:56:39  stas
+ * Fix OS/2 Watcom build crash. Thanks to Alexey Korop 2:461/155
+ *
  * Revision 2.73  2009/06/02 17:09:35  gul
  * Build binkd for OS/2 with perl support
  *
@@ -1111,19 +1114,22 @@ void print_args (char *buf, size_t sizeof_buf, char *argv[])
 }
 
 /*
- * Dup argv
+ * Dup argv if argc >0
+ * Dup envp if argc and argv is zero
  */
-char **mkargv (int argc, char **argv)
+char **mkargv (int argc, char **argv, char **envp)
 {
   int i;
   char **p;
 
-  if (argv == NULL)
-    return NULL;
-
-  if (argc == 0)
+  if ((argc == 0)&&(argv == NULL)&&(envp != NULL))
+  {
+    argv=envp;
     while (argv[argc])
       argc++;
+  }
+  else if (argv == NULL)
+    return NULL;
 
   p = (char **) xalloc ((argc + 1) * sizeof (*p));
 

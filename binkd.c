@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.103  2009/06/15 19:56:38  stas
+ * Fix OS/2 Watcom build crash. Thanks to Alexey Korop 2:461/155
+ *
  * Revision 2.102  2009/06/02 17:09:34  gul
  * Build binkd for OS/2 with perl support
  *
@@ -800,14 +803,14 @@ int main (int argc, char *argv[], char *envp[])
 
   mypid = getpid();
   /* save argv as setproctitle() under some systems will change it */
-  saved_argv = mkargv (argc, argv);
+  saved_argv = mkargv (argc, argv, 0);
 
   configpath = parseargs(argc, saved_argv);
 #else
   configpath = parseargs(argc, argv);
 #endif
 
-  saved_envp = mkargv (0, envp);
+  saved_envp = mkargv (0, NULL, envp);
 
 #ifdef WIN32
   if (service_flag==w32_installservice && !configpath)

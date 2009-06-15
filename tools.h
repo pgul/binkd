@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.28  2009/06/15 19:56:39  stas
+ * Fix OS/2 Watcom build crash. Thanks to Alexey Korop 2:461/155
+ *
  * Revision 2.27  2004/08/03 20:46:46  gul
  * Use localtime_r() and gmtime_r() if exists
  *
@@ -276,9 +279,10 @@ int istic (char *s);
 void print_args (char *buf, size_t sizeof_buf, char *argv[]);
 
 /*
- * Dup argv
+ * Dup argv if argc >0
+ * Dup envp if argc and argv is zero
  */
-char **mkargv (int argc, char **argv);
+char **mkargv (int argc, char **argv, char **envp);
 
 /*
  * Apply filename case style defined in inboundcase
