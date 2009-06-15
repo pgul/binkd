@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.196  2009/06/15 22:41:46  stas
+ * Don't process second M_PWD
+ *
  * Revision 2.195  2009/05/31 07:16:17  gul
  * Warning: many changes, may be unstable.
  * Perl interpreter is now part of config and rerun on config reload.
@@ -2242,6 +2245,12 @@ static int PWD (STATE *state, char *pwd, int sz, BINKD_CONFIG *config)
   { Log (1, "unexpected password from the remote on outgoing call: `%s'", pwd);
     return 1;
   }
+  if (state->state != P_NULL)
+  { Log (2, "Double M_PWD from remote! Ignored.", pwd);
+    msg_send2 (state, M_NUL, "MSG Warning: double of password is received (M_PWD more one)!", 0);
+    return 0;
+  }
+
   if (no_password && bad_pwd)
   {
     do_prescan (state, config);
