@@ -1,3 +1,7 @@
+2009/06/15 22:57:14 1.0a-536 stas
+binkd.c,2.102,2.103 tools.c,2.73,2.74 tools.h,2.27,2.28
+Fix OS/2 Watcom build crash. Thanks to Alexey Korop 2:461/155
+
 2009/06/12 20:43:04 1.0a-535 gul
 inbound.c,2.44,2.45
 close .hr
