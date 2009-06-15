@@ -1,3 +1,7 @@
+2009/06/16 01:42:21 1.0a-537 stas
+protocol.c,2.195,2.196
+Don't process second M_PWD
+
 2009/06/15 22:57:14 1.0a-536 stas
 binkd.c,2.102,2.103 tools.c,2.73,2.74 tools.h,2.27,2.28
 Fix OS/2 Watcom build crash. Thanks to Alexey Korop 2:461/155
