@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.104  2009/06/16 19:24:29  gul
+ * Cosmetics around mkargv()
+ *
  * Revision 2.103  2009/06/15 19:56:38  stas
  * Fix OS/2 Watcom build crash. Thanks to Alexey Korop 2:461/155
  *
@@ -803,14 +806,14 @@ int main (int argc, char *argv[], char *envp[])
 
   mypid = getpid();
   /* save argv as setproctitle() under some systems will change it */
-  saved_argv = mkargv (argc, argv, 0);
+  saved_argv = mkargv (argc, argv);
 
   configpath = parseargs(argc, saved_argv);
 #else
   configpath = parseargs(argc, argv);
 #endif
 
-  saved_envp = mkargv (0, NULL, envp);
+  saved_envp = mkargv (-1, envp);
 
 #ifdef WIN32
   if (service_flag==w32_installservice && !configpath)

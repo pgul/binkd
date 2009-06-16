@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.29  2009/06/16 19:24:29  gul
+ * Cosmetics around mkargv()
+ *
  * Revision 2.28  2009/06/15 19:56:39  stas
  * Fix OS/2 Watcom build crash. Thanks to Alexey Korop 2:461/155
  *
@@ -279,10 +282,10 @@ int istic (char *s);
 void print_args (char *buf, size_t sizeof_buf, char *argv[]);
 
 /*
- * Dup argv if argc >0
- * Dup envp if argc and argv is zero
+ * Dup argv
+ * Assume argv is NULL-terminated if argc<0 (used for envp)
  */
-char **mkargv (int argc, char **argv, char **envp);
+char **mkargv (int argc, char **argv);
 
 /*
  * Apply filename case style defined in inboundcase
