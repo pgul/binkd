@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.69  2009/06/23 10:53:10  gul
+ * Perl <5.10 win32 PERLDL compatibility (no sv_free2 call)
+ *
  * Revision 2.68  2009/06/23 06:20:29  gul
  * Compilation error on win32, fixed
  *
@@ -774,7 +777,6 @@ struct perl_dlfunc { void **f; char *name; } perl_dlfuncs[] = {
   VK_MAKE_DLFUNC(Perl_sv_setpvf),
 #else
   VK_MAKE_DLFUNC(Perl_hv_common_key_len),
-  VK_MAKE_DLFUNC(Perl_sv_free2),
   VK_MAKE_DLFUNC(Perl_get_cv),
   VK_MAKE_DLFUNC(Perl_get_sv),
   VK_MAKE_DLFUNC(Perl_get_av),
@@ -799,6 +801,7 @@ struct perl_dlfunc { void **f; char *name; } perl_dlfuncs[] = {
   VK_MAKE_DLFUNC(Perl_Itmps_floor_ptr),
   VK_MAKE_DLFUNC(Perl_Itmps_ix_ptr),
   VK_MAKE_DLFUNC(Perl_Iscopestack_ix_ptr),
+  VK_MAKE_DLFUNC(Perl_sv_free2),
 #endif
   VK_MAKE_DLFUNC(Perl_Isv_undef_ptr),
   VK_MAKE_DLFUNC(Perl_sv_setpvf_nocontext),
