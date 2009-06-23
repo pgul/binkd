@@ -1,3 +1,7 @@
+2009/06/23 13:53:26 1.0a-540 gul
+perlhooks.c,2.68,2.69
+Perl <5.10 win32 PERLDL compatibility (no sv_free2 call)
+
 2009/06/23 09:20:39 1.0a-539 gul
 perlhooks.c,2.67,2.68
 Compilation error on win32, fixed
