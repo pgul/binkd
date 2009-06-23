@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.68  2009/06/23 06:20:29  gul
+ * Compilation error on win32, fixed
+ *
  * Revision 2.67  2009/06/03 13:25:46  gul
  * Fixed updating $hosts by on_hook() (broken in 1.0a-529)
  *
@@ -1642,11 +1645,11 @@ void *perl_init_clone(BINKD_CONFIG *cfg) {
     cflags |= CLONEf_CLONE_HOST | CLONEf_KEEP_PTR_TABLE;
 #endif
     p = perl_clone((PerlInterpreter *)cfg->perl, cflags);
-    /* perl<5.6.1 hack, see http://www.apache.jp/viewcvs.cgi/modperl-2.0/src/modules/perl/modperl_interp.c.diff?r1=1.9&r2=1.10 */
     if (p) { 
       PERL_SET_CONTEXT(p);
+      /* perl<5.6.1 hack, see http://svn.apache.org/viewvc/perl/modperl/trunk/src/modules/perl/modperl_interp.c?r1=67986&r2=67992 */
       if (PL_scopestack_ix == 0) { ENTER; } 
-      perl_setup(cfg);
+      perl_setup(cfg, p);
     }
 #else
     p = (PerlInterpreter *)cfg->perl;
