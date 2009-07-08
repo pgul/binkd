@@ -1,0 +1,22 @@
+#!/bin/sh -e
+
+# create new ftn user and group 64000.64000
+if ! id ftn >/dev/null 2>&1; then
+  adduser --system --home /var/spool/ftn --uid 64000 --group \
+    --disabled-password --gecos Fidonet ftn
+  chsh -s /bin/bash ftn
+fi
+
+if [ -x /usr/sbin/update-inetd ]; then
+  update-inetd --add 'binkp\t\tstream\ttcp\tnowait\tftn\t/usr/sbin/tcpd\t/usr/sbin/binkd -i -s -q /etc/ftn/binkd.cfg'
+  update-inetd --disable binkp
+fi
+
+chown -R ftn:ftn /var/spool/ftn/ /var/run/ftn/
+
+if [ ! -d /var/log/binkd/ ]; then
+  mkdir /var/log/binkd/
+  chown -R ftn:adm /var/log/binkd/
+fi
+
+#DEBHELPER#

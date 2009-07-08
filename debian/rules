@@ -5,10 +5,10 @@ export DH_VERBOSE=1
 
 export DH_COMPAT=4
 #export DEBIAN=1
-#export PACKAGE=binkd1
-VERSION=1.0-a.`sed -n "/PATCHLEVEL/s/.*PATCHLEVEL[ \t]\([0-9]\+\)\n\?$$/\1/p" Config.h`
-CONFIGURE_OPTIONS += --with-zlib --with-https --with-ntlm --with-bwlim --with-perl --sysconfdir=$(CURDIR)/debian/binkd1/etc/fido --prefix=$(CURDIR)/debian/binkd1 --mandir=$(CURDIR)/debian/binkd1/usr/hare/man
+PACKAGE=binkd1
+VERSION=1.0+a.`sed -n "/PATCHLEVEL/s/.*PATCHLEVEL[ \t]\([0-9]\+\)\n\?$$/\1/p" Config.h`
 PREFIX=$(CURDIR)/debian/binkd1
+CONFIGURE_OPTIONS += --with-zlib --with-https --with-ntlm --with-bwlim --with-perl --sysconfdir=$(PREFIX)/etc/ftn --prefix=$(PREFIX) --mandir=$(PREFIX)/usr/hare/man
 
 # These are used for cross-compiling and for saving the configure script
 # from having to guess our platform (since we know it already)
@@ -31,7 +31,7 @@ configure-stamp:
 	# Add here commands to configure the package.
 	-cp mkfls/unix/{configure*,install-sh,Makefile.*,mkinstalldirs} ./
 	./configure $(CONFIGURE_OPTIONS)
-	touch configure-stamp
+	touch $@
 
 build: build-stamp
 
@@ -42,12 +42,13 @@ build-stamp: configure-stamp
 	$(MAKE)
 	cd doc ; $(MAKE) text ; cd ..
 
-	touch build-stamp
+	touch $@
 
 clean:
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp configure-stamp
+	-rm -f  build-stamp configure-stamp install-sh configure Makefile.in \
+		Makefile Makefile.dep configure.in config.log binkd build
 
 	# Add here commands to clean up after the build process.
 	-$(MAKE) distclean
@@ -63,7 +64,6 @@ install: build
 	$(MAKE) install
 	install -d $(PREFIX)/usr/share/doc/binkd1
 	install \!README*  HISTORY *.[Tt][Xx][Tt]* doc/*.{txt,html,htm} $(PREFIX)/usr/share/doc/binkd1/
-
 
 # Build architecture-independent files here.
 binary-indep: build install

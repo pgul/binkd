@@ -1,0 +1,12 @@
+/var/log/binkd/binkd {
+	rotate 4
+	weekly
+	delaycompress
+	compress
+	nocreate
+	missingok
+	notifempty
+	postrotate
+		test -f /var/log/binkd/binkd.0 && /usr/sbin/binkdlogstat < /var/log/binkd/binkd.0 | mail -s "Binkd report" ftn
+	endscript
+}

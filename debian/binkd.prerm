@@ -1,0 +1,9 @@
+#!/bin/sh -e
+
+#DEBHELPER#
+
+# must be executed after /etc/init.d/binkd stop
+if [ -x /usr/sbin/update-inetd ]; then
+  update-inetd --remove '^binkp'
+fi
+

@@ -1,0 +1,47 @@
+#!/bin/sh -e
+### BEGIN INIT INFO
+# Provides:          binkd
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+### END INIT INFO
+
+OPTS="/etc/binkd/binkd.cfg -q"
+PIDFILE=/var/run/ftn/binkd.pid
+DAEMON=/usr/sbin/binkd
+
+test -f $DAEMON || exit 0
+
+# don't start binkd if it is started by inetd
+grep -q '^binkp[[:space:]]' /etc/inetd.conf && exit 0
+
+case "$1" in
+  start)
+    echo -n "Starting FTN mailer: binkd"
+    start-stop-daemon --start --background --pidfile $PIDFILE \
+	--chuid ftn:ftn	--exec $DAEMON -- $OPTS
+    echo "."
+    ;;
+  stop)
+    echo -n "Stopping FTN mailer: binkd"
+    start-stop-daemon --oknodo --stop --pidfile $PIDFILE --exec $DAEMON
+    echo "."
+    ;;
+  reload)
+    echo -n "Reloading FTN mailer: binkd"
+    start-stop-daemon --stop --signal 1 --pidfile $PIDFILE --exec $DAEMON
+    echo "."
+    ;;
+  restart|force-reload)
+    sh $0 stop
+    sleep 1
+    sh $0 start
+    ;;
+  *)
+    echo "Usage: /etc/init.d/binkd {start|stop|restart|reload|force-reload}"
+    exit 1
+    ;;
+esac
+
+exit 0

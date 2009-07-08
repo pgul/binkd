@@ -1,0 +1,10 @@
+etc/ftn/
+usr/sbin/
+var/run/ftn/
+var/spool/ftn/inbound/
+var/spool/ftn/inbound-unsecure/
+var/spool/ftn/inbound-temp/
+var/spool/ftn/outbound/fidonet/
+var/spool/ftn/personalboxes/
+var/spool/ftn/longbox/
+var/lib/ftn/nodelist/
