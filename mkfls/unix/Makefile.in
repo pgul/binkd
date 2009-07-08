@@ -24,7 +24,7 @@ compile: $(APPL)
 
 $(APPL): $(OBJS)
 	@echo Linking $(APPL)...
-	@$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
+	@$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
 banner:
 	@echo
