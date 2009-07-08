@@ -55,7 +55,7 @@ install: compile .version
 	./mkinstalldirs $(MANDIR)/man8
 	$(INSTALL) -m 644 $(APPL).8 $(MANDIR)/man8/$(APPL).8
 	./mkinstalldirs $(CONFDIR)
-	$(INSTALL) -m 644 $(APPL).cfg $(CONFDIR)/$(APPL).conf-dist
+	$(INSTALL) -m 644 $(APPL).conf $(CONFDIR)/$(APPL).conf-dist
 
 clean:
 	rm -f *.[bo] unix/*.[bo] ntlm/*.[bo] *.BAK *.core *.obj *.err 
