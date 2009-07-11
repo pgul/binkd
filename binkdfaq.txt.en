@@ -838,7 +838,7 @@ work with 5D and it creates the bundles in fidonet.00b then you should
 write this way:
 
     domain fidonet c:\\ftn\\outbound\\fidonet 2
-    domain omeganet c:\\ftn\\outbound\\omeganet 2
+    domain omeganet c:\\ftn\\outbound\\fidonet 2
     address 2:5070/222@fidonet 11:58/6@omeganet
 
     It is obligatory to configure all your addresses with domains. The

@@ -801,7 +801,7 @@ Novell TCP/IP Client for Win 3.11 (см. ответ на вопрос "Binkd под DOS."
 их в fidonet.00b, то писать надо вот так:
 
     domain fidonet c:\\ftn\\outbound\\fidonet 2
-    domain omeganet c:\\ftn\\outbound\\omeganet 2
+    domain omeganet c:\\ftn\\outbound\\fidonet 2
     address 2:5070/222@fidonet 11:58/6@omeganet
 
 Все свои адpеса обязательно пpописываешь с доменами.
