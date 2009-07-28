@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of December 24 2007
+        Version of July 28 2009
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -9,7 +9,7 @@ answers is based on the developers' recommendations. Please send your
 comments and updates to Stas Degteff 2:5080/102. This list was translated
 from Russian by Michael Dukelsky 2:5020/1042.
 
-    01. Where Can One Take a Fresh BinkD Version?
+    01. Where Can One Find a Current Copy of Stable or Beta BinkD Version?
     02. What Is BinkD?
     03. BinkP Protocol.
     04. What Is fidonet.net Domain and Why Is It Necessary?
@@ -54,9 +54,9 @@ from Russian by Michael Dukelsky 2:5020/1042.
 ----------------------------------------------------------------------------
 
 
-        01. Where Can One Take a Fresh BinkD Version, Documentation, FAQ etc.?
+        01. Where Can One Find a Current Copy of Stable or Beta BinkD Version?
 
-    Fileecho AFTNBINKD.
+    In fileecho AFTNBINKD.
 
     In Internet:
 
