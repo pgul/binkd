@@ -148,6 +148,9 @@ AC_MSG_RESULT(cross-compiling. No assumptions made)
 dnl -------------------------------------------------------------------------
 dnl Optional features
 
+AC_ARG_WITH(https, [],
+            do_proxy=yes, do_proxy=no)
+
 AC_ARG_WITH(debug,
             [  --with-debug[[=nofork]]   produce debug info (default no)],
             do_debug=$withval, do_debug=no)
@@ -158,15 +161,15 @@ AC_ARG_WITH(warn,
             do_warn=$withval, do_warn=yes)
 
 
-AC_ARG_WITH(https,
-            [  --with-https            https support (default no)],
-            do_https=yes, do_https=no)
+AC_ARG_WITH(proxy,
+            [  --with-proxy            http, https, socks proxy support (default no)],
+            do_proxy=yes, do_proxy=no)
 
 AC_ARG_WITH(ntlm,
-            [  --with-ntlm             NTLM authorization support (default no)],
+            [  --with-ntlm             NTLM proxy authorization support (default no)],
             do_ntlm=yes, do_ntlm=no)
 
-case x$do_https in
+case x$do_proxy in
   xyes)
    AC_DEFINE(HTTPS)
    OPT_SRC=https.c
@@ -275,10 +278,52 @@ case x$do_perl in
           int main(int argc, char** argv, char** env) {
             return perl_alloc() ? 0 : 1;
           }],
-        AC_DEFINE(WITH_PERL) AC_MSG_RESULT(yes); OPT_SRC="$OPT_SRC perlhooks.c",
+        AC_DEFINE(WITH_PERL) AC_MSG_RESULT(yes); OPT_SRC="$OPT_SRC perlhooks.c"; WITH_PERL=yes,
         AC_MSG_RESULT(no); CFLAGS=$OLD_CFLAGS; LIBS=$OLD_LIBS,
         AC_MSG_RESULT(cross-compiling. No assumptions made); CFLAGS=$OLD_CFLAGS; LIBS=$OLD_LIBS
        )
+       case x$WITH_PERL in
+         xyes)
+           AC_MSG_CHECKING(for perl multiplicity)
+           AC_TRY_RUN([
+              #include <EXTERN.h>
+              #include <perl.h>
+              #include <XSUB.h>
+              int main(int argc, char** argv, char** env) {
+                PerlInterpreter *one_perl, *two_perl;
+                int i1=0, i2=0;
+                SV *sv;
+                char *one_args[] = { "one_perl",  "-e", "\$_=1" };
+                char *two_args[] = { "two_perl",  "-e", "\$_=2" };
+                PERL_SYS_INIT3(&argc,&argv,&env);
+                one_perl = perl_alloc();
+                perl_construct(one_perl);
+                perl_parse(one_perl, NULL, 3, one_args, (char **)NULL);
+                two_perl = perl_alloc();
+                PERL_SET_CONTEXT(two_perl);
+                perl_construct(two_perl);
+                perl_parse(two_perl, NULL, 3, two_args, (char **)NULL);
+                PERL_SET_CONTEXT(one_perl);
+                perl_run(one_perl);
+                if ((sv = perl_get_sv("_", FALSE))) i1 = SvIV(sv);
+                PERL_SET_CONTEXT(two_perl);
+                perl_run(two_perl);
+                if ((sv = perl_get_sv("_", FALSE))) i2 = SvIV(sv);
+                PERL_SET_CONTEXT(one_perl);
+                perl_destruct(one_perl);
+                perl_free(one_perl);
+                PERL_SET_CONTEXT(two_perl);
+                perl_destruct(two_perl);
+                perl_free(two_perl);
+                PERL_SYS_TERM();
+                return (i1==1 && i2==2 ? 0 : 1);
+              }],
+            AC_DEFINE(PERL_MULTIPLICITY) AC_MSG_RESULT(yes),
+            AC_MSG_RESULT(no),
+            AC_MSG_RESULT(cross-compiling. No assumptions made)
+           )
+           ;;
+       esac
        ;;
    esac
    ;;
