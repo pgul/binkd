@@ -162,7 +162,7 @@ AC_ARG_WITH(warn,
 
 
 AC_ARG_WITH(proxy,
-            [  --with-proxy            http, https, socks proxy support (default no)],
+            [  --with-proxy            https and socks proxy support (default no)],
             do_proxy=yes, do_proxy=no)
 
 AC_ARG_WITH(ntlm,

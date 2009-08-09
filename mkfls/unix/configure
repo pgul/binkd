@@ -1341,7 +1341,7 @@ Optional Packages:
   --with-debug[=nofork]   produce debug info (default no)
   --with-warn[=level]     print gcc compilation warnings
                           no|yes|full|pedantic (default yes)
-  --with-proxy            http, https, socks proxy support (default no)
+  --with-proxy            https and socks proxy support (default no)
   --with-ntlm             NTLM proxy authorization support (default no)
   --with-aso              Amiga Style Outbound (ASO) support (default no)
   --with-bwlim            Bandwidth limiting support (default no)
