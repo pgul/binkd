@@ -22,8 +22,8 @@ cp -p mkfls/unix/{Makefile*,configure*,install-sh,mkinstalldirs} .
         --prefix=%{_prefix} \
         --sysconfdir=%{_sysconfdir} \
         --localstatedir=%{_localstatedir} \
-        --with-https --with-bwlim --with-perl \
-        --with-zlib --with-bzip2
+        --with-proxy --with-ntlm --with-bwlim \
+        --with-perl --with-zlib --with-bzip2
 make
 
 %install
