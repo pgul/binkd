@@ -136,15 +136,15 @@ AC_ARG_WITH(debug,
             [  --with-debug            produce debug info (default no)],
             [CFLAGS="-g $CFLAGS"], [CFLAGS="-O2 $CFLAGS"])
 
-AC_ARG_WITH(https,
-            [  --with-https            https support (default no)],
-            do_https=yes, do_https=no)
+AC_ARG_WITH(proxy,
+            [  --with-proxy            https and socks proxy support (default no)],
+            do_proxy=yes, do_proxy=no)
 
 AC_ARG_WITH(ntlm,
             [  --with-ntlm             NTLM authorization support (default no)],
             do_ntlm=yes, do_ntlm=no)
 
-case x$do_https in
+case x$do_proxy in
   xyes)
    AC_DEFINE(HTTPS)
    HTTPS_SRC=https.c
@@ -164,6 +164,9 @@ extrasub=s%@HTTPS_SRC@%$HTTPS_SRC%g
 AC_ARG_WITH(aso,
           [  --with-aso              Amiga Style Outbound (ASO) support (default no)],
           AC_DEFINE(AMIGADOS_4D_OUTBOUND), )
+
+AC_ARG_WITH(https, [],
+            do_proxy=yes, do_proxy=no)
 
 dnl -------------------------------------------------------------------------
 
