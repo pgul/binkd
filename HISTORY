@@ -1,3 +1,7 @@
+2009/11/22 09:52:55 1.0a-541 gul
+protocol.c,2.196,2.197
+Send M_ERR and increase undialable on error rename received file
+
 2009/06/23 13:53:26 1.0a-540 gul
 perlhooks.c,2.68,2.69
 Perl <5.10 win32 PERLDL compatibility (no sv_free2 call)
