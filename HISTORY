@@ -1,3 +1,7 @@
+2009/11/27 16:20:10 1.0a-542 stas
+protocol.c,2.197,2.198
+fix typo
+
 2009/11/22 09:52:55 1.0a-541 gul
 protocol.c,2.196,2.197
 Send M_ERR and increase undialable on error rename received file
