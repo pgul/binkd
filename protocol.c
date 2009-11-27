@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.198  2009/11/27 14:19:33  stas
+ * fix typo
+ *
  * Revision 2.197  2009/11/22 07:52:53  gul
  * Send M_ERR and increase undialable on error rename received file
  *
@@ -3710,7 +3713,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
   {
     while (1)
     {
-      /* If the queue is not empty and there is no file in tranafer */
+      /* If the queue is not empty and there is no file in transfer */
       if (!state.local_EOB && state.q && state.out.f == 0 &&
           !state.waiting_for_GOT && !state.off_req_sent && state.state!=P_NULL)
       {
@@ -3778,7 +3781,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
         }
         Log (6, "there were %i msgs in this batch", state.msgs_in_batch);
         if (state.msgs_in_batch <= 2 || (state.major * 100 + state.minor <= 100))
-        {
+        { /* Only M_EOBs in last batch (binkp 1.1) or protocol is binkp 1.0 (or lower), close session */
           ND_set_status("", &state.ND_addr, &state, config);
           state.ND_addr.z=-1;
           break;
@@ -3789,10 +3792,10 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
           state.msgs_in_batch = 0;
           state.remote_EOB = state.local_EOB = 0;
           if (OK_SEND_FILES (&state, config))
-      {
+          {
             state.q = q_scan_boxes (state.q, state.fa, state.nfa, state.to ? 1 : 0, config);
-        state.q = q_sort(state.q, state.fa, state.nfa, config);
-      }
+            state.q = q_sort(state.q, state.fa, state.nfa, config);
+          }
           continue;
         }
       }
