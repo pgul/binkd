@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of July 28 2009
+        Version of December 08 2009
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -77,12 +77,10 @@ from Russian by Michael Dukelsky 2:5020/1042.
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs login
        Retrieve the latest sources of the current branch (v.1.0 at the moment):
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co binkd
-       Retrieve the latest sources of the binkd 0.9.5-stable branch:
-       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_5-stable binkd
-       Retrieve the sources of the binkd 0.9.8-release:
-       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_8 binkd
-       Retrieve the sources of the binkd 0.9.7-release:
-       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_7 binkd
+       Retrieve the latest sources of the binkd 0.9.x-stable branch:
+       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9-stable binkd
+       Retrieve the sources of the binkd 0.9.10-release:
+       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_10 binkd
 
     Anonymous FTP:
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/snapshot (main)
@@ -687,9 +685,9 @@ Windows, it is distributed by Michael Massenberg (2:2411/505) via modem,
 ISDN and Fido-over-IP.
 
     tmafreq by Maxim Timofeyev <tmahome@mail.tma.spb.ru>: FREQ processor
-is created for unix-like OS and ported into Windows. Obtain tmafreq may from
-different BBS and FTP with fileecho archives, or may get tmafreq sources from
-anonymous CVS :pserver:anoncvs@tma.spb.ru:/cvsroot, module "tmafreq".
+is created for unix-like OS and ported into Windows. One may obtain tmafreq
+from different BBS and FTP with fileecho archives, or may get tmafreq sources
+from anonymous CVS :pserver:anoncvs@tma.spb.ru:/cvsroot, module "tmafreq".
 
 
 ----------------------------------------------------------------------------

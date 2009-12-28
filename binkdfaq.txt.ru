@@ -75,12 +75,10 @@
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs login
        Получить последние исходники ветки current (на настоящий момент это 1.0):
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co binkd
-       Получить последние исходники ветки binkd 0.9.5-stable:
-       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_5-stable binkd
-       Получить исходники binkd 0.9.8-release:
-       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_8 binkd
-       Получить исходники binkd 0.9.7-release:
-       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_7 binkd
+       Получить последние исходники ветки binkd 0.9.x-stable:
+       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9-stable binkd
+       Получить исходники binkd 0.9.10-release:
+       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_10 binkd
 
     Анонимный FTP:
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/snapshot (основной)
@@ -1153,10 +1151,10 @@ MMC из остнастки "Services" ("Службы"): задать пользователя (например, fido)
     Для общения разработчиков и тестеров создана рассылка:
 binkd-dev@happy.kiev.ua. Чтобы на нее подписаться, напишите письмо:
 
-	To: majordomo@happy.kiev.ua
-	Subject:
+    To: majordomo@happy.kiev.ua
+    Subject:
 
-	subscribe binkd-dev
+    subscribe binkd-dev
 
 
 ----------------------------------------------------------------------------
