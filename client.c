@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.68  2010/01/24 16:12:43  stas
+ * Log message changed: "unable to connect" -> "connection to smth. failed". Patch from Alexey Vissarionov 2:5020/545
+ *
  * Revision 2.67  2009/06/02 17:09:35  gul
  * Build binkd for OS/2 with perl support
  *
@@ -727,7 +730,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 #endif
       if (!binkd_exit)
       {
-	Log (1, "unable to connect: %s", save_err);
+	Log (1, "connection to %s failed: %s", szDestAddr, save_err);
 	bad_try (&node->fa, save_err, BAD_CALL, config);
       }
       del_socket(sockfd);
