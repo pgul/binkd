@@ -1,3 +1,7 @@
+2010/01/24 18:13:17 1.0a-543 stas
+client.c,2.67,2.68
+Log message changed: "unable to connect" -> "connection to smth. failed". Patch from Alexey Vissarionov 2:5020/545
+
 2009/11/27 16:20:10 1.0a-542 stas
 protocol.c,2.197,2.198
 fix typo
