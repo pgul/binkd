@@ -114,7 +114,7 @@ These utility functions are available for Perl program:
   2:550/0.0@fidonet and "463/68" for 2:463/68.0@fidonet
 
   $a1 for aeq() and $a1...$aN for arm() now can be also address-masks - you
-  can you '*' to match any literal portion of the address, but in this case
+  can use '*' to match any literal portion of the address, but in this case
   comparison is done as in strings ('2:463/180' won't match '463/*', you must
   write '2:463/*'; '2:463/180.1' won't match '*.1', use '*.1@*')
 
@@ -141,10 +141,10 @@ Session Data
   %opt           + +   hash with keys: ND, NR, MD, crypt, GZ
   @he          + + +   array of remote aka
   @me          + + +   array of present our akas
-  $bytes_rcvd      +
-  $bytes_send      +
-  $files_rcvd      +
-  $files_sent      +
+  $bytes_rcvd      +   bytes received
+  $bytes_sent      +   bytes sent
+  $files_rcvd      +   files received
+  $files_sent      +   files sent
   @queue         + ?   current queue (see below)
   $z_send        +     use compression on being sent file if set to 1
   $z_recv        +     use compression on being received file if set to 1
