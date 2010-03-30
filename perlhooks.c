@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.70  2010/03/30 06:11:32  gul
+ * Improve logging
+ *
  * Revision 2.69  2009/06/23 10:53:10  gul
  * Perl <5.10 win32 PERLDL compatibility (no sv_free2 call)
  *
@@ -1446,8 +1449,10 @@ int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
   perlargs[i++] = "-e";
   perlargs[i++] = "0";
   /* check perm */
-  if (access(perlfile, R_OK))
+  if (access(perlfile, R_OK)) {
+    Log(LL_ERR, "Cannot open %s: %s", perlfile, strerror(errno));
     return 0;
+  }
 #ifdef PERLDL
   /* load DLL */
   if (!cfg->perl_dll[0]) {
