@@ -1,3 +1,7 @@
+2010/03/30 09:13:03 1.0a-545 gul
+binkd.c,2.104,2.105
+Do not chdir to "/" on daemonize for use relative pathes on reload config
+
 2010/03/30 09:11:34 1.0a-544 gul
 perlhooks.c,2.69,2.70
 Improve logging
