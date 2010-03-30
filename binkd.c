@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.105  2010/03/30 06:13:01  gul
+ * Do not chdir to "/" on daemonize for use relative pathes on reload config
+ *
  * Revision 2.104  2009/06/16 19:24:29  gul
  * Cosmetics around mkargv()
  *
@@ -798,9 +801,6 @@ int main (int argc, char *argv[], char *envp[])
 #endif
 {
   char tmp[128];
-#if defined(BINKD_DAEMONIZE)
-  int  nochdir;
-#endif
 #if defined(HAVE_FORK)
   char **saved_argv;
 
@@ -971,9 +971,7 @@ int main (int argc, char *argv[], char *envp[])
   }
 
   if (no_flag)
-  {
-    Log(0, "Exit on option '-n'");
-  }
+    Log (0, "Exit on option '-n'");
 
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
   if (inetd_flag)
@@ -987,21 +985,13 @@ int main (int argc, char *argv[], char *envp[])
 #ifdef BINKD_DAEMONIZE
   if (daemon_flag)
   {
-	 if (!server_flag)
-		 Log (0, "Only server can be run in the daemon mode");
-	 else
-	 {
-		 if (argv[0][0] == '/')
-			nochdir = 0;
-		 else
-		 {
-			nochdir = 1;
-		 	/* Log (6, "Run with relative path, will not chdir to /"); */
-		 }
-
-		 if (binkd_daemonize(nochdir) < 0)
-		 Log (0, "Cannot daemonize");
-	 }
+    if (!server_flag)
+      Log (0, "Only server can be run in the daemon mode");
+    else
+    {
+      if (binkd_daemonize(1) < 0)
+        Log (0, "Cannot daemonize");
+    }
   }
 #endif
 
