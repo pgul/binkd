@@ -1,3 +1,7 @@
+2010/03/30 09:11:34 1.0a-544 gul
+perlhooks.c,2.69,2.70
+Improve logging
+
 2010/01/24 18:13:17 1.0a-543 stas
 client.c,2.67,2.68
 Log message changed: "unable to connect" -> "connection to smth. failed". Patch from Alexey Vissarionov 2:5020/545
