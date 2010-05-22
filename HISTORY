@@ -1,3 +1,7 @@
+2010/05/22 11:11:33 1.0a-546 gul
+!README.perl,2.13,2.14 binlog.c,2.12,2.13 binlog.h,2.2,2.3 perlhooks.c,2.70,2.71 perlhooks.h,2.15,2.16 protoco2.h,2.25,2.26 protocol.c,2.198,2.199
+Call after_session() hook after removing bsy
+
 2010/03/30 09:13:03 1.0a-545 gul
 binkd.c,2.104,2.105
 Do not chdir to "/" on daemonize for use relative pathes on reload config
