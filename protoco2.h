@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.26  2010/05/22 08:11:30  gul
+ * Call after_session() hook after removing bsy
+ *
  * Revision 2.25  2009/05/31 07:16:17  gul
  * Warning: many changes, may be unstable.
  * Perl interpreter is now part of config and rerun on config reload.
@@ -228,7 +231,6 @@ struct _STATE
   unsigned char *MD_challenge;  /* Received CRAM challenge data   */
   int waiting_for_GOT;          /* File sent, waiting for M_GOT in ND-mode */
   int send_eof;			/* Need to send zero-length data block */
-  char *ND_status;              /* ND status file name */
   TFILE in_complete;            /* M_GOT sent, need to rename */
   FTN_ADDR ND_addr;             /* Address for current ND status */
   int crypt_flag;		/* Is session encrypted? */

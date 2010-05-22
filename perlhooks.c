@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.71  2010/05/22 08:11:30  gul
+ * Call after_session() hook after removing bsy
+ *
  * Revision 2.70  2010/03/30 06:11:32  gul
  * Improve logging
  *
@@ -1765,9 +1768,9 @@ static void setup_session(STATE *state, int lvl) {
     VK_ADD_intz(sv, "z_recv", state->z_recv);
 #endif
 #ifdef BW_LIM
-	if (state->bw_send.rlim)
+    if (state->bw_send.rlim)
       VK_ADD_intz(sv, "bw_send", state->bw_send.rlim);
-	if (state->bw_recv.rlim)
+    if (state->bw_recv.rlim)
       VK_ADD_intz(sv, "bw_recv", state->bw_recv.rlim);
 #endif
     state->perl_set_lvl = 2;
@@ -2145,7 +2148,7 @@ char *perl_after_handshake(STATE *state) {
 }
 
 /* after session done */
-void perl_after_session(STATE *state, char *status) {
+void perl_after_session(STATE *state, int status) {
   SV *sv;
   BINKD_CONFIG *cfg = state->config;
 
@@ -2161,7 +2164,7 @@ void perl_after_session(STATE *state, char *status) {
     lockperlsem();
     { dSP;
       if (state->perl_set_lvl < 3) setup_session(state, 3);
-      VK_ADD_intz(sv, "rc", (STRICMP(status, "OK") == 0));
+      VK_ADD_intz(sv, "rc", status == 0);
       ENTER;
       SAVETMPS;
       PUSHMARK(SP);
@@ -2531,6 +2534,7 @@ int perl_setup_rlimit(STATE *state, BW *bw, char *fname)
     lockperlsem();
     { dSP;
       if (state->perl_set_lvl < 2) setup_session(state, 2);
+      setup_queue(state, state->q);
       VK_ADD_str (sv, "file", fname);
       VK_ADD_intz (sv, "rlimit", bw->rlim); if (sv) { SvREADONLY_off(sv); }
       ENTER;

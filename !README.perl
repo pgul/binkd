@@ -145,16 +145,13 @@ Session Data
   $bytes_sent      +   bytes sent
   $files_rcvd      +   files received
   $files_sent      +   files sent
-  @queue         + ?   current queue (see below)
+  @queue         +     current queue (see below)
   $z_send        +     use compression on being sent file if set to 1
   $z_recv        +     use compression on being received file if set to 1
 
   Queue (@queue) can me modified (including reordering) only in following hooks:
   after_handshake, after_recv, before_send.
  
-  In level 3 session hooks (after_session) queue still can be defined, but it
-  is of little use at that time.
-
   @queue is array (elements are in the same order as they will be sent), each
   element is pointer to hash with keys:
     file   - file name with full path (still, not translated by ftrans)

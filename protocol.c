@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.199  2010/05/22 08:11:30  gul
+ * Call after_session() hook after removing bsy
+ *
  * Revision 2.198  2009/11/27 14:19:33  stas
  * fix typo
  *
@@ -856,7 +859,7 @@ static int close_partial (STATE *state, BINKD_CONFIG *config)
 /*
  * Clears protocol buffers and queues, closes files, etc.
  */
-static int deinit_protocol (STATE *state, BINKD_CONFIG *config)
+static int deinit_protocol (STATE *state, BINKD_CONFIG *config, int status)
 {
   int i;
 
@@ -886,6 +889,11 @@ static int deinit_protocol (STATE *state, BINKD_CONFIG *config)
     q_free (state->q, config);
   for (i = 0; i < state->nfa; ++i)
     bsy_remove (state->fa + i, F_BSY, config);
+
+#ifdef WITH_PERL
+  perl_after_session(state, status);
+#endif
+
   xfree (state->fa);
   xfree (state->pAddr);
   xfree (state->MD_challenge);
@@ -3629,14 +3637,11 @@ static int start_file_transfer (STATE *state, FTNQ *file, BINKD_CONFIG *config)
   return 1;
 }
 
-static void log_end_of_session (char *status, STATE *state, BINKD_CONFIG *config)
+static void log_end_of_session (int status, STATE *state, BINKD_CONFIG *config)
 {
   char szFTNAddr[FTN_ADDR_SZ + 1];
 
   BinLogStat (status, state, config);
-#ifdef WITH_PERL
-  perl_after_session(state, status);
-#endif
 
   if (state->to)
     ftnaddress_to_str (szFTNAddr, &state->to->fa);
@@ -3647,7 +3652,7 @@ static void log_end_of_session (char *status, STATE *state, BINKD_CONFIG *config
 
   Log (2, "done (%s%s, %s, S/R: %i/%i (%" PRIuMAX "/%" PRIuMAX " bytes))",
        state->to ? "to " : (state->fa ? "from " : ""), szFTNAddr,
-       status,
+       status ? "failed" : "OK",
        state->files_sent, state->files_rcvd,
        state->bytes_sent, state->bytes_rcvd);
 }
@@ -3666,6 +3671,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
   socklen_t peer_name_len = sizeof (peer_name);
   char host[MAXHOSTNAMELEN + 1];
   const char *save_err = NULL;
+  int status;
 #ifdef BW_LIM
   int limited;
 #endif
@@ -3907,7 +3913,8 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
       state.GET_FILE_balance == 0 && state.in.f == 0 && state.out.f == 0)
   {
     /* Successful session */
-    log_end_of_session ("OK", &state, config);
+    status = 0;
+    log_end_of_session (status, &state, config);
     process_killlist (state.killlist, state.n_killlist, 's');
     inb_remove_partial (&state, config);
     if (to)
@@ -3916,7 +3923,8 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
   else
   {
     /* Unsuccessful session */
-    log_end_of_session ("failed", &state, config);
+    status = 1;
+    log_end_of_session (status, &state, config);
     process_killlist (state.killlist, state.n_killlist, 0);
     if (to)
     {
@@ -3936,8 +3944,8 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
     hold_node (&to->fa, safe_time() + config->hold_skipped, config);
   }
 
-  Log (4, "session closed, quitting...");
-  deinit_protocol (&state, config);
+  deinit_protocol (&state, config, status);
   evt_set (state.evt_queue);
   state.evt_queue = NULL;
+  Log (4, "session closed, quitting...");
 }

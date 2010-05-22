@@ -10,6 +10,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2010/05/22 08:11:30  gul
+ * Call after_session() hook after removing bsy
+ *
  * Revision 2.2  2003/08/26 16:06:26  stream
  * Reload configuration on-the fly.
  *
@@ -27,6 +30,6 @@
 #ifndef __BINLOG_H__
 #define __BINLOG_H__
 
-void BinLogStat (char *status, STATE *state, BINKD_CONFIG *config);
+void BinLogStat (int status, STATE *state, BINKD_CONFIG *config);
 
 #endif

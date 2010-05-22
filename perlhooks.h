@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2010/05/22 08:11:30  gul
+ * Call after_session() hook after removing bsy
+ *
  * Revision 2.15  2009/06/02 17:09:35  gul
  * Build binkd for OS/2 with perl support
  *
@@ -102,7 +105,7 @@ int perl_on_call(FTN_NODE *, BINKD_CONFIG *, char **hosts
 int perl_on_error(BINKD_CONFIG *, FTN_ADDR *, const char *, const int); /* on errors: bad_try() */
 char *perl_on_handshake(STATE *);       /* before xmitting ADR */
 char *perl_after_handshake(STATE *);    /* after handshake complete */
-void perl_after_session(STATE *, char *); /* after session done */
+void perl_after_session(STATE *, int);  /* after session done */
 
 int perl_before_recv(STATE *, off_t offs); /* before receiving file */
 int perl_after_recv(STATE *, TFILE *, char *tmp_name,

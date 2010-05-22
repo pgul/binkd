@@ -26,6 +26,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.13  2010/05/22 08:11:30  gul
+ * Call after_session() hook after removing bsy
+ *
  * Revision 2.12  2004/10/08 08:30:30  gul
  * binlog rev.2.11 bugfix
  *
@@ -113,7 +116,7 @@ static int fput32(u32 arg, FILE *file)
 /*    Add record to T-Mail style binary log.                          */
 /*--------------------------------------------------------------------*/
 
-static void TLogStat (char *status, STATE *state, char *binlogpath, int tzoff)
+static void TLogStat (int status, STATE *state, char *binlogpath, int tzoff)
 {
 	struct {
 		u16    fZone;
@@ -159,7 +162,7 @@ static void TLogStat (char *status, STATE *state, char *binlogpath, int tzoff)
 		TS.fFSent = (u8)state->files_sent;
 		TS.fSTime = (u32)(state->start_time + tz_off(state->start_time, tzoff)*60);
 		TS.fLTime = (u32)(safe_time() - state->start_time);
-		if (STRICMP(status, "OK") != 0) {
+		if (status) {
 			TS.fStatus |= 3;
 		}
 		LockSem(&blsem);
@@ -266,7 +269,7 @@ static void FDLogStat (STATE *state, char *fdinhist, char *fdouthist, int tzoff)
 /*    Add record to binary logs.                                      */
 /*--------------------------------------------------------------------*/
 
-void BinLogStat (char *status, STATE *state, BINKD_CONFIG *config)
+void BinLogStat (int status, STATE *state, BINKD_CONFIG *config)
 {
 	TLogStat (status, state, config->binlogpath, config->tzoff);
 	FDLogStat (state, config->fdinhist, config->fdouthist, config->tzoff);
