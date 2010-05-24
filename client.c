@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.70  2010/05/24 14:36:57  gul
+ * Fix previous patch
+ *
  * Revision 2.69  2010/05/24 14:24:32  gul
  * Exit immediately after all jobs done in "-p" mode
  *
@@ -398,8 +401,8 @@ static int do_client(BINKD_CONFIG *config)
       {
         char szDestAddr[FTN_ADDR_SZ + 1];
 
-        ftnaddress_to_str (szDestAddr, &node->fa);
-        Log (4, "%s busy, skipping", szDestAddress);
+        ftnaddress_to_str (szDestAddr, &r->fa);
+        Log (4, "%s busy, skipping", szDestAddr);
         return 0; /* go to the next node */
       }
       rel_grow_handles (6);
@@ -811,7 +814,7 @@ static void call (void *arg)
   }
   else
   {
-    ftnaddress_to_str (szDestAddr, &node->fa);
+    ftnaddress_to_str (szDestAddr, &a->node->fa);
     Log (4, "%s busy, skipping", szDestAddr);
   }
 #if defined(WITH_PERL) && defined(HAVE_THREADS)
