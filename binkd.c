@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.107  2010/05/24 14:38:03  gul
+ * Allow daemonize on client-only mode
+ *
  * Revision 2.106  2010/05/24 14:24:32  gul
  * Exit immediately after all jobs done in "-p" mode
  *
@@ -988,13 +991,8 @@ int main (int argc, char *argv[], char *envp[])
 #ifdef BINKD_DAEMONIZE
   if (daemon_flag)
   {
-    if (!server_flag)
-      Log (0, "Only server can be run in the daemon mode");
-    else
-    {
-      if (binkd_daemonize(1) < 0)
-        Log (0, "Cannot daemonize");
-    }
+    if (binkd_daemonize(1) < 0)
+      Log (0, "Cannot daemonize");
   }
 #endif
 
