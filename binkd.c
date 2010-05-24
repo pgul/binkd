@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.106  2010/05/24 14:24:32  gul
+ * Exit immediately after all jobs done in "-p" mode
+ *
  * Revision 2.105  2010/03/30 06:13:01  gul
  * Do not chdir to "/" on daemonize for use relative pathes on reload config
  *
@@ -448,7 +451,7 @@ MUTEXSEM blsem = 0;
 MUTEXSEM varsem = 0;
 MUTEXSEM config_sem = 0;
 EVENTSEM eothread = 0;
-EVENTSEM exitcmgr = 0;
+EVENTSEM wakecmgr = 0;
 #ifdef OS2
 MUTEXSEM fhsem = 0;
 #endif
@@ -860,7 +863,7 @@ int main (int argc, char *argv[], char *envp[])
   InitSem (&varsem);
   InitSem (&config_sem);
   InitEventSem (&eothread);
-  InitEventSem (&exitcmgr);
+  InitEventSem (&wakecmgr);
 #ifdef OS2
   InitSem (&fhsem);
 #endif

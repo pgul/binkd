@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.69  2010/05/24 14:24:32  gul
+ * Exit immediately after all jobs done in "-p" mode
+ *
  * Revision 2.68  2010/01/24 16:12:43  stas
  * Log message changed: "unable to connect" -> "connection to smth. failed". Patch from Alexey Vissarionov 2:5020/545
  *
@@ -316,13 +319,13 @@ static void alrm (int signo)
 #endif
 
 #if defined(HAVE_THREADS)
-#define SLEEP(x) WaitSem(&exitcmgr, x)
+#define SLEEP(x) WaitSem(&wakecmgr, x)
 #elif defined(VOID_SLEEP) || !defined(HAVE_FORK)
 #define SLEEP(x) sleep(x)
 #else
 void SLEEP (time_t s)
 {
-  while ((s = sleep (s)) > 0 && !binkd_exit
+  while ((s = sleep (s)) > 0 && !binkd_exit && !poll_flag
 #ifdef HAVE_FORK
          && !got_sighup
 #endif
@@ -368,16 +371,14 @@ static int do_client(BINKD_CONFIG *config)
 {
   FTN_NODE *r;
   int pid;
-  int n_cl = n_clients;
 
   if (!config->q_present)
   {
     q_free (SCAN_LISTED, config);
     if (config->printq)
       Log (-1, "scan\r");
-    n_cl = n_clients;
     q_scan (SCAN_LISTED, config);
-    config->q_present = (q_not_empty (config) != NULL);
+    config->q_present = 1;
     if (config->printq)
     {
       LockSem (&lsem);
@@ -388,12 +389,19 @@ static int do_client(BINKD_CONFIG *config)
   }
   if (n_clients < config->max_clients)
   {
-    if ((r = q_next_node (config)) != 0 &&
-        bsy_test (&r->fa, F_BSY, config) &&
-        bsy_test (&r->fa, F_CSY, config))
+    if ((r = q_next_node (config)) != 0)
     {
       struct call_args args;
 
+      if (!bsy_test (&r->fa, F_BSY, config) || 
+          !bsy_test (&r->fa, F_CSY, config))
+      {
+        char szDestAddr[FTN_ADDR_SZ + 1];
+
+        ftnaddress_to_str (szDestAddr, &node->fa);
+        Log (4, "%s busy, skipping", szDestAddress);
+        return 0; /* go to the next node */
+      }
       rel_grow_handles (6);
       threadsafe(++n_clients);
       lock_config_structure(config);
@@ -422,12 +430,15 @@ static int do_client(BINKD_CONFIG *config)
     }
     else
     {
-      if (poll_flag && n_cl <= 0 && n_clients <= 0 && q_not_empty (config) == 0)
+      if (poll_flag)
       {
-        Log (4, "the queue is empty, quitting...");
-        return -1;
-      }
-      config->q_present = 0;
+        if (n_clients <= 0 && q_not_empty (config) == 0)
+        {
+          Log (4, "the queue is empty, quitting...");
+          return -1;
+        }
+      } else
+        config->q_present = 0;
       unblockchld();
       SLEEP (config->rescan_delay);
       blockchld();
@@ -785,6 +796,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 static void call (void *arg)
 {
   struct call_args *a = arg;
+  char szDestAddr[FTN_ADDR_SZ + 1];
 #if defined(WITH_PERL) && defined(HAVE_THREADS)
   void *cperl;
 #endif
@@ -797,6 +809,11 @@ static void call (void *arg)
     call0 (a->node, a->config);
     bsy_remove (&a->node->fa, F_CSY, a->config);
   }
+  else
+  {
+    ftnaddress_to_str (szDestAddr, &node->fa);
+    Log (4, "%s busy, skipping", szDestAddr);
+  }
 #if defined(WITH_PERL) && defined(HAVE_THREADS)
   perl_done_clone(cperl);
 #endif
@@ -806,6 +823,8 @@ static void call (void *arg)
 #ifdef HAVE_THREADS
   threadsafe(--n_clients);
   PostSem(&eothread);
+  if (poll_flag)
+    PostSem(&wakecmgr);
   _endthread();
 #elif defined(DOS)
   --n_clients;

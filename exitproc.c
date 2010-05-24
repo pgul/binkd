@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.43  2010/05/24 14:24:32  gul
+ * Exit immediately after all jobs done in "-p" mode
+ *
  * Revision 2.42  2009/06/02 17:09:35  gul
  * Build binkd for OS/2 with perl support
  *
@@ -258,7 +261,7 @@ void exitfunc (void)
       {
 	close_srvmgr_socket();
 	if (pidcmgr)
-	  PostSem(&exitcmgr);
+	  PostSem(&wakecmgr);
 	/* close active sockets */
 	for (h=0; h < max_socket; h++)
 	  if (FD_ISSET(h, &sockets))
@@ -307,7 +310,7 @@ void exitfunc (void)
   CleanSem (&blsem);
   CleanSem (&varsem);
   CleanEventSem (&eothread);
-  CleanEventSem (&exitcmgr);
+  CleanEventSem (&wakecmgr);
 #ifdef OS2
   CleanSem (&fhsem);
 #endif

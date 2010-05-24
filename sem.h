@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2010/05/24 14:24:32  gul
+ * Exit immediately after all jobs done in "-p" mode
+ *
  * Revision 2.13  2009/06/02 17:09:35  gul
  * Build binkd for OS/2 with perl support
  *
@@ -169,7 +172,7 @@ extern MUTEXSEM blsem;
 extern MUTEXSEM varsem;
 extern MUTEXSEM config_sem;
 extern EVENTSEM eothread;
-extern EVENTSEM exitcmgr;
+extern EVENTSEM wakecmgr;
 #define lockhostsem()		LockSem(&hostsem)
 #define releasehostsem()	ReleaseSem(&hostsem)
 #define lockresolvsem()		LockSem(&resolvsem)
