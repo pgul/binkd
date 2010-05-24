@@ -1,3 +1,7 @@
+2010/05/24 17:37:03 1.0a-548 gul
+client.c,2.69,2.70
+Fix previous patch
+
 2010/05/24 17:24:41 1.0a-547 gul
 binkd.c,2.105,2.106 client.c,2.68,2.69 exitproc.c,2.42,2.43 sem.h,2.13,2.14
 Exit immediately after all jobs done in "-p" mode
