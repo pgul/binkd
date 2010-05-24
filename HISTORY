@@ -1,3 +1,7 @@
+2010/05/24 17:38:06 1.0a-549 gul
+binkd.c,2.106,2.107
+Allow daemonize on client-only mode
+
 2010/05/24 17:37:03 1.0a-548 gul
 client.c,2.69,2.70
 Fix previous patch
