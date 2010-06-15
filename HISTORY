@@ -1,3 +1,7 @@
+2010/06/15 23:25:04 1.0a-550 gul
+bsy.c,2.10,2.11 todo.lst,2.49,2.50
+Improve diagnostics
+
 2010/05/24 17:38:06 1.0a-549 gul
 binkd.c,2.106,2.107
 Allow daemonize on client-only mode
