@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2010/06/15 20:24:48  gul
+ * Improve diagnostics
+ *
  * Revision 2.10  2003/11/20 17:56:53  gul
  * Delete empty zone outbound directories with "deletedirs"
  *
@@ -117,7 +120,7 @@ int bsy_add (FTN_ADDR *fa0, bsy_t bt, BINKD_CONFIG *config)
   {
     strnzcat (buf, bt == F_CSY ? ".csy" : ".bsy", sizeof (buf));
     if (mkpath (buf) == -1)
-      Log (1, "mkpath: %s", strerror (errno));
+      Log (1, "mkpath('%s'): %s", buf, strerror (errno));
 
     if (create_sem_file (buf, 5))
     {
@@ -160,7 +163,7 @@ int bsy_test (FTN_ADDR *fa0, bsy_t bt, BINKD_CONFIG *config)
     strnzcat (buf, bt == F_CSY ? ".csy" : ".bsy", sizeof (buf));
 
     if (mkpath (buf) == -1)
-      Log (1, "mkpath: %s", strerror (errno));
+      Log (1, "mkpath('%s'): %s", buf, strerror (errno));
 
     if (access (buf, F_OK) == -1)
       return 1;

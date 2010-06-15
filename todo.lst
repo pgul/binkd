@@ -1,4 +1,6 @@
 - large files (win32)
+- remove call-delay, start outbound session immediately after finish previous one if max-clients limit reached
+- on_incoming() perl hook
 - "IN SRV" DNS records
 - rexx hooks
 - do not kill attaches (save and ignore) if drive missing (unmounted)
