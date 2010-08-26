@@ -1,6 +1,6 @@
 2010/08/26 09:26:28 1.0a-551 gul
 perlhooks.c,2.71,2.72
-perlhooks.c
+Segfault on nested on_log() perl hook, reported by The Infidel numenorbbs at gmail.com
 
 2010/06/15 23:25:04 1.0a-550 gul
 bsy.c,2.10,2.11 todo.lst,2.49,2.50
