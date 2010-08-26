@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.72  2010/08/26 06:26:26  gul
+ * Segfault on nested on_log() perl hook, reported by The Infidel numenorbbs at gmail.com
+ *
  * Revision 2.71  2010/05/22 08:11:30  gul
  * Call after_session() hook after removing bsy
  *
@@ -2407,11 +2410,15 @@ int perl_on_log(char *s, int bufsize, int *lev) {
       unlock_config_structure(cfg, 0);
       return 1;
     }
-    VK_ADD_intz(svchk, inlog, 1);
-    if (!svchk) {
-      unlock_config_structure(cfg, 0);
-      return 1; /* can't guarantee there won't be recursion */
-    }
+    if (svchk)
+      SvREADONLY_off(svchk);
+    else
+      if ((svchk = perl_get_sv(inlog, TRUE)) == NULL) {
+        unlock_config_structure(cfg, 0);
+        return 1; /* can't guarantee there won't be recursion */
+      }
+    sv_setiv(svchk, 1);
+    SvREADONLY_on(svchk);
     /* end of check */
     Log(LL_DBG2, "perl_on_log(), perl=%p", Perl_get_context());
     { dSP;
@@ -2444,6 +2451,7 @@ int perl_on_log(char *s, int bufsize, int *lev) {
       else rc = 1;
     }
     Log(LL_DBG2, "perl_on_log() end");
+    SvREADONLY_off(svchk);
     sv_setiv(svchk, 0); /* check: now we can restore */
     /* SvREFCNT_dec(svchk); */
     unlock_config_structure(cfg, 0);
