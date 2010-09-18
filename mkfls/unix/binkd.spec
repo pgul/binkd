@@ -7,7 +7,7 @@ Source: %{name}.tar.gz
 URL: ftp://happy.kiev.ua/pub/fidosoft/mailer/binkd/
 Provides: binkd
 Requires: perl >= 5.8.3, zlib >= 1.2.3, bzip >= 1.0.3
-BuildRoot: /var/tmp/%{name}-%{version}-root
+BuildRoot: %{_tmppath}/%{name}-%{version}-root
 Group: Applications/Internet
 
 %description
@@ -27,16 +27,12 @@ cp -p mkfls/unix/{Makefile*,configure*,install-sh,mkinstalldirs} .
 make
 
 %install
-rm -rf $RPM_BUILD_ROOT
-
-%makeinstall
-# fix for stupid symlink creation
-rm $RPM_BUILD_ROOT%{_prefix}/sbin/binkd
-ln -s `basename $RPM_BUILD_ROOT%{_prefix}/sbin/binkd*` \
-        $RPM_BUILD_ROOT%{_prefix}/sbin/binkd
+rm -rf %{buildroot}
+make DESTDIR=%{buildroot} install
+rm -rf %{buildroot}%{_sysconfdir}
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root)

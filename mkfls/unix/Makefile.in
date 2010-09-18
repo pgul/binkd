@@ -11,7 +11,7 @@ CONFDIR=@sysconfdir@
 MANDIR=@mandir@
 
 SRCS=md5b.c binkd.c readcfg.c tools.c ftnaddr.c ftnq.c client.c server.c protocol.c bsy.c inbound.c breaksig.c branch.c unix/rename.c unix/getfree.c ftndom.c ftnnode.c srif.c pmatch.c readflo.c prothlp.c iptools.c run.c binlog.c exitproc.c getw.c xalloc.c crypt.c unix/setpttl.c unix/daemonize.c @OPT_SRC@
-OBJS=${SRCS:.c=.o} 
+OBJS=${SRCS:.c=.o}
 AUTODEFS=@DEFS@
 AUTOLIBS=@LIBS@
 DEFINES=$(AUTODEFS) -DHAVE_FORK -DUNIX -DOS="\"UNIX\""
@@ -31,7 +31,7 @@ banner:
 	@echo
 	@echo " Binkd is successfully compiled.                             "
 	@echo
-	@echo " If you want to install Binkd files into $(prefix)           "
+	@echo " If you want to install Binkd files into $(DESTDIR)$(prefix) "
 	@echo "     1. Run \`make -n install' to be sure this makefile will "
 	@echo "        do not something criminal during the installation;   "
 	@echo "     2. \`su' to root;                                       "
@@ -48,17 +48,17 @@ banner:
 	@./$(APPL) -v | $(AWK) '{ print $$2; }' > $@
 
 install: compile .version
-	./mkinstalldirs $(prefix)/sbin
-	$(INSTALL) $(APPL) $(prefix)/sbin/$(APPL)-`cat .version`
-	rm -f $(prefix)/sbin/$(APPL)
-	(VER=`cat .version` ; cd $(prefix)/sbin ; ln -s $(APPL)-$$VER $(APPL) )
-	./mkinstalldirs $(MANDIR)/man8
-	$(INSTALL) -m 644 $(APPL).8 $(MANDIR)/man8/$(APPL).8
-	./mkinstalldirs $(CONFDIR)
-	$(INSTALL) -m 644 $(APPL).conf $(CONFDIR)/$(APPL).conf-dist
+	./mkinstalldirs $(DESTDIR)$(prefix)/sbin
+	$(INSTALL) $(APPL) $(DESTDIR)$(prefix)/sbin/$(APPL)-`cat .version`
+	rm -f $(DESTDIR)$(prefix)/sbin/$(APPL)
+	(VER=`cat .version` ; cd $(DESTDIR)$(prefix)/sbin ; ln -s $(APPL)-$$VER $(APPL) )
+	./mkinstalldirs $(DESTDIR)$(MANDIR)/man8
+	$(INSTALL) -m 644 $(APPL).8 $(DESTDIR)$(MANDIR)/man8/$(APPL).8
+	./mkinstalldirs $(DESTDIR)$(CONFDIR)
+	$(INSTALL) -m 644 $(APPL).conf $(DESTDIR)$(CONFDIR)/$(APPL).conf-dist
 
 clean:
-	rm -f *.[bo] unix/*.[bo] ntlm/*.[bo] *.BAK *.core *.obj *.err 
+	rm -f *.[bo] unix/*.[bo] ntlm/*.[bo] *.BAK *.core *.obj *.err
 	rm -f *~ core config.cache config.log config.status
 
 cleanall: clean
@@ -66,7 +66,7 @@ cleanall: clean
 	rm -f configure configure.in .version install-sh mkinstalldirs
 
 # targets for compatibility
-mostlyclean: clean  
+mostlyclean: clean
 distclean: cleanall
 realclean: cleanall
 
