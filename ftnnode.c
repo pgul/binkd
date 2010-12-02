@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.36  2010/12/02 11:04:14  stas
+ * if any of passwords for the node is presents, then don't change all passwords. The FIRST token "Node" with any not-empty password in the config file is set all passwords, the passwords from password-file is used for node if password don't set in main config file
+ *
  * Revision 2.35  2004/10/25 17:04:54  gul
  * Process passwords file after all, independent of its place in config.
  * Use first password for node if several specified.
@@ -262,22 +265,27 @@ static FTN_NODE *add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pk
     pn->hosts = xstrdup (hosts);
   }
 
-  /* pwd, "-" for no password (why not empty string ???) */
-  if (pwd && strcmp(pwd, "-"))
-    if (!pn->pwd || strcmp(pn->pwd, "-") == 0)
-      strnzcpy(pn->pwd, pwd, sizeof(pn->pwd));
-  /* if NULL keep pointer to pn->pwd, if "-" use no password */
-  if (pkt_pwd) {
-    if (strcmp(pkt_pwd, "-")) pn->pkt_pwd = xstrdup(pkt_pwd);
-    else pn->pkt_pwd = NULL;
+  /* pwd, "-" for no password (requirement of binkp protocol) */
+  if ( (pwd && strcmp(pwd, "-"))
+        && (!pn->pwd || strcmp(pn->pwd, "-") == 0)
+        && (!pn->pkt_pwd || strcmp(pn->pkt_pwd, "-") == 0)
+        && (!pn->out_pwd || strcmp(pn->out_pwd, "-") == 0)
+     ) /* if any of passwords for the node is presents, then don't change all passwords */
+  {
+    strnzcpy(pn->pwd, pwd, sizeof(pn->pwd));
+    /* if NULL keep pointer to pn->pwd, if "-" use no password */
+    if (pkt_pwd) {
+      if (strcmp(pkt_pwd, "-")) pn->pkt_pwd = xstrdup(pkt_pwd);
+      else pn->pkt_pwd = NULL;
+    }
+    else pn->pkt_pwd = (char*)&(pn->pwd);
+    /* if NULL keep pointer to pn->pwd, if "-" use no password */
+    if (out_pwd) {
+      if (strcmp(out_pwd, "-")) pn->out_pwd = xstrdup(out_pwd);
+      else pn->out_pwd = NULL;
+    }
+    else pn->out_pwd = (char*)&(pn->pwd);
   }
-  else pn->pkt_pwd = (char*)&(pn->pwd);
-  /* if NULL keep pointer to pn->pwd, if "-" use no password */
-  if (out_pwd) {
-    if (strcmp(out_pwd, "-")) pn->out_pwd = xstrdup(out_pwd);
-    else pn->out_pwd = NULL;
-  }
-  else pn->out_pwd = (char*)&(pn->pwd);
 
   if (obox_flvr != '-')
   {
