@@ -1,3 +1,7 @@
+2010/12/02 13:04:16 1.0a-552 stas
+ftnnode.c,2.35,2.36
+if any of passwords for the node is presents, then don't change all passwords. The FIRST token "Node" with any not-empty password in the config file is set all passwords, the passwords from password-file is used for node if password don't set in main config file
+
 2010/08/26 09:26:28 1.0a-551 gul
 perlhooks.c,2.71,2.72
 Segfault on nested on_log() perl hook, reported by The Infidel numenorbbs at gmail.com
