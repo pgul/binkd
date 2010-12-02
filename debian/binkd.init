@@ -7,30 +7,58 @@
 # Default-Stop:      0 1 6
 ### END INIT INFO
 
-OPTS="/etc/binkd/binkd.cfg -q"
-PIDFILE=/var/run/ftn/binkd.pid
-DAEMON=/usr/sbin/binkd
+SERVICE=binkd
+DEFAULTS_FILE="/etc/default/${SERVICE}"
+
+# start binkd in daemon mode from init.d script?
+#  only allowed values are "true", "false", and "inetd"
+#  Use "inetd" if you want to start the binkd from inetd,
+#  all this does is prevent the init.d script from printing a message
+#  about not starting binkd (you still need to modify inetd's config yourself).
+BINKD_ENABLE=false
+
+if [ -f "${DEFAULTS_FILE}" ] ; then . "${DEFAULTS_FILE}"; fi
+
+if [ -z "${OPTS}" ]; then OPTS=" -qDC /etc/${SERVICE}/binkd.cfg"; fi
+if [ -z "${PIDFILE}" ]; then PIDFILE="/var/run/ftn/${SERVICE}.pid"; fi
+if [ -z "${DAEMON}" ]; then DAEMON="/usr/sbin/${SERVICE}"; fi
+if [ -z "${BINKD_UID}" ]; then BINKD_UID="ftn"; fi
+if [ -z "${BINKD_GID}" ]; then
+  BINKD_GID=`cat /etc/passwd | awk --field-separator : '/^${BINKD_UID}/{ print $4 }'`
+fi
+if [ -z "${BINKD_PROTOCOL}" ]; then BINKD_PROTOCOL="binkp"; fi
 
 test -f $DAEMON || exit 0
 
-# don't start binkd if it is started by inetd
-grep -q '^binkp[[:space:]]' /etc/inetd.conf && exit 0
+case "x${BINKD_ENABLE}" in
+  xtrue|xfalse)   ;;
+  xinetd)         exit 0
+                  ;;
+  *)              log_failure_msg "Value of BINKD_ENABLE in ${DEFAULTS_FILE} must be either 'true', 'false' or 'inetd';"
+                  log_failure_msg "not starting ${SERVICE} daemon."
+                  exit 1
+                  ;;
+esac
 
 case "$1" in
   start)
+    # don't start binkd if it is started by inetd
+    if grep -q "^${BINKD_PROTOCOL}[[:space:]]" /etc/inetd.conf ; then
+      echo "Can't start ${SERVICE} because it is calls via inetd service"
+      exit 0
+    fi
     echo -n "Starting FTN mailer: binkd"
-    start-stop-daemon --start --background --pidfile $PIDFILE \
-	--chuid ftn:ftn	--exec $DAEMON -- $OPTS
+    start-stop-daemon --start --background --pidfile ${PIDFILE} --chuid ${BINKD_UID}:${BINKD_GID} --umask 0664 --exec ${DAEMON} -- $OPTS
     echo "."
     ;;
   stop)
     echo -n "Stopping FTN mailer: binkd"
-    start-stop-daemon --oknodo --stop --pidfile $PIDFILE --exec $DAEMON
+    start-stop-daemon --oknodo --stop --pidfile ${PIDFILE} --exec ${DAEMON} --user ${BINKD_UID} --retry 3
     echo "."
     ;;
   reload)
     echo -n "Reloading FTN mailer: binkd"
-    start-stop-daemon --stop --signal 1 --pidfile $PIDFILE --exec $DAEMON
+    start-stop-daemon --stop --signal 1 --pidfile ${PIDFILE} --exec ${DAEMON} --user ${BINKD_UID}
     echo "."
     ;;
   restart|force-reload)
