@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of December 08 2009
+        Version of December 05 2010
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -1114,15 +1114,12 @@ the sample configuration file
 
 the uplinks are 2:5020/52 and 2:5020/238 with the shared AKA 2:999/999
 added.  Then you configure packing netmail to 2:999/999 and BinkD will send
-it to those of the two uplinks, the session with which will occur earlier.
+it to one of the two uplinks, the session with which will occur earlier.
 If there is no connection to 2:5020/52 the netmail will go to 2:5020/238.
 If there is no connection to 2:5020/238 it will go to 2:5020/52. The
-package addressee will be replaced by the real one.
-
-    P.S. For netmail to be processed correctly at every node, the netmail
-processor at the node should be aware of the shared AKA password. In
-practice the password should be absent in the PKTs and the netmail tracker
-should process PKT from you without a password at every link.
+package addressee 2:999/999 will be replaced by the real one and the
+package password will be set to the one of the real link.
+Shared AKA is implemented in binkd 1.0 and above.
 
 
 ----------------------------------------------------------------------------
