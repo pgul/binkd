@@ -3,7 +3,9 @@
 #
 # Usage: nmake [DEBUG=1] [STATIC=1] [BINKD9X=1] [PERL=1] [PERLDL=1]
 #              [ZLIB=1] [BZLIB2=1] [ZLIBDL=1] [DEBUGCHILD=1] [BW_LIM=1]
+#              [MSVC_VER=10]
 #
+# Use MSVC_VER=10 to build with Visual Studio 2008 or 2010
 #
 
 #PERL_BASE=c:\Perl
@@ -34,10 +36,18 @@ OBJDIR= $(OUTDIR)\obj
 MAKEDIRSONLY= $(OBJDIR) $(OBJDIR)\nt $(OBJDIR)\ntlm
 MAKEDIRS= $(BINDIR) $(OUTDIR) $(MAKEDIRSONLY)
 
+!if "$(MSVC_VER)" == "10"
+CFLAGS=  $(CFLAGS) -nologo -M$(RTLTYPE) -W3 -EHsc -c -J \
+         -Fp"$(OBJDIR)\$(BINKDNAME).pch" -Fd"$(OBJDIR)\$(BINKDNAME)"
+CDEFS=   $(CDEFS) -DWIN32 -DHAVE_THREADS -DHAVE_IO_H -DHAVE_DOS_H \
+         -DHAVE_STDARG_H -DVISUALCPP -DHTTPS -DAMIGADOS_4D_OUTBOUND -DNTLM \
+         -DHAVE_VSNPRINTF
+!else
 CFLAGS=  $(CFLAGS) -nologo -M$(RTLTYPE) -W3 -GX -c -YX -J \
          -Fp"$(OBJDIR)\$(BINKDNAME).pch" -Fd"$(OBJDIR)\$(BINKDNAME)"
 CDEFS=   $(CDEFS) -DWIN32 -DHAVE_THREADS -DHAVE_IO_H -DHAVE_DOS_H \
          -DHAVE_STDARG_H -DVISUALCPP -DHTTPS -DAMIGADOS_4D_OUTBOUND -DNTLM
+!endif
 
 LFLAGS=  /nologo /machine:I386 /subsystem:$(SUBSYSTEM) \
          /pdb:"$(OUTDIR)\$(BINKDNAME).pdb" /out:"$(OUTDIR)\$(BINKDEXE)"
