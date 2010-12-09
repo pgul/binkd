@@ -15,51 +15,70 @@ DEFAULTS_FILE="/etc/default/${SERVICE}"
 #  Use "inetd" if you want to start the binkd from inetd,
 #  all this does is prevent the init.d script from printing a message
 #  about not starting binkd (you still need to modify inetd's config yourself).
-BINKD_ENABLE=false
+BINKD_DAEMON_START=false
 
 if [ -f "${DEFAULTS_FILE}" ] ; then . "${DEFAULTS_FILE}"; fi
 
-if [ -z "${OPTS}" ]; then OPTS=" -qDC /etc/${SERVICE}/binkd.cfg"; fi
-if [ -z "${PIDFILE}" ]; then PIDFILE="/var/run/ftn/${SERVICE}.pid"; fi
+if [ -z "${BINKD_OPTS}" ]; then BINKD_OPTS="-qDC"; fi
 if [ -z "${DAEMON}" ]; then DAEMON="/usr/sbin/${SERVICE}"; fi
 if [ -z "${BINKD_UID}" ]; then BINKD_UID="ftn"; fi
 if [ -z "${BINKD_GID}" ]; then
   BINKD_GID=`cat /etc/passwd | awk --field-separator : '/^${BINKD_UID}/{ print $4 }'`
 fi
+if [ -z "${BINKD_UMASK}" ]; then BINKD_UMASK="0002"; fi
 if [ -z "${BINKD_PROTOCOL}" ]; then BINKD_PROTOCOL="binkp"; fi
+if [ "xBINKD_IN_HOMEDIR" = "x" ]; then
+  if [ -z "${BINKD_CONFIG}" ]; then BINKD_CONFIG="/etc/${SERVICE}/binkd.cfg"; fi
+  if [ -z "${PIDFILE}" ]; then PIDFILE="/var/run/ftn/${SERVICE}.pid"; fi
+else
+
+  if [ -z "${BINKD_CONFIG}" ]; then BINKD_CONFIG="/home/${BINKD_UID}/.binkd/binkd.cfg"; fi
+  if [ -z "${PIDFILE}" ]; then PIDFILE="/home/${BINKD_UID}/.run/binkd.pid"; fi
+fi
+
+. /lib/init/vars.sh
+. /lib/lsb/init-functions
 
 test -f $DAEMON || exit 0
 
-case "x${BINKD_ENABLE}" in
-  xtrue|xfalse)   ;;
-  xinetd)         exit 0
+case "x${BINKD_DAEMON_START}" in
+  x[Tt][Rr][Uu][Ee]|x[Oo][Nn])          ;;
+  x[Ff][Aa][Ll][Ss][Ee]|x[Oo][Ff][Ff])
+                  exit 0
+                  log_failure_msg "Daemon disabled in ${DEFAULTS_FILE}."
                   ;;
-  *)              log_failure_msg "Value of BINKD_ENABLE in ${DEFAULTS_FILE} must be either 'true', 'false' or 'inetd';"
+  x[Ii][Nn][Ee][Tt][Dd])
+                  exit 0
+                  ;;
+  *)              log_failure_msg "Value of BINKD_DAEMON_START in ${DEFAULTS_FILE} must be either 'true', , 'on', 'false', 'off' or 'inetd';"
                   log_failure_msg "not starting ${SERVICE} daemon."
                   exit 1
                   ;;
 esac
 
+PIDFILE_DIR="`dirname ${PIDFILE}`"
+[ -d "${PIDFILE_DIR}" ] || install -o ${BINKD_UID} -g ${BINKD_GID} -d "${PIDFILE_DIR}"
+
 case "$1" in
   start)
     # don't start binkd if it is started by inetd
     if grep -q "^${BINKD_PROTOCOL}[[:space:]]" /etc/inetd.conf ; then
-      echo "Can't start ${SERVICE} because it is calls via inetd service"
+      log_failure_msg "Can't start ${SERVICE} because it is calls via inetd service"
       exit 0
     fi
-    echo -n "Starting FTN mailer: binkd"
-    start-stop-daemon --start --background --pidfile ${PIDFILE} --chuid ${BINKD_UID}:${BINKD_GID} --umask 0664 --exec ${DAEMON} -- $OPTS
-    echo "."
+    log_daemon_msg "Starting FTN mailer" "binkd"
+    start-stop-daemon --start --pidfile ${PIDFILE} --chuid ${BINKD_UID}:${BINKD_GID} --umask ${BINKD_UMASK} --exec ${DAEMON} -- ${BINKD_OPTS} ${BINKD_CONFIG}
+    log_end_msg 0
     ;;
   stop)
-    echo -n "Stopping FTN mailer: binkd"
-    start-stop-daemon --oknodo --stop --pidfile ${PIDFILE} --exec ${DAEMON} --user ${BINKD_UID} --retry 3
-    echo "."
+    log_daemon_msg "Stopping FTN mailer" "binkd"
+    start-stop-daemon --oknodo --stop --pidfile ${PIDFILE} --exec ${DAEMON} --user ${BINKD_UID} --retry 7
+    log_end_msg 0
     ;;
   reload)
-    echo -n "Reloading FTN mailer: binkd"
+    log_daemon_msg "Reloading FTN mailer" "binkd"
     start-stop-daemon --stop --signal 1 --pidfile ${PIDFILE} --exec ${DAEMON} --user ${BINKD_UID}
-    echo "."
+    log_end_msg 0
     ;;
   restart|force-reload)
     sh $0 stop
@@ -67,7 +86,7 @@ case "$1" in
     sh $0 start
     ;;
   *)
-    echo "Usage: /etc/init.d/binkd {start|stop|restart|reload|force-reload}"
+    log_warning_msg "Usage: /etc/init.d/binkd {start|stop|restart|reload|force-reload}"
     exit 1
     ;;
 esac

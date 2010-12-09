@@ -1,0 +1,23 @@
+# Defaults for binkd initscript
+# sourced by /etc/init.d/binkd
+# installed at /etc/default/binkd by the maintainer scripts
+
+#
+# This is a POSIX shell fragment
+#
+
+# Additional options that are passed to the Daemon.
+#PIDFILE="/var/run/ftn/binkd.pid"
+#DAEMON="/usr/sbin/binkd"
+#BINKD_UID="ftn"
+#BINKD_GID="ftn"
+#BINKD_UMASK="002"
+#BINKD_PROTOCOL="binkp"
+
+# Main options
+#BINKD_CONFIG="/etc/binkd/binkd.conf"        # Conventional place for daemon's config
+#BINKD_CONFIG="/home/ftn/.binkd/binkd.conf"  # All fidonet files in home directory of user ftn
+#BINKD_OPTS="-qDC"                           # Quiet, daemon mode, reload config if changed
+
+# Set DAEMON_START to "YES" for enabling daemon start at boot
+DAEMON_START="NO"
