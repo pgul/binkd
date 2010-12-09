@@ -8,8 +8,9 @@
 # Use MSVC_VER=10 to build with Visual Studio 2008 or 2010
 #
 
+#PERLV=510
 #PERL_BASE=c:\Perl
-#PERL_LIB=perl58.lib
+#PERL_LIB=$(PERL_BASE)/lib/core/perl$(PERLV).lib
 
 #ZLIB_BASE=..\zlib
 #ZLIB_LIB=zlib.lib
@@ -274,7 +275,8 @@ C_DIRS=$(C_DIRS) -I "$(PERL_INCL)"
 L_DIRS=$(L_DIRS) /LIBPATH:"$(PERL_INCL)"
 !endif
 !ifdef PERL_LIB
-LIBS=$(LIBS) $(PERL_LIB)
+LIBS=$(LIBS) delayimp.lib $(PERL_LIB)
+PERLDLL=/delayload:perl$(PERLV).dll
 !endif
 !endif
 
@@ -327,7 +329,7 @@ $(MAKEDIRS):
 "$(OUTDIR)\$(BINKDEXE)": $(OBJS) $(RESOBJS)
 	@echo Linking $(BINKDEXE)...
 	@$(LINK) $(LFLAGS) $(L_DIRS) @<<
-$(LIBS) $(OBJS) $(RESOBJS)
+$(LIBS) $(OBJS) $(RESOBJS) $(PERLDLL)
 <<
 
 !ifdef DEBUG
