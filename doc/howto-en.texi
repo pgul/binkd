@@ -166,8 +166,16 @@ outbound) mode so that all of them including BinkD would have the same
 inbound directories (and also the same outbound directories). If your
 mailer can work with AMA (arcmail-attach) only you have to change your
 mailer.
+    You also have to configure packing netmail to BSO. Usually you have to install
+and configure a special program for that purpose: a simple netmail packer (@emph{bip}
+or another one), or a more function rich netmail tracker (@emph{rntrack} or 
+another one. Some mailers know themselves how to pack netmail to BSO.
+    If you use fileboxes, then the path to fileboxes directory used by your modem
+mailer must be set in the BinkD configuration file.
 
-(This part don't translated, sorry.)
+    Here is a working example of a configuration file for the joint work of @emph{BinkD}
+and @emph{T-mail} (only the tokens necessary for the joint work of the mailers 
+are shown):
 
 @verbatim
     t-mail.ctl:
@@ -193,8 +201,18 @@ mailer.
 
 
 @node 04, , 03, Top
-@chapter What binkd processes the descriptions an links and file of passwords.
+@chapter How Does BinkD Process the Link Descriptions and a Password File.
 
-(This chapter don't translated, sorry.)
-
+    The configuration file definitions with tokens @strong{node}, @strong{defnode} and also a password file
+defined by @strong{passwords} token contain information about links.
+    If several @strong{node} tokens are present in the configuration file or several
+lines with passwords are present in the password file for the same link, then the
+first entry is valid. All the rest entries are ignored.
+    The @strong{node} lines, i.e. the definitions of nodes and @strong{defnode} entry, i.e. the default link are handled first. Then
+the password file is read.
+    Hence for explicitly defined links the @strong{node} lines give the actual
+node parameters. In order to use passwords from the password file you have to
+place a hyphen (or minus) character instead of a password in the @strong{node} line for the link.
+    For the other links a password in the password file is valid.
+    
 @bye
