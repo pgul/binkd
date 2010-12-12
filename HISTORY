@@ -1,3 +1,7 @@
+2010/12/12 14:32:14 1.0a-554 gul
+sys.h,2.31,2.32
+Fix previous patch
+
 2010/12/12 11:44:14 1.0a-553 gul
 protocol.c,2.199,2.200 sys.h,2.30,2.31
 Use Sleep() instead of select(0,NULL,NUL,NULL,...) under WIN32
