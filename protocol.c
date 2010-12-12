@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.200  2010/12/12 09:44:11  gul
+ * Use Sleep() instead of select(0,NULL,NUL,NULL,...) under WIN32
+ *
  * Revision 2.199  2010/05/22 08:11:30  gul
  * Call after_session() hook after removing bsy
  *
@@ -3812,7 +3815,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
 #endif
         Log (8, "tv.tv_sec=%lu, tv.tv_usec=%lu",
            (unsigned long) tv.tv_sec, (unsigned long) tv.tv_usec);
-        no = select (socket + 1, &r, &w, 0, &tv);
+        no = SELECT (socket + 1, &r, &w, 0, &tv);
         if (no < 0)
           save_err = TCPERR ();
         Log (8, "selected %i (r=%i, w=%i)", no, FD_ISSET (socket, &r), FD_ISSET (socket, &w));
@@ -3870,7 +3873,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
           else
 #endif
             FD_SET (socket, &r);
-          if (!select (socket + 1, &r, 0, 0, &tv)
+          if (!SELECT (socket + 1, &r, 0, 0, &tv)
 #ifdef BW_LIM
               && !limited
 #endif
