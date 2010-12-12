@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.32  2010/12/12 12:32:11  gul
+ * Fix previous patch
+ *
  * Revision 2.31  2010/12/12 09:44:11  gul
  * Use Sleep() instead of select(0,NULL,NUL,NULL,...) under WIN32
  *
@@ -240,7 +243,7 @@
 #if defined(WIN32)
   /* if no waiting sockets, call Sleep() instead of select() */
   #define SELECT(n, r, w, e, t)   \
-	(((r)==0 || !FD_ISSET(r,n-1)) && ((w)==0 || !FD_ISSET(w,n-1)) ? \
+	(((r)==0 || !FD_ISSET(n-1,r)) && ((w)==0 || !FD_ISSET(n-1,w)) ? \
 	 Sleep((t)->tv_sec*1000+((t)->tv_usec+999)/1000),0 : select(n,r,w,e,t))
 #else
   #define SELECT(n, r, w, e, t)  select(n, r, w, e, t)
