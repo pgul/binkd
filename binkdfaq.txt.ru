@@ -145,7 +145,6 @@ RitLabs; http://www.ritlabs.com) и его клонами Radius и Taurus, BForce (unix),
       отдельная версия для работы сервисом в Windows 9x;
     - простое TCP-соединение (целостность данных отслеживается на уровне TCP);
     - BSO (bink-style outbound);
-    - LBSO (Long BSO);
     - ASO (Amiga-style outbound);
     - трансляция путей в ?LO файлах (используется при размещении аутбаунда
       на сетевых дисках);

@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of December 05 2010
+        Version of December 28 2010
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -144,7 +144,6 @@ Proffitt, 1:105/10; http://beemail.gexonline.net/)
       there is a separate version for working as service in Windows 9x;
     - simple TCP-connection (data integrity is supported at TCP level);
     - BSO (bink-style outbound);
-    - LBSO (Long BSO);
     - ASO (Amiga-style outbound);
     - path translation in ?LO files (it is used when the outbound resides
       on a net drive);
