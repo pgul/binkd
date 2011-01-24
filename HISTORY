@@ -1,3 +1,7 @@
+2011/01/24 12:44:54 1.0a-555 gul
+protoco2.h,2.26,2.27 protocol.c,2.200,2.201
+Possible segfault on session start
+
 2010/12/12 14:32:14 1.0a-554 gul
 sys.h,2.31,2.32
 Fix previous patch
