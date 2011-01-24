@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.201  2011/01/24 10:44:53  gul
+ * Possible segfault on session start
+ *
  * Revision 2.200  2010/12/12 09:44:11  gul
  * Use Sleep() instead of select(0,NULL,NUL,NULL,...) under WIN32
  *
@@ -783,7 +786,7 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to, BINKD_CONFI
   state->MD_flag = 0;
   state->MD_challenge = NULL;
   state->crypt_flag = no_crypt ? NO_CRYPT : WE_CRYPT;
-  strcpy (state->expected_pwd, "-");
+  state->expected_pwd = "-";
   state->skip_all_flag = state->r_skipped_flag = 0;
   state->maxflvr = 'h';
   state->listed_flag = 0;
@@ -1778,9 +1781,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
   /* set expected password on outgoing session
    * for drop remote AKAs with another passwords */
   if (state->to)
-    memcpy(state->expected_pwd,
-           state->to->out_pwd ? state->to->out_pwd : "-",
-           sizeof(state->expected_pwd));
+    state->expected_pwd = (state->to->out_pwd ? state->to->out_pwd : "-");
 
   for (i = 1; (w = getwordx (s, i, 0)) != 0; ++i)
   {
@@ -1973,7 +1974,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
       char *pwd = state->to ? pn->out_pwd : pn->pwd;
       if (!strcmp (state->expected_pwd, "-"))
       {
-        memcpy(state->expected_pwd, pwd, sizeof (state->expected_pwd));
+        state->expected_pwd = pwd;
         state->MD_flag=pn->MD_flag;
       }
       else if (pwd && strcmp(pwd, "-") &&
@@ -1984,7 +1985,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
         else
         { /* drop incoming session with M_ERR "Bad password" */
           Log (1, "inconsistent pwd settings for this node");
-          state->expected_pwd[0] = 0;
+          state->expected_pwd = "";
         }
         continue;
       }
