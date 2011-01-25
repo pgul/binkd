@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.95  2011/01/25 15:33:49  stas
+ * Prevent segfault if length of passwords exceed 40 chars (addition for previous patch
+ *
  * Revision 2.94  2009/05/31 07:16:17  gul
  * Warning: many changes, may be unstable.
  * Perl interpreter is now part of config and rerun on config reload.
@@ -2186,10 +2189,11 @@ static int read_proxy (KEYWORD *key, int wordcount, char **words)
 static int print_node_info_1 (FTN_NODE *fn, void *arg)
 {
   char szfa[FTN_ADDR_SZ + 1];
-  char pwd[(MAXPWDLEN + 1) * 3];
+  char *pwd;
 
   UNUSED_ARG(arg);
   ftnaddress_to_str (szfa, &fn->fa);
+  pwd = calloc (1, strlen(fn->pwd)+strlen(fn->pkt_pwd)+strlen(fn->out_pwd)+5);
   strcpy(pwd, fn->pwd);
   if (fn->pkt_pwd != (char*)&(fn->pwd) || fn->out_pwd != (char*)&(fn->pwd)) {
     strcat(strcat(pwd, ","), (fn->pkt_pwd) ? fn->pkt_pwd : "-");
@@ -2209,6 +2213,7 @@ static int print_node_info_1 (FTN_NODE *fn, void *arg)
          (fn->restrictIP == RIP_ON)  ? " -ip" : "",
          (fn->restrictIP == RIP_SIP) ? " -sip" : ""
         );
+  free (pwd);
 #ifdef BW_LIM
   if (fn->bw_send != BW_DEF || fn->bw_recv != BW_DEF) {
     printf(" -bw %s", describe_rate(fn->bw_send));
