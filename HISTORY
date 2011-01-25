@@ -1,3 +1,7 @@
+2011/01/25 17:33:52 1.0a-556 stas
+readcfg.c,2.94,2.95
+Prevent segfault if length of passwords exceed 40 chars (addition for previous patch
+
 2011/01/24 12:44:54 1.0a-555 gul
 protoco2.h,2.26,2.27 protocol.c,2.200,2.201
 Possible segfault on session start
