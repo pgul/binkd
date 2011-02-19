@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.202  2011/02/19 06:08:27  gul
+ * Yet another possible segfault on session start
+ *
  * Revision 2.201  2011/01/24 10:44:53  gul
  * Possible segfault on session start
  *
@@ -1974,7 +1977,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
       char *pwd = state->to ? pn->out_pwd : pn->pwd;
       if (!strcmp (state->expected_pwd, "-"))
       {
-        state->expected_pwd = pwd;
+        state->expected_pwd = pwd ? pwd : "-";
         state->MD_flag=pn->MD_flag;
       }
       else if (pwd && strcmp(pwd, "-") &&
