@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.39  2011/05/06 15:44:04  gul
+ * Fixed sorting files in filebox by time
+ *
  * Revision 2.38  2009/05/31 07:16:16  gul
  * Warning: many changes, may be unstable.
  * Perl interpreter is now part of config and rerun on config reload.
@@ -378,9 +381,9 @@ static int cmp_filebox_files (FTNQ *a, FTNQ *b)
   int w_b = weight_by_name (b->path);
 
   if (w_a - w_b == 0)
-    return b->time - a->time;
+    return a->time - b->time;
   else
-    return w_a - w_b;
+    return w_b - w_a;
 }
 
 #ifdef MAILBOX
