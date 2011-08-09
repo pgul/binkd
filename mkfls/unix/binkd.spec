@@ -2,11 +2,11 @@ Summary: Binkd - the binkp daemon
 Name: binkd
 Version: 1.0a.559
 Release: 1
-Copyright: GPL
+License: GPL
 Source: %{name}.tar.gz
 URL: ftp://happy.kiev.ua/pub/fidosoft/mailer/binkd/
 Provides: binkd
-Requires: perl >= 5.8.3, zlib >= 1.2.3, bzip >= 1.0.3
+Requires: perl >= 5.8.3, zlib >= 1.2.3, bzip2 >= 1.0.3
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 Group: Applications/Internet
 
