@@ -1,3 +1,7 @@
+2011/08/17 18:51:48 1.0a-561 stas
+Config.h,2.586,2.587 readcfg.c,2.96,2.97
+move declaration of default value of root_domain to Config.h
+
 2011/08/17 12:02:59 1.0a-560 gul
 binkd.cfg,2.56,2.57 ftnaddr.c,2.9,2.10 ftnaddr.h,2.5,2.6 readcfg.c,2.95,2.96
 Default root-domain fidonet.net changed to binkp.net
