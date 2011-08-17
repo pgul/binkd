@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2011/08/17 09:02:56  gul
+ * Default root-domain fidonet.net changed to binkp.net
+ *
  * Revision 2.5  2005/09/28 20:40:45  gul
  * Optional parameter root-domain for domain config option.
  *
@@ -80,7 +83,7 @@ void ftnaddress_to_filename_ (char *s, FTN_ADDR *fa, FTN_DOMAIN *pDomains);
 #endif
 
 /*
- *  2:5047/13.1 -> p1.f13.n5047.z2.fidonet.net.
+ *  2:5047/13.1 -> p1.f13.n5047.z2.binkp.net.
  *  S should have space for MAXHOSTNAMELEN chars.
  */
 void ftnaddress_to_domain (char *s, FTN_ADDR *fa, FTN_DOMAIN *d, char *domain);

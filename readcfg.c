@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.96  2011/08/17 09:02:56  gul
+ * Default root-domain fidonet.net changed to binkp.net
+ *
  * Revision 2.95  2011/01/25 15:33:49  stas
  * Prevent segfault if length of passwords exceed 40 chars (addition for previous patch
  *
@@ -583,7 +586,7 @@ void lock_config_structure(BINKD_CONFIG *c)
     c->tzoff             = -1; /* autodetect */
 
     strcpy(c->inbound, ".");
-    strcpy(c->root_domain, "fidonet.net.");
+    strcpy(c->root_domain, "binkp.net.");
   }
 }
 
@@ -1562,7 +1565,7 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
  *    <host> = <hostname> [ ":" <service> ]
  *
  *  "*" will expand in corresponding domain name for ``fn''
- *                        (2:5047/13 --> "f13.n5047.z2.fidonet.net.")
+ *                        (2:5047/13 --> "f13.n5047.z2.binkp.net.")
  *
  *  ``Host'' should contain at least MAXHOSTNAMELEN bytes.
  *
