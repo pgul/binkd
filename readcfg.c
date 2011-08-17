@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.97  2011/08/17 15:51:46  stas
+ * move declaration of default value of root_domain to Config.h
+ *
  * Revision 2.96  2011/08/17 09:02:56  gul
  * Default root-domain fidonet.net changed to binkp.net
  *
@@ -586,7 +589,7 @@ void lock_config_structure(BINKD_CONFIG *c)
     c->tzoff             = -1; /* autodetect */
 
     strcpy(c->inbound, ".");
-    strcpy(c->root_domain, "binkp.net.");
+    strcpy(c->root_domain, ROOT_DOMAIN);
   }
 }
 

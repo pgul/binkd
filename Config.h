@@ -97,6 +97,7 @@
 #endif
 
 #define MAILBOX                             /* fileboxes suport */
+#define ROOT_DOMAIN     "binkp.net"         /* default root_domain */
 
 /* System... */
 #define STACKSIZE (256*1024)
