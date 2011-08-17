@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.26.2.5  2011/08/17 15:44:48  stas
+ * Default root-domain fidonet.net changed to binkp.net. binkd 0.9.11 is released
+ *
  * Revision 2.26.2.4  2008/05/28 11:16:31  gul
  * Ignore comments in passwords file
  *
@@ -227,7 +230,7 @@ int loglevel = 4;
 int conlog = 0;
 int send_if_pwd = 0;
 int tzoff = 0;
-char root_domain[MAXHOSTNAMELEN + 1] = "fidonet.net.";
+char root_domain[MAXHOSTNAMELEN + 1] = ROOT_DOMAIN;
 int prescan = 0;
 enum inbcasetype inboundcase = INB_SAVE;
 int connect_timeout = 0;

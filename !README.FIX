@@ -562,3 +562,4 @@ NT/95:  ctrl-c problems fixed
 	Bugfix: segfault on some crafted input from remote (possible DoS),
 	thanks to Dennis Yurichev.
 
+	Change default domain: binkp.net instead fidonet.net

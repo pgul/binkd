@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10.2.25  2011/08/17 15:44:48  stas
+ * Default root-domain fidonet.net changed to binkp.net. binkd 0.9.11 is released
+ *
  * Revision 2.10.2.24  2008/10/02 06:11:12  gul
  * 0.9.11-stable
  *
@@ -167,7 +170,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.11-stable"
+#define MYVER "0.9.11"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
@@ -192,6 +195,8 @@
 #endif
 
 #define MAILBOX                             /* fileboxes suport */
+
+#define ROOT_DOMAIN "binkp.net."            /* default root_domain */
 
 /* System... */
 #define STACKSIZE (256*1024)
