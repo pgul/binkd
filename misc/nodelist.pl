@@ -184,7 +184,7 @@ sub compile_nodelist
 			$zone = $region = $net = $node;
 			$node = 0;
 			$domzone = $domreg = $domnet = "";
-			foreach $i qw(M 1 2 3 4) {
+			foreach $i (qw(M 1 2 3 4)) {
 				$domzone = $domreg = $domnet = "DO$i:" . $flags{"UDO$i"} if $flags{"UDO$i"};
 			}
 			$ird = $flags{"IRD"};
@@ -192,7 +192,7 @@ sub compile_nodelist
 			$region = $net = $node;
 			$node = 0;
 			$domreg = $domnet = "";
-			foreach $i qw(M 1 2 3 4) {
+			foreach $i (qw(M 1 2 3 4)) {
 				$domreg = $domnet = "DO$i:" . $flags{"UDO$i"} if $flags{"UDO$i"};
 			}
 			$ird = $flags{"IRD"};
@@ -200,7 +200,7 @@ sub compile_nodelist
 			$net = $node;
 			$node = 0;
 			$domnet = "";
-			foreach $i qw(M 1 2 3 4) {
+			foreach $i (qw(M 1 2 3 4)) {
 				$domnet = "DO$i:" . $flags{"UDO$i"} if $flags{"UDO$i"};
 			}
 			$ird = $flags{"IRD"};
@@ -256,7 +256,7 @@ sub compile_nodelist
 		}
 		unless (@addr) {
 			$domflag = ($domnet || $domreg || $domzone);
-			foreach $i qw(M 1 2 3 4) {
+			foreach $i (qw(M 1 2 3 4)) {
 				$domflag = "DO$i:" . $flags{"UDO$i"} if $flags{"UDO$i"};
 			}
 			if ($domflag =~ /^DO(.):/) {
