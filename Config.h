@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10.2.26  2012/01/03 14:42:36  gul
+ * Set version to 0.9.12-stable
+ *
  * Revision 2.10.2.25  2011/08/17 15:44:48  stas
  * Default root-domain fidonet.net changed to binkp.net. binkd 0.9.11 is released
  *
@@ -170,7 +173,7 @@
 #define PRTCLNAME "binkp"
 #define PRTCLVER "1.1"
 #define MYNAME "binkd"
-#define MYVER "0.9.11"
+#define MYVER "0.9.12-stable"
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
