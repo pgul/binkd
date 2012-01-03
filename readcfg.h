@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.39  2012/01/03 17:52:32  green
+ * Implement FSP-1035 (SRV record usage)
+ * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
+ * - Unix (libresolv, autodetected) and Win32 support implemented
+ * - Port information is stored as string now, i.e. may be service name
+ *
  * Revision 2.38  2009/05/31 07:16:17  gul
  * Warning: many changes, may be unstable.
  * Perl interpreter is now part of config and rerun on config reload.
@@ -251,8 +257,8 @@ struct _BINKD_CONFIG
   int        nNodSorted;     /* internal flag   */
   int        q_present;      /* BSO scan: queue not empty */
 
-  int        iport;
-  int        oport;
+  char       iport[MAXSERVNAME + 1];
+  char       oport[MAXSERVNAME + 1];
   int        oblksize;
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
   int        zminsize;
@@ -408,7 +414,7 @@ void simplelist_free(struct list_linkpoint *lp, void (*destructor)(void *));
  */
 void destroy_maskchain(void *p);
 
-int  get_host_and_port (int n, char *host, unsigned short *port, char *src, FTN_ADDR *fa, BINKD_CONFIG *config);
+int  get_host_and_port (int n, char *host, char **port, char *src, FTN_ADDR *fa, BINKD_CONFIG *config);
 
 char *mask_test(char *s, struct maskchain *chain);
 

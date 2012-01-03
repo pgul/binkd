@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.205  2012/01/03 17:52:32  green
+ * Implement FSP-1035 (SRV record usage)
+ * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
+ * - Unix (libresolv, autodetected) and Win32 support implemented
+ * - Port information is stored as string now, i.e. may be service name
+ *
  * Revision 2.204  2012/01/03 17:25:32  green
  * Implemented IPv6 support
  * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
@@ -1834,7 +1840,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
       int ipok = 0;
 #endif
       char host[MAXHOSTNAMELEN + 1];       /* current host/port */
-      unsigned short port;
+      char *port;
       struct sockaddr_storage sin;
       socklen_t si = sizeof(sin);
       struct addrinfo hints = { .ai_family = PF_UNSPEC,
@@ -1870,7 +1876,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
           continue;
 
         Log (5, "resolving `%s'...", host);
-	aiErr = getaddrinfo(host, "24554", &hints, &aiHead);
+	aiErr = getaddrinfo(host, "0", &hints, &aiHead);
 	if (aiErr != 0)
         {
 	  Log(3, "%s, getaddrinfo error: %s", host, gai_strerror(aiErr));

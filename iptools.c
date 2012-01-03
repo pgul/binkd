@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2012/01/03 17:52:32  green
+ * Implement FSP-1035 (SRV record usage)
+ * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
+ * - Unix (libresolv, autodetected) and Win32 support implemented
+ * - Port information is stored as string now, i.e. may be service name
+ *
  * Revision 2.15  2012/01/03 17:25:32  green
  * Implemented IPv6 support
  * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
@@ -98,6 +104,7 @@
 #include "iptools.h"
 #include "tools.h"
 #include "sem.h"
+#include "rfc2553.h"
 
 /*
  * Sets non-blocking mode for a given socket
@@ -130,24 +137,34 @@ void setsockopts (SOCKET s)
 }
 
 /*
- * Find the port number (in the host byte order) by a port number string or
- * a service name. Find_port ("") will return binkp's port from
- * /etc/services or even (if there is no binkp entry) 24554.
- * Returns 0 on error.
+ * Find the appropriate port string to be used.
+ * Find_port ("") will return binkp's port from /etc/services or even 
+ * (if there is no binkp entry) 24554.
+ * Returns NULL on error.
  */
-int find_port (char *s)
+char * find_port (char *s)
 {
-  struct servent *entry = getservbyname (*s ? s : PRTCLNAME, "tcp");
+  char *ps = NULL;
+  struct addrinfo *aiHead;
+  struct addrinfo hints = { .ai_family = PF_UNSPEC,
+                            .ai_socktype = SOCK_STREAM,
+                            .ai_protocol = IPPROTO_TCP };
+  int aiErr;
 
-  if (entry)
-    return ntohs (entry->s_port);
-  if (*s == 0)
-    return DEF_PORT;
-  if (isdigit (*s))
-    return atoi (s);
+  aiErr = getaddrinfo(NULL, (s && *s) ? s : PRTCLNAME, &hints, &aiHead);
+  if (aiErr == 0)
+  {
+    ps = (s && *s) ? s : PRTCLNAME;
+    freeaddrinfo(aiHead);
+  }
+  else
+  if (s == NULL || *s == 0)
+    ps = DEF_PORT;
 
-  Log (1, "%s: incorrect port", s);
-  return 0;
+  if (ps == NULL)
+    Log (1, "%s: incorrect port (getaddrinfo: %s)", s, gai_strerror(aiErr));
+
+  return ps;
 }
 
 int sockaddr_cmp_addr(const struct sockaddr *a, const struct sockaddr *b)

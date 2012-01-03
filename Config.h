@@ -77,7 +77,7 @@
 #endif
 
 /* Protocol */
-#define DEF_PORT 24554
+#define DEF_PORT "24554"
 #define DEF_TIMEOUT (5*60)
 #define MIN_BLKSIZE 128
 #define MAX_BLKSIZE 0x7fffu                 /* Don't change! */

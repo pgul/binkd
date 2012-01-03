@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.23  2012/01/03 17:52:32  green
+ * Implement FSP-1035 (SRV record usage)
+ * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
+ * - Unix (libresolv, autodetected) and Win32 support implemented
+ * - Port information is stored as string now, i.e. may be service name
+ *
  * Revision 2.22  2012/01/03 17:25:31  green
  * Implemented IPv6 support
  * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
@@ -115,6 +121,7 @@
 #include "ntlm/helpers.h"
 #endif
 #include "rfc2553.h"
+#include "srv_gai.h"
 
 static char b64t[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 static int enbase64(char *data, int size, char *p)
@@ -171,7 +178,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 	char buf[1024], *pbuf;
 	char *sp, *sauth;
 	struct in_addr defaddr;
-	unsigned port;
+	char *port;
 
 	if (proxy[0])
 	{
@@ -324,14 +331,14 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 		if ((sp = strchr(host, ':')) != NULL)
 		{
 			*sp++ = '\0';
-			port = atoi(sp);
+			port = sp;
 		}
 		else
 			port = config->oport; /* should never happens */
 		if (!sauth) /* SOCKS4 */
 		{
 			/* SOCKS4 only support IPv4 and we need the IP address */
-			if ((aiErr=getaddrinfo(host, "0", &hints, &aiHead)) != 0)
+			if ((aiErr=srv_getaddrinfo(host, port, &hints, &aiHead)) != 0)
 			{
 				Log(2, "getaddrinfo failed: %s", gai_strerror(aiErr));
 				SetTCPError(PR_ERROR);
@@ -340,9 +347,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 		}
 		else	    /* SOCKS5 */
 		{
-			/* We only run a dummy resolution */
-			hints.ai_flags |= AI_NUMERICSERV;
-			if ((aiErr=getaddrinfo(NULL, "0", &hints, &aiHead)) != 0)
+			if ((aiErr=getaddrinfo(NULL, port, &hints, &aiHead)) != 0)
 			{
 				Log(2, "getaddrinfo failed: %s", gai_strerror(aiErr));
 				return 1;
@@ -400,16 +405,17 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 
 		for (ai = aiHead; ai != NULL; ai = ai->ai_next)
 		{
+			unsigned short portnum = ((struct sockaddr_in*)(ai->ai_addr))->sin_port;
 			if (!sauth) /* SOCKS4 */
 			{
 				buf[0]=4;
 				buf[1]=1;
 				lockhostsem();
-				Log (4, port == (unsigned short)config->oport ? "trying %s..." : "trying %s:%u...",
-				     inet_ntoa(((struct sockaddr_in*)(ai->ai_addr))->sin_addr), port);
+				Log (4, strcmp(port, config->oport) == 0 ? "trying %s..." : "trying %s:%u...",
+				     inet_ntoa(((struct sockaddr_in*)(ai->ai_addr))->sin_addr), portnum);
 				releasehostsem();
-				buf[2]=(unsigned char)((port>>8)&0xFF);
-				buf[3]=(unsigned char)(port&0xFF);
+				buf[2]=(unsigned char)((portnum>>8)&0xFF);
+				buf[3]=(unsigned char)(portnum&0xFF);
 				memcpy(buf+4, &(((struct sockaddr_in*)(ai->ai_addr))->sin_addr), 4);
 				buf[8]=0;
 				send(so, buf, 9, 0);
@@ -433,8 +439,8 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 					memcpy(buf+5, host, i);
 					pbuf = buf+5+i;
 				}
-				*pbuf++=(unsigned char)((port>>8)&0xFF);
-				*pbuf++=(unsigned char)(port&0xFF);
+				*pbuf++=(unsigned char)((portnum>>8)&0xFF);
+				*pbuf++=(unsigned char)(portnum&0xFF);
 				send(so, buf, pbuf-buf, 0);
 			}
 			for (i=0; i<sizeof(buf); i++)

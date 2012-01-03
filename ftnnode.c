@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.38  2012/01/03 17:52:32  green
+ * Implement FSP-1035 (SRV record usage)
+ * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
+ * - Unix (libresolv, autodetected) and Win32 support implemented
+ * - Port information is stored as string now, i.e. may be service name
+ *
  * Revision 2.37  2012/01/03 17:25:31  green
  * Implemented IPv6 support
  * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
@@ -166,6 +172,7 @@
 #include "ftnq.h"
 #include "iphdr.h"
 #include "rfc2553.h"
+#include "srv_gai.h"
 
 #if defined(HAVE_THREADS) || defined(AMIGA)
 static MUTEXSEM NSem;
@@ -352,12 +359,11 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
   struct addrinfo *ai;
   struct addrinfo hints = { .ai_family = PF_UNSPEC,
                             .ai_socktype = SOCK_STREAM,
-                            .ai_protocol = IPPROTO_TCP,
-			    .ai_flags = AI_NUMERICSERV };
+                            .ai_protocol = IPPROTO_TCP };
   int aiErr;
   FTN_NODE n, *np;
   char host[MAXHOSTNAMELEN + 1];       /* current host/port */
-  unsigned short port;
+  char *port;
   int i;
 
   strcpy(n.fa.domain, "defnode");
@@ -372,11 +378,10 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
     if (!strcmp(host, "-"))
       continue;
 
-    aiErr = getaddrinfo(host, "0", &hints, &ai);
-    if (ai != NULL)
-      freeaddrinfo(ai);
+    aiErr = srv_getaddrinfo(host, port ? port : "0", &hints, &ai);
     if (aiErr != 0) continue;
-    sprintf (host+strlen(host), ":%d", port);
+    freeaddrinfo(ai);
+    sprintf (host+strlen(host), ":%s", port);
     i=0;
     break;
   }

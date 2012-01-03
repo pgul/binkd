@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.45  2012/01/03 17:52:32  green
+ * Implement FSP-1035 (SRV record usage)
+ * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
+ * - Unix (libresolv, autodetected) and Win32 support implemented
+ * - Port information is stored as string now, i.e. may be service name
+ *
  * Revision 2.44  2012/01/03 17:25:32  green
  * Implemented IPv6 support
  * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
@@ -277,7 +283,7 @@ static void serv (void *arg)
 
 static int do_server(BINKD_CONFIG *config)
 {
-  struct addrinfo hints = { .ai_flags = AI_PASSIVE | AI_NUMERICSERV,
+  struct addrinfo hints = { .ai_flags = AI_PASSIVE,
 			    .ai_family = PF_UNSPEC,
 			    .ai_socktype = SOCK_STREAM,
 			    .ai_protocol = IPPROTO_TCP };
@@ -289,11 +295,9 @@ static int do_server(BINKD_CONFIG *config)
   struct sockaddr_storage client_addr;
   int opt = 1;
   int save_errno;
-  char pstr[11];
 
-  snprintf(pstr, sizeof(pstr), "%d", (unsigned short)config->iport);
   if ((aiErr = getaddrinfo(config->bindaddr[0] ? config->bindaddr : NULL, 
-		pstr, &hints, &aiHead)) != 0)
+		config->iport, &hints, &aiHead)) != 0)
   {
     Log(0, "servmgr getaddrinfo: %s", gai_strerror(aiErr));
     return -1;

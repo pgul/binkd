@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.72  2012/01/03 17:52:32  green
+ * Implement FSP-1035 (SRV record usage)
+ * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
+ * - Unix (libresolv, autodetected) and Win32 support implemented
+ * - Port information is stored as string now, i.e. may be service name
+ *
  * Revision 2.71  2012/01/03 17:25:31  green
  * Implemented IPv6 support
  * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
@@ -312,6 +318,7 @@
 #include "https.h"
 #endif
 #include "rfc2553.h"
+#include "srv_gai.h"
 
 static void call (void *arg);
 
@@ -550,7 +557,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   char addrbuf[MAXHOSTNAMELEN + 1];
   char servbuf[MAXSERVNAME + 1];
   char *hosts;
-  unsigned short port;
+  char *port;
   const char *save_err;
 #ifdef HTTPS
   int use_proxy;
@@ -608,7 +615,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 	*sp++ = '\0';
       sport = proxy[0] ? "squid" : "socks"; /* default port */
     }
-    if ( (aiErr = getaddrinfo(host, sport, &hints, &aiProxyHead)) != 0)
+    if ( (aiErr = srv_getaddrinfo(host, sport, &hints, &aiProxyHead)) != 0)
     {
 	Log(2, "Port %s not found, try default %d", sp, proxy[0] ? 3128 : 1080);
 	aiErr = getaddrinfo(host, proxy[0] ? "3128" : "1080", &hints, &aiProxyHead);
@@ -644,10 +651,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
     else /* don't resolve if proxy or socks specified */
 #endif
     {
-      char pstr[11];
-
-      snprintf(pstr, sizeof(pstr), "%d", port);
-      aiErr = getaddrinfo(host, pstr, &hints, &aiNodeHead);
+      aiErr = srv_getaddrinfo(host, port, &hints, &aiNodeHead);
      
       if (aiErr != 0)
       {
@@ -706,9 +710,9 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 	  Log (4, "trying %s via %s %s:%u...", host,
 	       proxy[0] ? "proxy" : "socks", addrbuf, servbuf);
 	else
-	  Log (4, "trying %s:%u via %s %s:%u...", host, port,
+	  Log (4, "trying %s:%s via %s %s:%u...", host, port,
 	       proxy[0] ? "proxy" : "socks", addrbuf, servbuf);
-	sprintf(host+strlen(host), ":%u", port);
+	sprintf(host+strlen(host), ":%s", port);
       }
       else
 #endif

@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.99  2012/01/03 17:52:32  green
+ * Implement FSP-1035 (SRV record usage)
+ * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
+ * - Unix (libresolv, autodetected) and Win32 support implemented
+ * - Port information is stored as string now, i.e. may be service name
+ *
  * Revision 2.98  2012/01/03 17:25:32  green
  * Implemented IPv6 support
  * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
@@ -577,8 +583,8 @@ void lock_config_structure(BINKD_CONFIG *c)
   {
     /* First-time call: init default values */
 
-    c->iport             = find_port("");
-    c->oport             = find_port("");
+    snprintf(c->iport, sizeof(c->iport), "%s", find_port(""));
+    snprintf(c->oport, sizeof(c->oport), "%s", find_port(""));
     c->call_delay        = 60;
     c->rescan_delay      = 60;
     c->nettimeout        = DEF_TIMEOUT;
@@ -1583,7 +1589,7 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
  *
  *  Returns 0 on error, -1 on EOF, 1 otherwise
  */
-int get_host_and_port (int n, char *host, unsigned short *port, char *src, FTN_ADDR *fa, BINKD_CONFIG *config)
+int get_host_and_port (int n, char *host, char **port, char *src, FTN_ADDR *fa, BINKD_CONFIG *config)
 {
   int rc = 0;
   char *s = getwordx2 (src, n, 0, ",;", "");
@@ -2104,13 +2110,16 @@ static int read_rate (KEYWORD *key, int wordcount, char **words)
 
 static int read_port (KEYWORD *key, int wordcount, char **words)
 {
-  int *target = (int *) (key->var);
+  char *target = (char *)(key->var);
+  char *ps = NULL;
 
   if (!isArgCount(1, wordcount))
     return 0;
 
-  if ((*target = find_port (words[0])) == 0)
+  if ((ps = find_port (words[0])) == NULL)
     return ConfigError("%s: bad port number", words[0]);
+
+  snprintf(target, MAXSERVNAME+1, "%s", ps);
 
   return 1;
 }

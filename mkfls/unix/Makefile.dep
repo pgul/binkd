@@ -1,81 +1,63 @@
-md5b.o: md5b.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h md5b.h protoco2.h prothlp.h ftnq.h tools.h getw.h server.h
-binkd.o: binkd.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h common.h server.h client.h tools.h getw.h bsy.h protocol.h \
-  setpttl.h sem.h perlhooks.h prothlp.h ftnq.h protoco2.h \
-  unix/daemonize.h reapchld.inc
-readcfg.o: readcfg.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h common.h sem.h tools.h getw.h srif.h ftnq.h protoco2.h \
-  prothlp.h iptools.h readflo.h
-tools.o: tools.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h common.h tools.h getw.h readdir.h sem.h assert.h perlhooks.h \
-  prothlp.h ftnq.h protocol.h protoco2.h
-ftnaddr.o: ftnaddr.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h tools.h getw.h
-ftnq.o: ftnq.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h ftnq.h tools.h getw.h readdir.h perlhooks.h prothlp.h \
-  protocol.h protoco2.h
-client.o: client.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h client.h common.h iptools.h ftnq.h tools.h getw.h protocol.h \
-  bsy.h assert.h setpttl.h sem.h perlhooks.h prothlp.h protoco2.h https.h \
-  reapchld.inc
-server.o: server.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h common.h server.h iptools.h tools.h getw.h protocol.h \
-  assert.h setpttl.h sem.h perlhooks.h prothlp.h ftnq.h protoco2.h \
-  reapchld.inc
-protocol.o: protocol.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h \
-  ftndom.h ftnnode.h protocol.h common.h iptools.h tools.h getw.h bsy.h \
-  inbound.h protoco2.h prothlp.h ftnq.h srif.h readflo.h assert.h \
-  binlog.h setpttl.h sem.h md5b.h crypt.h compress.h perlhooks.h
-bsy.o: bsy.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h bsy.h sem.h tools.h getw.h assert.h readdir.h
-inbound.o: inbound.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h inbound.h protoco2.h prothlp.h ftnq.h common.h tools.h getw.h \
-  protocol.h readdir.h perlhooks.h
-breaksig.o: breaksig.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h \
-  ftndom.h ftnnode.h common.h tools.h getw.h
-branch.o: branch.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h common.h tools.h getw.h
+md5b.o: md5b.c iphdr.h sys.h protoco2.h btypes.h Config.h md5b.h tools.h \
+ getw.h server.h
+binkd.o: binkd.c readcfg.h Config.h btypes.h iphdr.h sys.h common.h \
+ server.h client.h tools.h getw.h bsy.h protocol.h setpttl.h sem.h \
+ ftnnode.h unix/daemonize.h confopt.h reapchld.inc
+readcfg.o: readcfg.c readcfg.h Config.h btypes.h iphdr.h sys.h common.h \
+ sem.h tools.h getw.h protoco2.h srif.h iptools.h readflo.h ftnaddr.h \
+ ftnnode.h ftndom.h ftnq.h
+tools.o: tools.c readcfg.h Config.h btypes.h iphdr.h sys.h common.h \
+ tools.h getw.h readdir.h sem.h assert.h
+ftnaddr.o: ftnaddr.c tools.h getw.h btypes.h Config.h ftndom.h ftnaddr.h \
+ iphdr.h sys.h
+ftnq.o: ftnq.c readcfg.h Config.h btypes.h iphdr.h sys.h ftnq.h ftnnode.h \
+ ftnaddr.h tools.h getw.h readdir.h
+client.o: client.c readcfg.h Config.h btypes.h iphdr.h sys.h client.h \
+ ftnnode.h ftnaddr.h common.h iptools.h ftnq.h tools.h getw.h protocol.h \
+ bsy.h assert.h setpttl.h sem.h https.h rfc2553.h srv_gai.h reapchld.inc
+server.o: server.c iphdr.h sys.h readcfg.h Config.h btypes.h common.h \
+ server.h iptools.h tools.h getw.h protocol.h assert.h setpttl.h sem.h \
+ rfc2553.h reapchld.inc
+protocol.o: protocol.c readcfg.h Config.h btypes.h iphdr.h sys.h common.h \
+ protocol.h ftnaddr.h ftnnode.h ftndom.h ftnq.h iptools.h tools.h getw.h \
+ bsy.h inbound.h protoco2.h srif.h readflo.h prothlp.h assert.h binlog.h \
+ setpttl.h sem.h md5b.h crypt.h compress.h rfc2553.h
+bsy.o: bsy.c readcfg.h Config.h btypes.h iphdr.h sys.h bsy.h ftnaddr.h \
+ ftndom.h sem.h tools.h getw.h assert.h readdir.h
+inbound.o: inbound.c readcfg.h Config.h btypes.h iphdr.h sys.h inbound.h \
+ protoco2.h common.h tools.h getw.h protocol.h readdir.h ftnaddr.h \
+ ftnnode.h srif.h
+breaksig.o: breaksig.c sys.h common.h iphdr.h tools.h getw.h btypes.h \
+ Config.h
+branch.o: branch.c common.h iphdr.h sys.h tools.h getw.h btypes.h \
+ Config.h
 rename.o: unix/rename.c
 getfree.o: unix/getfree.c
-ftndom.o: ftndom.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h tools.h getw.h
-ftnnode.o: ftnnode.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h sem.h tools.h getw.h ftnq.h
-srif.o: srif.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h srif.h ftnq.h protoco2.h prothlp.h tools.h getw.h run.h
+ftndom.o: ftndom.c ftndom.h btypes.h Config.h tools.h getw.h
+ftnnode.o: ftnnode.c readcfg.h Config.h btypes.h iphdr.h sys.h ftnnode.h \
+ ftnaddr.h sem.h tools.h getw.h ftnq.h rfc2553.h srv_gai.h
+srif.o: srif.c readcfg.h Config.h btypes.h iphdr.h sys.h protoco2.h \
+ srif.h ftnaddr.h tools.h getw.h run.h ftnq.h prothlp.h protocol.h \
+ rfc2553.h
 pmatch.o: pmatch.c
-readflo.o: readflo.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h tools.h getw.h readflo.h
-prothlp.o: prothlp.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h prothlp.h ftnq.h tools.h getw.h
-iptools.o: iptools.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h iptools.h tools.h getw.h common.h sem.h
-run.o: run.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h run.h tools.h getw.h
-binlog.o: binlog.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h protoco2.h prothlp.h ftnq.h binlog.h tools.h getw.h sem.h
-exitproc.o: exitproc.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h \
-  ftndom.h ftnnode.h common.h bsy.h tools.h getw.h sem.h server.h \
-  perlhooks.h prothlp.h ftnq.h protocol.h protoco2.h
-getw.o: getw.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h tools.h getw.h
-xalloc.o: xalloc.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h tools.h getw.h
+readflo.o: readflo.c Config.h tools.h getw.h btypes.h readflo.h
+prothlp.o: prothlp.c prothlp.h btypes.h Config.h tools.h getw.h crypt.h
+iptools.o: iptools.c iphdr.h sys.h Config.h common.h iptools.h tools.h \
+ getw.h btypes.h sem.h
+rfc2553.o: rfc2553.c rfc2553.h iphdr.h sys.h sem.h
+run.o: run.c run.h tools.h getw.h btypes.h Config.h
+binlog.o: binlog.c readcfg.h Config.h btypes.h iphdr.h sys.h protoco2.h \
+ binlog.h tools.h getw.h sem.h
+exitproc.o: exitproc.c readcfg.h Config.h btypes.h iphdr.h sys.h common.h \
+ ftnnode.h bsy.h tools.h getw.h sem.h server.h
+getw.o: getw.c Config.h tools.h getw.h btypes.h
+xalloc.o: xalloc.c tools.h getw.h btypes.h Config.h
 crypt.o: crypt.c crypt.h
+srv_gai.o: srv_gai.c srv_gai.h iphdr.h sys.h rfc2553.h
 setpttl.o: unix/setpttl.c
-daemonize.o: unix/daemonize.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h \
-  ftndom.h ftnnode.h tools.h getw.h unix/daemonize.h
-https.o: https.c readcfg.h Config.h iphdr.h sys.h ftnaddr.h ftndom.h \
-  ftnnode.h https.h tools.h getw.h iptools.h sem.h ntlm/helpers.h
-des_enc.o: ntlm/des_enc.c ntlm/des_locl.h ntlm/des.h ntlm/ncbc_enc.c
-helpers.o: ntlm/helpers.c iphdr.h sys.h ntlm/des.h ntlm/md4.h
-ecb_enc.o: ntlm/ecb_enc.c ntlm/des_locl.h ntlm/des.h ntlm/spr.h
-md4_dgst.o: ntlm/md4_dgst.c ntlm/md4_locl.h ntlm/md4.h ntlm/md32_com.h
-set_key.o: ntlm/set_key.c ntlm/des_locl.h ntlm/des.h
-perlhooks.o: perlhooks.c sys.h readcfg.h Config.h iphdr.h ftnaddr.h \
-  ftndom.h ftnnode.h tools.h getw.h readflo.h prothlp.h ftnq.h protocol.h \
-  protoco2.h sem.h perlhooks.h
-compress.o: compress.c zlibdl.h \
-  compress.h tools.h getw.h readcfg.h Config.h \
-  iphdr.h sys.h ftnaddr.h ftndom.h ftnnode.h
+daemonize.o: unix/daemonize.c unix/../tools.h unix/../getw.h \
+ unix/../btypes.h unix/../Config.h unix/daemonize.h
+https.o: https.c readcfg.h Config.h btypes.h iphdr.h sys.h https.h \
+ tools.h getw.h iptools.h sem.h rfc2553.h srv_gai.h
+compress.o: compress.c zlibdl.h compress.h tools.h getw.h btypes.h \
+ Config.h

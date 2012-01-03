@@ -584,3 +584,6 @@ NT/95:  ctrl-c problems fixed
 	API, except under Win32 where it needs to be enabled explicitly
 	(set IPV6=1 during make). Under Win32 at least WinXP SP2 is
 	required.
+
+	Add FSP-1035 (IN SRV DNS records) support. Currently only Unix
+	and Win32 (add FSP1035=1 for make) versions supported.

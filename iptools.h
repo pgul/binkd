@@ -15,6 +15,12 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2012/01/03 17:52:32  green
+ * Implement FSP-1035 (SRV record usage)
+ * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
+ * - Unix (libresolv, autodetected) and Win32 support implemented
+ * - Port information is stored as string now, i.e. may be service name
+ *
  * Revision 2.8  2012/01/03 17:25:32  green
  * Implemented IPv6 support
  * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
@@ -70,7 +76,7 @@ void setsockopts (SOCKET s);
  * /etc/services or even (if there is no binkp entry) 24554.
  * Returns 0 on error.
  */
-int find_port (char *s);
+char * find_port (char *s);
 
 /*
  * address family agnostic comparison functions
