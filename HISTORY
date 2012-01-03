@@ -1,3 +1,7 @@
+2012/01/03 18:53:25 1.0a-562 green
+binkd.c,2.107,2.108
+Correct PID for servmgr in logs (i.e. PID after fork, not before)
+
 2011/08/17 18:51:48 1.0a-561 stas
 Config.h,2.586,2.587 readcfg.c,2.96,2.97
 move declaration of default value of root_domain to Config.h
