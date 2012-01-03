@@ -555,7 +555,7 @@ NT/95:  ctrl-c problems fixed
 	Fixed bug in sending files with space or control characters
 	in file name (was broken in 0.9.9).
 
-0.9.11
+0.9.11  (Tue Jan  3 00:00:00 EEST 2012)
 ------
 	Bugfix: segfault if garbage in temp inbound files (*.hr).
 
@@ -563,3 +563,4 @@ NT/95:  ctrl-c problems fixed
 	thanks to Dennis Yurichev.
 
 	Change default domain: binkp.net instead fidonet.net
+
