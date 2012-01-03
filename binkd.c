@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.108  2012/01/03 16:53:22  green
+ * Correct PID for servmgr in logs (i.e. PID after fork, not before)
+ *
  * Revision 2.107  2010/05/24 14:38:03  gul
  * Allow daemonize on client-only mode
  *
@@ -993,6 +996,8 @@ int main (int argc, char *argv[], char *envp[])
   {
     if (binkd_daemonize(1) < 0)
       Log (0, "Cannot daemonize");
+    else
+      mypid = getpid();
   }
 #endif
 
