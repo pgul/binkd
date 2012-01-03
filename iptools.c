@@ -15,6 +15,15 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2012/01/03 17:25:32  green
+ * Implemented IPv6 support
+ * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
+ * - Add compatibility layer for target systems not supporting RFC2553 calls in rfc2553.[ch]
+ * - Add support for multiple listen sockets -- one for IPv4 and one for IPv6 (use V6ONLY)
+ * - For WIN32 platform add configuration parameter IPV6 (mutually exclusive with BINKD9X)
+ * - On WIN32 platform use Winsock2 API if IPV6 support is requested
+ * - config: node IP address literal + port supported: [<ipv6 address>]:<port>
+ *
  * Revision 2.14  2003/10/29 21:08:39  gul
  * Change include-files structure, relax dependences
  *
@@ -74,6 +83,7 @@
  * Initial revision
  */
 
+#include "iphdr.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -88,71 +98,6 @@
 #include "iptools.h"
 #include "tools.h"
 #include "sem.h"
-
-/*
- * Finds ASCIIZ address
- */
-const char *get_hostname (struct sockaddr_in *addr, char *host, int len, int backresolv)
-{
-  struct hostent *hp;
-  struct sockaddr_in s;
-
-  memcpy(&s, addr, sizeof(s));
-  if (backresolv)
-  {
-    lockresolvsem();
-    hp = gethostbyaddr ((char *) &s.sin_addr, sizeof s.sin_addr, AF_INET);
-    if (hp)
-    {
-      strnzcpy (host, hp->h_name, len);
-      releaseresolvsem();
-      return host;
-    }
-    releaseresolvsem();
-  }
-  lockhostsem();
-  strncpy (host, inet_ntoa (s.sin_addr), len);
-  releasehostsem();
-  return host;
-}
-
-#ifdef HAVE_THREADS
-struct hostent *copy_hostent(struct hostent *dest, struct hostent *src)
-{
-  int naddr;
-  char **cp;
-
-  memcpy(dest, src, sizeof(struct hostent));
-  for (cp = src->h_addr_list, naddr = 0; cp && *cp; naddr++, cp++);
-  dest->h_addr_list = malloc((naddr+1)*sizeof(dest->h_addr_list[0]));
-  if (dest->h_addr_list)
-  {
-    dest->h_addr_list[0] = malloc(naddr*src->h_length);
-    if (dest->h_addr_list[0])
-    {
-      for (cp = src->h_addr_list, naddr=0; cp && *cp; cp++, naddr++)
-      {
-        dest->h_addr_list[naddr] = dest->h_addr_list[0]+naddr*src->h_length;
-        memcpy(dest->h_addr_list[naddr], *cp, src->h_length);
-      }
-      dest->h_addr_list[naddr] = NULL;
-    }
-  }
-  return dest;
-}
-
-void free_hostent(struct hostent *hp)
-{
-  if (hp)
-  {
-    if (hp->h_addr_list && hp->h_addr_list[0])
-      free(hp->h_addr_list[0]);
-    if (hp->h_addr_list)
-      free(hp->h_addr_list);
-    hp->h_addr_list = NULL;
-  }
-}
-#endif
 
 /*
  * Sets non-blocking mode for a given socket
@@ -205,46 +150,40 @@ int find_port (char *s)
   return 0;
 }
 
-/*
- * Find the host IP address list by a domain name or IP address string.
- * Returns NULL on error.
- */
-struct hostent *find_host(char *host, struct hostent *he, struct in_addr *defaddr)
+int sockaddr_cmp_addr(const struct sockaddr *a, const struct sockaddr *b)
 {
-  struct hostent *hp;
-#ifdef HAVE_THREADS
-  struct hostent ht;
-  char *alist[2];
-#else
-  static struct hostent ht;
-  static char *alist[2];
+  if (a->sa_family != b->sa_family)
+    return a->sa_family - b->sa_family;
+  
+  if (a->sa_family == AF_INET)
+    return (((struct sockaddr_in*)a)->sin_addr.s_addr - ((struct sockaddr_in*)b)->sin_addr.s_addr);
+#ifdef AF_INET6
+  else if (a->sa_family == AF_INET6)
+    return memcmp((char *) &(((struct sockaddr_in6*)a)->sin6_addr), 
+		  (char *) &(((struct sockaddr_in6*)b)->sin6_addr),
+		  sizeof(((struct sockaddr_in6*)a)->sin6_addr));
 #endif
-
-  if (!isdigit(host[0]) ||
-      (defaddr->s_addr = inet_addr (host)) == INADDR_NONE)
+  else
   {
-    /* If not a raw ip address, try nameserver */
-    Log (5, "resolving `%s'...", host);
-    lockresolvsem();
-    if ((hp = gethostbyname(host)) == NULL)
-    {
-      Log(1, "%s: unknown host", host);
-      releaseresolvsem();
-      return NULL;
-    }
-    hp = copy_hostent(he, hp);
-    releaseresolvsem();
-    return hp;
+    Log(2, "Unsupported address family: %d", a->sa_family);
+    return -1;
   }
-  /* Raw ip address, fake */
-  hp = &ht;
-  hp->h_name = host;
-  hp->h_aliases = 0;
-  hp->h_addrtype = AF_INET;
-  hp->h_length = sizeof (struct in_addr);
-  hp->h_addr_list = alist;
-  hp->h_addr_list[0] = (char *) defaddr;
-  hp->h_addr_list[1] = (char *) 0;
-  hp = copy_hostent(he, hp);
-  return hp;
+}
+
+int sockaddr_cmp_port(const struct sockaddr *a, const struct sockaddr *b)
+{
+  if (a->sa_family != b->sa_family)
+    return a->sa_family - b->sa_family;
+  
+  if (a->sa_family == AF_INET)
+    return (((struct sockaddr_in*)a)->sin_port - ((struct sockaddr_in*)b)->sin_port);
+#ifdef AF_INET6
+  else if (a->sa_family == AF_INET6)
+    return (((struct sockaddr_in6*)a)->sin6_port - ((struct sockaddr_in6*)b)->sin6_port);
+#endif
+  else
+  {
+    Log(2, "Unsupported address family: %d", a->sa_family);
+    return -1;
+  }
 }

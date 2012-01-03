@@ -3,6 +3,7 @@
 
 # Usage: make [DEBUG=1] [BINKD9X=1] [PERL=1] [PERLDL=1]
 #             [ZLIB=1] [BZLIB2=1] [ZLIBDL=1] [DEBUGCHILD=1]
+#	      [IPV6=1]
 #
 #
 
@@ -16,7 +17,7 @@
 
 # =============================================================================
 
-WINDRES=windres
+WINDRES?=windres
 
 OUTDIR=bin/mingw32
 BINKDTYPE=mingw32
@@ -30,13 +31,12 @@ CDEFS+=  -DHAVE_THREADS -DHAVE_UNISTD -DHAVE_INTTYPES_H -DHAVE_INTMAX_T \
          -DHAVE_WAITPID -DHTTPS -DNTLM -DHAVE_SNPRINTF -DHAVE_VSNPRINTF \
          -DAMIGADOS_4D_OUTBOUND -DHASATTRIBUTE -DNONAMELESSUNION
 
-LIBS+=   -lwsock32
 
 SRCS= binkd.c readcfg.c tools.c ftnaddr.c ftnq.c client.c server.c protocol.c \
       bsy.c inbound.c branch.c ftndom.c ftnnode.c srif.c pmatch.c readflo.c   \
-      prothlp.c iptools.c run.c binlog.c exitproc.c getw.c xalloc.c setpttl.c \
-      https.c md5b.c crypt.c getopt.c nt/breaksig.c nt/getfree.c nt/sem.c     \
-      nt/TCPErr.c nt/WSock.c nt/w32tools.c nt/tray.c snprintf.c     \
+      prothlp.c iptools.c rfc2553.c run.c binlog.c exitproc.c getw.c xalloc.c \
+      setpttl.c https.c md5b.c crypt.c getopt.c nt/breaksig.c nt/getfree.c \
+      nt/sem.c nt/TCPErr.c nt/WSock.c nt/w32tools.c nt/tray.c snprintf.c     \
       ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c ntlm/des_enc.c ntlm/helpers.c
 
 RES=  nt/binkdres.rc
@@ -53,10 +53,20 @@ LFLAGS+= -Wl,--subsystem,windows
 BINKDNAME=binkd9x-mingw
 OUTDIR:=$(OUTDIR)-binkd9x
 BINKDTYPE:=$(BINKDTYPE), binkd9x
+LIBS+=   -lwsock32
 else
+ifdef IPV6
+CDEFS+= -DIPV6
+LIBS+=   -lws2_32
+SRCS+= nt/service.c
+BINKDNAME=binkd-mingw-ipv6
+OUTDIR:=$(OUTDIR)-binkd-ipv6
+else
+LIBS+=   -lwsock32
 SRCS+= nt/service.c
 BINKDNAME=binkd-mingw
 OUTDIR:=$(OUTDIR)-binkd
+endif
 endif
 # binkd9x ---------------------------------------------------------------------
 

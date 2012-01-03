@@ -15,6 +15,15 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.37  2012/01/03 17:25:31  green
+ * Implemented IPv6 support
+ * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
+ * - Add compatibility layer for target systems not supporting RFC2553 calls in rfc2553.[ch]
+ * - Add support for multiple listen sockets -- one for IPv4 and one for IPv6 (use V6ONLY)
+ * - For WIN32 platform add configuration parameter IPV6 (mutually exclusive with BINKD9X)
+ * - On WIN32 platform use Winsock2 API if IPV6 support is requested
+ * - config: node IP address literal + port supported: [<ipv6 address>]:<port>
+ *
  * Revision 2.36  2010/12/02 11:04:14  stas
  * if any of passwords for the node is presents, then don't change all passwords. The FIRST token "Node" with any not-empty password in the config file is set all passwords, the passwords from password-file is used for node if password don't set in main config file
  *
@@ -156,6 +165,7 @@
 #include "tools.h"
 #include "ftnq.h"
 #include "iphdr.h"
+#include "rfc2553.h"
 
 #if defined(HAVE_THREADS) || defined(AMIGA)
 static MUTEXSEM NSem;
@@ -339,7 +349,12 @@ static FTN_NODE *search_for_node(FTN_NODE *np, BINKD_CONFIG *config)
 
 static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *config)
 {
-  struct hostent *he;
+  struct addrinfo *ai;
+  struct addrinfo hints = { .ai_family = PF_UNSPEC,
+                            .ai_socktype = SOCK_STREAM,
+                            .ai_protocol = IPPROTO_TCP,
+			    .ai_flags = AI_NUMERICSERV };
+  int aiErr;
   FTN_NODE n, *np;
   char host[MAXHOSTNAMELEN + 1];       /* current host/port */
   unsigned short port;
@@ -357,10 +372,10 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
     if (!strcmp(host, "-"))
       continue;
 
-    lockresolvsem();
-    he=gethostbyname(host);
-    releaseresolvsem();
-    if (!he) continue;
+    aiErr = getaddrinfo(host, "0", &hints, &ai);
+    if (ai != NULL)
+      freeaddrinfo(ai);
+    if (aiErr != 0) continue;
     sprintf (host+strlen(host), ":%d", port);
     i=0;
     break;

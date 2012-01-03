@@ -15,6 +15,15 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.98  2012/01/03 17:25:32  green
+ * Implemented IPv6 support
+ * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
+ * - Add compatibility layer for target systems not supporting RFC2553 calls in rfc2553.[ch]
+ * - Add support for multiple listen sockets -- one for IPv4 and one for IPv6 (use V6ONLY)
+ * - For WIN32 platform add configuration parameter IPV6 (mutually exclusive with BINKD9X)
+ * - On WIN32 platform use Winsock2 API if IPV6 support is requested
+ * - config: node IP address literal + port supported: [<ipv6 address>]:<port>
+ *
  * Revision 2.97  2011/08/17 15:51:46  stas
  * move declaration of default value of root_domain to Config.h
  *
@@ -1581,15 +1590,27 @@ int get_host_and_port (int n, char *host, unsigned short *port, char *src, FTN_A
 
   if (s)
   {
-    char *t = strchr (s, ':');
+    /* support IPv6 address literals as in URL, i.e. [<ipv6 addr>]:<port> */
+    int hostoff = 0;
+    char *ipv6end = strchr (s, ']');
+    char *t;
 
+    if (ipv6end && *s == '[')
+    {
+      t = strchr (ipv6end, ':');
+      *ipv6end = 0;
+      hostoff = 1;
+    }
+    else
+      t = strchr (s, ':');
+       
     if (t)
       *t = 0;
 
     if (!strcmp (s, "*"))
       ftnaddress_to_domain (host, fa, config->pDomains.first, config->root_domain);
     else
-      strnzcpy (host, s, MAXHOSTNAMELEN);
+      strnzcpy (host, s+hostoff, MAXHOSTNAMELEN);
 
     if (!t)
     {

@@ -15,6 +15,15 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.18  2012/01/03 17:25:31  green
+ * Implemented IPv6 support
+ * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
+ * - Add compatibility layer for target systems not supporting RFC2553 calls in rfc2553.[ch]
+ * - Add support for multiple listen sockets -- one for IPv4 and one for IPv6 (use V6ONLY)
+ * - For WIN32 platform add configuration parameter IPV6 (mutually exclusive with BINKD9X)
+ * - On WIN32 platform use Winsock2 API if IPV6 support is requested
+ * - config: node IP address literal + port supported: [<ipv6 address>]:<port>
+ *
  * Revision 2.17  2004/07/12 08:21:20  stas
  * Fix the file name case. Bugreport from Andrey Slusar 2:467/126
  *
@@ -87,6 +96,11 @@
 
 #include <sys/types.h>
 
+
+#if defined(WIN32) && defined(IPV6)
+  #include <winsock2.h>
+  #include <ws2tcpip.h>
+#endif
 #ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
@@ -150,6 +164,7 @@ const char *tcperr (void);
   #ifndef MAXSOCKETS
     #define MAXSOCKETS 2048
   #endif
+  #undef AF_INET6
 #elif defined(IBMTCPIPDOS)
 const char *tcperr (void);
 

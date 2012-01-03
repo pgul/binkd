@@ -15,6 +15,15 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.44  2012/01/03 17:25:32  green
+ * Implemented IPv6 support
+ * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
+ * - Add compatibility layer for target systems not supporting RFC2553 calls in rfc2553.[ch]
+ * - Add support for multiple listen sockets -- one for IPv4 and one for IPv6 (use V6ONLY)
+ * - For WIN32 platform add configuration parameter IPV6 (mutually exclusive with BINKD9X)
+ * - On WIN32 platform use Winsock2 API if IPV6 support is requested
+ * - config: node IP address literal + port supported: [<ipv6 address>]:<port>
+ *
  * Revision 2.43  2009/05/31 07:16:17  gul
  * Warning: many changes, may be unstable.
  * Perl interpreter is now part of config and rerun on config reload.
@@ -181,6 +190,7 @@
  * We now use branch(). Listening changed.
  */
 
+#include "iphdr.h"
 #include <stdlib.h>
 #include <string.h>
 #ifdef HAVE_SYS_TIME_H
@@ -205,6 +215,7 @@
 #if defined(WITH_PERL)
 #include "perlhooks.h"
 #endif
+#include "rfc2553.h"
 
 int n_servers = 0;
 int ext_rand = 0;
@@ -219,7 +230,8 @@ static void chld (int signo)
 
 #endif
 
-SOCKET sockfd = INVALID_SOCKET;
+SOCKET sockfd[MAX_LISTENSOCK];
+int sockfd_used = 0;
 
 static void serv (void *arg)
 {
@@ -230,9 +242,10 @@ static void serv (void *arg)
 #endif
 
 #if defined(HAVE_FORK) && !defined(DEBUGCHILD)
+  int curfd;
   pidcmgr = 0;
-  soclose(sockfd);
-  sockfd = INVALID_SOCKET;
+  for (curfd=0; curfd<sockfd_used; curfd++)
+    soclose(sockfd[curfd]);
 #endif
 
   config = lock_current_config();
@@ -264,54 +277,114 @@ static void serv (void *arg)
 
 static int do_server(BINKD_CONFIG *config)
 {
+  struct addrinfo hints = { .ai_flags = AI_PASSIVE | AI_NUMERICSERV,
+			    .ai_family = PF_UNSPEC,
+			    .ai_socktype = SOCK_STREAM,
+			    .ai_protocol = IPPROTO_TCP };
+  struct addrinfo *ai, *aiHead;
+  int aiErr;
   SOCKET new_sockfd;
   int pid;
   socklen_t client_addr_len;
-  struct sockaddr_in serv_addr, client_addr;
+  struct sockaddr_storage client_addr;
   int opt = 1;
   int save_errno;
+  char pstr[11];
 
-  if (setsockopt (sockfd, SOL_SOCKET, SO_REUSEADDR,
+  snprintf(pstr, sizeof(pstr), "%d", (unsigned short)config->iport);
+  if ((aiErr = getaddrinfo(config->bindaddr[0] ? config->bindaddr : NULL, 
+		pstr, &hints, &aiHead)) != 0)
+  {
+    Log(0, "servmgr getaddrinfo: %s", gai_strerror(aiErr));
+    return -1;
+  }
+
+  for (ai = aiHead; ai != NULL && sockfd_used < MAX_LISTENSOCK; ai = ai->ai_next)
+  {
+    sockfd[sockfd_used] = socket(ai->ai_family, ai->ai_socktype, 
+	    ai->ai_protocol);
+    if (sockfd[sockfd_used] < 0)
+    {
+      Log (0, "servmgr socket(): %s", TCPERR ());
+      continue;
+    }
+#ifdef IPV6_V6ONLY
+    if (ai->ai_family == PF_INET6)
+    {
+      int v6only = 1;
+      if (setsockopt(sockfd[sockfd_used], IPPROTO_IPV6, IPV6_V6ONLY, 
+		  (char *) &v6only, sizeof(v6only)) == SOCKET_ERROR)
+        Log(1, "servmgr setsockopt (IPV6_V6ONLY): %s", TCPERR());
+    }
+#endif
+    if (setsockopt (sockfd[sockfd_used], SOL_SOCKET, SO_REUSEADDR,
                   (char *) &opt, sizeof opt) == SOCKET_ERROR)
-    Log (1, "servmgr setsockopt (SO_REUSEADDR): %s", TCPERR ());
+      Log (1, "servmgr setsockopt (SO_REUSEADDR): %s", TCPERR ());
+    
+    if (bind (sockfd[sockfd_used], ai->ai_addr, ai->ai_addrlen) != 0)
+    {
+      Log (0, "servmgr bind(): %s", TCPERR ());
+      soclose(sockfd[sockfd_used]);
+      continue;
+    }
+    if (listen (sockfd[sockfd_used], 5) != 0)
+    {
+      Log(0, "servmgr listen(): %s", TCPERR ());
+      soclose(sockfd[sockfd_used]);
+      continue;
+    }
 
-  memset(&serv_addr, 0, sizeof serv_addr);
-  serv_addr.sin_family = AF_INET;
-  if (config->bindaddr[0])
-    serv_addr.sin_addr.s_addr = inet_addr (config->bindaddr);
-  else
-    serv_addr.sin_addr.s_addr = htonl (INADDR_ANY);
-  serv_addr.sin_port = htons ((unsigned short) config->iport);
+    sockfd_used++;
+  }
+  
+  freeaddrinfo(aiHead);
 
-  if (bind (sockfd, (struct sockaddr *) & serv_addr, sizeof (serv_addr)) != 0)
-    Log (0, "servmgr bind(): %s", TCPERR ());
+  if (sockfd_used == 0) {
+    Log(0, "servmgr: No listen socket open");
+    return -1;
+  }
 
-  listen (sockfd, 5);
   setproctitle ("server manager (listen %u)", (unsigned) config->iport);
 
   for (;;)
   {
     struct timeval tv;
     int n;
+    int curfd, maxfd = 0;
     fd_set r;
 
     FD_ZERO (&r);
-    FD_SET (sockfd, &r);
+    for (curfd=0; curfd<sockfd_used; curfd++)
+    {
+      FD_SET (sockfd[curfd], &r);
+      if (sockfd[curfd] > maxfd)
+        maxfd = sockfd[curfd];
+    }
     tv.tv_usec = 0;
     tv.tv_sec  = CHECKCFG_INTERVAL;
     unblockchld();
-    n = select(sockfd+1, &r, NULL, NULL, &tv);
+    n = select(maxfd+1, &r, NULL, NULL, &tv);
     blockchld();
     switch (n)
     { case 0: /* timeout */
-        if (checkcfg())
+        if (checkcfg()) 
+	{
+          for (curfd=0; curfd<sockfd_used; curfd++)
+	    soclose(sockfd[curfd]);
+          sockfd_used = 0;
           return 0;
+	}
         continue;
       case -1:
         if (TCPERRNO == EINTR)
         {
           if (checkcfg())
+	  {
+            for (curfd=0; curfd<sockfd_used; curfd++)
+	      soclose(sockfd[curfd]);
+            sockfd_used = 0;
             return 0;
+          }
           continue;
         }
         save_errno = TCPERRNO;
@@ -320,69 +393,75 @@ static int do_server(BINKD_CONFIG *config)
         goto accepterr;
     }
  
-    client_addr_len = sizeof (client_addr);
-    if ((new_sockfd = accept (sockfd, (struct sockaddr *) & client_addr,
-                              &client_addr_len)) == INVALID_SOCKET)
+    for (curfd=0; curfd<sockfd_used; curfd++)
     {
-      save_errno = TCPERRNO;
-      if (save_errno != EINVAL && save_errno != EINTR)
-      {
-        if (!binkd_exit)
-          Log (1, "servmgr accept(): %s", TCPERR ());
-#ifdef UNIX
-        if (save_errno == ECONNRESET ||
-            save_errno == ETIMEDOUT ||
-            save_errno == ECONNABORTED ||
-            save_errno == EHOSTUNREACH)
-          continue;
-#endif
-      accepterr:
-#ifdef OS2
-        /* Buggy external process closed our socket? Or OS/2 bug? */
-        if (save_errno == ENOTSOCK)
-          return 0;  /* will force socket re-creation */
-#endif
-        return -1;
-      }
-    }
-    else
-    {
-      char host[MAXHOSTNAMELEN + 1];
-
-      add_socket(new_sockfd);
-      /* Was the socket created after close_sockets loop in exitfunc()? */
-      if (binkd_exit)
-      {
-        del_socket(new_sockfd);
-        soclose(new_sockfd);
+      if (!FD_ISSET(sockfd[curfd], &r))
         continue;
-      }
-      rel_grow_handles (6);
-      ext_rand=rand();
-      get_hostname(&client_addr, host, sizeof(host), config->backresolv);
-      lockhostsem();
-      Log (3, "incoming from %s (%s)", host,
-           inet_ntoa (client_addr.sin_addr));
-      releasehostsem();
 
-      /* Creating a new process for the incoming connection */
-      threadsafe(++n_servers);
-      if ((pid = branch (serv, (void *) &new_sockfd, sizeof (new_sockfd))) < 0)
+      client_addr_len = sizeof (client_addr);
+      if ((new_sockfd = accept (sockfd[curfd], (struct sockaddr *)&client_addr,
+                                &client_addr_len)) == INVALID_SOCKET)
       {
-        del_socket(new_sockfd);
-        soclose(new_sockfd);
-        rel_grow_handles (-6);
-        threadsafe(--n_servers);
-        PostSem(&eothread);
-        Log (1, "servmgr branch(): cannot branch out");
-        sleep(1);
+        save_errno = TCPERRNO;
+        if (save_errno != EINVAL && save_errno != EINTR)
+        {
+          if (!binkd_exit)
+            Log (1, "servmgr accept(): %s", TCPERR ());
+#ifdef UNIX
+          if (save_errno == ECONNRESET ||
+              save_errno == ETIMEDOUT ||
+              save_errno == ECONNABORTED ||
+              save_errno == EHOSTUNREACH)
+            continue;
+#endif
+        accepterr:
+#ifdef OS2
+          /* Buggy external process closed our socket? Or OS/2 bug? */
+          if (save_errno == ENOTSOCK)
+            return 0;  /* will force socket re-creation */
+#endif
+          return -1;
+        }
       }
       else
       {
-        Log (5, "started server #%i, id=%i", n_servers, pid);
+        char host[MAXHOSTNAMELEN + 1];
+        char service[MAXSERVNAME + 1];
+  
+        add_socket(new_sockfd);
+        /* Was the socket created after close_sockets loop in exitfunc()? */
+        if (binkd_exit)
+        {
+          del_socket(new_sockfd);
+          soclose(new_sockfd);
+          continue;
+        }
+        rel_grow_handles (6);
+        ext_rand=rand();
+        getnameinfo((struct sockaddr *)&client_addr, client_addr_len, 
+		    host, sizeof(host), service, sizeof(service), 
+		    NI_NUMERICSERV | (config->backresolv ? 0 : NI_NUMERICHOST));
+        Log (3, "incoming from %s (%s)", host, service);
+  
+        /* Creating a new process for the incoming connection */
+        threadsafe(++n_servers);
+        if ((pid = branch (serv, (void *) &new_sockfd, sizeof (new_sockfd))) < 0)
+        {
+          del_socket(new_sockfd);
+          soclose(new_sockfd);
+          rel_grow_handles (-6);
+          threadsafe(--n_servers);
+          PostSem(&eothread);
+          Log (1, "servmgr branch(): cannot branch out");
+          sleep(1);
+        }
+        else
+        {
+          Log (5, "started server #%i, id=%i", n_servers, pid);
 #ifdef HAVE_FORK
-        soclose (new_sockfd);
+          soclose (new_sockfd);
 #endif
+        }
       }
     }
   }
@@ -407,16 +486,9 @@ void servmgr (void)
    */
   do
   {
-    if ((sockfd = socket (AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
-      Log (0, "servmgr socket(): %s", TCPERR ());
-
     config = lock_current_config();
     status = do_server(config);
     unlock_config_structure(config, 0);
-
-    soclose(sockfd);
-    sockfd = INVALID_SOCKET;
-
   } while (status == 0 && !binkd_exit);
   Log(4, "downing servmgr...");
   pidsmgr = 0;

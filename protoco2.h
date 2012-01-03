@@ -2,6 +2,15 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.28  2012/01/03 17:25:32  green
+ * Implemented IPv6 support
+ * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
+ * - Add compatibility layer for target systems not supporting RFC2553 calls in rfc2553.[ch]
+ * - Add support for multiple listen sockets -- one for IPv4 and one for IPv6 (use V6ONLY)
+ * - For WIN32 platform add configuration parameter IPV6 (mutually exclusive with BINKD9X)
+ * - On WIN32 platform use Winsock2 API if IPV6 support is requested
+ * - config: node IP address literal + port supported: [<ipv6 address>]:<port>
+ *
  * Revision 2.27  2011/01/24 10:44:53  gul
  * Possible segfault on session start
  *
@@ -200,7 +209,7 @@ struct _STATE
   int listed_flag;              /* Listed? */
   char *inbound;		/* The current inbound dir */
   char *peer_name;              /* Remote host's name */
-  unsigned long our_ip;         /* Local IP */
+  char *our_ip;			/* Local IP */
   int io_error;
   int msgs_in_batch;
   int minor, major;		/* Version of remote binkp */

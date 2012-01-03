@@ -14,6 +14,15 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.73  2012/01/03 17:25:32  green
+ * Implemented IPv6 support
+ * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
+ * - Add compatibility layer for target systems not supporting RFC2553 calls in rfc2553.[ch]
+ * - Add support for multiple listen sockets -- one for IPv4 and one for IPv6 (use V6ONLY)
+ * - For WIN32 platform add configuration parameter IPV6 (mutually exclusive with BINKD9X)
+ * - On WIN32 platform use Winsock2 API if IPV6 support is requested
+ * - config: node IP address literal + port supported: [<ipv6 address>]:<port>
+ *
  * Revision 2.72  2010/08/26 06:26:26  gul
  * Segfault on nested on_log() perl hook, reported by The Infidel numenorbbs at gmail.com
  *
@@ -302,6 +311,7 @@
 #include "protocol.h"
 #include "common.h"
 #include "perlhooks.h"
+#include "rfc2553.h"
 /* ---------------- perl stuff --------------- */
 /* dynamic load */
 #ifdef PERLDL
@@ -924,16 +934,6 @@ struct perl_const { char *name; int value; } perl_consts[] = {
 #define VK_ADD_strs(_sv, _name, _v)                           \
   if ( (_sv = perl_get_sv(_name, TRUE)) != NULL ) {           \
     sv_setpv(_sv, _v);                                        \
-    SvREADONLY_on(_sv);                                       \
-  }
-#define B4(l) (unsigned int)(l>>24 & 0xff),                   \
-              (unsigned int)(l>>16 & 0xff),                   \
-              (unsigned int)(l>>8 & 0xff),                    \
-              (unsigned int)(l & 0xff)
-#define VK_ADD_ip(_sv, _name, _v)                             \
-  if ( (_sv = perl_get_sv(_name, TRUE)) != NULL ) {           \
-    if (_v) sv_setpvf(_sv, "%u.%u.%u.%u", B4(ntohl(_v)));     \
-    else sv_setsv(_sv, &sv_undef);                            \
     SvREADONLY_on(_sv);                                       \
   }
 
@@ -1722,7 +1722,8 @@ static void setup_addrs(char *name, int n, FTN_ADDR *p) {
 static void setup_session(STATE *state, int lvl) {
   SV 	*sv;
   HV 	*hv;
-  struct sockaddr_in sin;
+  char  host[MAXHOSTNAMELEN + 1];
+  struct sockaddr_storage sin;
   socklen_t sin_len = sizeof(sin);
   BINKD_CONFIG *cfg = state->config;
 
@@ -1734,10 +1735,11 @@ static void setup_session(STATE *state, int lvl) {
     VK_ADD_intz(sv, "call", state->to != NULL);
     VK_ADD_intz(sv, "start", (int)state->start_time);
     VK_ADD_str (sv, "host", state->peer_name);
-    if (getpeername(state->s, (struct sockaddr *)&sin, &sin_len) != -1)
-      { VK_ADD_ip(sv, "ip", sin.sin_addr.s_addr); }
-      else { VK_ADD_ip(sv, "ip", 0ul); }
-    VK_ADD_ip(sv, "our_ip", state->our_ip);
+    if (getpeername(state->s, (struct sockaddr *)&sin, &sin_len) != -1 &&
+        getnameinfo((struct sockaddr *)&sin, sin_len, host, sizeof(host), NULL, 0, NI_NUMERICHOST) == 0)
+      { VK_ADD_str(sv, "ip", host); }
+      else { VK_ADD_str(sv, "ip", "0.0.0.0"); }
+    VK_ADD_str(sv, "our_ip", state->our_ip);
     state->perl_set_lvl = 1;
   }
   /* lvl 2 */

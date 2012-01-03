@@ -505,5 +505,9 @@ $(OUTDIR)\tray.obj: \
 	"tools.h" \
 	"nt\w32tools.h"
 
+$(OUTDIR)\rfc2553.obj: \
+	"rfc2553.h" \
+	"sem.h"
+
 # Dependencies for resourses
 $(RESOBJS): Config.h confopt.h

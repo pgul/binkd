@@ -579,3 +579,8 @@ NT/95:  ctrl-c problems fixed
 	Build using MS Visual C: Perl*.dll not required now at run-time,
 	this dll is loaded only if needed.
 	Default root-domain fidonet.net changed to binkp.net.
+
+	Add IPv6 support - default if building system supports RFC2553
+	API, except under Win32 where it needs to be enabled explicitly
+	(set IPV6=1 during make). Under Win32 at least WinXP SP2 is
+	required.

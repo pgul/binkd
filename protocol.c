@@ -15,6 +15,15 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.204  2012/01/03 17:25:32  green
+ * Implemented IPv6 support
+ * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
+ * - Add compatibility layer for target systems not supporting RFC2553 calls in rfc2553.[ch]
+ * - Add support for multiple listen sockets -- one for IPv4 and one for IPv6 (use V6ONLY)
+ * - For WIN32 platform add configuration parameter IPV6 (mutually exclusive with BINKD9X)
+ * - On WIN32 platform use Winsock2 API if IPV6 support is requested
+ * - config: node IP address literal + port supported: [<ipv6 address>]:<port>
+ *
  * Revision 2.203  2011/02/19 06:23:05  gul
  * Cosmetics
  *
@@ -754,6 +763,7 @@
 #ifdef WITH_PERL
 #include "perlhooks.h"
 #endif
+#include "rfc2553.h"
 
 /* define to enable val's code for -ip checks (default is gul's code) */
 #undef VAL_STYLE
@@ -1823,20 +1833,23 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 #ifndef VAL_STYLE
       int ipok = 0;
 #endif
-      struct hostent *hp;
-      struct in_addr defaddr;
-      char **cp;
       char host[MAXHOSTNAMELEN + 1];       /* current host/port */
       unsigned short port;
-      struct sockaddr_in sin;
-      socklen_t si;
+      struct sockaddr_storage sin;
+      socklen_t si = sizeof(sin);
+      struct addrinfo hints = { .ai_family = PF_UNSPEC,
+                                .ai_socktype = SOCK_STREAM,
+                                .ai_protocol = IPPROTO_TCP,
+				.ai_flags = AI_NUMERICSERV };
+      struct addrinfo *ai, *aiHead;
+      int aiErr;
+
 
 #ifdef VAL_STYLE
       ip_found = FOUND_NONE; ip_check = CHECK_NA;
 #endif
 
-      si = sizeof (struct sockaddr_in);
-      if (getpeername (state->s, (struct sockaddr *) &sin, &si) == -1)
+      if (getpeername (state->s, (struct sockaddr *)&sin, &si) == -1)
       {
         if (binkd_exit) return 0;
         Log (1, "Can't getpeername(): %s", TCPERR());
@@ -1855,60 +1868,41 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
         }
         if (strcmp(host, "-") == 0)
           continue;
-        if (!isdigit (host[0]) ||
-            (defaddr.s_addr = inet_addr (host)) == INADDR_NONE)
+
+        Log (5, "resolving `%s'...", host);
+	aiErr = getaddrinfo(host, "24554", &hints, &aiHead);
+	if (aiErr != 0)
         {
-          /* If not a raw ip address, try nameserver */
-          Log (5, "resolving `%s'...", host);
-          lockresolvsem();
-          hp = gethostbyname (host);
-          if (hp == NULL || !hp->h_addr_list)
-          {
-            releaseresolvsem();
-            if (h_errno == HOST_NOT_FOUND)
-            {
-              Log (3, "%s: unknown host", host);
+	  Log(3, "%s, getaddrinfo error: %s", host, gai_strerror(aiErr));
 #ifdef VAL_STYLE
-              ip_found |= FOUND_UNKNOWN;
+          if (aiErr == EAI_NONAME)
+            ip_found |= FOUND_UNKNOWN;
+	  else
+            ip_found |= FOUND_ERROR;
 #endif
-            } else {
-              Log (3, "%s: DNS error", host);
-#ifdef VAL_STYLE
-              ip_found |= FOUND_ERROR;
-#endif
-            }
-            continue;
-          }
-          for (cp = hp->h_addr_list; cp && *cp; cp++)
-#ifndef VAL_STYLE
-            if (((struct in_addr *) * cp)->s_addr == sin.sin_addr.s_addr)
-            {
-              ipok = 1;
-              break;
-            } else if (ipok == 0)
-              ipok = -1; /* resolved and not match */
-#else
-          {
-            ip_found |= FOUND_ALL;
-            if (((struct in_addr *) * cp)->s_addr == sin.sin_addr.s_addr) {
-              ip_check = CHECK_OK; break;
-            }
-          }
-#endif
-          releaseresolvsem();
+          continue;
         }
-        else
-        {
+	
+	for (ai = aiHead; ai != NULL; ai = ai->ai_next)
 #ifndef VAL_STYLE
-          if (defaddr.s_addr == sin.sin_addr.s_addr)
+          if (sockaddr_cmp_addr(ai->ai_addr, (struct sockaddr *)&sin) == 0)
+          {
             ipok = 1;
-          else if (ipok == 0)
-            ipok = -1;  /* resolved and not match */
+            break;
+          } else if (ipok == 0)
+            ipok = -1; /* resolved and no match */
 #else
+        {
           ip_found |= FOUND_ALL;
-          if (defaddr.s_addr == sin.sin_addr.s_addr) ip_check = CHECK_OK;
-#endif
+          if (sockaddr_cmp_addr(ai->ai_addr, (struct sockaddr *)&sin) == 0)
+          {
+            ip_check = CHECK_OK; 
+            break;
+          }
         }
+#endif
+	freeaddrinfo(aiHead);
+
 #ifndef VAL_STYLE
         if (ipok == 1)
 #else
@@ -3681,9 +3675,11 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
   unsigned long t_out = 0;
   unsigned long u_nettimeout = config->nettimeout*1000000l;
 #endif
-  struct sockaddr_in peer_name;
+  struct sockaddr_storage peer_name;
   socklen_t peer_name_len = sizeof (peer_name);
   char host[MAXHOSTNAMELEN + 1];
+  char ownhost[MAXHOSTNAMELEN + 1];
+  char service[MAXSERVNAME + 1];
   const char *save_err = NULL;
   int status;
 #ifdef BW_LIM
@@ -3693,35 +3689,45 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
   if (!init_protocol (&state, socket, to, config))
     return;
 
-  if (getpeername (socket, (struct sockaddr *) & peer_name, &peer_name_len) == -1)
+  if (getpeername (socket, (struct sockaddr *)&peer_name, &peer_name_len) == -1)
   {
     if (!binkd_exit)
       Log (1, "getpeername: %s", TCPERR ());
     memset(&peer_name, 0, sizeof (peer_name));
   }
 
+  status = getnameinfo((struct sockaddr *)&peer_name, peer_name_len, 
+		host, sizeof(host), service, sizeof(service),
+		NI_NUMERICSERV | (config->backresolv ? 0 : NI_NUMERICHOST));
+  if (status != 0)
+    Log(2, "Error in getnameinfo(): %s", gai_strerror(status));
+
   if (to && current_addr)
     state.peer_name = current_addr;
   else
-  {
-    get_hostname(&peer_name, host, sizeof(host), config->backresolv);
     state.peer_name = host;
-  }
-  setproctitle ("%c [%s]", to ? 'o' : 'i', state.peer_name);
-  lockhostsem();
-  Log (2, "session with %s (%s)",
-       state.peer_name,
-       inet_ntoa (peer_name.sin_addr));
-  releasehostsem();
 
-  if (getsockname (socket, (struct sockaddr *) & peer_name, &peer_name_len) == -1)
+  setproctitle ("%c [%s]", to ? 'o' : 'i', state.peer_name);
+  Log (2, "%s session with %s (%s)",
+       to ? "outgoing" : "incoming",
+       state.peer_name,
+       service);
+
+  if (getsockname (socket, (struct sockaddr *)&peer_name, &peer_name_len) == -1)
   {
     if (!binkd_exit)
       Log (1, "getsockname: %s", TCPERR ());
     memset(&peer_name, 0, sizeof (peer_name));
   }
   else
-    state.our_ip=peer_name.sin_addr.s_addr;
+  {
+    status = getnameinfo((struct sockaddr *)&peer_name, peer_name_len, 
+		ownhost, sizeof(ownhost), 
+		NULL, 0, NI_NUMERICHOST);
+    if (status != 0)
+      Log(2, "Error in getnameinfo(): %s", gai_strerror(status));
+    state.our_ip=ownhost;
+  }
 
   if (banner (&state, config) == 0) ;
   else if (n_servers > config->max_servers && !to)

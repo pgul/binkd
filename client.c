@@ -15,6 +15,15 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.71  2012/01/03 17:25:31  green
+ * Implemented IPv6 support
+ * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
+ * - Add compatibility layer for target systems not supporting RFC2553 calls in rfc2553.[ch]
+ * - Add support for multiple listen sockets -- one for IPv4 and one for IPv6 (use V6ONLY)
+ * - For WIN32 platform add configuration parameter IPV6 (mutually exclusive with BINKD9X)
+ * - On WIN32 platform use Winsock2 API if IPV6 support is requested
+ * - config: node IP address literal + port supported: [<ipv6 address>]:<port>
+ *
  * Revision 2.70  2010/05/24 14:36:57  gul
  * Fix previous patch
  *
@@ -302,6 +311,7 @@
 #ifdef HTTPS
 #include "https.h"
 #endif
+#include "rfc2553.h"
 
 static void call (void *arg);
 
@@ -534,21 +544,24 @@ void clientmgr (void *arg)
 static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 {
   int sockfd = INVALID_SOCKET;
-  struct hostent he;
-  struct hostent *hp = NULL; /* prevent compiler warning */
-  struct sockaddr_in sin;
-  char **cp;
   char szDestAddr[FTN_ADDR_SZ + 1];
-  struct in_addr defaddr;
   int i, rc;
   char host[MAXHOSTNAMELEN + 5 + 1];       /* current host/port */
+  char addrbuf[MAXHOSTNAMELEN + 1];
+  char servbuf[MAXSERVNAME + 1];
   char *hosts;
   unsigned short port;
   const char *save_err;
 #ifdef HTTPS
   int use_proxy;
   char *proxy, *socks;
+  struct addrinfo *aiProxyHead;
 #endif
+  struct addrinfo *ai, *aiNodeHead, *aiHead;
+  struct addrinfo hints = { .ai_family = PF_UNSPEC,
+			    .ai_socktype = SOCK_STREAM,
+			    .ai_protocol = IPPROTO_TCP };
+  int aiErr;
 
 #ifdef WITH_PERL
   hosts = xstrdup(node->hosts);
@@ -575,7 +588,6 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   ftnaddress_to_str (szDestAddr, &node->fa);
   Log (2, "call to %s", szDestAddr);
   setproctitle ("call to %s", szDestAddr);
-  memset(&sin, 0, sizeof(sin));
 
 #ifdef HTTPS
   use_proxy = (node->NP_flag != NP_ON) && (proxy[0] || socks[0]);
@@ -596,21 +608,13 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 	*sp++ = '\0';
       sport = proxy[0] ? "squid" : "socks"; /* default port */
     }
-    if (!isdigit(*sport))
-    { struct servent *se;
-      lockhostsem();
-      if ((se = getservbyname(sport, "tcp")) == NULL)
-      {
+    if ( (aiErr = getaddrinfo(host, sport, &hints, &aiProxyHead)) != 0)
+    {
 	Log(2, "Port %s not found, try default %d", sp, proxy[0] ? 3128 : 1080);
-	sin.sin_port = htons((unsigned short)(proxy[0] ? 3128 : 1080));
-      } else
-	sin.sin_port = se->s_port;
-      releasehostsem();
+	aiErr = getaddrinfo(host, proxy[0] ? "3128" : "1080", &hints, &aiProxyHead);
     }
-    else
-      sin.sin_port = htons((unsigned short)atoi(sport));
     /* resolve proxy host */
-    if ((hp = find_host(host, &he, &defaddr)) == NULL)
+    if (aiErr != 0)
     {
       Log(1, "%s host %s not found", proxy[0] ? "Proxy" : "Socks", host);
 #ifdef WITH_PERL
@@ -635,22 +639,29 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       continue;
     }
 #ifdef HTTPS
-    if (!use_proxy) /* don't resolve if proxy or socks specified */
+    if (use_proxy)
+      aiHead = aiProxyHead;
+    else /* don't resolve if proxy or socks specified */
 #endif
     {
-      if ((hp = find_host(host, &he, &defaddr)) == NULL)
+      char pstr[11];
+
+      snprintf(pstr, sizeof(pstr), "%d", port);
+      aiErr = getaddrinfo(host, pstr, &hints, &aiNodeHead);
+     
+      if (aiErr != 0)
       {
-        bad_try(&node->fa, "Cannot gethostbyname", BAD_CALL, config);
+        bad_try(&node->fa, "Cannot getaddrinfo", BAD_CALL, config);
         continue;
       }
-      sin.sin_port = htons(port);
+      aiHead = aiNodeHead;
     }
 
     /* Trying... */
 
-    for (cp = hp->h_addr_list; cp && *cp; cp++)
+    for (ai = aiHead; ai != NULL && sockfd == INVALID_SOCKET; ai = ai->ai_next)
     {
-      if ((sockfd = socket (hp->h_addrtype, SOCK_STREAM, 0)) == INVALID_SOCKET)
+      if ((sockfd = socket (ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == INVALID_SOCKET)
       {
 	Log (1, "socket: %s", TCPERR ());
 #ifdef WITH_PERL
@@ -661,7 +672,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 #endif
 #endif
 #ifdef HAVE_THREADS
-	free_hostent(hp);
+	freeaddrinfo(ai);
 #endif
 	return 0;
       }
@@ -674,16 +685,18 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 #ifdef HTTPS
 	xfree(proxy);
 	xfree(socks);
+        freeaddrinfo(aiProxyHead);
 #endif
 #endif
 #ifdef HAVE_THREADS
-	free_hostent(hp);
+	freeaddrinfo(aiNodeHead);
 #endif
 	return 0;
       }
-      sin.sin_addr = *((struct in_addr *) * cp);
-      sin.sin_family = hp->h_addrtype;
-      lockhostsem();
+      rc = getnameinfo(ai->ai_addr, ai->ai_addrlen, addrbuf, sizeof(addrbuf),
+		       servbuf, sizeof(servbuf), NI_NUMERICHOST | NI_NUMERICSERV);
+      if (rc != 0)
+	Log (2, "Error in getnameinfo(): %s", gai_strerror(rc));
 #ifdef HTTPS
       if (use_proxy)
       {
@@ -691,31 +704,41 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 	if (sp) *sp = '\0';
 	if (port == config->oport)
 	  Log (4, "trying %s via %s %s:%u...", host,
-	       proxy[0] ? "proxy" : "socks", inet_ntoa (sin.sin_addr),
-	       ntohs(sin.sin_port));
+	       proxy[0] ? "proxy" : "socks", addrbuf, servbuf);
 	else
 	  Log (4, "trying %s:%u via %s %s:%u...", host, port,
-	       proxy[0] ? "proxy" : "socks", inet_ntoa (sin.sin_addr),
-	       ntohs(sin.sin_port));
+	       proxy[0] ? "proxy" : "socks", addrbuf, servbuf);
 	sprintf(host+strlen(host), ":%u", port);
       }
       else
 #endif
       {
 	if (port == config->oport)
-          Log (4, "trying %s...", inet_ntoa (sin.sin_addr));
+          Log (4, "trying %s...", addrbuf);
 	else
-          Log (4, "trying %s:%u...", inet_ntoa (sin.sin_addr), port);
+          Log (4, "trying %s:%s...", addrbuf, servbuf);
       }
-      releasehostsem();
+      /* find bind addr with matching address family */
       if (config->bindaddr[0])
       {
-        struct sockaddr_in src_sin;
-        memset(&src_sin, 0, sizeof(src_sin));
-        src_sin.sin_addr.s_addr = inet_addr(config->bindaddr);
-        src_sin.sin_family = AF_INET;
-        if (bind(sockfd, (struct sockaddr *)&src_sin, sizeof(src_sin)))
-          Log(4, "bind: %s", TCPERR());
+	struct addrinfo *src_ai;
+	struct addrinfo src_hints = { .ai_socktype = SOCK_STREAM,
+				      .ai_protocol = IPPROTO_TCP };
+	
+	src_hints.ai_family = ai->ai_family;
+	if ((aiErr = getaddrinfo(config->bindaddr, NULL, &src_hints, &src_ai)) == 0)
+        {
+          if (bind(sockfd, src_ai->ai_addr, src_ai->ai_addrlen))
+	    Log(4, "bind: %s", TCPERR());
+	  freeaddrinfo(src_ai);
+	}
+        else
+	  if (aiErr == EAI_FAMILY)
+	    /* address family of target and bind address don't match */
+	    continue;
+	  else
+	    /* otherwise just warn and don't bind() */
+	    Log(2, "bind -- getaddrinfo: %s", gai_strerror(aiErr));
       }
 #ifdef HAVE_FORK
       if (config->connect_timeout)
@@ -724,7 +747,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 	alarm(config->connect_timeout);
       }
 #endif
-      if (connect (sockfd, (struct sockaddr *) & sin, sizeof (sin)) == 0)
+      if (connect (sockfd, ai->ai_addr, ai->ai_addrlen) == 0)
       {
 #ifdef HAVE_FORK
 	alarm(0);
@@ -755,7 +778,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 #ifdef HTTPS
     if (!use_proxy)
 #endif
-      free_hostent(hp);
+      freeaddrinfo(aiNodeHead);
 #endif
 #ifdef HTTPS
     if (sockfd != INVALID_SOCKET && use_proxy) {
@@ -775,9 +798,9 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
     }
 #endif
   }
-#if defined(HAVE_THREADS) && defined(HTTPS)
+#ifdef HTTPS
   if (use_proxy)
-    free_hostent(hp);
+    freeaddrinfo(aiProxyHead);
 #endif
 #ifdef WITH_PERL
   xfree(hosts);

@@ -15,6 +15,15 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22  2012/01/03 17:25:31  green
+ * Implemented IPv6 support
+ * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
+ * - Add compatibility layer for target systems not supporting RFC2553 calls in rfc2553.[ch]
+ * - Add support for multiple listen sockets -- one for IPv4 and one for IPv6 (use V6ONLY)
+ * - For WIN32 platform add configuration parameter IPV6 (mutually exclusive with BINKD9X)
+ * - On WIN32 platform use Winsock2 API if IPV6 support is requested
+ * - config: node IP address literal + port supported: [<ipv6 address>]:<port>
+ *
  * Revision 2.21  2005/09/23 14:08:50  gul
  * Change sprintf() to snprintf() in https and ntlm code.
  *
@@ -105,6 +114,7 @@
 #ifdef NTLM
 #include "ntlm/helpers.h"
 #endif
+#include "rfc2553.h"
 
 static char b64t[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 static int enbase64(char *data, int size, char *p)
@@ -152,9 +162,14 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 	char *ntlmsp = NULL;
 #endif
 	int i, n;
-	struct hostent he, *hp;
+	struct addrinfo *ai, *aiHead;
+	struct addrinfo hints = { .ai_flags = AI_PASSIVE,
+			    .ai_family = AF_INET,
+			    .ai_socktype = SOCK_STREAM,
+			    .ai_protocol = IPPROTO_TCP };
+	int aiErr;
 	char buf[1024], *pbuf;
-	char *sp, *sauth, **cp;
+	char *sp, *sauth;
 	struct in_addr defaddr;
 	unsigned port;
 
@@ -313,17 +328,25 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 		}
 		else
 			port = config->oport; /* should never happens */
-		if (!sauth)
+		if (!sauth) /* SOCKS4 */
 		{
-			if ((hp=find_host(host, &he, &defaddr)) == NULL)
+			/* SOCKS4 only support IPv4 and we need the IP address */
+			if ((aiErr=getaddrinfo(host, "0", &hints, &aiHead)) != 0)
 			{
+				Log(2, "getaddrinfo failed: %s", gai_strerror(aiErr));
 				SetTCPError(PR_ERROR);
 				return 1;
 			}
 		}
-		else
+		else	    /* SOCKS5 */
 		{
-			hp = find_host("127.0.0.1", &he, &defaddr);
+			/* We only run a dummy resolution */
+			hints.ai_flags |= AI_NUMERICSERV;
+			if ((aiErr=getaddrinfo(NULL, "0", &hints, &aiHead)) != 0)
+			{
+				Log(2, "getaddrinfo failed: %s", gai_strerror(aiErr));
+				return 1;
+			}
 			sauth=strdup(sauth);
 			sp=strchr(sauth, '/');
 			buf[0]=5;
@@ -342,7 +365,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 			{
 				Log(1, "Auth. method not supported by socks5 server");
 				free(sauth);
-				free_hostent(hp);
+				freeaddrinfo(aiHead);
 				SetTCPError(PR_ERROR);
 				return 1;
 			}
@@ -368,30 +391,30 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 				{
 					Log(1, "Authentication failed (socks5 returns %02X%02X)", (unsigned char)buf[0], (unsigned char)buf[1]);
 					free(sauth);
-					free_hostent(hp);
+					freeaddrinfo(aiHead);
 					SetTCPError(PR_ERROR);
 					return 1;
 				}
 			}
 		}
 
-		for (cp = hp->h_addr_list; cp && *cp; cp++)
+		for (ai = aiHead; ai != NULL; ai = ai->ai_next)
 		{
-			if (!sauth)
+			if (!sauth) /* SOCKS4 */
 			{
 				buf[0]=4;
 				buf[1]=1;
 				lockhostsem();
 				Log (4, port == (unsigned short)config->oport ? "trying %s..." : "trying %s:%u...",
-				     inet_ntoa(*((struct in_addr *)*cp)), port);
+				     inet_ntoa(((struct sockaddr_in*)(ai->ai_addr))->sin_addr), port);
 				releasehostsem();
 				buf[2]=(unsigned char)((port>>8)&0xFF);
 				buf[3]=(unsigned char)(port&0xFF);
-				memcpy(buf+4, *cp, 4);
+				memcpy(buf+4, &(((struct sockaddr_in*)(ai->ai_addr))->sin_addr), 4);
 				buf[8]=0;
 				send(so, buf, 9, 0);
 			}
-			else 
+			else	    /* SOCKS5 */
 			{
 				buf[0]=5;
 				buf[1]=1;
@@ -429,7 +452,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 					else
 						Log(4, "socks timeout...");
 					if (sauth) free(sauth);
-					free_hostent(hp);
+					freeaddrinfo(aiHead);
 					SetTCPError(PR_ERROR);
 					return 1;
 				}
@@ -438,7 +461,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 						Log(2, "socks error: %s", TCPERR());
 						Log(2, "connection closed by socks server...");
 					if (sauth) free(sauth);
-					free_hostent(hp);
+					freeaddrinfo(aiHead);
 					SetTCPError(PR_ERROR);
 					return 1;
 				}
@@ -446,7 +469,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 				{
 					if (buf[0]!=0) {
 						Log(2, "Bad reply from socks server");
-						free_hostent(hp);
+						freeaddrinfo(aiHead);
 						SetTCPError(PR_ERROR);
 						return 1;
 					}
@@ -456,7 +479,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 						break; /* try next IP */
 					}
 					else {
-						free_hostent(hp);
+						freeaddrinfo(aiHead);
 						return 0;
 					}
 				}
@@ -465,7 +488,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 					if (buf[0]!=5) {
 						Log(2, "Bad reply from socks server");
 						free(sauth);
-						free_hostent(hp);
+						freeaddrinfo(aiHead);
 						SetTCPError(PR_ERROR);
 						return 1;
 					}
@@ -473,7 +496,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 					if ((buf[3]==3) && (i<(6+(unsigned char)buf[4]))) continue;
 					if ((buf[3]==4) && (i<21)) continue;
 					free(sauth);
-					free_hostent(hp);
+					freeaddrinfo(aiHead);
 					if (!buf[1])	return 0;
 					switch (buf[1])
 					{
@@ -492,7 +515,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 				}
 			}
 		}
-		free_hostent(hp);
+		freeaddrinfo(aiHead);
 	}
 	return 0;
 }

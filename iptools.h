@@ -15,6 +15,15 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2012/01/03 17:25:32  green
+ * Implemented IPv6 support
+ * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
+ * - Add compatibility layer for target systems not supporting RFC2553 calls in rfc2553.[ch]
+ * - Add support for multiple listen sockets -- one for IPv4 and one for IPv6 (use V6ONLY)
+ * - For WIN32 platform add configuration parameter IPV6 (mutually exclusive with BINKD9X)
+ * - On WIN32 platform use Winsock2 API if IPV6 support is requested
+ * - config: node IP address literal + port supported: [<ipv6 address>]:<port>
+ *
  * Revision 2.7  2003/10/29 21:08:39  gul
  * Change include-files structure, relax dependences
  *
@@ -51,20 +60,6 @@
  */
 
 /*
- * Finds ASCIIZ address
- */
-const char *get_hostname (struct sockaddr_in * addr, char *host, int len, int backresolv);
-
-#ifdef HAVE_THREADS
-struct hostent *copy_hostent(struct hostent *dest, struct hostent *src);
-
-void free_hostent(struct hostent *hp);
-#else
-#define free_hostent(hp)
-#define copy_hostent(dest, src) (src)
-#endif
-
-/*
  * Sets non-blocking mode for a given socket
  */
 void setsockopts (SOCKET s);
@@ -78,7 +73,7 @@ void setsockopts (SOCKET s);
 int find_port (char *s);
 
 /*
- *  * Find the host IP address list by a domain name or IP address string.
- *   * Returns NULL on error.
- *    */
-struct hostent *find_host(char *host, struct hostent *he, struct in_addr *defaddr);
+ * address family agnostic comparison functions
+ */
+extern int sockaddr_cmp_addr(const struct sockaddr *, const struct sockaddr *);
+extern int sockaddr_cmp_port(const struct sockaddr *, const struct sockaddr *);

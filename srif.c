@@ -15,6 +15,15 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.20  2012/01/03 17:25:32  green
+ * Implemented IPv6 support
+ * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
+ * - Add compatibility layer for target systems not supporting RFC2553 calls in rfc2553.[ch]
+ * - Add support for multiple listen sockets -- one for IPv4 and one for IPv6 (use V6ONLY)
+ * - For WIN32 platform add configuration parameter IPV6 (mutually exclusive with BINKD9X)
+ * - On WIN32 platform use Winsock2 API if IPV6 support is requested
+ * - config: node IP address literal + port supported: [<ipv6 address>]:<port>
+ *
  * Revision 2.19  2008/08/05 06:05:17  gul
  * Optimize srif functions params
  *
@@ -109,6 +118,7 @@
 #include "ftnq.h"
 #include "prothlp.h"
 #include "protocol.h"
+#include "rfc2553.h"
 
 static EVTQ *evt_queue(EVTQ *eq, char evt_type, char *path)
 {
@@ -278,7 +288,7 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, STATE *st, int imm)
   char *sp, *w;
   char *fn=filename0;
   char *pn=st->peer_name ? st->peer_name : "";
-  char ipaddr[16];
+  char ipaddr[MAXHOSTNAMELEN + 1];
   char aka[4];
   char adr[FTN_ADDR_SZ + 2];
   int i;
@@ -301,18 +311,15 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, STATE *st, int imm)
   }
   if (!i)
   {
-    struct sockaddr_in sin;
-    socklen_t si = sizeof (struct sockaddr_in);
-    if ((!st) || (getpeername (st->s, (struct sockaddr *) &sin, &si) == -1))
+    struct sockaddr_storage sin;
+    socklen_t si = sizeof (sin);
+    if ((!st) || (getpeername (st->s, (struct sockaddr *)&sin, &si) == -1))
       strcpy(ipaddr, "-");
-    else  /* We don't like inet_ntoa ;-) */
+    else
     {
-      sin.sin_addr.s_addr=htonl(sin.sin_addr.s_addr);
-      sprintf(ipaddr, "%d.%d.%d.%d",
-                (int)(sin.sin_addr.s_addr>>24),
-                (int)((sin.sin_addr.s_addr>>16)&0xFF),
-                (int)((sin.sin_addr.s_addr>>8)&0xFF),
-                (int)(sin.sin_addr.s_addr&0xFF));
+      if (getnameinfo((struct sockaddr *)&sin, si, ipaddr, sizeof(ipaddr), 
+                NULL, 0, NI_NUMERICHOST) != 0)
+        strcpy(ipaddr, "-");
     }
     pn=ipaddr;
   }

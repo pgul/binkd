@@ -4,7 +4,7 @@ DEFINES=-DHAVE_THREADS -DOS2 -DIBMC -DHAVE_IO_H -DHAVE_STDARG_H -DIBMTCPIP -DVOI
 CFLAGS=$(DEFINES) /Gm+ /Q /c /Ss
 LFLAGS=$(DEFINES) /Gm+ /Q /B"/noi /pm:vio /st:64000"
 
-SRCS=binkd.c readcfg.c tools.c ftnaddr.c ftnq.c client.c server.c protocol.c bsy.c inbound.c breaksig.c branch.c os2\gettid.c os2\sem.c  ftndom.c ftnnode.c os2\getfree.c srif.c pmatch.c readflo.c prothlp.c iptools.c run.c binlog.c exitproc.c getw.c os2\tcperr.c os2\dirent.c xalloc.c setpttl.c https.c md5b.c crypt.c getopt.c snprintf.c
+SRCS=binkd.c readcfg.c tools.c ftnaddr.c ftnq.c client.c server.c protocol.c bsy.c inbound.c breaksig.c branch.c os2\gettid.c os2\sem.c  ftndom.c ftnnode.c os2\getfree.c srif.c pmatch.c readflo.c prothlp.c iptools.c rfc2553.c run.c binlog.c exitproc.c getw.c os2\tcperr.c os2\dirent.c xalloc.c setpttl.c https.c md5b.c crypt.c getopt.c snprintf.c
 OBJS=$(SRCS:.c=.obj)
 LIBS=so32dll.LIB tcp32dll.LIB os2386.lib
 
