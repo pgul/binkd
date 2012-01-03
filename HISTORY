@@ -1,3 +1,13 @@
+2012/01/03 19:26:05 1.0a-564 green
+rfc2553.c,NONE,2.1 rfc2553.h,NONE,2.1 !README.FIX,2.53,2.54 client.c,2.70,2.71 exitproc.c,2.43,2.44 ftnnode.c,2.36,2.37 https.c,2.21,2.22 iphdr.h,2.17,2.18 iptools.c,2.14,2.15 iptools.h,2.7,2.8 md5b.c,2.9,2.10 perlhooks.c,2.72,2.73 protoco2.h,2.27,2.28 protocol.c,2.203,2.204 readcfg.c,2.97,2.98 server.c,2.43,2.44 server.h,2.3,2.4 srif.c,2.19,2.20 sys.h,2.32,2.33
+Implemented IPv6 support
+- replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
+- Add compatibility layer for target systems not supporting RFC2553 calls in rfc2553.[ch]
+- Add support for multiple listen sockets -- one for IPv4 and one for IPv6 (use V6ONLY)
+- For WIN32 platform add configuration parameter IPV6 (mutually exclusive with BINKD9X)
+- On WIN32 platform use Winsock2 API if IPV6 support is requested
+- config: node IP address literal + port supported: [<ipv6 address>]:<port>
+
 2012/01/03 19:25:37 1.0a-563 green
 TCPErr.c,2.15,2.16 WSock.c,2.3,2.4 breaksig.c,2.23,2.24 getfree.c,2.11,2.12 sem.c,2.8,2.9 service.c,2.55,2.56 tray.c,2.11,2.12 w32tools.c,2.19,2.20
 Implemented IPv6 support
