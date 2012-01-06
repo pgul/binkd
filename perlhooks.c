@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.75  2012/01/06 09:08:50  gul
+ * Fix warnings on 64-bit systems
+ *
  * Revision 2.74  2012/01/06 07:50:34  gul
  * Fix warnings
  *
@@ -863,7 +866,7 @@ MUTEXSEM perlsem;
               SV *sv;                                              \
               def_config();                                        \
               sv = perl_get_sv(sv_config, FALSE);                  \
-              cfg = sv ? (BINKD_CONFIG*)SvIV(sv) : current_config; \
+              cfg = sv ? (BINKD_CONFIG*)SvPV_nolen(sv) : current_config; \
             }
 
 /* bits for subroutines, must correspond to perl_subnames */
@@ -936,7 +939,7 @@ struct perl_const { char *name; int value; } perl_consts[] = {
   }
 #define VK_ADD_strs(_sv, _name, _v)                           \
   if ( (_sv = perl_get_sv(_name, TRUE)) != NULL ) {           \
-    sv_setpv(_sv, _v);                                        \
+    sv_setpv(_sv, (char *)_v);                                \
     SvREADONLY_on(_sv);                                       \
   }
 
@@ -1191,7 +1194,7 @@ extern void msg_send2 (STATE *state, t_msg m, char *s1, char *s2);
   def_state();
   sv = perl_get_sv(sv_state, FALSE);
   if (!sv) { Log(LL_ERR, "can't find $%s pointer", sv_state); XSRETURN_EMPTY; }
-  state = (STATE*)SvIV(sv);
+  state = (STATE*)SvPV_nolen(sv);
   if (!state) { Log(LL_ERR, "$%s pointer is NULL", sv_state); XSRETURN_EMPTY; }
   m = (t_msg)SvIV(ST(0));
   str = (char *)SvPV(ST(1), n_a); if (n_a == 0) str = "";
@@ -1676,7 +1679,7 @@ void *perl_init_clone(BINKD_CONFIG *cfg) {
       char sv_config[20];
       SV *svret;
       def_config();
-      VK_ADD_intz(svret, sv_config, (long)cfg);
+      VK_ADD_strs(svret, sv_config, cfg);
     }
   }
   else p = NULL;
@@ -1691,7 +1694,7 @@ void perl_done_clone(void *p) {
   Log(LL_DBG, "perl_done_clone(): destructing clone %p", p);
   if (p == NULL) return;
   def_config();
-  VK_ADD_intz(sv, sv_config, 0);
+  VK_ADD_strs(sv, sv_config, NULL);
   /* SvREFCNT_dec(sv); */
   PL_perl_destruct_level = 2;
   PERL_SET_CONTEXT((PerlInterpreter *)p); /* as in mod_perl */
@@ -2046,7 +2049,7 @@ char *perl_on_handshake(STATE *state) {
   if (cfg->perl_ok && Perl_get_context()) {
     char sv_state[20];
     def_state();
-    VK_ADD_intz(svret, sv_state, (long)state); 
+    VK_ADD_strs(svret, sv_state, state); 
   }
   if (cfg->perl_ok & (1 << PERL_ON_HANDSHAKE)) {
     Log(LL_DBG, "perl_on_handshake(), perl=%p", Perl_get_context());
@@ -2163,7 +2166,7 @@ void perl_after_session(STATE *state, int status) {
   if (cfg->perl_ok && Perl_get_context()) {
     char sv_state[20];
     def_state();
-    VK_ADD_intz(sv, sv_state, 0);
+    VK_ADD_strs(sv, sv_state, NULL);
     /* SvREFCNT_dec(sv); */
   }
   if (cfg->perl_ok & (1 << PERL_AFTER_SESSION)) {
