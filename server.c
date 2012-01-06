@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.46  2012/01/06 11:33:31  gul
+ * Format error
+ *
  * Revision 2.45  2012/01/03 17:52:32  green
  * Implement FSP-1035 (SRV record usage)
  * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
@@ -348,7 +351,7 @@ static int do_server(BINKD_CONFIG *config)
     return -1;
   }
 
-  setproctitle ("server manager (listen %u)", (unsigned) config->iport);
+  setproctitle ("server manager (listen %s)", config->iport);
 
   for (;;)
   {
