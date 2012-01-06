@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.73  2012/01/06 09:44:08  gul
+ * Error in log message format
+ *
  * Revision 2.72  2012/01/03 17:52:32  green
  * Implement FSP-1035 (SRV record usage)
  * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
@@ -707,10 +710,10 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 	char *sp = strchr(host, ':');
 	if (sp) *sp = '\0';
 	if (port == config->oport)
-	  Log (4, "trying %s via %s %s:%u...", host,
+	  Log (4, "trying %s via %s %s:%s...", host,
 	       proxy[0] ? "proxy" : "socks", addrbuf, servbuf);
 	else
-	  Log (4, "trying %s:%s via %s %s:%u...", host, port,
+	  Log (4, "trying %s:%s via %s %s:%s...", host, port,
 	       proxy[0] ? "proxy" : "socks", addrbuf, servbuf);
 	sprintf(host+strlen(host), ":%s", port);
       }
