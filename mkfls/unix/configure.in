@@ -48,7 +48,12 @@ case $ac_cv_func_setproctitle in
 esac
 AC_CHECK_FUNC(res_search)
 case $ac_cv_func_res_search in
- no) AC_CHECK_LIB(resolv, res_search, LIBS="$LIBS -lresolv") ;;
+ no) 
+     dnl AC_CHECK_LIB(resolv, res_search, LIBS="$LIBS -lresolv")
+     AC_MSG_CHECKING(for res_search in libresolv)
+     LIBS="$LIBS -lresolv"
+     AC_TRY_LINK([#include <resolv.h>], [res_search(0,0,0,0,0);], AC_MSG_RESULT(yes), AC_MSG_RESULT(no); AC_ERROR(no resolv library found))
+     ;;
 esac
 AC_CHECK_SIZEOF(short, 0)
 AC_CHECK_SIZEOF(int, 0)
