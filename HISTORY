@@ -1,3 +1,7 @@
+2012/01/06 11:08:51 1.0a-568 gul
+perlhooks.c,2.74,2.75
+Fix warnings on 64-bit systems
+
 2012/01/06 09:50:37 1.0a-567 gul
 perlhooks.c,2.73,2.74
 Fix warnings
