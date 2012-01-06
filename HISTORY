@@ -1,3 +1,7 @@
+2012/01/06 09:24:19 1.0a-566 gul
+iphdr.h,2.18,2.19
+Fix resolv.h check under FreeBSD; cosmetics
+
 2012/01/03 19:53:04 1.0a-565 green
 srv_gai.c,NONE,2.1 srv_gai.h,NONE,2.1 !README.FIX,2.54,2.55 Config.h,2.591,2.592 client.c,2.71,2.72 ftnnode.c,2.37,2.38 https.c,2.22,2.23 iptools.c,2.15,2.16 iptools.h,2.8,2.9 protocol.c,2.204,2.205 readcfg.c,2.98,2.99 readcfg.h,2.38,2.39 server.c,2.44,2.45 todo.lst,2.50,2.51
 Implement FSP-1035 (SRV record usage)
