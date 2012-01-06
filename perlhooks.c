@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.74  2012/01/06 07:50:34  gul
+ * Fix warnings
+ *
  * Revision 2.73  2012/01/03 17:25:32  green
  * Implemented IPv6 support
  * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
@@ -1294,8 +1297,8 @@ static void perl_setup(BINKD_CONFIG *cfg, PerlInterpreter *perl) {
   VK_ADD_HASH_str(hv, sv, "location", cfg->location);
   VK_ADD_HASH_str(hv, sv, "nodeinfo", cfg->nodeinfo);
   VK_ADD_HASH_str(hv, sv, "bindaddr", cfg->bindaddr);
-  VK_ADD_HASH_intz(hv, sv, "iport", cfg->iport);
-  VK_ADD_HASH_intz(hv, sv, "oport", cfg->oport);
+  VK_ADD_HASH_str(hv, sv, "iport", cfg->iport);
+  VK_ADD_HASH_str(hv, sv, "oport", cfg->oport);
   VK_ADD_HASH_intz(hv, sv, "maxservers", cfg->max_servers);
   VK_ADD_HASH_intz(hv, sv, "maxclients", cfg->max_clients);
   VK_ADD_HASH_intz(hv, sv, "oblksize", cfg->oblksize);
@@ -1737,8 +1740,8 @@ static void setup_session(STATE *state, int lvl) {
     VK_ADD_str (sv, "host", state->peer_name);
     if (getpeername(state->s, (struct sockaddr *)&sin, &sin_len) != -1 &&
         getnameinfo((struct sockaddr *)&sin, sin_len, host, sizeof(host), NULL, 0, NI_NUMERICHOST) == 0)
-      { VK_ADD_str(sv, "ip", host); }
-      else { VK_ADD_str(sv, "ip", "0.0.0.0"); }
+      { VK_ADD_strs(sv, "ip", host); }
+      else { VK_ADD_strs(sv, "ip", "0.0.0.0"); }
     VK_ADD_str(sv, "our_ip", state->our_ip);
     state->perl_set_lvl = 1;
   }
@@ -2465,7 +2468,7 @@ int perl_on_log(char *s, int bufsize, int *lev) {
 
 int perl_on_send(STATE *state, t_msg *m, char **s1, char **s2) {
   int    rc = 1;
-  SV     *svret, *sv;
+  SV     *sv;
   BINKD_CONFIG *cfg = state->config;
 
   if (cfg->perl_ok & (1 << PERL_ON_SEND)) {
@@ -2481,8 +2484,6 @@ int perl_on_send(STATE *state, t_msg *m, char **s1, char **s2) {
       PUTBACK;
       perl_call_pv(perl_subnames[PERL_ON_SEND], G_EVAL|G_SCALAR);
       SPAGAIN;
-      svret=POPs;
-      /*if (SvOK(svret)) rc = SvIV(svret); else rc = 0;*/
       PUTBACK;
       FREETMPS;
       LEAVE;
@@ -2499,7 +2500,7 @@ int perl_on_send(STATE *state, t_msg *m, char **s1, char **s2) {
 
 int perl_on_recv(STATE *state, char *s, int size) { 
   int    rc = 1;
-  SV     *svret, *sv;
+  SV     *sv;
   BINKD_CONFIG *cfg = state->config;
 
   if (cfg->perl_ok & (1 << PERL_ON_RECV)) {
@@ -2515,8 +2516,6 @@ int perl_on_recv(STATE *state, char *s, int size) {
       PUTBACK;
       perl_call_pv(perl_subnames[PERL_ON_RECV], G_EVAL|G_SCALAR);
       SPAGAIN;
-      svret=POPs;
-      /*if (SvOK(svret)) rc = SvIV(svret); else rc = 0;*/
       PUTBACK;
       FREETMPS;
       LEAVE;
@@ -2536,7 +2535,7 @@ int perl_setup_rlimit(STATE *state, BW *bw, char *fname)
 {
   int    rc = 1;
   STRLEN len;
-  SV     *sv, *svret;
+  SV     *sv;
   BINKD_CONFIG *cfg = state->config;
 
   if (cfg->perl_ok & (1 << PERL_SETUP_RLIMIT)) {
@@ -2553,8 +2552,6 @@ int perl_setup_rlimit(STATE *state, BW *bw, char *fname)
       PUTBACK;
       perl_call_pv(perl_subnames[PERL_SETUP_RLIMIT], G_EVAL|G_SCALAR);
       SPAGAIN;
-      svret=POPs;
-      /* if (SvOK(svret)) rc = SvIV(svret); else rc = 0; */
       PUTBACK;
       FREETMPS;
       LEAVE;
