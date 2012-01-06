@@ -10,13 +10,19 @@ AC_PROG_INSTALL
 dnl Checks for header files.
 AC_CHECK_HEADERS(inttypes.h stdint.h unistd.h)
 AC_CHECK_HEADERS(sys/vfs.h sys/statfs.h sys/statvfs.h sys/param.h)
-AC_CHECK_HEADERS(sys/mount.h,,,
-[[#ifdef HAVE_SYS_PARAM_H
+AC_CHECK_HEADERS(sys/mount.h,,,[[
+#ifdef HAVE_SYS_PARAM_H
 #  include <sys/param.h>
 #endif
 ]])
 AC_CHECK_HEADERS(arpa/inet.h sys/ioctl.h sys/time.h stdarg.h io.h)
-AC_CHECK_HEADERS(resolv.h)
+AC_CHECK_HEADERS(netinet/in.h netdb.h)
+AC_CHECK_HEADERS(resolv.h,,,[[
+#include <sys/types.h>
+#ifdef HAVE_NETINET_IN_H
+#  include <netinet/in.h>
+#endif
+]])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 
@@ -53,7 +59,10 @@ dnl
 AC_MSG_CHECKING(for socklen_t)
 AC_TRY_COMPILE([#include <sys/types.h>
 #include <sys/socket.h>
-#include <netdb.h>], [socklen_t i], AC_DEFINE(HAVE_SOCKLEN_T) AC_MSG_RESULT(yes), AC_MSG_RESULT(no), AC_MSG_RESULT(cross-compiling. No assumptions made))
+#ifdef HAVE_NETDB_H
+#  include <netdb.h>
+#endif
+], [socklen_t i], AC_DEFINE(HAVE_SOCKLEN_T) AC_MSG_RESULT(yes), AC_MSG_RESULT(no), AC_MSG_RESULT(cross-compiling. No assumptions made))
 
 dnl check for intmax_t
 dnl 

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19  2012/01/06 07:23:47  gul
+ * Fix resolv.h check under FreeBSD; cosmetics
+ *
  * Revision 2.18  2012/01/03 17:25:31  green
  * Implemented IPv6 support
  * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
@@ -126,9 +129,13 @@
     #include <sys/tcptypes.h>
   #endif
 
-  #include <netinet/in.h>
-  #include <netdb.h>			    /* One of these two should have
+  #ifdef HAVE_NETINET_IN_H
+    #include <netinet/in.h>
+  #endif
+  #ifdef HAVE_NETDB_H
+    #include <netdb.h>			    /* One of these two should have
 					     * MAXHOSTNAMELEN */
+  #endif
 #endif
 
 #ifdef HAVE_ARPA_INET_H
