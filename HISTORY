@@ -1,3 +1,7 @@
+2012/01/06 13:33:33 1.0a-570 gul
+server.c,2.45,2.46
+Format error
+
 2012/01/06 11:44:10 1.0a-569 gul
 client.c,2.72,2.73
 Error in log message format
