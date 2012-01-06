@@ -1,3 +1,7 @@
+2012/01/06 09:50:37 1.0a-567 gul
+perlhooks.c,2.73,2.74
+Fix warnings
+
 2012/01/06 09:24:19 1.0a-566 gul
 iphdr.h,2.18,2.19
 Fix resolv.h check under FreeBSD; cosmetics
