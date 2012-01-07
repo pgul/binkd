@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.208  2012/01/07 16:34:00  green
+ * Add error id where gai_strerror() is used
+ *
  * Revision 2.207  2012/01/07 16:22:26  green
  * Fix some compiler warnings
  *
@@ -1888,7 +1891,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 	aiErr = getaddrinfo(host, "0", &hints, &aiHead);
 	if (aiErr != 0)
         {
-	  Log(3, "%s, getaddrinfo error: %s", host, gai_strerror(aiErr));
+	  Log(3, "%s, getaddrinfo error: %s (%d)", host, gai_strerror(aiErr), aiErr);
 #ifdef VAL_STYLE
           if (aiErr == EAI_NONAME)
             ip_found |= FOUND_UNKNOWN;
@@ -3715,7 +3718,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
 		host, sizeof(host), service, sizeof(service),
 		NI_NUMERICSERV | (config->backresolv ? 0 : NI_NUMERICHOST));
   if (status != 0)
-    Log(2, "Error in getnameinfo(): %s", gai_strerror(status));
+    Log(2, "Error in getnameinfo(): %s (%d)", gai_strerror(status), status);
 
   if (to && current_addr)
     state.peer_name = current_addr;
@@ -3740,7 +3743,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
 		ownhost, sizeof(ownhost), 
 		NULL, 0, NI_NUMERICHOST);
     if (status != 0)
-      Log(2, "Error in getnameinfo(): %s", gai_strerror(status));
+      Log(2, "Error in getnameinfo(): %s (%d)", gai_strerror(status), status);
     state.our_ip=ownhost;
   }
 

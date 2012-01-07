@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.75  2012/01/07 16:34:00  green
+ * Add error id where gai_strerror() is used
+ *
  * Revision 2.74  2012/01/07 11:54:04  green
  * Fix MSVC6 compilation errors
  *
@@ -708,7 +711,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       rc = getnameinfo(ai->ai_addr, ai->ai_addrlen, addrbuf, sizeof(addrbuf),
 		       servbuf, sizeof(servbuf), NI_NUMERICHOST | NI_NUMERICSERV);
       if (rc != 0)
-	Log (2, "Error in getnameinfo(): %s", gai_strerror(rc));
+	Log (2, "Error in getnameinfo(): %s (%d)", gai_strerror(rc), rc);
 #ifdef HTTPS
       if (use_proxy)
       {
@@ -750,7 +753,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 	    continue;
 	  else
 	    /* otherwise just warn and don't bind() */
-	    Log(2, "bind -- getaddrinfo: %s", gai_strerror(aiErr));
+	    Log(2, "bind -- getaddrinfo: %s (%d)", gai_strerror(aiErr), aiErr);
       }
 #ifdef HAVE_FORK
       if (config->connect_timeout)

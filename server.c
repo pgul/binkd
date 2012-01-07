@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.48  2012/01/07 16:34:00  green
+ * Add error id where gai_strerror() is used
+ *
  * Revision 2.47  2012/01/07 11:54:04  green
  * Fix MSVC6 compilation errors
  *
@@ -307,7 +310,7 @@ static int do_server(BINKD_CONFIG *config)
   if ((aiErr = getaddrinfo(config->bindaddr[0] ? config->bindaddr : NULL, 
 		config->iport, &hints, &aiHead)) != 0)
   {
-    Log(0, "servmgr getaddrinfo: %s", gai_strerror(aiErr));
+    Log(0, "servmgr getaddrinfo: %s (%d)", gai_strerror(aiErr), aiErr);
     return -1;
   }
 

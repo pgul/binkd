@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.25  2012/01/07 16:34:00  green
+ * Add error id where gai_strerror() is used
+ *
  * Revision 2.24  2012/01/07 11:54:04  green
  * Fix MSVC6 compilation errors
  *
@@ -345,7 +348,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 			/* SOCKS4 only support IPv4 and we need the IP address */
 			if ((aiErr=srv_getaddrinfo(host, port, &hints, &aiHead)) != 0)
 			{
-				Log(2, "getaddrinfo failed: %s", gai_strerror(aiErr));
+				Log(2, "getaddrinfo failed: %s (%d)", gai_strerror(aiErr), aiErr);
 				SetTCPError(PR_ERROR);
 				return 1;
 			}
@@ -354,7 +357,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 		{
 			if ((aiErr=getaddrinfo(NULL, port, &hints, &aiHead)) != 0)
 			{
-				Log(2, "getaddrinfo failed: %s", gai_strerror(aiErr));
+				Log(2, "getaddrinfo failed: %s (%d)", gai_strerror(aiErr), aiErr);
 				return 1;
 			}
 			sauth=strdup(sauth);
