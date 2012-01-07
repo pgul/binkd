@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.6  2012/01/07 13:16:18  green
+ * Some more information in binkd -vv output
+ *
  * Revision 2.5  2008/01/15 11:19:01  gul
  * Show bwlim setting on "binkd -vv" output
  *
@@ -47,6 +50,8 @@
 #  define _DBNKD_COMPILER "gcc (emx)"
 #elif defined(__MSC__)
 #  define _DBNKD_COMPILER "msc"
+#elif defined(__clang__)
+#  define _DBNKD_COMPULER "clang"
 #elif defined(__GNUC__)
 #  define _DBNKD_COMPILER "gcc"
 #else
@@ -132,8 +137,19 @@
 #else
 #  define _DBNKD_BW_LIM
 #endif
+#ifdef IPV6
+#  define _DBNKD_IPV6 ", ipv6"
+#else
+#  define _DBNKD_IPV6
+#endif
+#ifdef FSP1035
+#  define _DBNKD_FSP1035 ", fsp1035"
+#else
+#  define _DBNKD_FSP1035
+#endif
+
 
 #define _DBNKD _DBNKD_COMPILER _DBNKD_BINKD9X _DBNKD_RTLSTATIC _DBNKD_DEBUG \
                _DBNKD_DEBUGCHILD _DBNKD_ZLIB _DBNKD_BZLIB2 _DBNKD_PERL      \
                _DBNKD_HTTPS _DBNKD_NTLM _DBNKD_AMIGADOS_4D_OUTBOUND         \
-               _DBNKD_BW_LIM
+               _DBNKD_BW_LIM _DBNKD_IPV6 _DBNKD_FSP1035

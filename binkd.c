@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.109  2012/01/07 13:16:17  green
+ * Some more information in binkd -vv output
+ *
  * Revision 2.108  2012/01/03 16:53:22  green
  * Correct PID for servmgr in logs (i.e. PID after fork, not before)
  *
@@ -419,6 +422,7 @@
 #include "setpttl.h"
 #include "sem.h"
 #include "ftnnode.h"
+#include "srv_gai.h"
 
 #ifdef HAVE_GETOPT
 #include <unistd.h>
@@ -898,7 +902,19 @@ int main (int argc, char *argv[], char *envp[])
 
     printf ("Binkd " MYVER " (" __DATE__ " " __TIME__ "%s)\n", get_os_string ());
     if (verbose_flag>1)
+    {
       printf ("Compilation flags: " _DBNKD ".\n");
+      printf ("Facilities: "
+#ifndef srv_getaddrinfo
+              "fsp1035 "
+#endif
+#ifndef HAVE_GETADDRINFO
+              "rfc2553emu "
+#else
+              "ipv6 "
+#endif
+              "\n");
+    }
     exit (0);
   }
   else if (argc > 1)
