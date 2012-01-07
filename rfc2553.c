@@ -12,6 +12,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2012/01/07 13:52:23  green
+ * Removed C++ comments (bad style, I know)
+ *
  * Revision 2.1  2012/01/03 17:25:32  green
  * Implemented IPv6 support
  * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
@@ -30,9 +33,9 @@
 #include "sem.h"
 
 #ifndef HAVE_GETADDRINFO
-// getaddrinfo - Resolve a hostname					/*{{{*/
-// ---------------------------------------------------------------------
-/* */
+/* getaddrinfo - Resolve a hostname
+ * ---------------------------------------------------------------------
+ */
 int getaddrinfo(const char *nodename, const char *servname,
 		const struct addrinfo *hints,
 		struct addrinfo **res)
@@ -44,19 +47,19 @@ int getaddrinfo(const char *nodename, const char *servname,
    const char *End;
    char **CurAddr;
    
-   // Try to convert the service as a number
+   /* Try to convert the service as a number */
    Port = htons(strtol(servname,(char **)&End,0));
    Proto = SOCK_STREAM;
    
    if (hints != 0 && hints->ai_socktype != 0)
       Proto = hints->ai_socktype;
    
-   // Not a number, must be a name.
+   /* Not a number, must be a name. */
    if (End != servname + strlen(servname))
    {
       struct servent *Srv = 0;
       
-      // Do a lookup in the service database
+      /* Do a lookup in the service database */
       if (hints == 0 || hints->ai_socktype == SOCK_STREAM)
 	 Srv = getservbyname(servname,"tcp");
       if (hints != 0 && hints->ai_socktype == SOCK_DGRAM)
@@ -64,7 +67,7 @@ int getaddrinfo(const char *nodename, const char *servname,
       if (Srv == 0)
 	 return EAI_NONAME;  
       
-      // Get the right protocol
+      /* Get the right protocol */
       Port = Srv->s_port;
       if (strcmp(Srv->s_proto,"tcp") == 0)
 	 Proto = SOCK_STREAM;
@@ -82,7 +85,7 @@ int getaddrinfo(const char *nodename, const char *servname,
    }
       
    lockresolvsem();
-   // Hostname lookup, only if this is not a listening socket
+   /* Hostname lookup, only if this is not a listening socket */
    if (hints != 0 && (hints->ai_flags & AI_PASSIVE) != AI_PASSIVE)
    {
       Addr = gethostbyname(nodename);
@@ -95,20 +98,20 @@ int getaddrinfo(const char *nodename, const char *servname,
 	 return EAI_NONAME;
       }
    
-      // No A records 
+      /* No A records */
       if (Addr->h_addr_list[0] == 0)
 	 return EAI_NONAME;
       
       CurAddr = Addr->h_addr_list;
    }
    else
-      CurAddr = (char **)&End;    // Fake!
+      CurAddr = (char **)&End;    /* Fake! */
    
-   // Start constructing the linked list
+   /* Start constructing the linked list */
    *res = 0;
    for (; *CurAddr != 0; CurAddr++)
    {
-      // New result structure
+      /* New result structure */
       *Result = (struct addrinfo *)calloc(sizeof(**Result),1);
       if (*Result == 0)
       {
@@ -121,7 +124,7 @@ int getaddrinfo(const char *nodename, const char *servname,
       (*Result)->ai_family = AF_INET;
       (*Result)->ai_socktype = Proto;
 
-      // If we have the IPPROTO defines we can set the protocol field
+      /* If we have the IPPROTO defines we can set the protocol field */
       #ifdef IPPROTO_TCP
       if (Proto == SOCK_STREAM)
 	 (*Result)->ai_protocol = IPPROTO_TCP;
@@ -129,7 +132,7 @@ int getaddrinfo(const char *nodename, const char *servname,
 	 (*Result)->ai_protocol = IPPROTO_UDP;
       #endif
 
-      // Allocate space for the address
+      /* Allocate space for the address */
       (*Result)->ai_addrlen = sizeof(struct sockaddr_in);
       (*Result)->ai_addr = (struct sockaddr *)calloc(sizeof(struct sockaddr_in),1);
       if ((*Result)->ai_addr == 0)
@@ -139,7 +142,7 @@ int getaddrinfo(const char *nodename, const char *servname,
 	 return EAI_MEMORY;
       }
       
-      // Set the address
+      /* Set the address */
       ((struct sockaddr_in *)(*Result)->ai_addr)->sin_family = AF_INET;
       ((struct sockaddr_in *)(*Result)->ai_addr)->sin_port = Port;
       
@@ -147,7 +150,7 @@ int getaddrinfo(const char *nodename, const char *servname,
 	 ((struct sockaddr_in *)(*Result)->ai_addr)->sin_addr = *(struct in_addr *)(*CurAddr);
       else
       {
-         // Already zerod by calloc.
+         /* Already zerod by calloc. */
 	 break;
       }
       
@@ -157,10 +160,10 @@ int getaddrinfo(const char *nodename, const char *servname,
    
    return 0;
 }
-									/*}}}*/
-// freeaddrinfo - Free the result of getaddrinfo			/*{{{*/
-// ---------------------------------------------------------------------
-/* */
+
+/* freeaddrinfo - Free the result of getaddrinfo
+ * ---------------------------------------------------------------------
+ */
 void freeaddrinfo(struct addrinfo *ai)
 {
    struct addrinfo *Tmp;
@@ -172,10 +175,10 @@ void freeaddrinfo(struct addrinfo *ai)
       free(Tmp);
    }
 }
-									/*}}}*/
-// gai_strerror - error number to string				/*{{{*/
-// ---------------------------------------------------------------------
-/* */
+
+/* gai_strerror - error number to string
+ * ---------------------------------------------------------------------
+ */
 static char *ai_errlist[] = {
     "Success",
     "hostname nor servname provided, or not known", /* EAI_NONAME     */
@@ -197,13 +200,13 @@ char * gai_strerror(int ecode)
 	ecode = EAI_UNKNOWN;
     return ai_errlist[-ecode];
 }
-									/*}}}*/
-#endif // HAVE_GETADDRINFO
+
+#endif /* HAVE_GETADDRINFO */
 
 #ifndef HAVE_GETNAMEINFO
-// getnameinfo - Convert a sockaddr to a string 			/*{{{*/
-// ---------------------------------------------------------------------
-/* */
+/* getnameinfo - Convert a sockaddr to a string
+ * ---------------------------------------------------------------------
+ */
 int getnameinfo(const struct sockaddr *sa, socklen_t salen,
 		char *host, size_t hostlen,
 		char *serv, size_t servlen,
@@ -211,13 +214,13 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen,
 {
    struct sockaddr_in *sin = (struct sockaddr_in *)sa;
    
-   // This routine only supports internet addresses
+   /* This routine only supports internet addresses */
    if (sa->sa_family != AF_INET)
       return EAI_ADDRFAMILY;
    
    if (host != 0)
    {
-      // Try to resolve the hostname
+      /* Try to resolve the hostnamea */
       if ((flags & NI_NUMERICHOST) != NI_NUMERICHOST)
       {
 	 struct hostent *Ent;
@@ -249,7 +252,7 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen,
 	 releaseresolvsem();
       }
       
-      // Resolve as a plain numberic
+      /* Resolve as a plain numberic */
       if ((flags & NI_NUMERICHOST) == NI_NUMERICHOST)
       {
          lockhostsem();
@@ -260,7 +263,7 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen,
    
    if (serv != 0)
    {
-      // Try to resolve the hostname
+      /* Try to resolve the hostname */
       if ((flags & NI_NUMERICSERV) != NI_NUMERICSERV)
       {
 	 struct servent *Ent;
@@ -285,7 +288,7 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen,
          releasehostsem();
       }
       
-      // Resolve as a plain numberic
+      /* Resolve as a plain numberic */
       if ((flags & NI_NUMERICSERV) == NI_NUMERICSERV)
       {
 	 snprintf(serv,servlen,"%u",ntohs(sin->sin_port));
@@ -294,5 +297,5 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen,
    
    return 0;
 }
-									/*}}}*/
-#endif // HAVE_GETNAMEINFO
+
+#endif /* HAVE_GETNAMEINFO */

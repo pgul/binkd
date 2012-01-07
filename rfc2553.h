@@ -20,6 +20,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2012/01/07 13:52:23  green
+ * Removed C++ comments (bad style, I know)
+ *
  * Revision 2.1  2012/01/03 17:25:32  green
  * Implemented IPv6 support
  * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
@@ -36,19 +39,19 @@
 
 #include "iphdr.h"
 
-// Autosense getaddrinfo
+/* Autosense getaddrinfo */
 #if defined(AI_PASSIVE) && defined(EAI_NONAME)
 #define HAVE_GETADDRINFO
 #endif
 
-// Autosense getnameinfo
+/* Autosense getnameinfo */
 #if defined(NI_NUMERICHOST)
 #define HAVE_GETNAMEINFO
 #endif
 
-// getaddrinfo support?
+/* getaddrinfo support? */
 #ifndef HAVE_GETADDRINFO
-  // Renamed to advoid type clashing.. (for debugging)
+  /* Renamed to advoid type clashing.. (for debugging) */
   struct addrinfo_emu
   {   
      int     ai_flags;     /* AI_PASSIVE, AI_CANONNAME, AI_NUMERICHOST */
@@ -93,7 +96,7 @@
   #define sockaddr_storage sockaddr_in
 #endif
 
-// getnameinfo support (glibc2.0 has getaddrinfo only)
+/* getnameinfo support (glibc2.0 has getaddrinfo only) */
 #ifndef HAVE_GETNAMEINFO
 
   int getnameinfo(const struct sockaddr *sa, socklen_t salen,
@@ -109,7 +112,7 @@
   #ifndef NI_NUMERICHOST
   #define NI_NUMERICHOST (1<<0)
   #define NI_NUMERICSERV (1<<1)
-//  #define NI_NOFQDN (1<<2)
+/*  #define NI_NOFQDN (1<<2) */
   #define NI_NAMEREQD (1<<3)
   #define NI_DATAGRAM (1<<4)
   #endif
@@ -117,17 +120,17 @@
   #define sockaddr_storage sockaddr_in
 #endif
 
-// Glibc 2.0.7 misses this one
+/* Glibc 2.0.7 misses this one */
 #ifndef AI_NUMERICHOST
 #define AI_NUMERICHOST 0
 #endif
 
-// Win32 doesn't support these
+/* Win32 doesn't support these */
 #ifndef AI_NUMERICSERV
 #define AI_NUMERICSERV 0
 #endif
 
-// Win32 doesn't support these
+/* Win32 doesn't support these */
 #ifndef NI_NUMERICSERV
 #define NI_NUMERICSERV 0
 #endif
