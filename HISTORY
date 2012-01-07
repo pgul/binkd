@@ -1,3 +1,7 @@
+2012/01/07 15:24:46 1.0a-573 green
+confopt.h,2.6,2.7
+Fixed small typo
+
 2012/01/07 15:16:20 1.0a-572 green
 binkd.c,2.108,2.109 confopt.h,2.5,2.6
 Some more information in binkd -vv output
