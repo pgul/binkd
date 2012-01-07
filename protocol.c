@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.206  2012/01/07 11:54:04  green
+ * Fix MSVC6 compilation errors
+ *
  * Revision 2.205  2012/01/03 17:52:32  green
  * Implement FSP-1035 (SRV record usage)
  * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
@@ -1843,13 +1846,14 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
       char *port;
       struct sockaddr_storage sin;
       socklen_t si = sizeof(sin);
-      struct addrinfo hints = { .ai_family = PF_UNSPEC,
-                                .ai_socktype = SOCK_STREAM,
-                                .ai_protocol = IPPROTO_TCP,
-				.ai_flags = AI_NUMERICSERV };
-      struct addrinfo *ai, *aiHead;
+      struct addrinfo *ai, *aiHead, hints;
       int aiErr;
 
+      /* setup hints for getaddrinfo */
+      hints.ai_family = PF_UNSPEC;
+      hints.ai_socktype = SOCK_STREAM;
+      hints.ai_protocol = IPPROTO_TCP;
+      hints.ai_flags = AI_NUMERICSERV;
 
 #ifdef VAL_STYLE
       ip_found = FOUND_NONE; ip_check = CHECK_NA;

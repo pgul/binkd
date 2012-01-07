@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.74  2012/01/07 11:54:04  green
+ * Fix MSVC6 compilation errors
+ *
  * Revision 2.73  2012/01/06 09:44:08  gul
  * Error in log message format
  *
@@ -567,11 +570,13 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   char *proxy, *socks;
   struct addrinfo *aiProxyHead;
 #endif
-  struct addrinfo *ai, *aiNodeHead, *aiHead;
-  struct addrinfo hints = { .ai_family = PF_UNSPEC,
-			    .ai_socktype = SOCK_STREAM,
-			    .ai_protocol = IPPROTO_TCP };
+  struct addrinfo *ai, *aiNodeHead, *aiHead, hints;
   int aiErr;
+
+  /* setup hints for getaddrinfo */
+  hints.ai_family = PF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_protocol = IPPROTO_TCP;
 
 #ifdef WITH_PERL
   hosts = xstrdup(node->hosts);
@@ -728,11 +733,11 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       /* find bind addr with matching address family */
       if (config->bindaddr[0])
       {
-	struct addrinfo *src_ai;
-	struct addrinfo src_hints = { .ai_socktype = SOCK_STREAM,
-				      .ai_protocol = IPPROTO_TCP };
+	struct addrinfo *src_ai, src_hints;
 	
+	src_hints.ai_socktype = SOCK_STREAM;
 	src_hints.ai_family = ai->ai_family;
+	src_hints.ai_protocol = IPPROTO_TCP;
 	if ((aiErr = getaddrinfo(config->bindaddr, NULL, &src_hints, &src_ai)) == 0)
         {
           if (bind(sockfd, src_ai->ai_addr, src_ai->ai_addrlen))

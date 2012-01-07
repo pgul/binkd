@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.17  2012/01/07 11:54:04  green
+ * Fix MSVC6 compilation errors
+ *
  * Revision 2.16  2012/01/03 17:52:32  green
  * Implement FSP-1035 (SRV record usage)
  * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
@@ -145,11 +148,13 @@ void setsockopts (SOCKET s)
 char * find_port (char *s)
 {
   char *ps = NULL;
-  struct addrinfo *aiHead;
-  struct addrinfo hints = { .ai_family = PF_UNSPEC,
-                            .ai_socktype = SOCK_STREAM,
-                            .ai_protocol = IPPROTO_TCP };
+  struct addrinfo *aiHead, hints;
   int aiErr;
+
+  /* setup hints for getaddrinfo */
+  hints.ai_family = PF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_protocol = IPPROTO_TCP;
 
   aiErr = getaddrinfo(NULL, (s && *s) ? s : PRTCLNAME, &hints, &aiHead);
   if (aiErr == 0)

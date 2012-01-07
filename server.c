@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.47  2012/01/07 11:54:04  green
+ * Fix MSVC6 compilation errors
+ *
  * Revision 2.46  2012/01/06 11:33:31  gul
  * Format error
  *
@@ -286,11 +289,7 @@ static void serv (void *arg)
 
 static int do_server(BINKD_CONFIG *config)
 {
-  struct addrinfo hints = { .ai_flags = AI_PASSIVE,
-			    .ai_family = PF_UNSPEC,
-			    .ai_socktype = SOCK_STREAM,
-			    .ai_protocol = IPPROTO_TCP };
-  struct addrinfo *ai, *aiHead;
+  struct addrinfo *ai, *aiHead, hints;
   int aiErr;
   SOCKET new_sockfd;
   int pid;
@@ -298,6 +297,12 @@ static int do_server(BINKD_CONFIG *config)
   struct sockaddr_storage client_addr;
   int opt = 1;
   int save_errno;
+
+  /* setup hints for getaddrinfo */
+  hints.ai_flags = AI_PASSIVE;
+  hints.ai_family = PF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_protocol = IPPROTO_TCP;
 
   if ((aiErr = getaddrinfo(config->bindaddr[0] ? config->bindaddr : NULL, 
 		config->iport, &hints, &aiHead)) != 0)

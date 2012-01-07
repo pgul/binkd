@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.39  2012/01/07 11:54:04  green
+ * Fix MSVC6 compilation errors
+ *
  * Revision 2.38  2012/01/03 17:52:32  green
  * Implement FSP-1035 (SRV record usage)
  * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
@@ -356,15 +359,17 @@ static FTN_NODE *search_for_node(FTN_NODE *np, BINKD_CONFIG *config)
 
 static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *config)
 {
-  struct addrinfo *ai;
-  struct addrinfo hints = { .ai_family = PF_UNSPEC,
-                            .ai_socktype = SOCK_STREAM,
-                            .ai_protocol = IPPROTO_TCP };
+  struct addrinfo *ai, hints;
   int aiErr;
   FTN_NODE n, *np;
   char host[MAXHOSTNAMELEN + 1];       /* current host/port */
   char *port;
   int i;
+
+  /* setup hints for getaddrinfo */
+  hints.ai_family = PF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_protocol = IPPROTO_TCP;
 
   strcpy(n.fa.domain, "defnode");
   n.fa.z=n.fa.net=n.fa.node=n.fa.p=0;

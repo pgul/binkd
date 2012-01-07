@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.24  2012/01/07 11:54:04  green
+ * Fix MSVC6 compilation errors
+ *
  * Revision 2.23  2012/01/03 17:52:32  green
  * Implement FSP-1035 (SRV record usage)
  * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
@@ -169,16 +172,18 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 	char *ntlmsp = NULL;
 #endif
 	int i, n;
-	struct addrinfo *ai, *aiHead;
-	struct addrinfo hints = { .ai_flags = AI_PASSIVE,
-			    .ai_family = AF_INET,
-			    .ai_socktype = SOCK_STREAM,
-			    .ai_protocol = IPPROTO_TCP };
+	struct addrinfo *ai, *aiHead, hints;
 	int aiErr;
 	char buf[1024], *pbuf;
 	char *sp, *sauth;
 	struct in_addr defaddr;
 	char *port;
+
+	/* setup hints for getaddrinfo */
+	hints.ai_flags = AI_PASSIVE;
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
 
 	if (proxy[0])
 	{
