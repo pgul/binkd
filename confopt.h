@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.8  2012/01/07 17:00:21  green
+ * Added detection for PCC compiler
+ *
  * Revision 2.7  2012/01/07 13:24:44  green
  * Fixed small typo
  *
@@ -53,6 +56,8 @@
 #  define _DBNKD_COMPILER "gcc (emx)"
 #elif defined(__MSC__)
 #  define _DBNKD_COMPILER "msc"
+#elif defined(__PCC__)
+#  define _DBNKD_COMPILER "pcc"
 #elif defined(__clang__)
 #  define _DBNKD_COMPILER "clang"
 #elif defined(__GNUC__)
