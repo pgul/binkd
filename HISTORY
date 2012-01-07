@@ -1,3 +1,7 @@
+2012/01/08 01:38:48 1.0a-579 green
+iphdr.h,2.19,2.20 protocol.c,2.209,2.210 server.c,2.49,2.50
+Improved getnameinfo handling, retry without name resolution
+
 2012/01/07 19:00:23 1.0a-578 green
 confopt.h,2.7,2.8
 Added detection for PCC compiler
