@@ -1,3 +1,7 @@
+2012/01/07 13:54:07 1.0a-571 green
+client.c,2.73,2.74 ftnnode.c,2.38,2.39 https.c,2.23,2.24 iptools.c,2.16,2.17 protocol.c,2.205,2.206 server.c,2.46,2.47
+Fix MSVC6 compilation errors
+
 2012/01/06 13:33:33 1.0a-570 gul
 server.c,2.45,2.46
 Format error
