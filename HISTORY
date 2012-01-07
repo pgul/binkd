@@ -1,3 +1,7 @@
+2012/01/07 18:56:30 1.0a-577 green
+client.c,2.75,2.76 protocol.c,2.208,2.209 server.c,2.48,2.49
+Improved getnameinfo error handling
+
 2012/01/07 18:34:03 1.0a-576 green
 client.c,2.74,2.75 https.c,2.24,2.25 protocol.c,2.207,2.208 server.c,2.47,2.48
 Add error id where gai_strerror() is used
