@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.49  2012/01/07 16:56:28  green
+ * Improved getnameinfo error handling
+ *
  * Revision 2.48  2012/01/07 16:34:00  green
  * Add error id where gai_strerror() is used
  *
@@ -442,6 +445,7 @@ static int do_server(BINKD_CONFIG *config)
       {
         char host[MAXHOSTNAMELEN + 1];
         char service[MAXSERVNAME + 1];
+	int aiErr;
   
         add_socket(new_sockfd);
         /* Was the socket created after close_sockets loop in exitfunc()? */
@@ -453,10 +457,16 @@ static int do_server(BINKD_CONFIG *config)
         }
         rel_grow_handles (6);
         ext_rand=rand();
-        getnameinfo((struct sockaddr *)&client_addr, client_addr_len, 
-		    host, sizeof(host), service, sizeof(service), 
-		    NI_NUMERICSERV | (config->backresolv ? 0 : NI_NUMERICHOST));
-        Log (3, "incoming from %s (%s)", host, service);
+	aiErr = getnameinfo((struct sockaddr *)&client_addr, client_addr_len, 
+	    host, sizeof(host), service, sizeof(service), 
+	    NI_NUMERICSERV | (config->backresolv ? 0 : NI_NUMERICHOST));
+	if (aiErr == 0) 
+          Log (3, "incoming from %s (%s)", host, service);
+        else
+        {
+          Log(2, "Error in getnameinfo(): %s (%d)", gai_strerror(aiErr), aiErr);
+	  Log(3, "incoming from unknown");
+	}
   
         /* Creating a new process for the incoming connection */
         threadsafe(++n_servers);

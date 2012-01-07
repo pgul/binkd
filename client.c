@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.76  2012/01/07 16:56:28  green
+ * Improved getnameinfo error handling
+ *
  * Revision 2.75  2012/01/07 16:34:00  green
  * Add error id where gai_strerror() is used
  *
@@ -710,8 +713,13 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       }
       rc = getnameinfo(ai->ai_addr, ai->ai_addrlen, addrbuf, sizeof(addrbuf),
 		       servbuf, sizeof(servbuf), NI_NUMERICHOST | NI_NUMERICSERV);
-      if (rc != 0)
+      if (rc != 0) {
 	Log (2, "Error in getnameinfo(): %s (%d)", gai_strerror(rc), rc);
+	strncpy(addrbuf, "invalid", MAXHOSTNAMELEN);
+	addrbuf[MAXHOSTNAMELEN] = '\0';
+	*servbuf = '\0';
+      }
+
 #ifdef HTTPS
       if (use_proxy)
       {
