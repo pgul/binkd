@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.100  2012/01/07 16:22:26  green
+ * Fix some compiler warnings
+ *
  * Revision 2.99  2012/01/03 17:52:32  green
  * Implement FSP-1035 (SRV record usage)
  * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
@@ -1811,7 +1814,7 @@ static int read_inboundcase (KEYWORD *key, int wordcount, char **words)
 
 static int read_dontsendempty (KEYWORD *key, int wordcount, char **words)
 {
-  enum inbcasetype *target = (enum inbcasetype *) (key->var);
+  enum dontsendemptytype *target = (enum dontsendemptytype *) (key->var);
 
   if (!isArgCount(1, wordcount))
     return 0;

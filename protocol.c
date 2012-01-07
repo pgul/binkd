@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.207  2012/01/07 16:22:26  green
+ * Fix some compiler warnings
+ *
  * Revision 2.206  2012/01/07 11:54:04  green
  * Fix MSVC6 compilation errors
  *
@@ -1393,7 +1396,9 @@ static int remove_from_spool (STATE *state, char *flopath,
                strerror (errno));
         fflush (flo);
         /* The line was marked, now skip it */
-        fgets (buf, MAXPATHLEN, flo);
+        if (!fgets (buf, MAXPATHLEN, flo))
+          Log (1, "remove_from_spool: fgets(%s): %s", flopath,
+               strerror (errno));
         /* We've found the file in flo, so try to translate it's name before
          * the action */
         if (w == 0 && (w = trans_flo_line (file, config->rf_rules.first)) != 0)
