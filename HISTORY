@@ -1,3 +1,7 @@
+2012/01/07 18:22:29 1.0a-575 green
+md5b.c,2.10,2.11 protocol.c,2.206,2.207 readcfg.c,2.99,2.100
+Fix some compiler warnings
+
 2012/01/07 15:52:26 1.0a-574 green
 rfc2553.c,2.1,2.2 rfc2553.h,2.1,2.2
 Removed C++ comments (bad style, I know)
