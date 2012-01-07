@@ -1,3 +1,7 @@
+2012/01/07 19:00:23 1.0a-578 green
+confopt.h,2.7,2.8
+Added detection for PCC compiler
+
 2012/01/07 18:56:30 1.0a-577 green
 client.c,2.75,2.76 protocol.c,2.208,2.209 server.c,2.48,2.49
 Improved getnameinfo error handling
