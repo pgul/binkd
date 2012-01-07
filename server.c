@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.50  2012/01/07 23:38:45  green
+ * Improved getnameinfo handling, retry without name resolution
+ *
  * Revision 2.49  2012/01/07 16:56:28  green
  * Improved getnameinfo error handling
  *
@@ -460,6 +463,15 @@ static int do_server(BINKD_CONFIG *config)
 	aiErr = getnameinfo((struct sockaddr *)&client_addr, client_addr_len, 
 	    host, sizeof(host), service, sizeof(service), 
 	    NI_NUMERICSERV | (config->backresolv ? 0 : NI_NUMERICHOST));
+	/* try again with numeric host name */
+	if (aiErr != 0 && config->backresolv)
+	{
+          Log(2, "Error in named getnameinfo(): %s (%d)", 
+	    gai_strerror(aiErr), aiErr);
+	  aiErr = getnameinfo((struct sockaddr *)&client_addr, client_addr_len,
+	    host, sizeof(host), service, sizeof(service),
+	    NI_NUMERICSERV | NI_NUMERICHOST);
+	}
 	if (aiErr == 0) 
           Log (3, "incoming from %s (%s)", host, service);
         else

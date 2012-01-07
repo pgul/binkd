@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.20  2012/01/07 23:38:45  green
+ * Improved getnameinfo handling, retry without name resolution
+ *
  * Revision 2.19  2012/01/06 07:23:47  gul
  * Fix resolv.h check under FreeBSD; cosmetics
  *
@@ -149,10 +152,18 @@
 #endif
 
 #ifndef MAXHOSTNAMELEN
-  #define MAXHOSTNAMELEN 255		    /* max hostname size */
+  #ifdef NI_MAXHOST
+    #define MAXHOSTNAMELEN NI_MAXHOST	    /* max length for getnameinfo */
+  #else
+    #define MAXHOSTNAMELEN 255		    /* max FQDN size */
+  #endif
 #endif
 
-#define MAXSERVNAME 80                      /* max id len in /etc/services */
+#ifdef NI_MAXSERV
+  #define MAXSERVNAME NI_MAXSERV	    /* max length for getnameinfo */
+#else
+  #define MAXSERVNAME 80                    /* max id len in /etc/services */
+#endif
 
 #ifndef HAVE_SOCKLEN_T
   typedef int socklen_t;

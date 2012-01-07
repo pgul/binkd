@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.210  2012/01/07 23:38:45  green
+ * Improved getnameinfo handling, retry without name resolution
+ *
  * Revision 2.209  2012/01/07 16:56:28  green
  * Improved getnameinfo error handling
  *
@@ -3722,6 +3725,16 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
 		NI_NUMERICSERV | (config->backresolv ? 0 : NI_NUMERICHOST));
   if (status != 0) {
     Log(2, "Error in getnameinfo(): %s (%d)", gai_strerror(status), status);
+    /* try again without name resolution */
+    if (config->backresolv)
+      status = getnameinfo((struct sockaddr *)&peer_name, peer_name_len,
+		host, sizeof(host), service, sizeof(service),
+		NI_NUMERICSERV | NI_NUMERICHOST);
+  }
+  if (status != 0) {
+    if (config->backresolv)
+      Log(2, "Error in numeric getnameinfo(): %s (%d)", 
+	    gai_strerror(status), status);
     strncpy(host, "unknown", MAXHOSTNAMELEN);
     host[MAXHOSTNAMELEN] = '\0';
     *service = '\0';
