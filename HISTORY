@@ -1,3 +1,7 @@
+2012/01/08 04:03:50 1.0a-580 green
+ns_parse.c,NONE,1.1
+Implement fallback for system not exporting resolv/ns_initparse etc.
+
 2012/01/08 01:38:48 1.0a-579 green
 iphdr.h,2.19,2.20 protocol.c,2.209,2.210 server.c,2.49,2.50
 Improved getnameinfo handling, retry without name resolution
