@@ -1,3 +1,7 @@
+2012/01/08 21:18:07 1.0a-587 green
+protocol.c,2.212,2.213 server.c,2.52,2.53
+Improved hostname lookup and logging
+
 2012/01/08 19:35:00 1.0a-586 green
 client.c,2.77,2.78 ftnaddr.c,2.10,2.11 ftnaddr.h,2.6,2.7 ftnnode.c,2.40,2.41 iphdr.h,2.22,2.23 perlhooks.c,2.75,2.76 protocol.c,2.211,2.212 readcfg.c,2.100,2.101 readcfg.h,2.39,2.40 server.c,2.51,2.52 srif.c,2.20,2.21 srv_gai.c,2.2,2.3
 Avoid using MAXHOSTNAMELEN
