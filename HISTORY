@@ -1,3 +1,7 @@
+2012/01/08 15:21:20 1.0a-583 green
+iphdr.h,2.20,2.21
+Ensure sufficiently long MAXHOSTNAMELEN
+
 2012/01/08 15:05:41 1.0a-582 green
 ns_parse.c,1.1,1.2
 Autodetection for ns_msg element
