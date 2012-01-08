@@ -1,3 +1,7 @@
+2012/01/08 15:05:41 1.0a-582 green
+ns_parse.c,1.1,1.2
+Autodetection for ns_msg element
+
 2012/01/08 04:04:18 1.0a-581 green
 srv_gai.c,2.1,2.2
 Implement fallback for system not exporting resolv/ns_initparse etc.
