@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.21  2012/01/08 13:21:19  green
+ * Ensure sufficiently long MAXHOSTNAMELEN
+ *
  * Revision 2.20  2012/01/07 23:38:45  green
  * Improved getnameinfo handling, retry without name resolution
  *
@@ -149,6 +152,11 @@
   #include <sys/socket.h>
 #else
   #include <winsock.h>
+#endif
+
+/* Some systems have MAXHOSTNAMELEN = 64 */
+#if defined MAXHOSTNAMELEN && MAXHOSTNAMELEN < 255
+  #undef MAXHOSTNAMELEN
 #endif
 
 #ifndef MAXHOSTNAMELEN
