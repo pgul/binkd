@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.110  2012/01/08 16:23:52  green
+ * Fixed compilation in Cygwin/MinGW
+ *
  * Revision 2.109  2012/01/07 13:16:17  green
  * Some more information in binkd -vv output
  *
@@ -422,6 +425,7 @@
 #include "setpttl.h"
 #include "sem.h"
 #include "ftnnode.h"
+#include "rfc2553.h"
 #include "srv_gai.h"
 
 #ifdef HAVE_GETOPT

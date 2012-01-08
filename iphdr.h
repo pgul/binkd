@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22  2012/01/08 16:23:52  green
+ * Fixed compilation in Cygwin/MinGW
+ *
  * Revision 2.21  2012/01/08 13:21:19  green
  * Ensure sufficiently long MAXHOSTNAMELEN
  *
@@ -107,6 +110,7 @@
 
 
 #if defined(WIN32) && defined(IPV6)
+  #define _WIN32_WINNT 0x0502		    /* WinXP SP2 contains RFC2553 */
   #include <winsock2.h>
   #include <ws2tcpip.h>
 #endif
@@ -151,7 +155,10 @@
 #if !defined(WIN32)
   #include <sys/socket.h>
 #else
-  #include <winsock.h>
+  #ifndef IPV6
+    #include <winsock.h>
+    #undef AF_INET6			    /* Winsock 1 cannot support IPv6 */
+  #endif
 #endif
 
 /* Some systems have MAXHOSTNAMELEN = 64 */

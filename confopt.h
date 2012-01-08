@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.9  2012/01/08 16:23:52  green
+ * Fixed compilation in Cygwin/MinGW
+ *
  * Revision 2.8  2012/01/07 17:00:21  green
  * Added detection for PCC compiler
  *
@@ -150,7 +153,7 @@
 #else
 #  define _DBNKD_IPV6
 #endif
-#ifdef FSP1035
+#ifdef WITH_FSP1035
 #  define _DBNKD_FSP1035 ", fsp1035"
 #else
 #  define _DBNKD_FSP1035
