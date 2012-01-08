@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.53  2012/01/08 19:18:03  green
+ * Improved hostname lookup and logging
+ *
  * Revision 2.52  2012/01/08 17:34:58  green
  * Avoid using MAXHOSTNAMELEN
  *
@@ -467,18 +470,10 @@ static int do_server(BINKD_CONFIG *config)
         }
         rel_grow_handles (6);
         ext_rand=rand();
-	aiErr = getnameinfo((struct sockaddr *)&client_addr, client_addr_len, 
-	    host, sizeof(host), service, sizeof(service), 
-	    NI_NUMERICSERV | (config->backresolv ? 0 : NI_NUMERICHOST));
-	/* try again with numeric host name */
-	if (aiErr != 0 && config->backresolv)
-	{
-          Log(2, "Error in named getnameinfo(): %s (%d)", 
-	    gai_strerror(aiErr), aiErr);
-	  aiErr = getnameinfo((struct sockaddr *)&client_addr, client_addr_len,
+	/* never resolve name in here, will be done during session */
+	aiErr = getnameinfo((struct sockaddr *)&client_addr, client_addr_len,
 	    host, sizeof(host), service, sizeof(service),
-	    NI_NUMERICSERV | NI_NUMERICHOST);
-	}
+	    NI_NUMERICHOST | NI_NUMERICSERV);
 	if (aiErr == 0) 
           Log (3, "incoming from %s (%s)", host, service);
         else

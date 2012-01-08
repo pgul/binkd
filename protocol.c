@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.213  2012/01/08 19:18:03  green
+ * Improved hostname lookup and logging
+ *
  * Revision 2.212  2012/01/08 17:34:57  green
  * Avoid using MAXHOSTNAMELEN
  *
@@ -3709,6 +3712,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
   struct sockaddr_storage peer_name;
   socklen_t peer_name_len = sizeof (peer_name);
   char host[BINKD_FQDNLEN + 1];
+  char ipaddr[BINKD_FQDNLEN + 1];
   char ownhost[BINKD_FQDNLEN + 1];
   char service[MAXSERVNAME + 1];
   const char *save_err = NULL;
@@ -3727,33 +3731,48 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
     memset(&peer_name, 0, sizeof (peer_name));
   }
 
-  status = getnameinfo((struct sockaddr *)&peer_name, peer_name_len, 
-		host, sizeof(host), service, sizeof(service),
-		NI_NUMERICSERV | (config->backresolv ? 0 : NI_NUMERICHOST));
-  if (status != 0) {
-    Log(2, "Error in getnameinfo(): %s (%d)", gai_strerror(status), status);
-    /* try again without name resolution */
-    if (config->backresolv)
-      status = getnameinfo((struct sockaddr *)&peer_name, peer_name_len,
-		host, sizeof(host), service, sizeof(service),
+  status = getnameinfo((struct sockaddr *)&peer_name, peer_name_len,
+		ipaddr, sizeof(ipaddr), service, sizeof(service),
 		NI_NUMERICSERV | NI_NUMERICHOST);
+  if (status == 0)
+  {
+    if (config->backresolv)	/* host name resolution */
+    {
+      status = getnameinfo((struct sockaddr *)&peer_name, peer_name_len, 
+		host, sizeof(host), NULL, 0, NI_NAMEREQD);
+      if (status != 0 && status != EAI_NONAME)
+      {
+        Log(2, "Error in getnameinfo(): %s (%d)", gai_strerror(status), status);
+	host[0] = '\0';
+      }
+    }
+    else
+      host[0] = '\0';
   }
-  if (status != 0) {
-    if (config->backresolv)
-      Log(2, "Error in numeric getnameinfo(): %s (%d)", 
+  else
+  {
+    Log(2, "Error in numeric getnameinfo(): %s (%d)", 
 	    gai_strerror(status), status);
-    strncpy(host, "unknown", BINKD_FQDNLEN);
-    host[BINKD_FQDNLEN] = '\0';
-    *service = '\0';
+    strncpy(ipaddr, "unknown", BINKD_FQDNLEN);
+    ipaddr[BINKD_FQDNLEN] = '\0';
+    service[0] = '\0';
   }
 
   if (to && current_addr)
     state.peer_name = current_addr;
   else
+  if (*host != '\0')
     state.peer_name = host;
+  else
+    state.peer_name = ipaddr;
 
   setproctitle ("%c [%s]", to ? 'o' : 'i', state.peer_name);
-  Log (2, "%s session with %s (%s)",
+  if (*host != '\0')
+    Log (2, "%s session with %s [%s] (%s)",
+       to ? "outgoing" : "incoming",
+       host, ipaddr, service);
+  else
+    Log (2, "%s session with %s (%s)",
        to ? "outgoing" : "incoming",
        state.peer_name,
        service);
