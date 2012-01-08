@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.21  2012/01/08 17:34:58  green
+ * Avoid using MAXHOSTNAMELEN
+ *
  * Revision 2.20  2012/01/03 17:25:32  green
  * Implemented IPv6 support
  * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
@@ -288,7 +291,7 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, STATE *st, int imm)
   char *sp, *w;
   char *fn=filename0;
   char *pn=st->peer_name ? st->peer_name : "";
-  char ipaddr[MAXHOSTNAMELEN + 1];
+  char ipaddr[BINKD_FQDNLEN + 1];
   char aka[4];
   char adr[FTN_ADDR_SZ + 2];
   int i;

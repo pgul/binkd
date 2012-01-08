@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.101  2012/01/08 17:34:57  green
+ * Avoid using MAXHOSTNAMELEN
+ *
  * Revision 2.100  2012/01/07 16:22:26  green
  * Fix some compiler warnings
  *
@@ -789,15 +792,15 @@ static KEYWORD keywords[] =
   {"backresolv", read_bool, &work_config.backresolv, 0, 0},
   {"pid-file", read_string, work_config.pid_file, 'f', 0},
 #ifdef HTTPS
-  {"proxy", read_string, work_config.proxy, 0, MAXHOSTNAMELEN + 40},
-  {"socks", read_string, work_config.socks, 0, MAXHOSTNAMELEN + 40},
+  {"proxy", read_string, work_config.proxy, 0, BINKD_FQDNLEN + 40},
+  {"socks", read_string, work_config.socks, 0, BINKD_FQDNLEN + 40},
 #endif
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
   {"syslog", read_syslog_facility, &syslog_facility, 0, 0},
 #endif
   {"ftrans", read_rfrule, NULL, 0, 0},
   {"send-if-pwd", read_bool, &work_config.send_if_pwd, 0, 0},
-  {"root-domain", read_string, work_config.root_domain, 0, MAXHOSTNAMELEN},
+  {"root-domain", read_string, work_config.root_domain, 0, BINKD_FQDNLEN},
   {"prescan", read_bool, &work_config.prescan, 0, 0},
   {"connect-timeout", read_time, &work_config.connect_timeout, 0, DONT_CHECK},
 #ifdef MAILBOX
@@ -1588,7 +1591,7 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
  *  "*" will expand in corresponding domain name for ``fn''
  *                        (2:5047/13 --> "f13.n5047.z2.binkp.net.")
  *
- *  ``Host'' should contain at least MAXHOSTNAMELEN bytes.
+ *  ``Host'' should contain at least BINKD_FQDNLEN bytes.
  *
  *  Returns 0 on error, -1 on EOF, 1 otherwise
  */
@@ -1619,7 +1622,7 @@ int get_host_and_port (int n, char *host, char **port, char *src, FTN_ADDR *fa, 
     if (!strcmp (s, "*"))
       ftnaddress_to_domain (host, fa, config->pDomains.first, config->root_domain);
     else
-      strnzcpy (host, s+hostoff, MAXHOSTNAMELEN);
+      strnzcpy (host, s+hostoff, BINKD_FQDNLEN);
 
     if (!t)
     {

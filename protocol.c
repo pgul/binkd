@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.212  2012/01/08 17:34:57  green
+ * Avoid using MAXHOSTNAMELEN
+ *
  * Revision 2.211  2012/01/08 14:09:04  green
  * Corrected initialization of getaddrinfo hints
  *
@@ -1859,7 +1862,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 #ifndef VAL_STYLE
       int ipok = 0;
 #endif
-      char host[MAXHOSTNAMELEN + 1];       /* current host/port */
+      char host[BINKD_FQDNLEN + 1];       /* current host/port */
       char *port;
       struct sockaddr_storage sin;
       socklen_t si = sizeof(sin);
@@ -3705,8 +3708,8 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
 #endif
   struct sockaddr_storage peer_name;
   socklen_t peer_name_len = sizeof (peer_name);
-  char host[MAXHOSTNAMELEN + 1];
-  char ownhost[MAXHOSTNAMELEN + 1];
+  char host[BINKD_FQDNLEN + 1];
+  char ownhost[BINKD_FQDNLEN + 1];
   char service[MAXSERVNAME + 1];
   const char *save_err = NULL;
   int status;
@@ -3739,8 +3742,8 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
     if (config->backresolv)
       Log(2, "Error in numeric getnameinfo(): %s (%d)", 
 	    gai_strerror(status), status);
-    strncpy(host, "unknown", MAXHOSTNAMELEN);
-    host[MAXHOSTNAMELEN] = '\0';
+    strncpy(host, "unknown", BINKD_FQDNLEN);
+    host[BINKD_FQDNLEN] = '\0';
     *service = '\0';
   }
 

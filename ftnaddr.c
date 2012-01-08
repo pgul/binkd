@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2012/01/08 17:34:57  green
+ * Avoid using MAXHOSTNAMELEN
+ *
  * Revision 2.10  2011/08/17 09:02:56  gul
  * Default root-domain fidonet.net changed to binkp.net
  *
@@ -260,7 +263,7 @@ int ftnamask_cmpm (char *mask, int cnt, FTN_ADDR *fa) {
 
 /*
  *  2:5047/13.1 -> p1.f13.n5047.z2.binkp.net.
- *  S should have space for MAXHOSTNAMELEN chars.
+ *  S should have space for BINKD_FQDNLEN chars.
  */
 void ftnaddress_to_domain (char *s, FTN_ADDR *fa, FTN_DOMAIN *d, char *domain)
 {
@@ -270,9 +273,9 @@ void ftnaddress_to_domain (char *s, FTN_ADDR *fa, FTN_DOMAIN *d, char *domain)
     sprintf (s, "p%i.f%i.n%i.z%i.", fa->p, fa->node, fa->net, fa->z);
   d = get_domain_info(fa->domain, d);
   if (d && d->idomain)
-    strnzcat (s, d->idomain, MAXHOSTNAMELEN);
+    strnzcat (s, d->idomain, BINKD_FQDNLEN);
   else
-    strnzcat (s, domain, MAXHOSTNAMELEN);
+    strnzcat (s, domain, BINKD_FQDNLEN);
 }
 
 

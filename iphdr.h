@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.23  2012/01/08 17:34:57  green
+ * Avoid using MAXHOSTNAMELEN
+ *
  * Revision 2.22  2012/01/08 16:23:52  green
  * Fixed compilation in Cygwin/MinGW
  *
@@ -162,16 +165,10 @@
 #endif
 
 /* Some systems have MAXHOSTNAMELEN = 64 */
-#if defined MAXHOSTNAMELEN && MAXHOSTNAMELEN < 255
-  #undef MAXHOSTNAMELEN
-#endif
-
-#ifndef MAXHOSTNAMELEN
-  #ifdef NI_MAXHOST
-    #define MAXHOSTNAMELEN NI_MAXHOST	    /* max length for getnameinfo */
-  #else
-    #define MAXHOSTNAMELEN 255		    /* max FQDN size */
-  #endif
+#ifdef NI_MAXHOST
+  #define BINKD_FQDNLEN NI_MAXHOST	    /* max length for getnameinfo */
+#else
+  #define BINKD_FQDNLEN 255		    /* max FQDN size */
 #endif
 
 #ifdef NI_MAXSERV

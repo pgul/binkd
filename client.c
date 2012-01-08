@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.78  2012/01/08 17:34:57  green
+ * Avoid using MAXHOSTNAMELEN
+ *
  * Revision 2.77  2012/01/08 14:09:04  green
  * Corrected initialization of getaddrinfo hints
  *
@@ -568,8 +571,8 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   int sockfd = INVALID_SOCKET;
   char szDestAddr[FTN_ADDR_SZ + 1];
   int i, rc;
-  char host[MAXHOSTNAMELEN + 5 + 1];       /* current host/port */
-  char addrbuf[MAXHOSTNAMELEN + 1];
+  char host[BINKD_FQDNLEN + 5 + 1];       /* current host/port */
+  char addrbuf[BINKD_FQDNLEN + 1];
   char servbuf[MAXSERVNAME + 1];
   char *hosts;
   char *port;
@@ -719,8 +722,8 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 		       servbuf, sizeof(servbuf), NI_NUMERICHOST | NI_NUMERICSERV);
       if (rc != 0) {
 	Log (2, "Error in getnameinfo(): %s (%d)", gai_strerror(rc), rc);
-	strncpy(addrbuf, "invalid", MAXHOSTNAMELEN);
-	addrbuf[MAXHOSTNAMELEN] = '\0';
+	strncpy(addrbuf, "invalid", BINKD_FQDNLEN);
+	addrbuf[BINKD_FQDNLEN] = '\0';
 	*servbuf = '\0';
       }
 

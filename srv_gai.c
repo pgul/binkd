@@ -25,6 +25,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2012/01/08 17:34:58  green
+ * Avoid using MAXHOSTNAMELEN
+ *
  * Revision 2.2  2012/01/08 02:03:46  green
  * Implement fallback for system not exporting resolv/ns_initparse etc.
  *
@@ -64,7 +67,7 @@ int srv_getaddrinfo(const char *node, const char *service,
     PDNS_RECORD resp, entry;
     char *tgt_name;
 #else
-    char tgt_name[MAXHOSTNAMELEN + 1];
+    char tgt_name[BINKD_FQDNLEN + 1];
     unsigned char resp[SRVGAI_DNSRESPLEN];
     ns_msg nsb;
     ns_rr rrb;

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.40  2012/01/08 17:34:58  green
+ * Avoid using MAXHOSTNAMELEN
+ *
  * Revision 2.39  2012/01/03 17:52:32  green
  * Implement FSP-1035 (SRV record usage)
  * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
@@ -322,11 +325,11 @@ struct _BINKD_CONFIG
    */
 
 #ifdef HTTPS
-  char       proxy[MAXHOSTNAMELEN + 40];
-  char       socks[MAXHOSTNAMELEN + 40];
+  char       proxy[BINKD_FQDNLEN + 40];
+  char       socks[BINKD_FQDNLEN + 40];
 #endif
 
-  char       root_domain[MAXHOSTNAMELEN + 1];
+  char       root_domain[BINKD_FQDNLEN + 1];
   char       sysname[MAXSYSTEMNAME + 1];
   char       bindaddr[16];
   char       sysop[MAXSYSOPNAME + 1];

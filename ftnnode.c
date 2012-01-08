@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.41  2012/01/08 17:34:57  green
+ * Avoid using MAXHOSTNAMELEN
+ *
  * Revision 2.40  2012/01/08 14:09:04  green
  * Corrected initialization of getaddrinfo hints
  *
@@ -365,7 +368,7 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
   struct addrinfo *ai, hints;
   int aiErr;
   FTN_NODE n, *np;
-  char host[MAXHOSTNAMELEN + 1];       /* current host/port */
+  char host[BINKD_FQDNLEN + 1];       /* current host/port */
   char *port;
   int i;
 
