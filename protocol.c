@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.211  2012/01/08 14:09:04  green
+ * Corrected initialization of getaddrinfo hints
+ *
  * Revision 2.210  2012/01/07 23:38:45  green
  * Improved getnameinfo handling, retry without name resolution
  *
@@ -1864,6 +1867,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
       int aiErr;
 
       /* setup hints for getaddrinfo */
+      memset((void *)&hints, 0, sizeof(hints));
       hints.ai_family = PF_UNSPEC;
       hints.ai_socktype = SOCK_STREAM;
       hints.ai_protocol = IPPROTO_TCP;

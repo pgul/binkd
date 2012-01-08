@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.77  2012/01/08 14:09:04  green
+ * Corrected initialization of getaddrinfo hints
+ *
  * Revision 2.76  2012/01/07 16:56:28  green
  * Improved getnameinfo error handling
  *
@@ -580,6 +583,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   int aiErr;
 
   /* setup hints for getaddrinfo */
+  memset((void *)&hints, 0, sizeof(hints));
   hints.ai_family = PF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_protocol = IPPROTO_TCP;
@@ -746,6 +750,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       {
 	struct addrinfo *src_ai, src_hints;
 	
+	memset((void *)&src_hints, 0, sizeof(src_hints));
 	src_hints.ai_socktype = SOCK_STREAM;
 	src_hints.ai_family = ai->ai_family;
 	src_hints.ai_protocol = IPPROTO_TCP;

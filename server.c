@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.51  2012/01/08 14:09:04  green
+ * Corrected initialization of getaddrinfo hints
+ *
  * Revision 2.50  2012/01/07 23:38:45  green
  * Improved getnameinfo handling, retry without name resolution
  *
@@ -308,6 +311,7 @@ static int do_server(BINKD_CONFIG *config)
   int save_errno;
 
   /* setup hints for getaddrinfo */
+  memset((void *)&hints, 0, sizeof(hints));
   hints.ai_flags = AI_PASSIVE;
   hints.ai_family = PF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
