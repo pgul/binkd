@@ -25,6 +25,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2012/01/08 02:03:46  green
+ * Implement fallback for system not exporting resolv/ns_initparse etc.
+ *
  * Revision 2.1  2012/01/03 17:52:32  green
  * Implement FSP-1035 (SRV record usage)
  * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
@@ -42,9 +45,9 @@
 #ifndef srv_getaddrinfo
 
 #ifdef WIN32
-#include <windns.h>
+#  include <windns.h>
 #else
-#include <resolv.h>
+#  include <resolv.h>
 #endif
 #include <string.h>
 #include <stdlib.h>
@@ -147,7 +150,8 @@ int srv_getaddrinfo(const char *node, const char *service,
 	    rc = dn_expand(resp, resp+rlen, p+6, tgt_name, sizeof(tgt_name));
 	    if (rc < 2)
 		break;
-	    snprintf(tgt_port, sizeof(tgt_port), "%d", ns_get16(p+4));
+	    snprintf(tgt_port, sizeof(tgt_port), "%u", 
+		    (unsigned int)p[4] << 8 | (unsigned int)p[5]);
 #endif
 
 	    /* resolve and add to end of list */
