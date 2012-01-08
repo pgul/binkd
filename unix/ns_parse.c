@@ -40,8 +40,19 @@ static void	setsection(ns_msg *msg, ns_sect sect);
 
 #define RETERR(err) do { errno = (err); return (-1); } while (0)
 
+/* determine correct component of ns_msg */
+#if defined HAVE_NS_MSG__PTR
+#  define _MSG_PTR _ptr
+#else
+#  ifndef HAVE_NS_MSG__MSG_PTR
+#    warning "ns_msg._msg_ptr element not defined"
+#  endif
+#  define _MSG_PTR _msg_ptr
+#endif
+
 /* Public. */
 
+#if 0
 /* These need to be in the same order as the nres.h:ns_flag enum. */
 const struct _ns_flagdata _ns_flagdata[16] = {
 	{ 0x8000, 15 },		/* qr. */
@@ -61,6 +72,7 @@ const struct _ns_flagdata _ns_flagdata[16] = {
 	{ 0x0000, 0 },		/* expansion (5/6). */
 	{ 0x0000, 0 },		/* expansion (6/6). */
 };
+#endif
 
 int
 ns_skiprr(const u_char *ptr, const u_char *eom, ns_sect section, int count) {
@@ -141,38 +153,38 @@ ns_parserr(ns_msg *handle, ns_sect section, int rrnum, ns_rr *rr) {
 	if (rrnum < handle->_rrnum)
 		setsection(handle, section);
 	if (rrnum > handle->_rrnum) {
-		b = ns_skiprr(handle->_msg_ptr, handle->_eom, section,
+		b = ns_skiprr(handle->_MSG_PTR, handle->_eom, section,
 			      rrnum - handle->_rrnum);
 
 		if (b < 0)
 			return (-1);
-		handle->_msg_ptr += b;
+		handle->_MSG_PTR += b;
 		handle->_rrnum = rrnum;
 	}
 
 	/* Do the parse. */
 	b = dn_expand(handle->_msg, handle->_eom,
-		      handle->_msg_ptr, rr->name, NS_MAXDNAME);
+		      handle->_MSG_PTR, rr->name, NS_MAXDNAME);
 	if (b < 0)
 		return (-1);
-	handle->_msg_ptr += b;
-	if (handle->_msg_ptr + NS_INT16SZ + NS_INT16SZ > handle->_eom)
+	handle->_MSG_PTR += b;
+	if (handle->_MSG_PTR + NS_INT16SZ + NS_INT16SZ > handle->_eom)
 		RETERR(EMSGSIZE);
-	NS_GET16(rr->type, handle->_msg_ptr);
-	NS_GET16(rr->rr_class, handle->_msg_ptr);
+	NS_GET16(rr->type, handle->_MSG_PTR);
+	NS_GET16(rr->rr_class, handle->_MSG_PTR);
 	if (section == ns_s_qd) {
 		rr->ttl = 0;
 		rr->rdlength = 0;
 		rr->rdata = NULL;
 	} else {
-		if (handle->_msg_ptr + NS_INT32SZ + NS_INT16SZ > handle->_eom)
+		if (handle->_MSG_PTR + NS_INT32SZ + NS_INT16SZ > handle->_eom)
 			RETERR(EMSGSIZE);
-		NS_GET32(rr->ttl, handle->_msg_ptr);
-		NS_GET16(rr->rdlength, handle->_msg_ptr);
-		if (handle->_msg_ptr + rr->rdlength > handle->_eom)
+		NS_GET32(rr->ttl, handle->_MSG_PTR);
+		NS_GET16(rr->rdlength, handle->_MSG_PTR);
+		if (handle->_MSG_PTR + rr->rdlength > handle->_eom)
 			RETERR(EMSGSIZE);
-		rr->rdata = handle->_msg_ptr;
-		handle->_msg_ptr += rr->rdlength;
+		rr->rdata = handle->_MSG_PTR;
+		handle->_MSG_PTR += rr->rdlength;
 	}
 	if (++handle->_rrnum > handle->_counts[(int)section])
 		setsection(handle, (ns_sect)((int)section + 1));
@@ -188,10 +200,10 @@ setsection(ns_msg *msg, ns_sect sect) {
 	msg->_sect = sect;
 	if (sect == ns_s_max) {
 		msg->_rrnum = -1;
-		msg->_msg_ptr = NULL;
+		msg->_MSG_PTR = NULL;
 	} else {
 		msg->_rrnum = 0;
-		msg->_msg_ptr = msg->_sections[(int)sect];
+		msg->_MSG_PTR = msg->_sections[(int)sect];
 	}
 }
 #endif /* HAVE_NS_INITPARSE */

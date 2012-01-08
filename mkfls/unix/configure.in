@@ -75,7 +75,13 @@ AC_TRY_LINK([
 #  include <netinet/in.h>
 #endif
 #include <resolv.h>
-], [ns_initparse(0,0,0);], AC_DEFINE(HAVE_NS_INITPARSE) AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
+], [ns_initparse(0,0,0);], AC_DEFINE(HAVE_NS_INITPARSE) AC_MSG_RESULT(yes), AC_MSG_RESULT(no); ac_cv_func_ns_initparse=no)
+
+case x$ac_cv_func_ns_initparse in
+ xno) 
+    AC_CHECK_MEMBERS([ns_msg._msg_ptr, ns_msg._ptr], [], [], [#include <resolv.h>])
+    ;;
+esac
 
 AC_CHECK_SIZEOF(short, 0)
 AC_CHECK_SIZEOF(int, 0)
