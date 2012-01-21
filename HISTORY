@@ -1,3 +1,7 @@
+2012/01/21 20:49:25 1.0a-588 green
+binkd.c,2.110,2.111
+Make environment usage ISO C compliant (no 3-args main())
+
 2012/01/08 21:18:07 1.0a-587 green
 protocol.c,2.212,2.213 server.c,2.52,2.53
 Improved hostname lookup and logging
