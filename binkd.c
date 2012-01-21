@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.111  2012/01/21 18:49:22  green
+ * Make environment usage ISO C compliant (no 3-args main())
+ *
  * Revision 2.110  2012/01/08 16:23:52  green
  * Fixed compilation in Cygwin/MinGW
  *
@@ -576,6 +579,11 @@ void usage (void)
   exit (1);
 }
 
+/* Environment variables in POSIX compliant */
+#ifndef environ
+extern char **environ;
+#endif
+
 /* Command line flags */
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
 int inetd_flag = 0;		       /* Run from inetd (-i) */
@@ -800,21 +808,21 @@ char *parseargs (int argc, char *argv[])
 }
 
 #if defined(WIN32) && !defined(BINKD9X)
-int binkd_main (int argc, char *argv[], char *envp[]);
-int main (int argc, char *argv[], char *envp[])
+int binkd_main (int argc, char *argv[]);
+int main (int argc, char *argv[])
 { int res=-1;
 
   if( argc!=1 || (tell_start_ntservice()) )  /* See nt/service.c */
-    res=binkd_main(argc,argv,envp); /* Running not as NT service */
+    res=binkd_main(argc,argv); /* Running not as NT service */
 
   return res;
 }
 #endif
 
 #if defined(WIN32)
-int binkd_main (int argc, char *argv[], char *envp[])
+int binkd_main (int argc, char *argv[])
 #else
-int main (int argc, char *argv[], char *envp[])
+int main (int argc, char *argv[])
 #endif
 {
   char tmp[128];
@@ -830,7 +838,7 @@ int main (int argc, char *argv[], char *envp[])
   configpath = parseargs(argc, argv);
 #endif
 
-  saved_envp = mkargv (-1, envp);
+  saved_envp = mkargv (-1, environ);
 
 #ifdef WIN32
   if (service_flag==w32_installservice && !configpath)
@@ -854,7 +862,7 @@ int main (int argc, char *argv[], char *envp[])
 
 #if defined(WIN32) && !defined(BINKD9X)
   if (service_flag!=w32_noservice)
-    if (service(argc, argv, envp) && service_flag!=w32_run_as_service) {
+    if (service(argc, argv, environ) && service_flag!=w32_run_as_service) {
       Log(0, "Windows NT service error");
     }
   if (tray_flag)
@@ -940,7 +948,7 @@ int main (int argc, char *argv[], char *envp[])
 
   bsy_init ();
   rnd ();
-  initsetproctitle (argc, argv, envp);
+  initsetproctitle (argc, argv, environ);
 #ifdef WIN32
   SetFileApisToOEM();
 #endif
