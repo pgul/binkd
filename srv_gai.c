@@ -25,6 +25,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2012/01/22 12:27:07  green
+ * No SRV lookup for IP addresses
+ *
  * Revision 2.3  2012/01/08 17:34:58  green
  * Avoid using MAXHOSTNAMELEN
  *
@@ -55,6 +58,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "iphdr.h"
 
 int srv_getaddrinfo(const char *node, const char *service,
 		    const struct addrinfo *hints,
@@ -76,6 +80,7 @@ int srv_getaddrinfo(const char *node, const char *service,
 #endif
     int rc;
     struct addrinfo *ai, **ai_last = res;
+    struct in_addr dummy_addr;
 
     /* we need sensible information for all parameters */
     if (!node || (node && !*node) || !service || (service && !*service) ||
@@ -85,6 +90,16 @@ int srv_getaddrinfo(const char *node, const char *service,
     /* only domain names are supported */
     if (hints->ai_flags & AI_NUMERICHOST)
 	return getaddrinfo(node, service, hints, res);
+
+    /* detect IP addresses */
+    if ((hints->ai_family == AF_INET || hints->ai_family == AF_UNSPEC) && 
+	    inet_aton(node, &dummy_addr) != 0)
+	return getaddrinfo(node, service, hints, res);
+#ifdef AF_INET6
+    if ((hints->ai_family == AF_INET6 || hints->ai_family == AF_UNSPEC) && 
+	    index(node, ':'))
+	return getaddrinfo(node, service, hints, res);
+#endif
 
     /* only named services are supported */
     if ((hints->ai_flags & AI_NUMERICSERV) || *service == '0' ||
