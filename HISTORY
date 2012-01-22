@@ -1,3 +1,7 @@
+2012/01/22 03:27:51 1.0a-591 green
+srv_gai.h,2.1,2.2
+Implement FSP1035 support for OS/2/Watcom
+
 2012/01/22 03:27:23 1.0a-590 green
 ns_parse.c,NONE,1.1 ns_parse.h,NONE,1.1
 Implement FSP1035 support for OS/2/Watcom
