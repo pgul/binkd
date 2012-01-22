@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19  2012/01/22 00:19:47  green
+ * Post lookup without host requires AI_PASSIVE
+ *
  * Revision 2.18  2012/01/08 14:09:04  green
  * Corrected initialization of getaddrinfo hints
  *
@@ -159,6 +162,7 @@ char * find_port (char *s)
   hints.ai_family = PF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_protocol = IPPROTO_TCP;
+  hints.ai_flags = AI_PASSIVE;
 
   aiErr = getaddrinfo(NULL, (s && *s) ? s : PRTCLNAME, &hints, &aiHead);
   if (aiErr == 0)
