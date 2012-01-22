@@ -1,3 +1,7 @@
+2012/01/22 15:54:15 1.0a-593 green
+!README.FIX,2.55,2.56 binkd.cfg,2.57,2.58 binkd.conf,1.2,1.3 btypes.h,2.8,2.9 client.c,2.78,2.79 ftnnode.c,2.41,2.42 ftnnode.h,2.21,2.22 readcfg.c,2.101,2.102
+Allow limiting IPv4/6 usage per node using new flags -4/-6
+
 2012/01/22 14:27:09 1.0a-592 green
 srv_gai.c,2.3,2.4
 No SRV lookup for IP addresses
