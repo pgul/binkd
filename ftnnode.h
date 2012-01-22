@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22  2012/01/22 13:54:12  green
+ * Allow limiting IPv4/6 usage per node using new flags -4/-6
+ *
  * Revision 2.21  2005/10/28 07:13:28  stas
  * Change poll flavour to 'direct' and allow specify poll flavour char at compile time using macro POLL_NODE_FLAVOUR
  *
@@ -134,6 +137,7 @@ FTN_NODE *get_node_info (FTN_ADDR *fa, BINKD_CONFIG *config);
 FTN_NODE *add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pwd,
               char obox_flvr, char *obox, char *ibox, int NR_flag, int ND_flag,
 	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, 
+	      int IP_afamily,
 #ifdef BW_LIM
               long bw_send, long bw_recv,
 #endif
@@ -167,6 +171,8 @@ FTN_NODE *add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *o
 #define NP_ON       1
 #define NP_OFF      0
 #define NP_USE_OLD -1		       /* Use old value */
+
+#define AF_USE_OLD -1		       /* Use old value */
 
 #ifdef BW_LIM
 #define BW_DEF     -100                /* default value: 100% */

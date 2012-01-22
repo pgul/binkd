@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.79  2012/01/22 13:54:12  green
+ * Allow limiting IPv4/6 usage per node using new flags -4/-6
+ *
  * Revision 2.78  2012/01/08 17:34:57  green
  * Avoid using MAXHOSTNAMELEN
  *
@@ -587,7 +590,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 
   /* setup hints for getaddrinfo */
   memset((void *)&hints, 0, sizeof(hints));
-  hints.ai_family = PF_UNSPEC;
+  hints.ai_family = node->IP_afamily;
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_protocol = IPPROTO_TCP;
 

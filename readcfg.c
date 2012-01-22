@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.102  2012/01/22 13:54:12  green
+ * Allow limiting IPv4/6 usage per node using new flags -4/-6
+ *
  * Revision 2.101  2012/01/08 17:34:57  green
  * Avoid using MAXHOSTNAMELEN
  *
@@ -1046,7 +1049,8 @@ static int read_passwords(char *filename)
         split_passwords(password, &pkt_pwd, &out_pwd);
         exp_ftnaddress (&fa, work_config.pAddr, work_config.nAddr, work_config.pDomains.first);
         pn = add_node (&fa, NULL, password, pkt_pwd, out_pwd, '-', NULL, NULL,
-                  NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, HC_USE_OLD, NP_USE_OLD, 
+                  NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, 
+		  HC_USE_OLD, NP_USE_OLD, AF_USE_OLD,
 #ifdef BW_LIM
                   BW_DEF, BW_DEF,
 #endif
@@ -1483,7 +1487,8 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
   char *w[ARGNUM], *tmp, *pkt_pwd, *out_pwd;
   int   i, j;
   int   NR_flag = NR_USE_OLD, ND_flag = ND_USE_OLD, HC_flag = HC_USE_OLD,
-        MD_flag = MD_USE_OLD, NP_flag = NP_USE_OLD, restrictIP = RIP_USE_OLD;
+        MD_flag = MD_USE_OLD, NP_flag = NP_USE_OLD, restrictIP = RIP_USE_OLD,
+	IP_afamily = AF_USE_OLD;
 #ifdef BW_LIM
   long bw_send = BW_DEF, bw_recv = BW_DEF;
 #endif
@@ -1543,6 +1548,20 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
         }
       }
 #endif
+      else if (STRICMP (tmp, "-4") == 0)
+	if (IP_afamily <= AF_UNSPEC)
+	  IP_afamily = AF_INET;
+	else
+	  ConfigError("`-4' may only be used once and mutually exclusive with `-6'");
+      else if (STRICMP (tmp, "-6") == 0)
+#ifdef AF_INET6
+	if (IP_afamily <= AF_UNSPEC)
+	  IP_afamily = AF_INET6;
+	else
+	  ConfigError("`-6' may only be used once and mutually exclusive with `-4'");
+#else
+	ConfigError("IPv6 not supported in your version of BinkD");
+#endif
       else
         return ConfigError("%s: unknown option for `node' keyword", tmp);
     }
@@ -1572,6 +1591,7 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
   split_passwords(w[2], &pkt_pwd, &out_pwd);
   pn = add_node (&fa, w[1], w[2], pkt_pwd, out_pwd, (char)(w[3] ? w[3][0] : '-'), w[4], w[5],
             NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, 
+	    IP_afamily,
 #ifdef BW_LIM
             bw_send, bw_recv,
 #endif
