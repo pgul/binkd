@@ -1,3 +1,7 @@
+2012/01/22 02:19:49 1.0a-589 green
+iptools.c,2.18,2.19
+Post lookup without host requires AI_PASSIVE
+
 2012/01/21 20:49:25 1.0a-588 green
 binkd.c,2.110,2.111
 Make environment usage ISO C compliant (no 3-args main())
