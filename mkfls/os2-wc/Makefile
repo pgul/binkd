@@ -20,7 +20,7 @@ CFLAGS    = -DOS2 -DHAVE_THREADS -DHAVE_IO_H -DHAVE_SYS_TIME_H      &
             -DHAVE_SYS_IOCTL_H -DHAVE_SNPRINTF -Dsnprintf=_bprintf  &
             -DHAVE_VSNPRINTF -Dvsnprintf=_vbprintf -DHAVE_DOS_H     &
             -DHAVE_STDARG_H -DIBMTCPIP -DVOID_SLEEP                 &
-            -DHTTPS -DNTLM -DAMIGADOS_4D_OUTBOUND                   &
+            -DHTTPS -DNTLM -DAMIGADOS_4D_OUTBOUND -DHAVE_RESOLV_H   &
 	    -DHAVE_NETINET_IN_H -DHAVE_NETDB_H /w4 /bm /zq
 
 !ifeq DEBUG 1
@@ -71,7 +71,8 @@ OBJS      = binkd.obj     readcfg.obj    tools.obj    ftnaddr.obj   &
             readflo.obj   prothlp.obj    iptools.obj  run.obj       &
             binlog.obj    exitproc.obj   getw.obj     xalloc.obj    &
             setpttl.obj   dirent.obj     md5b.obj     crypt.obj     &
-            getopt.obj    https.obj      rfc2553.obj                &
+            getopt.obj    https.obj      rfc2553.obj  srv_gai.obj   &
+            ns_parse.obj                                            &
             $(NTLM_OBJS) $(ZOBJS)
 
 .c.obj: .autodepend
@@ -93,4 +94,4 @@ binkd2.exe: before $(OBJS)
 
 clean:  .SYMBOLIC
 	-del /n *.RES *.obj os2\*.obj *.o *.map *~ *.bak *.b *.ini &
-             *.err core >nul 2> nul
+	*.err core >nul 2> nul

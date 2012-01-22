@@ -25,6 +25,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2012/01/22 01:27:19  green
+ * Implement FSP1035 support for OS/2/Watcom
+ *
  * Revision 2.1  2012/01/03 17:52:32  green
  * Implement FSP-1035 (SRV record usage)
  * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
@@ -39,6 +42,10 @@
 #if defined(HAVE_RESOLV_H) || defined(WITH_FSP1035)
 #include "iphdr.h"
 #include "rfc2553.h"
+#ifdef OS2
+#include "os2/ns_parse.h"
+#endif
+
 
 #define SRVGAI_DNSRESPLEN 1024
 
