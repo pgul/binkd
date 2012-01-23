@@ -25,6 +25,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 1.2  2012/01/23 21:01:59  green
+ * Add FSP1035 support for EMX (using own import library)
+ *
  * Revision 1.1  2012/01/22 01:27:20  green
  * Implement FSP1035 support for OS/2/Watcom
  *
@@ -91,7 +94,12 @@ typedef struct __ns_rr {
 #define ns_rr_rdlen(rr)	((rr).rdlength + 0)
 #define ns_rr_rdata(rr)	((rr).rdata + 0)
 
+/* constants usually found in newer nameser.h */
+#ifdef T_SRV
 #define ns_t_srv T_SRV
+#else
+#define ns_t_srv 33
+#endif
 #define ns_c_in C_IN
 #define NS_MAXDNAME MAXDNAME
 #define NS_INT32SZ	4	/*%< #/bytes of data in a u_int32_t */

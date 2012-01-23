@@ -18,10 +18,12 @@
 /* Import. */
 
 #include <sys/types.h>
-#include <types.h>
 #include <netinet/in.h>
 #include <errno.h>
+#ifndef __EMX__
+#include <types.h>
 #include <nerrno.h>
+#endif
 #include <string.h>
 #include "ns_parse.h"
 

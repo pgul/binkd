@@ -7,12 +7,13 @@
 #
 
 CC=gcc
-DEFINES=-DHAVE_FORK -DHAVE_SNPRINTF -DHAVE_VSNPRINTF -DHAVE_GETOPT -DHAVE_UNISTD -DOS2=2 -DHAVE_IO_H -DHAVE_ARPA_INET_H -DHAVE_SYS_TIME_H -DHAVE_SYS_PARAM_H -DHAVE_SYS_IOCTL_H -DHAVE_DOS_H -DHAVE_STDARG_H -DEMX -DEMXSIGNALS -DHAVE_WAITPID -DHAVE_GETTIMEOFDAY -DHTTPS -DNTLM -DAMIGADOS_4D_OUTBOUND -DHAVE_NETINET_IN_H -DHAVE_NETDB_H
+IMPLIB=emximp
+DEFINES=-DHAVE_FORK -DHAVE_SNPRINTF -DHAVE_VSNPRINTF -DHAVE_GETOPT -DHAVE_UNISTD -DOS2=2 -DHAVE_IO_H -DHAVE_ARPA_INET_H -DHAVE_SYS_TIME_H -DHAVE_SYS_PARAM_H -DHAVE_SYS_IOCTL_H -DHAVE_DOS_H -DHAVE_STDARG_H -DEMX -DEMXSIGNALS -DHAVE_WAITPID -DHAVE_GETTIMEOFDAY -DHTTPS -DNTLM -DAMIGADOS_4D_OUTBOUND -DHAVE_NETINET_IN_H -DHAVE_NETDB_H -DHAVE_RESOLV_H -Du_int16_t=u_short -Du_int32_t=u_int
 CFLAGS=$(DEFINES) -Wall -funsigned-char -Wno-char-subscripts
-LFLAGS=
-LIBS=-lsocket
+LFLAGS=-Los2
+LIBS=-lsocket -lresolv
 NTLM_SRC=ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c
-SRCS=binkd.c readcfg.c tools.c ftnaddr.c ftnq.c client.c server.c protocol.c bsy.c inbound.c breaksig.c branch.c os2/gettid.c os2/sem.c  ftndom.c ftnnode.c os2/getfree.c srif.c pmatch.c readflo.c prothlp.c iptools.c rfc2553.c run.c binlog.c exitproc.c getw.c xalloc.c setpttl.c https.c md5b.c crypt.c ${NTLM_SRC}
+SRCS=binkd.c readcfg.c tools.c ftnaddr.c ftnq.c client.c server.c protocol.c bsy.c inbound.c breaksig.c branch.c os2/gettid.c os2/sem.c  ftndom.c ftnnode.c os2/getfree.c srif.c pmatch.c readflo.c prothlp.c iptools.c rfc2553.c run.c binlog.c exitproc.c getw.c xalloc.c setpttl.c https.c md5b.c crypt.c srv_gai.c os2/ns_parse.c ${NTLM_SRC}
 TARGET=binkd2e.exe
 
 ifdef DEBUG
@@ -92,6 +93,7 @@ SRCS+= zlibdl.c
 CFLAGS+= -DZLIBDL=1
 endif
 
+.SUFFIXES: .imp .a
 OBJS=${SRCS:.c=.o}
 
 all: $(TARGET)
@@ -100,7 +102,11 @@ all: $(TARGET)
 	@echo Compiling $*.c...
 	@$(CC) -c $(CFLAGS) -o $*.o $*.c
 
-$(TARGET): $(OBJS)
+.imp.a.:
+	@echo Creating import library from $*.imp
+	@$(IMPLIB) -o $*.a $*.imp
+
+$(TARGET): $(OBJS) os2/resolv.a
 	@echo Linking $@...
 	@$(CC) -o $@ $(LFLAGS) $(OBJS) $(LIBS)
 
