@@ -1,3 +1,7 @@
+2012/01/23 23:02:03 1.0a-596 green
+resolv.imp,NONE,1.1 ns_parse.c,1.1,1.2 ns_parse.h,1.1,1.2
+Add FSP1035 support for EMX (using own import library)
+
 2012/01/23 20:11:04 1.0a-595 gul
 w32tools.h,2.11,2.12
 Fixed declaration of binkd_main() (no 3rd param)
