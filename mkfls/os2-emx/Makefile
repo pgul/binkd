@@ -102,7 +102,7 @@ all: $(TARGET)
 	@echo Compiling $*.c...
 	@$(CC) -c $(CFLAGS) -o $*.o $*.c
 
-.imp.a.:
+.imp.a:
 	@echo Creating import library from $*.imp
 	@$(IMPLIB) -o $*.a $*.imp
 
