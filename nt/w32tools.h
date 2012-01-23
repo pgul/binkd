@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.12  2012/01/23 18:10:57  gul
+ * Fixed declaration of binkd_main() (no 3rd param)
+ *
  * Revision 2.11  2004/01/04 16:55:00  stas
  * Move declarations of the 'binkd_main' into one place (nt/w32tools.h)
  *
@@ -52,7 +55,7 @@
 #define AlertWin(text) MessageBox(NULL, text, MYNAME, MB_OK|MB_ICONSTOP|0x00200000L|MB_SYSTEMMODAL|MB_SETFOREGROUND)
 
 /* Declaration of main binkd function (see binkd.c) */
-int binkd_main(int argc, char **argv, char **envp);
+int binkd_main(int argc, char **argv);
 
 #define IsNTService (IsNT()&&isService())
 #define Is9xService (Is9x()&&isService())
