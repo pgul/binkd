@@ -113,7 +113,7 @@ $(TARGET): $(OBJS) os2/resolv.a
 install: all clean
 
 clean:
-	-del /n *.RES *.obj *.o os2\*.o ntlm\*.o *.map *~ *.bak *.b *.ini *.err core >nul 2> nul
+	-del /n *.RES *.obj *.o os2\*.o ntlm\*.o os2\*.a *.map *~ *.bak *.b *.ini *.err core >nul 2> nul
 
 depend	Makefile.dep:
 	@echo Build Makefile.dep...
