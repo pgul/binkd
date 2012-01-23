@@ -18,10 +18,12 @@
 /* Import. */
 
 #include <sys/types.h>
+#ifndef __EMX__
+#include <types.h>
+#endif
 #include <netinet/in.h>
 #include <errno.h>
 #ifndef __EMX__
-#include <types.h>
 #include <nerrno.h>
 #endif
 #include <string.h>
