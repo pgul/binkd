@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.24  2012/01/25 21:02:43  green
+ * Some changes to enable compilation on OS/2 with GCC/kLIBC
+ *
  * Revision 2.23  2012/01/08 17:34:57  green
  * Avoid using MAXHOSTNAMELEN
  *
@@ -194,7 +197,6 @@ const char *tcperr (void);
   #ifndef MAXSOCKETS
     #define MAXSOCKETS 2048
   #endif
-  #undef AF_INET6
 #elif defined(IBMTCPIPDOS)
 const char *tcperr (void);
 
@@ -243,6 +245,13 @@ typedef int SOCKET;
 
 #ifndef INADDR_NONE
   #define INADDR_NONE -1
+#endif
+
+/* OS/2 doesn't support IPv6, we are trying to detect availability of
+ * some structures based on this define
+ */
+#ifdef OS2
+  #undef AF_INET6
 #endif
 
 #endif
