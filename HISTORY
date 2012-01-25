@@ -1,3 +1,7 @@
+2012/01/25 23:03:16 1.0a-599 green
+confopt.h,2.9,2.10 iphdr.h,2.23,2.24
+Some changes to enable compilation on OS/2 with GCC/kLIBC
+
 2012/01/24 19:06:08 1.0a-598 gul
 service.c,2.56,2.57
 Remove third arg in binkd_main() call
