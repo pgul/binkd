@@ -1,3 +1,7 @@
+2012/01/26 11:47:32 1.0a-600 gul
+perlhooks.c,2.76,2.77
+Avoid usage SvPV_nolen missing in perl 5.00553
+
 2012/01/25 23:03:16 1.0a-599 green
 confopt.h,2.9,2.10 iphdr.h,2.23,2.24
 Some changes to enable compilation on OS/2 with GCC/kLIBC
