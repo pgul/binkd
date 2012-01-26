@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.215  2012/01/26 22:58:35  green
+ * Workaround for OS/2 kLIBC 0.6.4, getpeername() always returns -1
+ *
  * Revision 2.214  2012/01/26 18:50:06  green
  * Ensure the host information is not invalid
  *
@@ -3727,11 +3730,11 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
   if (!init_protocol (&state, socket, to, config))
     return;
 
+  memset(&peer_name, 0, sizeof (peer_name));
   if (getpeername (socket, (struct sockaddr *)&peer_name, &peer_name_len) == -1)
   {
     if (!binkd_exit)
       Log (1, "getpeername: %s", TCPERR ());
-    memset(&peer_name, 0, sizeof (peer_name));
   }
 
   host[0] = '\0';
