@@ -3,7 +3,7 @@
 
 # Usage: make [DEBUG=1] [BINKD9X=1] [PERL=1] [PERLDL=1]
 #             [ZLIB=1] [BZLIB2=1] [ZLIBDL=1] [DEBUGCHILD=1]
-#	      [IPV6=1] [FSP1035=1]
+#             [IPV6=1] [FSP1035=1] [BW_LIM=1]
 #
 #
 
@@ -96,6 +96,12 @@ OUTDIR:=$(OUTDIR)-debugchild
 BINKDTYPE:=$(BINKDTYPE), debugchild
 endif
 # debugchild, nofork ----------------------------------------------------------
+
+# bandwidth limiting ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ifdef BW_LIM
+CDEFS+= -DBW_LIM=1
+endif
+# bandwidth limiting ----------------------------------------------------------
 
 # perl support ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # PERLDL implies PERL
