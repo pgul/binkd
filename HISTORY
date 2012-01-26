@@ -1,3 +1,7 @@
+2012/01/26 20:50:10 1.0a-601 green
+protocol.c,2.213,2.214
+Ensure the host information is not invalid
+
 2012/01/26 11:47:32 1.0a-600 gul
 perlhooks.c,2.76,2.77
 Avoid usage SvPV_nolen missing in perl 5.00553
