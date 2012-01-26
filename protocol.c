@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.214  2012/01/26 18:50:06  green
+ * Ensure the host information is not invalid
+ *
  * Revision 2.213  2012/01/08 19:18:03  green
  * Improved hostname lookup and logging
  *
@@ -3731,6 +3734,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
     memset(&peer_name, 0, sizeof (peer_name));
   }
 
+  host[0] = '\0';
   status = getnameinfo((struct sockaddr *)&peer_name, peer_name_len,
 		ipaddr, sizeof(ipaddr), service, sizeof(service),
 		NI_NUMERICSERV | NI_NUMERICHOST);
@@ -3741,13 +3745,8 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
       status = getnameinfo((struct sockaddr *)&peer_name, peer_name_len, 
 		host, sizeof(host), NULL, 0, NI_NAMEREQD);
       if (status != 0 && status != EAI_NONAME)
-      {
         Log(2, "Error in getnameinfo(): %s (%d)", gai_strerror(status), status);
-	host[0] = '\0';
-      }
     }
-    else
-      host[0] = '\0';
   }
   else
   {
