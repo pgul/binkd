@@ -1,6 +1,6 @@
 # $Id$
 #
-# Makefile for OS/2 GCC using kLIBC (GCC > 3.x)
+# Makefile for OS/2 GCC using kLIBC (GCC > 3.3.x)
 #
 # Usage: make [DEBUG=1] [NOFORK=1] [PERL=1] [PERLDL=1]
 #             [ZLIB=1] [BZLIB2=1] [ZLIBDL=1]
