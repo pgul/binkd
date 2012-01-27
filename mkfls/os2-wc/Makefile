@@ -1,6 +1,6 @@
 # $Id$
 #
-# Usage: wmake [DEBUG=1] [NOFORK=1] [ZLIB=1] [BZLIB2=1] [ZLIBDL=1]
+# Usage: wmake [DEBUG=1] [NOFORK=1] [ZLIB=1] [BZLIB2=1] [ZLIBDL=1] [BW_LIM=1]
 #
 
 .SILENT
@@ -58,6 +58,10 @@ ZOBJS     = compress.obj
 ZOBJS     += zlibdl.obj
 CFLAGS    += -DZLIBDL
 !endif
+!endif
+
+!ifeq BW_LIM 1
+CFLAGS    += -DBW_LIM
 !endif
 
 LINK      = wcl386

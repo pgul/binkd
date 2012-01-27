@@ -1,7 +1,7 @@
 # $Id$
 #
 # Usage: make [DEBUG=1] [NOFORK=1] [PERL=1] [PERLDL=1]
-#             [ZLIB=1] [BZLIB2=1] [ZLIBDL=1]
+#             [ZLIB=1] [BZLIB2=1] [ZLIBDL=1] [BW_LIM=1]
 #
 # Tested with perl 5.0053
 #
@@ -91,6 +91,10 @@ endif
 ifdef ZLIBDL
 SRCS+= zlibdl.c
 CFLAGS+= -DZLIBDL=1
+endif
+
+ifdef BW_LIM
+CFLAGS+= -DBW_LIM=1
 endif
 
 .SUFFIXES: .imp .a
