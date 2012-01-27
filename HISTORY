@@ -1,3 +1,7 @@
+2012/01/27 20:25:48 1.0a-603 green
+client.c,2.79,2.80 protocol.c,2.215,2.216
+Improved getpeername() error handling
+
 2012/01/27 00:58:37 1.0a-602 green
 protocol.c,2.214,2.215
 Workaround for OS/2 kLIBC 0.6.4, getpeername() always returns -1
