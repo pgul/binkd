@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.216  2012/01/27 18:25:45  green
+ * Improved getpeername() error handling
+ *
  * Revision 2.215  2012/01/26 22:58:35  green
  * Workaround for OS/2 kLIBC 0.6.4, getpeername() always returns -1
  *
@@ -3730,34 +3733,45 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
   if (!init_protocol (&state, socket, to, config))
     return;
 
+  /* initialize variables */
   memset(&peer_name, 0, sizeof (peer_name));
+  host[0] = '\0';
+  service[0] = '\0';
+
   if (getpeername (socket, (struct sockaddr *)&peer_name, &peer_name_len) == -1)
   {
     if (!binkd_exit)
       Log (1, "getpeername: %s", TCPERR ());
   }
 
-  host[0] = '\0';
-  status = getnameinfo((struct sockaddr *)&peer_name, peer_name_len,
-		ipaddr, sizeof(ipaddr), service, sizeof(service),
-		NI_NUMERICSERV | NI_NUMERICHOST);
-  if (status == 0)
-  {
-    if (config->backresolv)	/* host name resolution */
-    {
-      status = getnameinfo((struct sockaddr *)&peer_name, peer_name_len, 
-		host, sizeof(host), NULL, 0, NI_NAMEREQD);
-      if (status != 0 && status != EAI_NONAME)
-        Log(2, "Error in getnameinfo(): %s (%d)", gai_strerror(status), status);
-    }
-  }
+  /* verify that output of getpeername() is safe (enough) and resolve
+   * IP and hostname if so requested and possible.
+   */
+  if ( ((struct sockaddr *)&peer_name)->sa_family == 0 || 
+       peer_name_len > sizeof(peer_name))
+    snprintf(ipaddr, BINKD_FQDNLEN, "invalid");
   else
   {
-    Log(2, "Error in numeric getnameinfo(): %s (%d)", 
+    status = getnameinfo((struct sockaddr *)&peer_name, peer_name_len,
+		ipaddr, sizeof(ipaddr), service, sizeof(service),
+		NI_NUMERICSERV | NI_NUMERICHOST);
+    if (status == 0)
+    {
+      if (config->backresolv)	/* host name resolution */
+      {
+        status = getnameinfo((struct sockaddr *)&peer_name, peer_name_len, 
+		host, sizeof(host), NULL, 0, NI_NAMEREQD);
+        if (status != 0 && status != EAI_NONAME)
+          Log(2, "Error in getnameinfo(): %s (%d)", 
 	    gai_strerror(status), status);
-    strncpy(ipaddr, "unknown", BINKD_FQDNLEN);
-    ipaddr[BINKD_FQDNLEN] = '\0';
-    service[0] = '\0';
+      }
+    }
+    else
+    {
+      Log(1, "Error in numeric getnameinfo(): %s (%d)", 
+	    gai_strerror(status), status);
+      snprintf(ipaddr, BINKD_FQDNLEN, "unknown");
+    }
   }
 
   if (to && current_addr)

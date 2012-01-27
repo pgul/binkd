@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.80  2012/01/27 18:25:44  green
+ * Improved getpeername() error handling
+ *
  * Revision 2.79  2012/01/22 13:54:12  green
  * Allow limiting IPv4/6 usage per node using new flags -4/-6
  *
@@ -725,8 +728,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 		       servbuf, sizeof(servbuf), NI_NUMERICHOST | NI_NUMERICSERV);
       if (rc != 0) {
 	Log (2, "Error in getnameinfo(): %s (%d)", gai_strerror(rc), rc);
-	strncpy(addrbuf, "invalid", BINKD_FQDNLEN);
-	addrbuf[BINKD_FQDNLEN] = '\0';
+        snprintf(addrbuf, BINKD_FQDNLEN, "invalid");
 	*servbuf = '\0';
       }
 
