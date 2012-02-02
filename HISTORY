@@ -1,3 +1,7 @@
+2012/02/02 10:42:47 1.0a-605 gul
+confopt.h,2.10,2.11
+Fixed gcc version for emx/klibc (by Max Vasilyev)
+
 2012/01/31 01:02:17 1.0a-604 green
 protocol.c,2.216,2.217
 Corrected FTS-1027 support, allow list of hash algos
