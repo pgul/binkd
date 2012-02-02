@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.11  2012/02/02 08:42:42  gul
+ * Fixed gcc version for emx/klibc (by Max Vasilyev)
+ *
  * Revision 2.10  2012/01/25 21:02:43  green
  * Some changes to enable compilation on OS/2 with GCC/kLIBC
  *
@@ -59,7 +62,7 @@
 #elif defined(IBMC)
 #  define _DBNKD_COMPILER "ibmc"
 #elif defined(__EMX__)
-#  if __GNUC__ > 2
+#  if (__GNUC__ > 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ > 2))
 #    define _DBNKD_COMPILER "gcc (klibc)"
 #  else
 #    define _DBNKD_COMPILER "gcc (emx)"
