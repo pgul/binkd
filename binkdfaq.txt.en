@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of December 28 2010
+        Version of Febriary 10 2012
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -1149,6 +1149,8 @@ already been fixed).  If it did not help please write to developers:
     In your message please describe in detail the situation when the error
 happens. Please do not forget to mention your BinkD version and to cite a
 piece of detailed log (loglevel more than 5).
+    The good general manual on composing bugreport was written by Sajmon
+Tethem: http://www.chiark.greenend.org.uk/~sgtatham/bugs.html
 
 
 ----------------------------------------------------------------------------
