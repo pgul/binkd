@@ -1,3 +1,7 @@
+2012/02/18 18:43:41 1.0a-607 green
+srv_gai.c,2.5,2.6
+Corrected linking issues on Win32
+
 2012/02/18 18:40:02 1.0a-606 green
 perlhooks.c,2.77,2.78
 perl_parse() may alter environment, though not used
