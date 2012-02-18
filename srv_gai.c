@@ -25,6 +25,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2012/02/18 16:43:39  green
+ * Corrected linking issues on Win32
+ *
  * Revision 2.5  2012/01/22 20:40:56  green
  * Replaces index (deprecated) with strchr
  *
@@ -80,10 +83,10 @@ int srv_getaddrinfo(const char *node, const char *service,
     ns_rr rrb;
     int rlen, i, rrlen;
     const unsigned char *p;
+    struct in_addr dummy_addr;
 #endif
     int rc;
     struct addrinfo *ai, **ai_last = res;
-    struct in_addr dummy_addr;
 
     /* we need sensible information for all parameters */
     if (!node || (node && !*node) || !service || (service && !*service) ||
@@ -96,7 +99,12 @@ int srv_getaddrinfo(const char *node, const char *service,
 
     /* detect IP addresses */
     if ((hints->ai_family == AF_INET || hints->ai_family == AF_UNSPEC) && 
-	    inet_aton(node, &dummy_addr) != 0)
+#ifdef WIN32
+	    inet_addr(node) != INADDR_NONE
+#else
+	    inet_aton(node, &dummy_addr) != 0
+#endif
+	    )
 	return getaddrinfo(node, service, hints, res);
 #ifdef AF_INET6
     if ((hints->ai_family == AF_INET6 || hints->ai_family == AF_UNSPEC) && 
