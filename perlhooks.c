@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.78  2012/02/18 16:39:58  green
+ * perl_parse() may alter environment, though not used
+ *
  * Revision 2.77  2012/01/26 09:47:30  gul
  * Avoid usage SvPV_nolen missing in perl 5.00553
  *
@@ -310,8 +313,8 @@
 #endif
 
 /* ---------------- binkd stuff --------------- */
-#include "sys.h"
 #include "readcfg.h"
+#include "sys.h"
 #include "tools.h"
 #include "ftnaddr.h"
 #include "ftnq.h"
@@ -1573,7 +1576,7 @@ int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
   perl = perl_alloc();
   PERL_SET_CONTEXT(perl);
   perl_construct(perl);
-  rc = perl_parse(perl, xs_init, i, perlargv, perlenv);
+  rc = perl_parse(perl, xs_init, i, perlargv, (char **)NULL);
   Log(LL_DBG, "perl_init(): parse rc=%d", rc);
   /* can't parse */
   if (rc) {
