@@ -1,3 +1,7 @@
+2012/03/10 08:57:02 1.0a-608 gul
+protocol.c,2.217,2.218
+Improved error reporting on seek error
+
 2012/02/18 18:43:41 1.0a-607 green
 srv_gai.c,2.5,2.6
 Corrected linking issues on Win32
