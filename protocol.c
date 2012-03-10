@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.218  2012/03/10 06:56:59  gul
+ * Improved error reporting on seek error
+ *
  * Revision 2.217  2012/01/30 23:02:14  green
  * Corrected FTS-1027 support, allow list of hash algos
  *
@@ -2936,15 +2939,26 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
           ND_set_status("", &state->out.fa, state, config);
         TF_ZERO(&state->out);
       }
-      else if ((offset = (off_t)strtoumax (argv[3], NULL, 10)) > state->out.size ||
-               fseeko (state->out.f, offset, SEEK_SET) == -1)
+      else if ((offset = (off_t)strtoumax (argv[3], NULL, 10)) > state->out.size)
       {
-        Log (1, "GET: error seeking %s to %" PRIuMAX ": %s",
-             argv[0], (uintmax_t) offset, strerror (errno));
+        Log (1, "GET: remote requests seeking %s to %" PRIuMAX ", file size " PRIuMAX,
+             argv[0], (uintmax_t) offset, state->out.size);
+        msg_sendf(state, M_ERR, "Invalid M_GET violates binkp: offset " PRIuMAX " after end of file, file %s size " PRIuMAX,
+                  (uintmax_t)offset, argv[0], (uintmax_t)state->out.size);
         /* touch the file and drop session */
         fclose(state->out.f);
         state->out.f=NULL;
         touch(state->out.path, time(NULL));
+        rc = 0;
+      }
+      else if (fseeko (state->out.f, offset, SEEK_SET) == -1)
+      {
+        Log (1, "GET: error seeking %s to %" PRIuMAX ": %s",
+             argv[0], (uintmax_t) offset, strerror (errno));
+        msg_sendf(state, M_ERR, "Error seeking: %s size " PRIuMAX " to offset " PRIuMAX,
+                  argv[0], (uintmax_t)state->out.size, (uintmax_t)offset);
+        fclose(state->out.f);
+        state->out.f=NULL;
         rc = 0;
       }
       else
