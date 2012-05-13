@@ -1,3 +1,7 @@
+2012/05/13 20:26:42 1.0a-609 gul
+!README.perl,2.14,2.15 perlhooks.c,2.78,2.79 protoco2.h,2.28,2.29 protocol.c,2.218,2.219
+Possibility to specify $passwd for session in on_handshake() perl hook
+
 2012/03/10 08:57:02 1.0a-608 gul
 protocol.c,2.217,2.218
 Improved error reporting on seek error
