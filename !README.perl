@@ -198,10 +198,13 @@ Hooks Description
    - for client called upon establishing connection (before any output)
    - for server called after receiving remote addresses (before addr is sent)
    - best for hide_aka and present_aka logic :-)
+   - can be used for external authentication
    - defined vars: session level 1 (@he contains address of called node for
                    client, not actual received addresses)
    - return non-empty string to abort session with that reason
      otherwise, if @me is defined present @me as our akas
+   - you can set $passwd variable to override configured password for the node
+     (can be used for external authentication)
 
 6) after_handshake()
    - called after complete login information transferred

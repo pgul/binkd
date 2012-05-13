@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.79  2012/05/13 17:26:40  gul
+ * Possibility to specify $passwd for session in on_handshake() perl hook
+ *
  * Revision 2.78  2012/02/18 16:39:58  green
  * perl_parse() may alter environment, though not used
  *
@@ -2062,7 +2065,7 @@ char *perl_on_handshake(STATE *state) {
   FTNQ *q;
   STRLEN len;
   AV *he, *me;
-  SV *svret, **svp, *sv;
+  SV *svret, **svp, *sv, *passwd;
   BINKD_CONFIG *cfg = state->config;
   /* this pointer is used later */
   if (cfg->perl_ok && Perl_get_context()) {
@@ -2076,6 +2079,7 @@ char *perl_on_handshake(STATE *state) {
     lockperlsem();
     { dSP;
       if ( (me = perl_get_av("me", FALSE)) != NULL ) av_undef(me);
+      if ( (passwd = perl_get_sv("passwd", FALSE)) != NULL ) passwd = &sv_undef;
       he = perl_get_av("he", TRUE);
       av_clear(he);
       if (!state->to) {
@@ -2115,19 +2119,25 @@ char *perl_on_handshake(STATE *state) {
         prc = NULL;
       }
       /* make array of our aka */
-      else if (!prc && ((me = perl_get_av("me", FALSE)) != NULL)) {
-        FTN_ADDR addr;
-        int n = 0, N = av_len(me) + 1;
-        if (N > 0) state->pAddr = xalloc(N*sizeof(FTN_ADDR));
-        for (i = 0; i < N; i++) {
-          svp = av_fetch(me, i, FALSE);
-          if (svp == NULL) continue;
-          if (!parse_ftnaddress(SvPV(*svp, len), &addr, cfg->pDomains.first)) continue;
-          exp_ftnaddress(&addr, cfg->pAddr, cfg->nAddr, cfg->pDomains.first);
-          state->pAddr[n++] = addr;
+      else if (!prc) {
+        if ((me = perl_get_av("me", FALSE)) != NULL) {
+          FTN_ADDR addr;
+          int n = 0, N = av_len(me) + 1;
+          if (N > 0) state->pAddr = xalloc(N*sizeof(FTN_ADDR));
+          for (i = 0; i < N; i++) {
+            svp = av_fetch(me, i, FALSE);
+            if (svp == NULL) continue;
+            if (!parse_ftnaddress(SvPV(*svp, len), &addr, cfg->pDomains.first)) continue;
+            exp_ftnaddress(&addr, cfg->pAddr, cfg->nAddr, cfg->pDomains.first);
+            state->pAddr[n++] = addr;
+          }
+          state->nAddr = n;
+          if (n == 0) Log(LL_WARN, "Perl on_handshake(): @me contains no valid addresses");
         }
-        state->nAddr = n;
-        if (n == 0) Log(LL_WARN, "Perl on_handshake(): @me contains no valid addresses");
+        if ((passwd = perl_get_sv("passwd", FALSE)) != NULL) {
+          strncpy(state->expected_pwd, SvPV(passwd, len), sizeof(state->expected_pwd));
+          state->expected_pwd[sizeof(state->expected_pwd) - 1] = '\0';
+        }
       }
     }
     releaseperlsem();

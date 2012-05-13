@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.219  2012/05/13 17:26:40  gul
+ * Possibility to specify $passwd for session in on_handshake() perl hook
+ *
  * Revision 2.218  2012/03/10 06:56:59  gul
  * Improved error reporting on seek error
  *
@@ -847,7 +850,7 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to, BINKD_CONFI
   state->MD_flag = 0;
   state->MD_challenge = NULL;
   state->crypt_flag = no_crypt ? NO_CRYPT : WE_CRYPT;
-  state->expected_pwd = "-";
+  strcpy(state->expected_pwd, "-");
   state->skip_all_flag = state->r_skipped_flag = 0;
   state->maxflvr = 'h';
   state->listed_flag = 0;
@@ -1844,7 +1847,10 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
   /* set expected password on outgoing session
    * for drop remote AKAs with another passwords */
   if (state->to)
-    state->expected_pwd = (state->to->out_pwd ? state->to->out_pwd : "-");
+  {
+    strncpy(state->expected_pwd, (state->to->out_pwd ? state->to->out_pwd : "-"), sizeof(state->expected_pwd));
+    state->expected_pwd[sizeof(state->expected_pwd) - 1] = '\0';
+  }
 
   for (i = 1; (w = getwordx (s, i, 0)) != 0; ++i)
   {
@@ -2025,7 +2031,8 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
       {
         if (!strcmp (state->expected_pwd, "-"))
         {
-          state->expected_pwd = pwd;
+          strncpy(state->expected_pwd, pwd, sizeof(state->expected_pwd));
+          state->expected_pwd[sizeof(state->expected_pwd) - 1] = '\0';
           state->MD_flag=pn->MD_flag;
         }
         else if (strcmp(state->expected_pwd, pwd))
@@ -2035,7 +2042,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
           else
           { /* drop incoming session with M_ERR "Bad password" */
             Log (1, "inconsistent pwd settings for this node");
-            state->expected_pwd = "";
+            state->expected_pwd[0] = '\0';
           }
           continue;
         }
