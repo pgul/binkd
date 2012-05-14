@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.34  2012/05/14 06:14:59  gul
+ * More safe signal handling
+ *
  * Revision 2.33  2012/01/03 17:25:32  green
  * Implemented IPv6 support
  * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
@@ -216,12 +219,12 @@
 
 #if defined(HAVE_FORK) && defined(HAVE_SIGPROCMASK) && defined(HAVE_WAITPID) && defined(SIG_BLOCK)
   void switchsignal(int how);
-  #define blockchld()    switchsignal(SIG_BLOCK)
-  #define unblockchld()  switchsignal(SIG_UNBLOCK)
-  #define BLOCK_CHLD     1
+  #define blocksig()     switchsignal(SIG_BLOCK)
+  #define unblocksig()   switchsignal(SIG_UNBLOCK)
+  #define BLOCK_SIG      1
 #else
-  #define blockchld()
-  #define unblockchld()
+  #define blocksig()
+  #define unblocksig()
 #endif
 
 #ifndef F_OK

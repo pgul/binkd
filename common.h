@@ -13,6 +13,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2012/05/14 06:14:58  gul
+ * More safe signal handling
+ *
  * Revision 2.15  2009/06/02 17:09:35  gul
  * Build binkd for OS/2 with perl support
  *
@@ -149,7 +152,12 @@ extern int tray_flag;
 #endif
 #endif
 #ifdef HAVE_FORK
-extern int got_sighup;
+extern int got_sigchld, got_sighup;
+void sighandler(int signo);
+void chld(int *childcount);
+#define check_child(counter) if (got_sigchld) chld(counter);
+#else
+#define check_child(counter)
 #endif
 
 #endif

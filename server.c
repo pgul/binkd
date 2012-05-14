@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.54  2012/05/14 06:14:59  gul
+ * More safe signal handling
+ *
  * Revision 2.53  2012/01/08 19:18:03  green
  * Improved hostname lookup and logging
  *
@@ -250,16 +253,6 @@
 int n_servers = 0;
 int ext_rand = 0;
 
-#ifdef HAVE_FORK
-
-static void chld (int signo)
-{
-#define CHILDCOUNT n_servers
-#include "reapchld.inc"
-}
-
-#endif
-
 SOCKET sockfd[MAX_LISTENSOCK];
 int sockfd_used = 0;
 
@@ -393,9 +386,12 @@ static int do_server(BINKD_CONFIG *config)
     }
     tv.tv_usec = 0;
     tv.tv_sec  = CHECKCFG_INTERVAL;
-    unblockchld();
+    unblocksig();
+    blocksig();
+    check_child(&n_servers);
+    unblocksig();
     n = select(maxfd+1, &r, NULL, NULL, &tv);
-    blockchld();
+    blocksig();
     switch (n)
     { case 0: /* timeout */
         if (checkcfg()) 
@@ -405,6 +401,7 @@ static int do_server(BINKD_CONFIG *config)
           sockfd_used = 0;
           return 0;
 	}
+        check_child(&n_servers);
         continue;
       case -1:
         if (TCPERRNO == EINTR)
@@ -416,6 +413,7 @@ static int do_server(BINKD_CONFIG *config)
             sockfd_used = 0;
             return 0;
           }
+          check_child(&n_servers);
           continue;
         }
         save_errno = TCPERRNO;
@@ -516,11 +514,11 @@ void servmgr (void)
   Log (4, "servmgr started");
 
 #ifdef HAVE_FORK
-  blockchld();
-  signal (SIGCHLD, chld);
+  blocksig();
+  signal (SIGCHLD, sighandler);
 #endif
 
-  /* Loop on socket (bindaddr can be changed by reload
+  /* Loop on socket (bindaddr can be changed by reload)
    * do_server() will return 0 to restart and -1 to terminate
    */
   do

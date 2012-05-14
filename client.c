@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.81  2012/05/14 06:14:58  gul
+ * More safe signal handling
+ *
  * Revision 2.80  2012/01/27 18:25:44  green
  * Improved getpeername() error handling
  *
@@ -350,12 +353,6 @@ int n_clients = 0;
 
 #ifdef HAVE_FORK
 
-static void chld (int signo)
-{
-#define CHILDCOUNT n_clients
-#include "reapchld.inc"
-}
-
 static void alrm (int signo)
 {
 }
@@ -371,7 +368,7 @@ void SLEEP (time_t s)
 {
   while ((s = sleep (s)) > 0 && !binkd_exit && !poll_flag
 #ifdef HAVE_FORK
-         && !got_sighup
+         && !got_sighup && !got_sigchld
 #endif
          );
 }
@@ -458,9 +455,10 @@ static int do_client(BINKD_CONFIG *config)
         threadsafe(--n_clients);
         PostSem(&eothread);
         Log (1, "cannot branch out");
-        unblockchld();
+        unblocksig();
         SLEEP(1);
-        blockchld();
+        blocksig();
+        check_child(&n_clients);
       }
 #if !defined(DEBUGCHILD)
       else
@@ -483,16 +481,18 @@ static int do_client(BINKD_CONFIG *config)
         }
       } else
         config->q_present = 0;
-      unblockchld();
+      unblocksig();
       SLEEP (config->rescan_delay);
-      blockchld();
+      blocksig();
+      check_child(&n_clients);
     }
   }
   else
   {
-    unblockchld();
+    unblocksig();
     SLEEP (config->call_delay);
-    blockchld();
+    blocksig();
+    check_child(&n_clients);
   }
 
   return 0;
@@ -511,8 +511,8 @@ void clientmgr (void *arg)
 #ifdef HAVE_FORK
   pidcmgr = 0;
   pidCmgr = (int) getpid();
-  blockchld();
-  signal (SIGCHLD, chld);
+  blocksig();
+  signal (SIGCHLD, sighandler);
 #elif HAVE_THREADS
   pidcmgr = PID();
 #endif
@@ -562,7 +562,7 @@ void clientmgr (void *arg)
 #endif
   unlock_config_structure(config, 0);
 
-  unblockchld();
+  unblocksig();
 #ifdef HAVE_THREADS
   pidcmgr = 0;
   PostSem(&eothread);

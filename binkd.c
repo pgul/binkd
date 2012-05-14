@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.112  2012/05/14 06:14:57  gul
+ * More safe signal handling
+ *
  * Revision 2.111  2012/01/21 18:49:22  green
  * Make environment usage ISO C compliant (no 3-args main())
  *
@@ -489,29 +492,71 @@ char **saved_envp;
 
 #ifdef HAVE_FORK
 
-int mypid, got_sighup;
+int mypid, got_sighup, got_sigchld;
 
-static void chld (int signo)
+void chld (int *childcount)
 {
-#include "reapchld.inc"
+  int status;
+  int pid;
+  extern int pidcmgr;
+
+  got_sigchld = 0;
+#ifdef HAVE_WAITPID
+  while ((pid = waitpid (-1, &status, WNOHANG)) > 0)
+#else
+  if ((pid = (int) wait (&status)) > 0)
+#endif
+  {
+    if (pidcmgr && pid == pidcmgr) {
+      if (WIFSIGNALED(status))
+        Log (0, "client manager (pid=%u) exited by signal %u", pid, WTERMSIG(status));
+      else
+        Log (0, "client manager (pid=%u) exited, retcode %u", pid, WEXITSTATUS(status));
+      exit(4);
+    }
+    if (childcount)
+      childcount[0]--;
+    if (WIFSIGNALED(status))
+      Log (2, "process %u exited by signal %u", pid, WTERMSIG(status));
+    else
+      Log (4, "rc(%u)=%u", pid, WEXITSTATUS(status));
+  }
 }
 
-static void hup (int signo)
+void sighandler(int signo)
 {
-  Log (2, "got SIGHUP");
-  got_sighup = 1;
-  if (pidcmgr) kill (pidcmgr, signo);
+  int old_errno = errno;
+
+  switch (signo) {
+    case SIGHUP:  got_sighup++;
+                  if (pidcmgr) kill(pidcmgr, SIGHUP);
+                  break;
+    case SIGCHLD: got_sigchld++;
+                  break;
+  }
+
+#ifdef SYS5SIGNALS
+  signal(signo, sighandler);
+#endif
+#ifdef EMXSIGNALS
+  signal(signo, SIG_ACK);
+#endif
+
+  errno = old_errno;
 }
 #endif
 
-#if defined(BLOCK_CHLD)
+#if defined(BLOCK_SIG)
 void switchsignal(int how)
 {
   sigset_t sigset;
+  int old_errno = errno;
 
   sigemptyset(&sigset);
   sigaddset(&sigset, SIGCHLD);
+  sigaddset(&sigset, SIGHUP);
   sigprocmask(how, &sigset, NULL);
+  errno = old_errno;
 }
 #endif
 
@@ -997,7 +1042,7 @@ int main (int argc, char *argv[])
 #endif
 
 #ifdef HAVE_FORK
-  signal (SIGCHLD, chld);
+  signal (SIGCHLD, sighandler);
 #endif
 
   { /* Create polls and release polls list */
@@ -1030,7 +1075,7 @@ int main (int argc, char *argv[])
 #endif
 
 #if defined(HAVE_FORK)
-  signal (SIGHUP, hup);
+  signal (SIGHUP, sighandler);
 #endif
 
   if (client_flag && !server_flag)
