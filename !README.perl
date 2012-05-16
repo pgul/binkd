@@ -204,7 +204,6 @@ Hooks Description
    - return non-empty string to abort session with that reason
      otherwise, if @me is defined present @me as our akas
    - you can set $passwd variable to override configured password for the node
-     (can be used for external authentication)
 
 6) after_handshake()
    - called after complete login information transferred
