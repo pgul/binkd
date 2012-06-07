@@ -1,3 +1,7 @@
+2012/06/07 18:47:00 1.0a-611 green
+client.c,2.81,2.82
+Really try all addresses returned by getaddrinfo()
+
 2012/05/14 09:15:02 1.0a-610 gul
 binkd.c,2.111,2.112 client.c,2.80,2.81 common.h,2.15,2.16 readcfg.c,2.102,2.103 server.c,2.53,2.54 sys.h,2.33,2.34 reapchld.inc,2.5,NONE
 More safe signal handling
