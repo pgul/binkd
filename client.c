@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.82  2012/06/07 15:46:57  green
+ * Really try all addresses returned by getaddrinfo()
+ *
  * Revision 2.81  2012/05/14 06:14:58  gul
  * More safe signal handling
  *
@@ -695,17 +698,24 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       if ((sockfd = socket (ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == INVALID_SOCKET)
       {
 	Log (1, "socket: %s", TCPERR ());
+
+	/* as long as there are more addresses, try those */
+        if (ai != NULL) 
+          continue;
+        else
+        {
 #ifdef WITH_PERL
-	xfree(hosts);
+	  xfree(hosts);
 #ifdef HTTPS
-	xfree(proxy);
-	xfree(socks);
+	  xfree(proxy);
+	  xfree(socks);
 #endif
 #endif
 #ifdef HAVE_THREADS
-	freeaddrinfo(ai);
+	  freeaddrinfo(aiHead);
 #endif
-	return 0;
+	  return 0;
+	}
       }
       add_socket(sockfd);
       /* Was the socket created after close_sockets loop in exitfunc()? */
