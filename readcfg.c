@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.104  2012/06/17 00:21:40  green
+ * Segmentation violation in config dump
+ *
  * Revision 2.103  2012/05/14 06:14:58  gul
  * More safe signal handling
  *
@@ -2257,10 +2260,14 @@ static int print_node_info_1 (FTN_NODE *fn, void *arg)
 {
   char szfa[FTN_ADDR_SZ + 1];
   char *pwd;
+  size_t pwd_len;
 
   UNUSED_ARG(arg);
   ftnaddress_to_str (szfa, &fn->fa);
-  pwd = calloc (1, strlen(fn->pwd)+strlen(fn->pkt_pwd)+strlen(fn->out_pwd)+5);
+  pwd_len = strlen(fn->pwd);
+  if (fn->pkt_pwd) pwd_len += strlen(fn->pkt_pwd)+1; else pwd_len += 2;
+  if (fn->out_pwd) pwd_len += strlen(fn->out_pwd)+1; else pwd_len += 2;
+  pwd = calloc (1, pwd_len+1);
   strcpy(pwd, fn->pwd);
   if (fn->pkt_pwd != (char*)&(fn->pwd) || fn->out_pwd != (char*)&(fn->pwd)) {
     strcat(strcat(pwd, ","), (fn->pkt_pwd) ? fn->pkt_pwd : "-");
