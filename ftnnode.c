@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.43  2012/06/20 21:48:10  green
+ * Reduce number of DNS resolutions during outbound scan
+ *
  * Revision 2.42  2012/01/22 13:54:12  green
  * Allow limiting IPv4/6 usage per node using new flags -4/-6
  *
@@ -447,7 +450,8 @@ static FTN_NODE *get_node_info_nolock (FTN_ADDR *fa, BINKD_CONFIG *config)
     sort_nodes (config);
   memcpy (&n.fa, fa, sizeof (FTN_ADDR));
   np = search_for_node(&n, config);
-  if ((!np || np->listed != NL_NODE) && config->havedefnode)
+  if (!np && config->havedefnode) 
+    /* try resolve from defnode -- node added to memory anyway */
     np=get_defnode_info(fa, np, config);
   if (np && !np->hosts) /* still no hosts? */
     np->hosts = xstrdup("-");
