@@ -1,3 +1,7 @@
+2012/06/21 01:41:50 1.0a-614 green
+btypes.h,2.9,2.10 ftnnode.c,2.43,2.44 ftnnode.h,2.22,2.23
+1 hour timeout for defnode resolutions
+
 2012/06/21 00:48:14 1.0a-613 green
 ftnnode.c,2.42,2.43
 Reduce number of DNS resolutions during outbound scan
