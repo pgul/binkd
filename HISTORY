@@ -1,3 +1,7 @@
+2012/06/21 00:48:14 1.0a-613 green
+ftnnode.c,2.42,2.43
+Reduce number of DNS resolutions during outbound scan
+
 2012/06/17 03:21:43 1.0a-612 green
 readcfg.c,2.103,2.104
 Segmentation violation in config dump
