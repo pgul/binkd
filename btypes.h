@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2012/06/20 22:41:46  green
+ * 1 hour timeout for defnode resolutions
+ *
  * Revision 2.9  2012/01/22 13:54:12  green
  * Allow limiting IPv4/6 usage per node using new flags -4/-6
  *
@@ -114,6 +117,7 @@ struct _FTN_NODE
   long bw_send, bw_recv;               /* send and receive bw limits */
 #endif
   int IP_afamily;
+  time_t recheck;
 };
 
 typedef struct _FTNQ FTNQ;

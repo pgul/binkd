@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.23  2012/06/20 22:41:46  green
+ * 1 hour timeout for defnode resolutions
+ *
  * Revision 2.22  2012/01/22 13:54:12  green
  * Allow limiting IPv4/6 usage per node using new flags -4/-6
  *
@@ -177,6 +180,8 @@ FTN_NODE *add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *o
 #ifdef BW_LIM
 #define BW_DEF     -100                /* default value: 100% */
 #endif
+
+#define RESOLVE_TTL 3600               /* DNS resolution again after 1 hour */
 
 /*
  * Iterates through nodes while func() == 0.

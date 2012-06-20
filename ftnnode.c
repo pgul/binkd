@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.44  2012/06/20 22:41:46  green
+ * 1 hour timeout for defnode resolutions
+ *
  * Revision 2.43  2012/06/20 21:48:10  green
  * Reduce number of DNS resolutions during outbound scan
  *
@@ -280,6 +283,7 @@ static FTN_NODE *add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pk
     config->nNodSorted = 0;
   }
 
+  pn->recheck = safe_time() + RESOLVE_TTL;
   if (MD_flag != MD_USE_OLD)
     pn->MD_flag = MD_flag;
   if (restrictIP != RIP_USE_OLD)
@@ -449,9 +453,15 @@ static FTN_NODE *get_node_info_nolock (FTN_ADDR *fa, BINKD_CONFIG *config)
   if (!config->nNodSorted)
     sort_nodes (config);
   memcpy (&n.fa, fa, sizeof (FTN_ADDR));
+
+  /* search from previously stored nodes */
   np = search_for_node(&n, config);
-  if (!np && config->havedefnode) 
-    /* try resolve from defnode -- node added to memory anyway */
+
+  /* not found or not in config file and recheck required ... */
+  if (( !np || 
+        (np->listed != NL_NODE && np->recheck < safe_time())) 
+      && config->havedefnode) 
+    /* ... try resolve from defnode */
     np=get_defnode_info(fa, np, config);
   if (np && !np->hosts) /* still no hosts? */
     np->hosts = xstrdup("-");
