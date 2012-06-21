@@ -12,7 +12,7 @@ from Russian by Michael Dukelsky 2:5020/1042.
     01. Where Can One Find a Current Copy of Stable or Beta BinkD Version?
     02. What Is BinkD?
     03. BinkP Protocol.
-    04. What Is fidonet.net Domain and Why Is It Necessary?
+    04. What Is binkp.net Domain and Why Is It Necessary?
     05. BinkD Doesn't Connect. What Should I Do?
     06. How Can BinkD Work via HTTP-proxy?
     07. How Can BinkD Work via SOCKS-proxy?
@@ -28,23 +28,22 @@ from Russian by Michael Dukelsky 2:5020/1042.
     17. How Can I Add BinkD To a Fidonet Box Working With a Modem?
     18. Flags Are Not Created On Receiving a File, Programs Do Not Start.
     19. 'skipmask' Keyword Does Not Work.
-    20. BinkD Under DOS.
-    21. BinkD Under Windows 3.x.
-    22. Different FTN Domains in BinkD And a Tosser Without 5D Support.
-    23. How Does "domain ... alias-for ..." In The Configuration File Work?
-    24. What Does "send: TCP/IP error (-10000)" Mean and How To Cure It?
-    25. Argus (Radius) and BinkD: Argus Error "Aborting due to carrier loss"
-    26. The Outbound Name Has a Comment Char and Binkd Doesn't See It
-    27. Is There a Possibility to Start an Application On an Event From BinkD?
-    28. What Is the Difference Between BinkD/w32 and BinkD/w9x?
-    29. I Miss a Chat in BinkD And I Want To Synchronize Time!
-    30. BinkD Receives an Incoming Call Only After an Outgoing One.
-    31. "start_file_transfer: ECHO is off.: No such file or directory" Error.
-    32. How to Create a Poll Correctly.
-    33. What Does the Number in Brackets in the Log Mean?
-    34. How to Configure BinkD for sending outgoing mail?
-    35. What for Does One Need the "share" Directive in the Configuration File?
-    36. What for Does One Need the "ftrans" Directive in the Configuration File?
+    20. BinkD Under Windows 3.x.
+    21. Different FTN Domains in BinkD And a Tosser Without 5D Support.
+    22. How Does "domain ... alias-for ..." In The Configuration File Work?
+    23. What Does "send: TCP/IP error (-10000)" Mean and How To Cure It?
+    24. Argus (Radius) and BinkD: Argus Error "Aborting due to carrier loss"
+    25. The Outbound Name Has a Comment Char and Binkd Doesn't See It
+    26. Is There a Possibility to Start an Application On an Event From BinkD?
+    27. What Is the Difference Between BinkD/w32 and BinkD/w9x?
+    28. I Miss a Chat in BinkD And I Want To Synchronize Time!
+    29. BinkD Receives an Incoming Call Only After an Outgoing One.
+    30. "start_file_transfer: ECHO is off.: No such file or directory" Error.
+    31. How to Create a Poll Correctly.
+    32. What Does the Number in Brackets in the Log Mean?
+    33. How to Configure BinkD for sending outgoing mail?
+    34. What for Does One Need the "share" Directive in the Configuration File?
+    35. What for Does One Need the "ftrans" Directive in the Configuration File?
     A1. I Have Found a Bug in BinkD!
     A2. I Want To Talk To Developers.
     A3. I Want To Get Information About Changes In BinkD Immediately!
@@ -149,7 +148,7 @@ Proffitt, 1:105/10; http://beemail.gexonline.net/)
       on a net drive);
     - personal fileboxes for each node for the files to send and to receive;
     - T-mail-style and The Brake!-style fileboxes are supported;
-    - translation of a FTN-address into a domain name (*.fidonet.net) is
+    - translation of a FTN-address into a domain name (*.binkp.net) is
       supported;
     - a password file in the style of T-mail is supported starting with
       version 0.9.4 and a password file in the style of ifcico starting with
@@ -164,7 +163,11 @@ Proffitt, 1:105/10; http://beemail.gexonline.net/)
     - password encryption (MD5) starting with 0.9.4 release;
     - traffic encryption starting with version 0.9.5;
     - the remote node IP-address check for an incoming connection is
-      supported starting with version 0.9.5.
+      supported starting with version 0.9.5;
+    - IPv6 support starting with 1.0.0;
+    - support of IN SRV DNS records starting with 1.0.0;
+    - support of perl hooks starting with 1.0.0;
+    - support of bandwidth limitations starting with 1.0.0.
 
 
 ----------------------------------------------------------------------------
@@ -199,19 +202,20 @@ http://binkd.grumbler.org/binkp.txt
 ----------------------------------------------------------------------------
 
 
-        04. What Is fidonet.net Domain and Why Is It Necessary?
+        04. What Is binkp.net Domain and Why Is It Necessary?
 
-    'fidonet.net' is the domain registered for FTN-address to Internet
+    'binkp.net' is the domain registered for FTN-address to Internet
 domain name translation. It is used primarily at BinkP connections. The
-address 1:2/3.4 is translated to the domain name p4.f3.n2.z1.fidonet.net;
+address 1:2/3.4 is translated to the domain name p4.f3.n2.z1.binkp.net;
 after that BinkD (or another IP mailer) obtains the node IP-address by
 means of the operating system. If the domain name exists one can try to set
 a connection.
 
-    Hence the fidonet.net domain policy was compiled: a domain name in the
-fidonet.net zone may be granted to the nodes that are present in the
-nodelist, have either a permanent IP address or a domain name and respond
-at port 24554 using the BinkP protocol twenty four hours a day.
+    A node can get address in the binkp.net domain by one of the two ways:
+set her address for incoming binkp connections in the official fidonet nodelist,
+or specify it manually via http://binkp.net interface (and then sysop can 
+set address from binkp.net in the nodelist).
+
 
 ----------------------------------------------------------------------------
 
@@ -231,14 +235,14 @@ loglevel to 6 or more can help here.
     (The control characters are removed from the telnet reply and it is
 broken down to lines for the sake of convinience)
 
-    m:\>telnet f68.n5080.z2.fidonet.net 24554
+    m:\>telnet f68.n5080.z2.binkp.net 24554
 
     -.OPT CRAM-MD5-593e3e5411515fc1cf75816bb74e41d0-SYS Academ
     -ZYZ Alexei Kuklin-LOC Ekaterinburg, Russia-NDL 115200,TCP,BINKP,HUB
     -%TIME Tue, 20 Feb 2001 15:25:20 +0500- VER binkd/0.9.4/Win32 binkp/1.1
     - 2:5080/68@fidonet-OPT ND
 
-    M:\>ping f68.n5080.z2.fidonet.net
+    M:\>ping f68.n5080.z2.binkp.net
 
     Pinging fido68.imp.uran.ru [195.19.130.68] with 32 bytes of data:
 
@@ -253,7 +257,7 @@ evaluated using the delay before response in telnet).
 
     Another case: telnet connects but ping says "Request timed out".
 
-    M:\>ping f68.n5080.z2.fidonet.net
+    M:\>ping f68.n5080.z2.binkp.net
 
     Pinging fido68.imp.uran.ru [195.19.130.68] with 32 bytes of data:
 
@@ -269,9 +273,9 @@ That does not influence BinkD performance.
 
     1.2.
 
-    M:\>ping f68.n5080.z2.fidonet.net
+    M:\>ping f68.n5080.z2.binkp.net
 
-    Unknown host f68.n5080.z2.fidonet.net
+    Unknown host f68.n5080.z2.binkp.net
 
     Such a reply means that your computer could not find a DNS entry for the
 node.  Check the DNS configuration in your system. If it is correct make
@@ -291,7 +295,7 @@ via HTTP-proxy" and "How Can BinkD Work via SOCKS-proxy").
 
     1.4.
 
-    M:\>ping -w 5000 f68.n5080.z2.fidonet.net
+    M:\>ping -w 5000 f68.n5080.z2.binkp.net
 
     Pinging fido68.imp.uran.ru [195.19.130.68] with 32 bytes of data:
 
@@ -760,41 +764,7 @@ sensitive when 'skipmask' is used.
 ----------------------------------------------------------------------------
 
 
-        20. BinkD Under DOS
-
-    Victor Pashkevich (2:451/30) has ported BinkD 0.9.2 for MS DOS. Since
-March 2003 the latest ported version is officially supported and it is
-included into the CVS source tree.
-
-    BinkD 0.9.2/dos sources:
-    http://www.doe.carleton.ca/~nsoveiko/fido/binkd/0.9.2/
-
-    The sources and binaries of binkd 0.9.2/dos and binkd 0.9.5a/dos (they may
-be not the latest):
-    http://www.n451.z2.fidonet.net/binkd/
-
-    The latest sources are on the CVS server.
-
-    The DOS version has the feature of not supporting a net and every
-possible implementation uses one of the IP stacks developed by an
-independent producer. The implementation by Victor Pashkevich works with
-the drivers of IBM TCP/IP version 2.1 only. One can find them here:
-
-    http://www.ibm.com
-    http://binkd.grumbler.org/tcpdos21.rar
-    ftp://ftp.grumbler.org/pub/tcpdos/tcpdos21.rar
-
-    You may also make a file request for tcpdos21.rar from 2:5080/102.
-
-    Besides everybody may port BinkD for the version of IP drivers for DOS
-he/she has :-). The sources are in the Internet and in the fileecho (see
-"Where Can One Take a Fresh BinkD Version?")
-
-
-----------------------------------------------------------------------------
-
-
-        21. BinkD Under Windows 3.x
+        20. BinkD Under Windows 3.x
 
     Sergey Zharsky (zharik@usa.net) ported BinkD 0.9.2 and BinkD 0.9.5 for
 Windows 3.x. They work using IP stacks Trumpet Winsock ver. 3.0 revision D
@@ -810,7 +780,7 @@ and Novell TCP/IP Client for Win 3.11 (see the answer to the question
 ----------------------------------------------------------------------------
 
 
-        22. Different FTN Domains in BinkD And a Tosser Without 5D Support
+        21. Different FTN Domains in BinkD And a Tosser Without 5D Support
 
     Suppose there are two domains (with different zone numbers though it
 does not matter).  Mail can be successfully sent to the first domain but
@@ -845,22 +815,22 @@ considers all addresses to belong to one domain).
 ----------------------------------------------------------------------------
 
 
-        23. How Does "domain ... alias-for ..." In The Configuration File Work?
+        22. How Does "domain ... alias-for ..." In The Configuration File Work?
 
     An alias is taken into consideration when the remote site address is
 analyzed.
 
     Example:
-    domain fidonet.net alias-for fidonet
+    domain fidonet.org alias-for fidonet
 
-    'fidonet.net' in the remote site address will be changed to 'fidonet' and
-address 1:2/3.4@fidonet.net will be dealt with as 1:2/3.4@fidonet.
+    'fidonet.org' in the remote site address will be changed to 'fidonet' and
+address 1:2/3.4@fidonet.org will be dealt with as 1:2/3.4@fidonet.
 
 
 ----------------------------------------------------------------------------
 
 
-        24. What Does "send: TCP/IP error (-10000)" Mean and How To Cure It?
+        23. What Does "send: TCP/IP error (-10000)" Mean and How To Cure It?
 
     There are two bugs here, one of them had been fixed before a branch for
 binkd 0.9.5-stable was created.
@@ -896,7 +866,7 @@ complicate the code.
 ----------------------------------------------------------------------------
 
 
-        25. Argus (Radius) and BinkD: Argus Error "Aborting due to carrier loss"
+        24. Argus (Radius) and BinkD: Argus Error "Aborting due to carrier loss"
 
     A session between BinkD and Radius (or Argus, it does not matter) is
 aborted "due to carrier loss" when traffic encryption is enabled in Radius.
@@ -928,7 +898,7 @@ should inform the remote of aborting the session, for example in such a way:
 ----------------------------------------------------------------------------
 
 
-        26. The Outbound Name Has a Comment Char and Binkd Doesn't See It
+        25. The Outbound Name Has a Comment Char and Binkd Doesn't See It
 
     If BinkD is configured in a working system where Bink/+ is used and the
 outbound path contains "#" character which is a comment character for BinkD
@@ -955,7 +925,7 @@ of a line is now the sequence of either a space and the pound character
 ----------------------------------------------------------------------------
 
 
-        27. Is There a Possibility to Start an Application On an Event From BinkD?
+        26. Is There a Possibility to Start an Application On an Event From BinkD?
 
     If time events are discussed then no, there is not and there will never
 be.  There are diverse schedulers for controlling such events and they are
@@ -969,7 +939,7 @@ file.
 ----------------------------------------------------------------------------
 
 
-        28. What Is the Difference Between BinkD/w32 and BinkD/w9x?
+        27. What Is the Difference Between BinkD/w32 and BinkD/w9x?
 
     Binkd/w32 is a traditional version of BinkD and a console application.
 Binkd/w9x is a GUI Win32 application creating temporary console windows in
@@ -999,7 +969,7 @@ because of the described console features in the systems.
 ----------------------------------------------------------------------------
 
 
-        29. I Miss a Chat in BinkD And I Want To Synchronize Time!
+        28. I Miss a Chat in BinkD And I Want To Synchronize Time!
 
     You may use talk, icq or irc (or even Gadu-Gadu) for chatting. If you
 can start BinkD then all the programs mentioned here and many other ones
@@ -1013,7 +983,7 @@ time servers.
 ----------------------------------------------------------------------------
 
 
-        30. BinkD Receives an Incoming Call Only After an Outgoing One.
+        29. BinkD Receives an Incoming Call Only After an Outgoing One.
 
     Such a behaviour was observed for BinkD/w32 working as a service on a
 computer with McAfee Firewall installed. The firewall starts after BinkD
@@ -1029,7 +999,7 @@ or stop using such a firewall.
 ----------------------------------------------------------------------------
 
 
-        31. "start_file_transfer: ECHO is off.: No such file or directory" Error.
+        30. "start_file_transfer: ECHO is off.: No such file or directory" Error.
 
     One may see the following in the log file:
     ? 10 Sep 20:37:23 [1664] start_file_transfer: ECHO is on.: No such file
@@ -1046,7 +1016,7 @@ on how to correctly create a poll. See also question 09.
 ----------------------------------------------------------------------------
 
 
-        32. How to Create a Poll Correctly.
+        31. How to Create a Poll Correctly.
 
     To create a poll in BSO one should create an empty file NNNNMMMM.ilo,
 NNNNMMMM.clo, NNNNMMMM.dlo or NNNNMMMM.flo. The filename consists of the
@@ -1077,7 +1047,7 @@ clones, CP/M and many others) is
 ----------------------------------------------------------------------------
 
 
-        33. What Does the Number in Brackets in the Log Mean?
+        32. What Does the Number in Brackets in the Log Mean?
 
     It is either PID (Process ID) in the multiprocess BinkD versions (for
 example, in the versions for UNIX-like OS), or TID (Thread ID) in the
@@ -1090,7 +1060,7 @@ particular, it allows separating the messages from the different sessions.
 ----------------------------------------------------------------------------
 
 
-        34. How to Configure BinkD for sending outgoing mail?
+        33. How to Configure BinkD for sending outgoing mail?
 
     You should configure your netmail packer in such a way that your mail
 is packed to BSO (Binkley Style Outbound) packets. If you have not used
@@ -1103,7 +1073,7 @@ possibility of packing netmail to BSO has been provided by their developers
 ----------------------------------------------------------------------------
 
 
-        35. What for Does One Need the "share" Directive in the Configuration File?
+        34. What for Does One Need the "share" Directive in the Configuration File?
 
     Shared AKA is used for sending netmail to one of the alternative routes
 and is your protection for the case when your netmail link goes down.  In
@@ -1124,7 +1094,7 @@ Shared AKA is implemented in binkd 1.0 and above.
 ----------------------------------------------------------------------------
 
 
-        36. What for Does One Need the "ftrans" Directive in the Configuration File?
+        35. What for Does One Need the "ftrans" Directive in the Configuration File?
 
     It is necessary for placing BinkD and your tosser at different computers
 in the net, when outbound resides at a net drive and the paths to it are

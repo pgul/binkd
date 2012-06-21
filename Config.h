@@ -60,11 +60,11 @@
 #define MYNAME "binkd"
 #define MAJOR 1
 #define MINOR 0
-#define SUFFIX "a"
-#define PATCHLEVEL 614
+#define BUILD 0
+#define SUFFIX ""
 #define MYVER_S(s) _MYVER_S(s)
 #define _MYVER_S(s) #s
-#define MYVER MYVER_S(MAJOR) "." MYVER_S(MINOR) SUFFIX "-" MYVER_S(PATCHLEVEL)
+#define MYVER MYVER_S(MAJOR) "." MYVER_S(MINOR) "." MYVER_S(BUILD) MYVER_S(SUFFIX)
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
