@@ -1,3 +1,7 @@
+2012/06/21 09:56:55 1.1a-1 gul
+!README,2.4,2.5 !README.FIX,2.56,2.57 Config.h,2.642,2.643 binkd.8,2.7,2.8 binkdfaq.txt.en,1.64,1.65 binkdfaq.txt.ru,1.85,1.86
+Version 1.1a
+
 2012/06/21 01:41:50 1.0a-614 green
 btypes.h,2.9,2.10 ftnnode.c,2.43,2.44 ftnnode.h,2.22,2.23
 1 hour timeout for defnode resolutions
