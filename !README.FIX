@@ -519,8 +519,8 @@ NT/95:  ctrl-c problems fixed
 
 	Version for DOS (ported by Victor Pashkevich, 2:451/30@fidonet)
 
-1.0
----
+1.0.0   (Thu Jun 21 2012 08:55:22)
+-----
 	New config option "share" - shared aka definition
 	(patch from Igor Krassikov 2:463/59).
 
@@ -588,3 +588,7 @@ NT/95:  ctrl-c problems fixed
 
 	Add FSP-1035 (IN SRV DNS records) support. Currently only Unix
 	and Win32 (add FSP1035=1 for make) versions supported.
+
+1.1
+---
+
