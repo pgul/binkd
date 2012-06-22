@@ -64,7 +64,7 @@
 #define SUFFIX "-pre"
 #define MYVER_S(s) _MYVER_S(s)
 #define _MYVER_S(s) #s
-#define MYVER MYVER_S(MAJOR) "." MYVER_S(MINOR) "." MYVER_S(BUILD) MYVER_S(SUFFIX)
+#define MYVER MYVER_S(MAJOR) "." MYVER_S(MINOR) "." MYVER_S(BUILD) SUFFIX
 
 #define PRODCODE 0x13FF  /* by FTSCPROD */
 
