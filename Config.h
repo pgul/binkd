@@ -62,7 +62,7 @@
 #define MINOR 0
 #define BUILD 1
 #define SUFFIX "-pre"
-#define PATCHLEVEL 1
+#define PATCHLEVEL 2
 #define MYVER_S(s) _MYVER_S(s)
 #define _MYVER_S(s) #s
 #ifdef PATCHLEVEL
