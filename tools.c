@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.75.2.1  2012/06/25 14:21:01  gul
+ * Code style
+ *
  * Revision 2.75  2009/06/16 19:24:29  gul
  * Cosmetics around mkargv()
  *
@@ -663,9 +666,9 @@ void Log (int lev, char *s,...)
   }
 #ifdef WIN32
 #ifdef BINKD9X
-  if(!lev)
+  if (!lev)
 #else
-  if((lev<1)&&(isService()>0))
+  if (lev<1 && isService() > 0)
 #endif
   {
     MessageBox(NULL, buf, MYNAME, MB_OK|MB_ICONSTOP|0x00200000L|MB_SYSTEMMODAL|MB_SETFOREGROUND);
@@ -1178,24 +1181,25 @@ char *makeinboundcase (char *s, enum inbcasetype inbcase)
  * Return error message in msg[0] (static string) and set errno.
  * errno set to zero if no error
  */
-long safe_atol(char* str, char** msg){
+long safe_atol(char *str, char **msg)
+{
   unsigned long ul=0;
   long l;
 
-  if(str){
+  if (str) {
     errno = 0;
-    if( str[0]=='-' ){  /* negative value */
+    if (str[0]=='-') {  /* negative value */
       l = atol(str);
-      if(errno==ERANGE && msg){
+      if (errno==ERANGE && msg) {
          *msg = "Out of range: number too small";
       }
       return l;
     }
     ul = strtoul(str,NULL,10);
-    if(errno==ERANGE && msg){
+    if (errno==ERANGE && msg) {
        *msg = "Out of range: number too big";
     }
-  }else{
+  } else {
     errno = EINVAL;
     *msg = "Invalid argument (NULL instead string)";
   }
