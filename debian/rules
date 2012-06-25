@@ -6,7 +6,11 @@ export DH_VERBOSE=1
 export DH_COMPAT=4
 #export DEBIAN=1
 PACKAGE=binkd1
-VERSION=`sed -n "/\#define MAJOR/s/.*\([0-9]\+\).*$$/\1/p" Config.h`.`sed -n "/\#define MINOR/s/.*\([0-9]\+\).*$$/\1/p" Config.h`+`sed -n "/\#define SUFFIX/s/.*\"\([-a-z]\+\)\".*$$/\1/p" Config.h`.`sed -n "/\#define PATCHLEVEL/s/.*\([0-9]\+\).*$$/\1/p" Config.h`
+MAJOR=`sed -n "/\#define MAJOR/s/.*\([0-9]\+\).*$$/\1/p" Config.h`
+MINOR=`sed -n "/\#define MINOR/s/.*\([0-9]\+\).*$$/\1/p" Config.h`
+SUFFIX=`sed -n "/\#define SUFFIX/s/.*\"\([-a-z]\+\)\".*$$/\1/p" Config.h`
+PATCHLEVEL=`sed -n "/\#define PATCHLEVEL/s/.*\([0-9]\+\).*$$/\1/p" Config.h`
+VERSION=$(MAJOR).$(MINOR)+$(SUFFIX)$(PATCHLEVEL)
 PREFIX=$(CURDIR)/debian/binkd1
 CONFIGURE_OPTIONS += --with-zlib --with-https --with-ntlm --with-bwlim --with-perl --sysconfdir=$(PREFIX)/etc/ftn --prefix=$(PREFIX) --mandir=$(PREFIX)/usr/share/man
 
