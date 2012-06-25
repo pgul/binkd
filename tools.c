@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.76  2012/06/25 06:15:33  gul
+ * Cosmetics
+ *
  * Revision 2.75  2009/06/16 19:24:29  gul
  * Cosmetics around mkargv()
  *
@@ -663,9 +666,9 @@ void Log (int lev, char *s,...)
   }
 #ifdef WIN32
 #ifdef BINKD9X
-  if(!lev)
+  if (!lev)
 #else
-  if((lev<1)&&(isService()>0))
+  if (lev < 1 && isService() > 0)
 #endif
   {
     MessageBox(NULL, buf, MYNAME, MB_OK|MB_ICONSTOP|0x00200000L|MB_SYSTEMMODAL|MB_SETFOREGROUND);
