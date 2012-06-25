@@ -6,7 +6,16 @@ export DH_VERBOSE=1
 export DH_COMPAT=4
 #export DEBIAN=1
 PACKAGE=binkd1
-VERSION=1.0+a.`sed -n "/PATCHLEVEL/s/.*PATCHLEVEL[ \t]\([0-9]\+\)\n\?$$/\1/p" Config.h`
+MAJOR=$(shell sed -n "/\#define MAJOR/s/.*\([0-9]\+\).*$$/\1/p" Config.h)
+MINOR=$(shell sed -n "/\#define MINOR/s/.*\([0-9]\+\).*$$/\1/p" Config.h)
+BUILD=$(shell sed -n "/\#define BUILD/s/.*\([0-9]\+\).*$$/\1/p" Config.h)
+SUFFIX=$(shell sed -n "/\#define SUFFIX/s/.*\"\([-a-z]\+\)\".*$$/\1/p" Config.h)
+PATCHLEVEL=$(shell sed -n "/\#define PATCHLEVEL/s/.*\([0-9]\+\).*$$/\1/p" Config.h)
+ifeq ($(SUFFIX),-pre)
+  VERSION=$(MAJOR).$(MINOR).$(BUILD)$(SUFFIX)$(PATCHLEVEL)
+else
+  VERSION=$(MAJOR).$(MINOR).$(BUILD)
+endif
 PREFIX=$(CURDIR)/debian/binkd1
 CONFIGURE_OPTIONS += --with-zlib --with-https --with-ntlm --with-bwlim --with-perl --sysconfdir=$(PREFIX)/etc/ftn --prefix=$(PREFIX) --mandir=$(PREFIX)/usr/share/man
 
