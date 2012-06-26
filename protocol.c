@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.219.2.1  2012/06/26 09:57:59  gul
+ * MD5 passwd is not mandatory (backport from tip branch)
+ *
  * Revision 2.219  2012/05/13 17:26:40  gul
  * Possibility to specify $passwd for session in on_handshake() perl hook
  *
@@ -1581,7 +1584,7 @@ static int NUL (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
         Log(2, "Remote requests CRYPT mode");
       }
       if (!strncmp(w, "CRAM-", 5) && !no_MD5 &&
-          state->to && (state->to->MD_flag>=0))
+          state->to && (state->to->MD_flag >= 0))
       {
         Log(2, "Remote requests MD mode");
         xfree(state->MD_challenge);
@@ -2033,7 +2036,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
         {
           strncpy(state->expected_pwd, pwd, sizeof(state->expected_pwd));
           state->expected_pwd[sizeof(state->expected_pwd) - 1] = '\0';
-          state->MD_flag=pn->MD_flag;
+          state->MD_flag = pn->MD_flag;
         }
         else if (strcmp(state->expected_pwd, pwd))
         {
@@ -2220,17 +2223,17 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
   if (state->to)
   {
     do_prescan (state, config);
-    if(state->MD_challenge)
+    if (state->MD_challenge)
     {
       char *tp=MD_buildDigest(state->to->out_pwd ? state->to->out_pwd : "-", state->MD_challenge);
-      if(!tp)
+      if (!tp)
       {
         Log(2, "Unable to build MD5 digest");
         bad_try (&state->to->fa, "Unable to build MD5 digest", BAD_AUTH, config);
         return 0;
       }
       msg_send2 (state, M_PWD, tp, 0);
-      state->MD_flag=1;
+      state->MD_flag = 1;
       free(tp);
     }
     else if ((state->to->MD_flag == 1) && !no_MD5) /* We do not want to talk without MD5 */
@@ -2347,11 +2350,11 @@ static int PWD (STATE *state, char *pwd, int sz, BINKD_CONFIG *config)
         Log (1, "Caller does not support MD5");
         return 0;
       }
-      if ((sp=MD_buildDigest(state->expected_pwd, state->MD_challenge))!=NULL)
+      if ((sp = MD_buildDigest(state->expected_pwd, state->MD_challenge)) != NULL)
       {
-        if ((bad_pwd=STRICMP(sp, pwd))==0) state->MD_flag=1;
+        if ((bad_pwd = STRICMP(sp, pwd)) == 0) state->MD_flag = 1;
         free(sp);
-        sp=NULL;
+        sp = NULL;
       }
       else {
         Log (2, "Unable to build Digest");
@@ -3461,17 +3464,16 @@ static int banner (STATE *state, BINKD_CONFIG *config)
   char *month[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
-  if ((!no_MD5) && (!state->to) &&
-      ((state->MD_challenge=MD_getChallenge(NULL, state))!=NULL))
+  if (!no_MD5 && !state->to &&
+      (state->MD_challenge = MD_getChallenge(NULL, state)) != NULL)
   {  /* Answering side MUST send CRAM message as a very first M_NUL */
     char s[MD_CHALLENGE_LEN*2+15]; /* max. length of opt string */
     strcpy(s, "OPT ");
-    MD_toString(s+4, state->MD_challenge[0], state->MD_challenge+1);
-    state->MD_flag=1;
+    MD_toString(s + 4, state->MD_challenge[0], state->MD_challenge + 1);
     msg_send2 (state, M_NUL, s, "");
   }
   else
-    state->MD_flag=0;
+    state->MD_flag = 0;
 
   msg_send2 (state, M_NUL, "SYS ", config->sysname);
   msg_send2 (state, M_NUL, "ZYZ ", config->sysop);
