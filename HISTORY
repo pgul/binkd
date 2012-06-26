@@ -1,3 +1,7 @@
+2012/06/26 14:43:00 1.0.1-pre5 gul
+perlhooks.c,2.79,2.79.2.1
+Leave expected password unchanged if unmodified in on_handhsake hook
+
 2012/06/26 14:34:25 1.0.1-pre4 gul
 Config.h,2.642.2.6,2.642.2.7
 Version string again
