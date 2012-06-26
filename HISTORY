@@ -1,3 +1,7 @@
+2012/06/26 12:58:01 1.0.1-pre3 gul
+protocol.c,2.219,2.219.2.1
+MD5 passwd is not mandatory (backport from tip branch)
+
 2012/06/25 17:21:54 1.0.1-pre2 gul
 Config.h,2.642.2.3,2.642.2.4
 Version string format
