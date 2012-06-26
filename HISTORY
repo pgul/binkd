@@ -1,3 +1,7 @@
+2012/06/26 12:55:48 1.1a-4 gul
+protocol.c,2.220,2.221
+MD5 password is not mandatory on incoming
+
 2012/06/26 12:44:31 1.1a-3 gul
 protocol.c,2.219,2.220
 Code style
