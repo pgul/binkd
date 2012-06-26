@@ -61,11 +61,11 @@
 #define MAJOR 1
 #define MINOR 0
 #define BUILD 1
-#define SUFFIX "-pre"
+#define SUFFIX "-pre" /* comment out this define for release versions */
 #define PATCHLEVEL 3
 #define MYVER_S(s) _MYVER_S(s)
 #define _MYVER_S(s) #s
-#ifdef PATCHLEVEL
+#ifdef SUFFIX
   /* it's prerelease, version format "1.0.1-pre5" */
   #define MYVER MYVER_S(MAJOR) "." MYVER_S(MINOR) "." MYVER_S(BUILD) SUFFIX MYVER_S(PATCHLEVEL)
 #else

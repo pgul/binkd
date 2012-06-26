@@ -9,7 +9,7 @@ PACKAGE=binkd1
 MAJOR=$(shell sed -n "/\#define MAJOR/s/.*\([0-9]\+\).*$$/\1/p" Config.h)
 MINOR=$(shell sed -n "/\#define MINOR/s/.*\([0-9]\+\).*$$/\1/p" Config.h)
 BUILD=$(shell sed -n "/\#define BUILD/s/.*\([0-9]\+\).*$$/\1/p" Config.h)
-SUFFIX=$(shell sed -n "/\#define SUFFIX/s/.*\"\([-a-z]\+\)\".*$$/\1/p" Config.h)
+SUFFIX=$(shell sed -n "/^ *\#define SUFFIX/s/.*\"\([-a-z]\+\)\".*$$/\1/p" Config.h)
 PATCHLEVEL=$(shell sed -n "/\#define PATCHLEVEL/s/.*\([0-9]\+\).*$$/\1/p" Config.h)
 ifeq ($(SUFFIX),-pre)
   VERSION=$(MAJOR).$(MINOR).$(BUILD)$(SUFFIX)$(PATCHLEVEL)
