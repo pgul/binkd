@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.221  2012/06/26 09:55:46  gul
+ * MD5 password is not mandatory on incoming
+ *
  * Revision 2.220  2012/06/26 09:44:27  gul
  * Code style
  *
@@ -3464,13 +3467,12 @@ static int banner (STATE *state, BINKD_CONFIG *config)
   char *month[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
-  if ((!no_MD5) && (!state->to) &&
-      ((state->MD_challenge=MD_getChallenge(NULL, state))!=NULL))
+  if (!no_MD5 && !state->to &&
+      (state->MD_challenge = MD_getChallenge(NULL, state)) != NULL)
   {  /* Answering side MUST send CRAM message as a very first M_NUL */
     char s[MD_CHALLENGE_LEN*2+15]; /* max. length of opt string */
     strcpy(s, "OPT ");
     MD_toString(s + 4, state->MD_challenge[0], state->MD_challenge + 1);
-    state->MD_flag = 1;
     msg_send2 (state, M_NUL, s, "");
   }
   else
