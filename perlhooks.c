@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.79.2.1  2012/06/26 11:42:58  gul
+ * Leave expected password unchanged if unmodified in on_handhsake hook
+ *
  * Revision 2.79  2012/05/13 17:26:40  gul
  * Possibility to specify $passwd for session in on_handshake() perl hook
  *
@@ -2134,9 +2137,10 @@ char *perl_on_handshake(STATE *state) {
           state->nAddr = n;
           if (n == 0) Log(LL_WARN, "Perl on_handshake(): @me contains no valid addresses");
         }
-        if ((passwd = perl_get_sv("passwd", FALSE)) != NULL) {
+        if ((passwd = perl_get_sv("passwd", FALSE)) != NULL && SvOK(passwd)) {
           strncpy(state->expected_pwd, SvPV(passwd, len), sizeof(state->expected_pwd));
           state->expected_pwd[sizeof(state->expected_pwd) - 1] = '\0';
+          if (state->expected_pwd[0] == '\0') strcpy(state->expected_pwd, "-");
         }
       }
     }
