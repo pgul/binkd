@@ -10,22 +10,20 @@
 
 .c:  .;os2;ntlm
 
-CC        = wcc386 -D_Optlink=
-PP        = wpp386 -D_Optlink=
+CC        = wcc386 -D_Optlink= -bt=os2 -bc
+PP        = wpp386 -D_Optlink= -bt=os2 -bc
 
-AFLAGS    = /Mx -t -z
-ASM       = ml /c /Zm
-LFLAGS    = /zq /bm /k1024k /x
+LFLAGS    = -zq -bm -k1024k -x -l=os2v2
 CFLAGS    = -DOS2 -DHAVE_THREADS -DHAVE_IO_H -DHAVE_SYS_TIME_H      &
             -DHAVE_SYS_IOCTL_H -DHAVE_SNPRINTF -Dsnprintf=_bprintf  &
             -DHAVE_VSNPRINTF -Dvsnprintf=_vbprintf -DHAVE_DOS_H     &
             -DHAVE_STDARG_H -DIBMTCPIP -DVOID_SLEEP                 &
             -DHTTPS -DNTLM -DAMIGADOS_4D_OUTBOUND -DHAVE_RESOLV_H   &
-	    -DHAVE_NETINET_IN_H -DHAVE_NETDB_H /w4 /bm /zq
+	    -DHAVE_NETINET_IN_H -DHAVE_NETDB_H -w4 -bm -zq
 
 !ifeq DEBUG 1
 CFLAGS    += -d3 -hw
-LFLAGS    += -d3 -hw /fm=binkd.map
+LFLAGS    += -d3 -hw -fm=binkd.map
 !else
 CFLAGS    += -oxs
 !endif
@@ -81,7 +79,7 @@ OBJS      = binkd.obj     readcfg.obj    tools.obj    ftnaddr.obj   &
 
 .c.obj: .autodepend
 	-echo Compile  $<
-	$(CC) $(CFLAGS) $<
+	$(CC) $(CFLAGS) -fo=$@ $<
 
 all: binkd2.exe .SYMBOLIC
 
@@ -94,7 +92,7 @@ before:	.SYMBOLIC
 
 binkd2.exe: before $(OBJS)
 	-echo Link     $@
-	$(LINK) $(LFLAGS) /fe=$@ $(OBJS) $(LIBS)
+	$(LINK) $(LFLAGS) -fe=$@ $(OBJS) $(LIBS)
 
 clean:  .SYMBOLIC
 	-del /n *.RES *.obj os2\*.obj *.o *.map *~ *.bak *.b *.ini &
