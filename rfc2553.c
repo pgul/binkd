@@ -12,6 +12,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2012/07/05 20:56:41  green
+ * Corrected mutex handling for multi-threaded environments
+ *
  * Revision 2.2  2012/01/07 13:52:23  green
  * Removed C++ comments (bad style, I know)
  *
@@ -46,26 +49,32 @@ int getaddrinfo(const char *nodename, const char *servname,
    int Proto;
    const char *End;
    char **CurAddr;
+   int ret = 0;
    
    /* Try to convert the service as a number */
    Port = htons(strtol(servname,(char **)&End,0));
    Proto = SOCK_STREAM;
    
-   if (hints != 0 && hints->ai_socktype != 0)
+   if (hints != NULL && hints->ai_socktype != 0)
       Proto = hints->ai_socktype;
    
+   lockresolvsem();
+
    /* Not a number, must be a name. */
    if (End != servname + strlen(servname))
    {
-      struct servent *Srv = 0;
+      struct servent *Srv = NULL;
       
       /* Do a lookup in the service database */
       if (hints == 0 || hints->ai_socktype == SOCK_STREAM)
 	 Srv = getservbyname(servname,"tcp");
       if (hints != 0 && hints->ai_socktype == SOCK_DGRAM)
 	 Srv = getservbyname(servname,"udp");
-      if (Srv == 0)
-	 return EAI_NONAME;  
+      if (Srv == 0) 
+      {
+	 ret = EAI_NONAME;  
+	 goto cleanup;
+      }
       
       /* Get the right protocol */
       Port = Srv->s_port;
@@ -76,15 +85,21 @@ int getaddrinfo(const char *nodename, const char *servname,
 	 if (strcmp(Srv->s_proto,"udp") == 0)
 	    Proto = SOCK_DGRAM;
          else
-	    return EAI_NONAME;
+         {
+	    ret = EAI_NONAME;
+            goto cleanup;
+         }
+             
       }      
       
       if (hints != 0 && hints->ai_socktype != Proto && 
 	  hints->ai_socktype != 0)
-	 return EAI_SERVICE;
+      {
+	 ret = EAI_SERVICE;
+         goto cleanup;
+      }
    }
       
-   lockresolvsem();
    /* Hostname lookup, only if this is not a listening socket */
    if (hints != 0 && (hints->ai_flags & AI_PASSIVE) != AI_PASSIVE)
    {
@@ -92,15 +107,25 @@ int getaddrinfo(const char *nodename, const char *servname,
       if (Addr == 0)
       {
 	 if (h_errno == TRY_AGAIN)
-	    return EAI_AGAIN;
+         {
+	    ret = EAI_AGAIN;
+	    goto cleanup;
+	 }
 	 if (h_errno == NO_RECOVERY)
-	    return EAI_FAIL;
-	 return EAI_NONAME;
+	 {
+	    ret = EAI_FAIL;
+	    goto cleanup;
+	 }
+	 ret = EAI_NONAME;
+         goto cleanup;
       }
    
       /* No A records */
       if (Addr->h_addr_list[0] == 0)
-	 return EAI_NONAME;
+      {
+	 ret = EAI_NONAME;
+	 goto cleanup;
+      }
       
       CurAddr = Addr->h_addr_list;
    }
@@ -108,17 +133,17 @@ int getaddrinfo(const char *nodename, const char *servname,
       CurAddr = (char **)&End;    /* Fake! */
    
    /* Start constructing the linked list */
-   *res = 0;
-   for (; *CurAddr != 0; CurAddr++)
+   *res = NULL;
+   for (; *CurAddr != NULL; CurAddr++)
    {
       /* New result structure */
       *Result = (struct addrinfo *)calloc(sizeof(**Result),1);
-      if (*Result == 0)
+      if (*Result == NULL)
       {
-	 freeaddrinfo(*res);
-	 return EAI_MEMORY;
+	 ret = EAI_MEMORY;
+	 goto cleanup;
       }
-      if (*res == 0)
+      if (*res == NULL)
 	 *res = *Result;
       
       (*Result)->ai_family = AF_INET;
@@ -137,9 +162,8 @@ int getaddrinfo(const char *nodename, const char *servname,
       (*Result)->ai_addr = (struct sockaddr *)calloc(sizeof(struct sockaddr_in),1);
       if ((*Result)->ai_addr == 0)
       {
-         releaseresolvsem();
-	 freeaddrinfo(*res);
-	 return EAI_MEMORY;
+	 ret = EAI_MEMORY;
+	 goto cleanup;
       }
       
       /* Set the address */
@@ -156,9 +180,16 @@ int getaddrinfo(const char *nodename, const char *servname,
       
       Result = &(*Result)->ai_next;
    }
-   releaseresolvsem();
    
-   return 0;
+cleanup:
+   releaseresolvsem();
+   if (ret != 0 && *res != NULL)
+   {
+      freeaddrinfo(*res);
+      *res = NULL;
+   }
+
+   return ret;
 }
 
 /* freeaddrinfo - Free the result of getaddrinfo
@@ -267,7 +298,7 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen,
       if ((flags & NI_NUMERICSERV) != NI_NUMERICSERV)
       {
 	 struct servent *Ent;
-         lockhostsem();
+         lockresolvsem();
 	 if ((flags & NI_DATAGRAM) == NI_DATAGRAM)
 	    Ent = getservbyport(ntohs(sin->sin_port),"udp");
 	 else
@@ -279,13 +310,13 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen,
 	 {
 	    if ((flags & NI_NAMEREQD) == NI_NAMEREQD)
 	    {
-               releasehostsem();
+               releaseresolvsem();
 	       return EAI_NONAME;
 	    }
 
 	    flags |= NI_NUMERICSERV;
 	 }
-         releasehostsem();
+         releaseresolvsem();
       }
       
       /* Resolve as a plain numberic */
