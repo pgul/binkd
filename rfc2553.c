@@ -12,6 +12,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2012/07/06 21:42:16  green
+ * Corrected potential double-free
+ *
  * Revision 2.3  2012/07/05 20:56:41  green
  * Corrected mutex handling for multi-threaded environments
  *
@@ -51,10 +54,15 @@ int getaddrinfo(const char *nodename, const char *servname,
    char **CurAddr;
    int ret = 0;
    
+   /* Sanitize return parameters */
+   if (res == NULL)
+      return EAI_UNKNOWN;
+   *res = NULL;
+   
    /* Try to convert the service as a number */
    Port = htons(strtol(servname,(char **)&End,0));
    Proto = SOCK_STREAM;
-   
+
    if (hints != NULL && hints->ai_socktype != 0)
       Proto = hints->ai_socktype;
    
@@ -133,7 +141,6 @@ int getaddrinfo(const char *nodename, const char *servname,
       CurAddr = (char **)&End;    /* Fake! */
    
    /* Start constructing the linked list */
-   *res = NULL;
    for (; *CurAddr != NULL; CurAddr++)
    {
       /* New result structure */
