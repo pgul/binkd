@@ -1,3 +1,7 @@
+2012/07/07 00:42:20 1.1a-7 green
+rfc2553.c,2.3,2.4
+Corrected potential double-free
+
 2012/07/05 23:56:44 1.1a-6 green
 rfc2553.c,2.2,2.3
 Corrected mutex handling for multi-threaded environments
