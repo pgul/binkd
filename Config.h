@@ -106,6 +106,8 @@
 #ifndef OS
   #if defined(BINKD9X)
     #define OS "Win9x"
+  #elif defined(WIN64)
+    #define OS "Win64"
   #elif defined(WIN32)
     #define OS "Win32"
   #elif defined(OS2)
