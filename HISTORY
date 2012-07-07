@@ -1,3 +1,7 @@
+2012/07/07 10:19:29 1.1a-8 gul
+Config.h,2.650,2.651
+X64 option for binkd-msvc build
+
 2012/07/07 00:42:20 1.1a-7 green
 rfc2553.c,2.3,2.4
 Corrected potential double-free
