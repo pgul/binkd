@@ -591,4 +591,6 @@ NT/95:  ctrl-c problems fixed
 
 1.1
 ---
+	Failed DNS lookups in multi-threaded environments may lead to
+	mutex semaphore not being released.
 
