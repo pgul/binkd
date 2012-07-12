@@ -589,6 +589,9 @@ NT/95:  ctrl-c problems fixed
 	Add FSP-1035 (IN SRV DNS records) support. Currently only Unix
 	and Win32 (add FSP1035=1 for make) versions supported.
 
-1.0.1
+1.0.1   (Thu Jul 12 2012 13:30:00)
 -----
+	Cosmetic fixes in version string.
+
+	Binkd/Win64.
 
