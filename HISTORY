@@ -1,3 +1,7 @@
+2012/07/12 10:09:33 1.0.1-pre6 gul
+Config.h,2.642.2.9,2.642.2.10
+X64 option for binkd-msvc build
+
 2012/06/26 14:43:00 1.0.1-pre5 gul
 perlhooks.c,2.79,2.79.2.1
 Leave expected password unchanged if unmodified in on_handhsake hook
