@@ -99,6 +99,7 @@ LIBS=$(LIBS) wsock32.lib
 !else
 !ifdef X64
 BINKDNAME=binkd64
+OUTDIR=$(OUTDIR)-x64
 !else
 BINKDNAME=binkd
 !endif
