@@ -3,7 +3,7 @@
 #
 # Usage: nmake [DEBUG=1] [STATIC=1] [BINKD9X=1] [PERL=1] [PERLDL=1]
 #              [ZLIB=1] [BZLIB2=1] [ZLIBDL=1] [DEBUGCHILD=1] [BW_LIM=1]
-#              [MSVC_VER=10] [IPV6=1] [FSP1035=1]
+#              [MSVC_VER=10] [IPV6=1] [FSP1035=1] [X64=1]
 #
 # Use MSVC_VER=10 to build with Visual Studio 2008 or 2010
 #
@@ -37,6 +37,13 @@ OBJDIR= $(OUTDIR)\obj
 MAKEDIRSONLY= $(OBJDIR) $(OBJDIR)\nt $(OBJDIR)\ntlm
 MAKEDIRS= $(BINDIR) $(OUTDIR) $(MAKEDIRSONLY)
 
+!ifdef X64
+MACHINETYPE=X64
+CDEFS=   $(CDEFS) -DWIN64
+!else
+MACHINETYPE=I386
+!endif
+
 !if "$(MSVC_VER)" == "10"
 CFLAGS=  $(CFLAGS) -nologo -M$(RTLTYPE) -W3 -EHsc -c -J \
          -Fp"$(OBJDIR)\$(BINKDNAME).pch" -Fd"$(OBJDIR)\$(BINKDNAME)"
@@ -50,7 +57,7 @@ CDEFS=   $(CDEFS) -DWIN32 -DHAVE_THREADS -DHAVE_IO_H -DHAVE_DOS_H \
          -DHAVE_STDARG_H -DVISUALCPP -DHTTPS -DAMIGADOS_4D_OUTBOUND -DNTLM
 !endif
 
-LFLAGS=  /nologo /machine:I386 /subsystem:$(SUBSYSTEM) \
+LFLAGS=  /nologo /machine:$(MACHINETYPE) /subsystem:$(SUBSYSTEM) \
          /pdb:"$(OUTDIR)\$(BINKDNAME).pdb" /out:"$(OUTDIR)\$(BINKDEXE)"
 LIBS=    $(LIBS) kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib \
          advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib wsock32.lib
@@ -90,15 +97,19 @@ SUBSYSTEM=windows
 OBJS=$(OBJS) "$(OBJDIR)\nt\win9x.obj"
 LIBS=$(LIBS) wsock32.lib
 !else
-!ifdef IPV6
+!ifdef X64
+BINKDNAME=binkd64
+OUTDIR=$(OUTDIR)-x64
+!else
 BINKDNAME=binkd
+!endif
+!ifdef IPV6
 OUTDIR=$(OUTDIR)-binkd-ipv6
 CDEFS=$(CDEFS) -D_CONSOLE
 SUBSYSTEM=console
 OBJS=$(OBJS) "$(OBJDIR)\nt\service.obj"
 LIBS=$(LIBS) ws2_32.lib
 !else
-BINKDNAME=binkd
 OUTDIR=$(OUTDIR)-binkd
 CDEFS=$(CDEFS) -D_CONSOLE
 SUBSYSTEM=console
