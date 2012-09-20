@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.45  2012/09/20 12:16:52  gul
+ * Added "call via external pipe" (for example ssh) functionality.
+ * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
+ *
  * Revision 2.44  2012/06/20 22:41:46  green
  * 1 hour timeout for defnode resolutions
  *
@@ -241,7 +245,7 @@ static void sort_nodes (BINKD_CONFIG *config)
  */
 static FTN_NODE *add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pwd,
               char obox_flvr, char *obox, char *ibox, int NR_flag, int ND_flag,
-	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, 
+	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, char *pipe,
 	      int IP_afamily,
 #ifdef BW_LIM
               long bw_send, long bw_recv,
@@ -273,6 +277,7 @@ static FTN_NODE *add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pk
     pn->NP_flag = NP_OFF;
     pn->MD_flag = MD_USE_OLD;
     pn->HC_flag = HC_USE_OLD;
+    pn->pipe = NULL;
     pn->restrictIP = RIP_OFF;
     pn->IP_afamily = AF_UNSPEC;
 #ifdef BW_LIM
@@ -298,6 +303,12 @@ static FTN_NODE *add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pk
     pn->HC_flag = HC_flag;
   if (IP_afamily != AF_USE_OLD)
     pn->IP_afamily = IP_afamily;
+
+  if (pipe != NULL)
+  {
+    xfree (pn->pipe);
+    pn->pipe = xstrdup (pipe);
+  }
 
   if (hosts && *hosts)
   {
@@ -349,7 +360,7 @@ static FTN_NODE *add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pk
 
 FTN_NODE *add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pwd,
               char obox_flvr, char *obox, char *ibox, int NR_flag, int ND_flag,
-	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, 
+	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, char *pipe,
 	      int IP_afamily,
 #ifdef BW_LIM
               long bw_send, long bw_recv,
@@ -360,7 +371,7 @@ FTN_NODE *add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *o
 
   locknodesem();
   pn = add_node_nolock(fa, hosts, pwd, pkt_pwd, out_pwd, obox_flvr, obox, ibox, 
-                  NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, 
+                  NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, pipe,
 		  IP_afamily,
 #ifdef BW_LIM
                   bw_send, bw_recv,
@@ -425,6 +436,7 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
     on->NP_flag=np->NP_flag;
     on->HC_flag=np->HC_flag;
     on->restrictIP=np->restrictIP;
+    on->pipe=np->pipe;
     on->IP_afamily=np->IP_afamily;
 #ifdef BW_LIM
     on->bw_send = np->bw_send; on->bw_recv = np->bw_recv;
@@ -434,7 +446,7 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
 
   add_node_nolock(fa, np->hosts, NULL, NULL, NULL, np->obox_flvr, np->obox, 
        np->ibox, np->NR_flag, np->ND_flag, np->MD_flag, np->restrictIP, 
-       np->HC_flag, np->NP_flag, np->IP_afamily,
+       np->HC_flag, np->NP_flag, np->pipe, np->IP_afamily,
 #ifdef BW_LIM
        np->bw_send, np->bw_recv,
 #endif
@@ -518,7 +530,7 @@ int poll_node (char *s, BINKD_CONFIG *config)
 
   if (!parse_ftnaddress (s, &target, config->pDomains.first))
   {
-    Log (1, "`%s' cannot be parsed as a Fido-style address\n", s);
+    Log (1, "`%s' cannot be parsed as a Fido-style address", s);
     return 0;
   }
   else
@@ -532,7 +544,7 @@ int poll_node (char *s, BINKD_CONFIG *config)
     if (!get_node_info_nolock (&target, config))
       add_node_nolock (&target, "*", NULL, NULL, NULL, '-', NULL, NULL, 
 		       NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, 
-		       HC_USE_OLD, NP_USE_OLD, AF_USE_OLD,
+		       HC_USE_OLD, NP_USE_OLD, NULL, AF_USE_OLD,
 #ifdef BW_LIM
                        BW_DEF, BW_DEF,
 #endif
@@ -557,6 +569,7 @@ void free_nodes(BINKD_CONFIG *config)
     xfree(node->hosts);
     xfree(node->obox);
     xfree(node->ibox);
+    xfree(node->pipe);
     if (node->pkt_pwd && node->pkt_pwd != (char*)&(node->pwd)) free(node->pkt_pwd);
     if (node->out_pwd && node->out_pwd != (char*)&(node->pwd)) free(node->out_pwd);
     free(node);

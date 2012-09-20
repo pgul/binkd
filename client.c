@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.83  2012/09/20 12:16:52  gul
+ * Added "call via external pipe" (for example ssh) functionality.
+ * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
+ *
  * Revision 2.82  2012/06/07 15:46:57  green
  * Really try all addresses returned by getaddrinfo()
  *
@@ -340,6 +344,7 @@
 #include "assert.h"
 #include "setpttl.h"
 #include "sem.h"
+#include "run.h"
 #if defined(WITH_PERL)
 #include "perlhooks.h"
 #endif
@@ -578,8 +583,9 @@ void clientmgr (void *arg)
 static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 {
   int sockfd = INVALID_SOCKET;
+  int sock_out;
   char szDestAddr[FTN_ADDR_SZ + 1];
-  int i, rc;
+  int i, rc, pid = -1;
   char host[BINKD_FQDNLEN + 5 + 1];       /* current host/port */
   char addrbuf[BINKD_FQDNLEN + 1];
   char servbuf[MAXSERVNAME + 1];
@@ -627,7 +633,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   setproctitle ("call to %s", szDestAddr);
 
 #ifdef HTTPS
-  use_proxy = (node->NP_flag != NP_ON) && (proxy[0] || socks[0]);
+  use_proxy = (node->NP_flag != NP_ON) && !node->pipe && !node->pipe[0] && (proxy[0] || socks[0]);
   if (use_proxy)
   {
     char *sp, *sport;
@@ -675,6 +681,27 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       Log (1, "%s: %i: error parsing host list", hosts, i);
       continue;
     }
+
+    pid = -1;
+    if (node->pipe && node->pipe[0])
+    {
+      char *cmdline = strdup(node->pipe);
+      cmdline = ed(cmdline, "*H", host, NULL);
+      cmdline = ed(cmdline, "*I", port, NULL);
+      if ((pid = run3(cmdline, &sock_out, &sockfd, NULL)) != -1)
+      {
+	Log (4, "connected");
+	break;
+      }
+      if (!binkd_exit)
+      {
+	Log (1, "connection to %s failed");
+	/* bad_try (&node->fa, "exec error", BAD_CALL, config); */
+      }
+      sockfd = INVALID_SOCKET;
+      continue;
+    }
+
 #ifdef HTTPS
     if (use_proxy)
       aiHead = aiProxyHead;
@@ -799,6 +826,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 	alarm(0);
 #endif
 	Log (4, "connected");
+	sock_out = sockfd;
 	break;
       }
 
@@ -859,9 +887,29 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   if (sockfd == INVALID_SOCKET)
     return 0;
 
-  protocol (sockfd, node, host, config);
-  del_socket(sockfd);
-  soclose (sockfd);
+  protocol (sockfd, sock_out, node, NULL, host, config);
+  if (pid != -1)
+  {
+    close(sock_out);
+#ifdef HAVE_WAITPID
+    if (waitpid (pid, &rc, 0) == -1)
+    {
+      Log (1, "waitpid(%u) error: %s", pid, strerror(errno));
+    }
+    else
+    {
+      if (WIFSIGNALED(rc))
+        Log (2, "process %u exited by signal %u", pid, WTERMSIG(rc));
+      else
+        Log (4, "rc(%u)=%u", pid, WEXITSTATUS(rc));
+    }
+#endif
+  }
+  else
+  {
+    del_socket(sockfd);
+    soclose (sockfd);
+  }
   return 1;
 }
 
@@ -898,7 +946,7 @@ static void call (void *arg)
   if (poll_flag)
     PostSem(&wakecmgr);
   _endthread();
-#elif defined(DOS)
+#elif defined(DOS) || defined(DEBUGCHILD)
   --n_clients;
 #endif
 }

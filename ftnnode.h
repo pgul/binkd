@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.24  2012/09/20 12:16:52  gul
+ * Added "call via external pipe" (for example ssh) functionality.
+ * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
+ *
  * Revision 2.23  2012/06/20 22:41:46  green
  * 1 hour timeout for defnode resolutions
  *
@@ -139,7 +143,7 @@ FTN_NODE *get_node_info (FTN_ADDR *fa, BINKD_CONFIG *config);
  */
 FTN_NODE *add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pwd,
               char obox_flvr, char *obox, char *ibox, int NR_flag, int ND_flag,
-	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, 
+	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, char *pipe,
 	      int IP_afamily,
 #ifdef BW_LIM
               long bw_send, long bw_recv,

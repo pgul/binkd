@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.55  2012/09/20 12:16:54  gul
+ * Added "call via external pipe" (for example ssh) functionality.
+ * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
+ *
  * Revision 2.54  2012/05/14 06:14:59  gul
  * More safe signal handling
  *
@@ -275,7 +279,7 @@ static void serv (void *arg)
 #if defined(WITH_PERL) && defined(HAVE_THREADS)
   cperl = perl_init_clone(config);
 #endif
-  protocol (h, 0, NULL, config);
+  protocol (h, h, NULL, NULL, NULL, config);
   Log (5, "downing server...");
 #if defined(WITH_PERL) && defined(HAVE_THREADS)
   perl_done_clone(cperl);

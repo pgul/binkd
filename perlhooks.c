@@ -14,6 +14,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.81  2012/09/20 12:16:53  gul
+ * Added "call via external pipe" (for example ssh) functionality.
+ * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
+ *
  * Revision 2.80  2012/06/26 11:42:03  gul
  * Leave expected password unchanged if unmodified in on_handhsake hook
  *
@@ -1753,9 +1757,6 @@ static void setup_addrs(char *name, int n, FTN_ADDR *p) {
 static void setup_session(STATE *state, int lvl) {
   SV 	*sv;
   HV 	*hv;
-  char  host[BINKD_FQDNLEN + 1];
-  struct sockaddr_storage sin;
-  socklen_t sin_len = sizeof(sin);
   BINKD_CONFIG *cfg = state->config;
 
   if (!Perl_get_context()) return;
@@ -1766,10 +1767,7 @@ static void setup_session(STATE *state, int lvl) {
     VK_ADD_intz(sv, "call", state->to != NULL);
     VK_ADD_intz(sv, "start", (int)state->start_time);
     VK_ADD_str (sv, "host", state->peer_name);
-    if (getpeername(state->s, (struct sockaddr *)&sin, &sin_len) != -1 &&
-        getnameinfo((struct sockaddr *)&sin, sin_len, host, sizeof(host), NULL, 0, NI_NUMERICHOST) == 0)
-      { VK_ADD_strs(sv, "ip", host); }
-      else { VK_ADD_strs(sv, "ip", "0.0.0.0"); }
+    VK_ADD_str (sv, "host", state->ipaddr);
     VK_ADD_str(sv, "our_ip", state->our_ip);
     state->perl_set_lvl = 1;
   }

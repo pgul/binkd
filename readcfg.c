@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.105  2012/09/20 12:16:53  gul
+ * Added "call via external pipe" (for example ssh) functionality.
+ * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
+ *
  * Revision 2.104  2012/06/17 00:21:40  green
  * Segmentation violation in config dump
  *
@@ -1056,7 +1060,7 @@ static int read_passwords(char *filename)
         exp_ftnaddress (&fa, work_config.pAddr, work_config.nAddr, work_config.pDomains.first);
         pn = add_node (&fa, NULL, password, pkt_pwd, out_pwd, '-', NULL, NULL,
                   NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, 
-		  HC_USE_OLD, NP_USE_OLD, AF_USE_OLD,
+		  HC_USE_OLD, NP_USE_OLD, NULL, AF_USE_OLD,
 #ifdef BW_LIM
                   BW_DEF, BW_DEF,
 #endif
@@ -1492,7 +1496,7 @@ static int read_domain_info (KEYWORD *key, int wordcount, char **words)
 static int read_node_info (KEYWORD *key, int wordcount, char **words)
 {
 #define ARGNUM 6
-  char *w[ARGNUM], *tmp, *pkt_pwd, *out_pwd;
+  char *w[ARGNUM], *tmp, *pkt_pwd, *out_pwd, *pipe;
   int   i, j;
   int   NR_flag = NR_USE_OLD, ND_flag = ND_USE_OLD, HC_flag = HC_USE_OLD,
         MD_flag = MD_USE_OLD, NP_flag = NP_USE_OLD, restrictIP = RIP_USE_OLD,
@@ -1503,6 +1507,7 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
   FTN_ADDR fa;
   FTN_NODE *pn;
 
+  pipe = "";
   memset(w, 0, sizeof(w)); /* init by NULL's */
   i = 0;                   /* index in w[] */
 
@@ -1542,7 +1547,8 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
       else if (STRICMP (tmp, "-noproxy") == 0)
         NP_flag = NP_ON;
 #ifdef BW_LIM
-      else if (STRICMP (tmp, "-bw") == 0) {
+      else if (STRICMP (tmp, "-bw") == 0)
+      {
         char *s1, *s2, *ss;
         if (j == wordcount - 1) ConfigError("`-bw' option requires parameter");
         s1 = words[++j];
@@ -1557,11 +1563,14 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
       }
 #endif
       else if (STRICMP (tmp, "-4") == 0)
+      {
 	if (IP_afamily <= AF_UNSPEC)
 	  IP_afamily = AF_INET;
 	else
 	  ConfigError("`-4' may only be used once and mutually exclusive with `-6'");
+      }
       else if (STRICMP (tmp, "-6") == 0)
+      {
 #ifdef AF_INET6
 	if (IP_afamily <= AF_UNSPEC)
 	  IP_afamily = AF_INET6;
@@ -1570,6 +1579,12 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
 #else
 	ConfigError("IPv6 not supported in your version of BinkD");
 #endif
+      }
+      else if (STRICMP (tmp, "-pipe") == 0)
+      {
+	if (j == wordcount - 1) ConfigError("`-pipe' option requires parameter");
+        pipe = words[++j];
+      }
       else
         return ConfigError("%s: unknown option for `node' keyword", tmp);
     }
@@ -1598,7 +1613,7 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
 
   split_passwords(w[2], &pkt_pwd, &out_pwd);
   pn = add_node (&fa, w[1], w[2], pkt_pwd, out_pwd, (char)(w[3] ? w[3][0] : '-'), w[4], w[5],
-            NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, 
+            NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, pipe,
 	    IP_afamily,
 #ifdef BW_LIM
             bw_send, bw_recv,

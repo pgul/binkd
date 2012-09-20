@@ -2,6 +2,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30  2012/09/20 12:16:53  gul
+ * Added "call via external pipe" (for example ssh) functionality.
+ * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
+ *
  * Revision 2.29  2012/05/13 17:26:40  gul
  * Possibility to specify $passwd for session in on_handshake() perl hook
  *
@@ -177,7 +181,7 @@ struct _BW
 typedef struct _STATE STATE;
 struct _STATE
 {
-  SOCKET s;
+  SOCKET s_in, s_out;
   struct _BINKD_CONFIG *config;
   FTN_NODE *to;			/* Dest. address (if an outbound connection) */
   char expected_pwd[MAXPWDLEN + 1];
@@ -202,6 +206,7 @@ struct _STATE
   int n_sent_fls;		/* The number of... */
   FTNQ *q;			/* Queue */
   FTN_ADDR *fa;			/* Foreign akas */
+  FTN_ADDR *remote_fa;		/* Remote AKA given from command-line */
   int nfa;			/* How many... */
   int nallfa;			/* How many remote akas including busy & n/a */
   FTN_ADDR *pAddr;              /* Our aka's, NULL = use from config */
@@ -212,6 +217,7 @@ struct _STATE
   int listed_flag;              /* Listed? */
   char *inbound;		/* The current inbound dir */
   char *peer_name;              /* Remote host's name */
+  char *ipaddr;			/* Remote IP */
   char *our_ip;			/* Local IP */
   int io_error;
   int msgs_in_batch;

@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2012/09/20 12:16:53  gul
+ * Added "call via external pipe" (for example ssh) functionality.
+ * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
+ *
  * Revision 2.6  2003/10/29 21:08:39  gul
  * Change include-files structure, relax dependences
  *
@@ -44,14 +48,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <errno.h>
 #if defined WIN32
 #include <windows.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
 #endif
 
 #include "run.h"
 #include "tools.h"
 
-int run (char *cmd)
+int run (const char *cmd)
 {
   int rc=-1;
 #if !defined(WIN32) && !defined(EMX)
@@ -112,3 +120,69 @@ int run (char *cmd)
 #endif
   return rc;
 }
+
+int run3 (const char *cmd, int *in, int *out, int *err)
+{
+#ifdef HAVE_FORK
+  int pid;
+  int pin[2], pout[2], perr[2];
+
+  if (in)  pipe(pin);
+  if (out) pipe(pout);
+  if (err) pipe(perr);
+  pid = fork();
+  if (pid == -1)
+  {
+    Log (1, "Cannot fork: %s", strerror(errno));
+    if (in)  close(pin[1]),  close(pin[0]);
+    if (out) close(pout[1]), close(pout[0]);
+    if (err) close(perr[1]), close(perr[0]);
+    return -1;
+  }
+  if (pid == 0)
+  { /* child */
+    if (in)
+    {
+      dup2(pin[0], fileno(stdin));
+      close(pin[0]);
+      close(pin[1]);
+    }
+    if (out)
+    {
+      dup2(pout[1], fileno(stdout));
+      close(pout[0]);
+      close(pout[1]);
+    }
+    if (err)
+    {
+      dup2(perr[1], fileno(stderr));
+      close(perr[0]);
+      close(perr[1]);
+    }
+    /* todo: parse args and run via execvp() if no metacharacters */
+    /* or run process via exec "sh -c $cmd" */
+    _exit(system(cmd));
+  }
+  if (in)
+  {
+    *in = pin[1];
+    close(pin[0]);
+  }
+  if (out)
+  {
+    *out = pout[0];
+    close(pout[1]);
+  }
+  if (err)
+  {
+    *err = perr[0];
+    close(perr[1]);
+  }
+  Log (2, "External command '%s' started", cmd);
+  return pid;
+#else
+  Log (1, "Run via external command not implemented for this platform");
+  return -1;
+#endif
+}
+

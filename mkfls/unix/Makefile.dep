@@ -3,7 +3,7 @@ md5b.o: md5b.c iphdr.h sys.h protoco2.h btypes.h Config.h md5b.h tools.h \
 binkd.o: binkd.c readcfg.h Config.h btypes.h iphdr.h sys.h common.h \
  server.h client.h tools.h getw.h bsy.h protocol.h setpttl.h sem.h \
  ftnnode.h rfc2553.h srv_gai.h perlhooks.h prothlp.h protoco2.h \
- unix/daemonize.h confopt.h
+ unix/daemonize.h confopt.h ftnaddr.h
 readcfg.o: readcfg.c readcfg.h Config.h btypes.h iphdr.h sys.h common.h \
  sem.h tools.h getw.h protoco2.h srif.h iptools.h readflo.h ftnaddr.h \
  ftnnode.h ftndom.h ftnq.h perlhooks.h prothlp.h
@@ -16,7 +16,7 @@ ftnq.o: ftnq.c readcfg.h Config.h btypes.h iphdr.h sys.h ftnq.h ftnnode.h \
 client.o: client.c readcfg.h Config.h btypes.h iphdr.h sys.h client.h \
  ftnnode.h ftnaddr.h common.h iptools.h ftnq.h tools.h getw.h protocol.h \
  bsy.h assert.h setpttl.h sem.h perlhooks.h prothlp.h protoco2.h https.h \
- rfc2553.h srv_gai.h
+ rfc2553.h srv_gai.h run.h
 server.o: server.c iphdr.h sys.h readcfg.h Config.h btypes.h common.h \
  server.h iptools.h tools.h getw.h protocol.h assert.h setpttl.h sem.h \
  perlhooks.h prothlp.h protoco2.h rfc2553.h

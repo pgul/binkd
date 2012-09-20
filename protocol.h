@@ -2,6 +2,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2012/09/20 12:16:53  gul
+ * Added "call via external pipe" (for example ssh) functionality.
+ * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
+ *
  * Revision 2.3  2003/08/26 16:06:27  stream
  * Reload configuration on-the fly.
  *
@@ -25,6 +29,6 @@
 enum { P_NULL = 0, P_NONSECURE, P_SECURE, 
        P_NA = 0x100, P_WE_NONSECURE, P_REMOTE_NONSECURE };
 
-void protocol(SOCKET s, FTN_NODE *fa, char *current_addr, BINKD_CONFIG *config);
+void protocol(SOCKET s_in, SOCKET s_out, FTN_NODE *fn, FTN_ADDR *fa, char *current_addr, BINKD_CONFIG *config);
 
 #endif

@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2012/09/20 12:16:54  gul
+ * Added "call via external pipe" (for example ssh) functionality.
+ * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
+ *
  * Revision 2.1  2001/10/27 08:07:18  gul
  * run and run_args returns exit code of calling process
  *
@@ -28,6 +32,7 @@
 #ifndef _run_h
 #define _run_h
 
-int run (char *);
+int run (const char *);
+int run3 (const char *cmd, int *in, int *out, int *err);
 
 #endif

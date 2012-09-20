@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.222  2012/09/20 12:16:53  gul
+ * Added "call via external pipe" (for example ssh) functionality.
+ * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
+ *
  * Revision 2.221  2012/06/26 09:55:46  gul
  * MD5 password is not mandatory on incoming
  *
@@ -831,7 +835,7 @@ static char *scommand[] = {"NUL", "ADR", "PWD", "FILE", "OK", "EOB",
 /*
  * Fills <<state>> with initial values, allocates buffers, etc.
  */
-static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to, BINKD_CONFIG *config)
+static int init_protocol (STATE *state, SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, BINKD_CONFIG *config)
 {
   memset (state, 0, sizeof (STATE));
 
@@ -851,6 +855,7 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to, BINKD_CONFI
   state->bytes_sent = state->bytes_rcvd = 0;
   state->files_sent = state->files_rcvd = 0;
   state->to = to;
+  state->remote_fa = fa;
   state->NR_flag = (to && (to->NR_flag == NR_ON || to->ND_flag == ND_ON)) ? WANT_NR : NO_NR;
   state->ND_flag = (to && to->ND_flag == ND_ON) ? THEY_ND : NO_ND;
   state->MD_flag = 0;
@@ -888,7 +893,8 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to, BINKD_CONFI
 # endif
   state->z_canrecv |= 2;
 #endif
-  setsockopts (state->s = socket);
+  setsockopts (state->s_in  = socket_in);
+  setsockopts (state->s_out = socket_out);
   TF_ZERO (&state->in);
   TF_ZERO (&state->out);
   TF_ZERO (&state->flo);
@@ -897,7 +903,7 @@ static int init_protocol (STATE *state, SOCKET socket, FTN_NODE *to, BINKD_CONFI
   state->start_time = safe_time();
   state->evt_queue = NULL;
   state->config = config;
-  Log (6, "binkp init done, socket # is %i", state->s);
+  Log (6, "binkp init done, socket # is %i", state->s_in);
   return 1;
 }
 
@@ -1078,7 +1084,7 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
   if (state->optr && state->oleft)
   {
     Log (7, "sending %i byte(s)", state->oleft);
-    n = send (state->s, state->optr, state->oleft, MSG_NOSIGNAL);
+    n = SEND (state->s_out, state->optr, state->oleft, MSG_NOSIGNAL);
 #ifdef BW_LIM
     state->bw_send.bytes += n;
 #endif
@@ -1686,35 +1692,34 @@ static char * add_shared_akas(char * s, BINKD_CONFIG *config)
           /* I think, that if shared address was exposed
            * by remote node, it should be deleted...
            */
-          ftnaddress_to_str (szFTNAddr,&fa);
-          Log(1,"shared aka `%s' used by node %s",szFTNAddr,s);
+          ftnaddress_to_str (szFTNAddr, &fa);
+          Log (1, "shared aka `%s' used by node %s", szFTNAddr,s);
           /* fill this aka by spaces */
-          c = strstr(s,w);
+          c = strstr(s, w);
           if (c)
           {
-            memset(c,' ', strlen(w));
+            memset(c, ' ', strlen(w));
             i--;
           }
           break;
         }
         else
         {
-          for (fta = chn->sfa.first;fta;fta = fta->next)
+          for (fta = chn->sfa.first; fta; fta = fta->next)
           {
-          if (ftnaddress_cmp(&fta->fa,&fa) == 0)
-          {
-            if (ad == 0)
+            if (ftnaddress_cmp(&fta->fa, &fa) == 0)
             {
-              ad = xalloc(FTN_ADDR_SZ+1);
-              ad[0] = 0;
-              count = 1;
-              } else {
-                ad = xrealloc(ad,(++count)*(FTN_ADDR_SZ+1));
-              }
+              if (ad == 0)
+              {
+                ad = xalloc(FTN_ADDR_SZ+1);
+                ad[0] = 0;
+                count = 1;
+              } else
+                ad = xrealloc(ad, (++count)*(FTN_ADDR_SZ+1));
               ftnaddress_to_str (szFTNAddr,&chn->sha);
               strcat(ad, " ");
               strcat(ad, szFTNAddr);
-              Log(2,"shared aka %s is added",szFTNAddr);
+              Log(2, "shared aka %s is added", szFTNAddr);
               break;
             }
           }
@@ -1884,10 +1889,11 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
     pn = get_node_info(&fa, config);
 
     if (pn && pn->restrictIP
+        && (state->to == 0 || ((!pn->pipe || !pn->pipe[0])
 #ifdef HTTPS
-        && (state->to == 0 || (!config->proxy[0] && !config->socks[0]))
+                               && !config->proxy[0] && !config->socks[0]
 #endif
-        )
+                              )))
     { int i, rc;
 #ifndef VAL_STYLE
       int ipok = 0;
@@ -1895,9 +1901,34 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
       char host[BINKD_FQDNLEN + 1];       /* current host/port */
       char *port;
       struct sockaddr_storage sin;
-      socklen_t si = sizeof(sin);
       struct addrinfo *ai, *aiHead, hints;
       int aiErr;
+
+      memset(&hints, 0, sizeof(hints));
+      hints.ai_family = AF_UNSPEC;
+      hints.ai_flags = AI_NUMERICHOST;
+      if ((rc = getaddrinfo(state->ipaddr, NULL, &hints, &aiHead)) == 0)
+      {
+        if (aiHead)
+        {
+          memcpy(&sin, aiHead->ai_addr, aiHead->ai_addrlen);
+	  freeaddrinfo(aiHead);
+        }
+        else
+        {
+#ifndef VAL_STYLE
+          ipok = 2;
+#endif
+          Log (3, "%s, getaddrinfo error (empty result)", state->ipaddr);
+        }
+      }
+      else
+      {
+        Log (3, "%s, getaddrinfo error: %s (%d)", state->ipaddr, gai_strerror(rc), rc);
+#ifndef VAL_STYLE
+          ipok = 2;
+#endif
+      }
 
       /* setup hints for getaddrinfo */
       memset((void *)&hints, 0, sizeof(hints));
@@ -1909,15 +1940,6 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 #ifdef VAL_STYLE
       ip_found = FOUND_NONE; ip_check = CHECK_NA;
 #endif
-
-      if (getpeername (state->s, (struct sockaddr *)&sin, &si) == -1)
-      {
-        if (binkd_exit) return 0;
-        Log (1, "Can't getpeername(): %s", TCPERR());
-#ifndef VAL_STYLE
-        ipok = 2;
-#endif
-      }
 
       for (i = 1; pn->hosts &&
            (rc = get_host_and_port(i, host, &port, pn->hosts, &pn->fa, config)) != -1; ++i)
@@ -2035,13 +2057,20 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
       char *pwd = state->to ? pn->out_pwd : pn->pwd;
       if (pwd && strcmp(pwd, "-"))
       {
-        if (!strcmp (state->expected_pwd, "-"))
-        {
-          strncpy(state->expected_pwd, pwd, sizeof(state->expected_pwd));
-          state->expected_pwd[sizeof(state->expected_pwd) - 1] = '\0';
-          state->MD_flag = pn->MD_flag;
+        if (strcmp (pwd, "!") == 0 && ftnaddress_cmp (state->remote_fa, &fa) != 0)
+        { /* drop session if remote has aka with disabled password */
+          Log (1, "Password authentication disabled for node %s", szFTNAddr);
+          state->expected_pwd[0] = '\0';
+          continue;
         }
-        else if (strcmp(state->expected_pwd, pwd))
+        else if (strcmp (state->expected_pwd, "-") == 0 || strcmp (state->expected_pwd, "!") == 0)
+        {
+          strnzcpy(state->expected_pwd, pwd, sizeof(state->expected_pwd));
+          state->MD_flag |= pn->MD_flag;
+        }
+        else if (strcmp (state->expected_pwd, pwd) == 0 || strcmp (pwd, "!") == 0)
+          state->MD_flag |= pn->MD_flag;
+        else
         {
           if (state->to)
             Log (2, "inconsistent pwd settings for this node, aka %s dropped", szFTNAddr);
@@ -2052,8 +2081,6 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
           }
           continue;
         }
-        else
-          state->MD_flag |= pn->MD_flag;
       }
     }
 
@@ -2285,7 +2312,11 @@ static int complete_login (STATE *state, BINKD_CONFIG *config)
     state->crypt_flag = NO_CRYPT;
   else if (state->crypt_flag == (WE_CRYPT|THEY_CRYPT) && !state->MD_flag)
   { state->crypt_flag = NO_CRYPT;
-    Log (3, "Crypt allowed only with MD5 authorization");
+    Log (3, "Crypt allowed only with MD5 authentication");
+  }
+  else if (state->crypt_flag == (WE_CRYPT|THEY_CRYPT) && strcmp (state->expected_pwd, "!") == 0)
+  { state->crypt_flag = NO_CRYPT;
+    Log (3, "Crypt allowed only with password authentication");
   }
   else if (state->crypt_flag == (WE_CRYPT|THEY_CRYPT))
   { char *p;
@@ -2353,18 +2384,27 @@ static int PWD (STATE *state, char *pwd, int sz, BINKD_CONFIG *config)
         Log (1, "Caller does not support MD5");
         return 0;
       }
-      if ((sp = MD_buildDigest(state->expected_pwd, state->MD_challenge)) != NULL)
+      state->MD_flag = 1;
+      if (strcmp (state->expected_pwd, "!") == 0)
+        bad_pwd = 0;
+      else if ((sp = MD_buildDigest(state->expected_pwd, state->MD_challenge)) != NULL)
       {
-        if ((bad_pwd = STRICMP(sp, pwd)) == 0) state->MD_flag = 1;
+        bad_pwd = (STRICMP(sp, pwd) != 0);
         free(sp);
         sp = NULL;
       }
-      else {
+      else
+      {
         Log (2, "Unable to build Digest");
-        bad_pwd=1;
+        bad_pwd = 1;
       }
     }
-    else bad_pwd=(state->expected_pwd[0] == 0 || strcmp (state->expected_pwd, pwd));
+    else
+    {
+      bad_pwd = (state->expected_pwd[0] == 0 || strcmp (state->expected_pwd, pwd));
+      if (strcmp (state->expected_pwd, "!") == 0)
+        bad_pwd = 0;
+    }
 
     if (bad_pwd && !no_password) /* I don't check password if we do not need one */
     {
@@ -2396,6 +2436,10 @@ static int PWD (STATE *state, char *pwd, int sz, BINKD_CONFIG *config)
   else if (state->crypt_flag == (THEY_CRYPT | WE_CRYPT) && !state->MD_flag)
   { state->crypt_flag = NO_CRYPT;
     Log (4, "Crypt allowed only with MD5 authorization");
+  }
+  else if (state->crypt_flag == (THEY_CRYPT | WE_CRYPT) && strcmp (state->expected_pwd, "!") == 0)
+  { state->crypt_flag = NO_CRYPT;
+    Log (3, "Crypt allowed only with password authentication");
   }
 
   if ((state->ND_flag & WE_ND) && (state->ND_flag & CAN_NDA) == 0)
@@ -2807,7 +2851,7 @@ static int ND_set_status(char *status, FTN_ADDR *fa, STATE *state, BINKD_CONFIG 
     }
     rc = errno;
     if (access(buf, F_OK) == 0)
-    { Log(1, "Can't unlink %s: %s!\n", buf, strerror(rc));
+    { Log(1, "Can't unlink %s: %s!", buf, strerror(rc));
       return 0;
     }
     return 1;
@@ -3238,7 +3282,7 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
 
   if (sz == 0)
     no = 0;
-  else if ((no = recv (state->s, state->ibuf + state->iread,
+  else if ((no = RECV (state->s_in, state->ibuf + state->iread,
                        sz - state->iread, 0)) == SOCKET_ERROR)
   {
     if (TCPERRNO == TCPERR_WOULDBLOCK || TCPERRNO == TCPERR_AGAIN)
@@ -3737,7 +3781,7 @@ static void log_end_of_session (int status, STATE *state, BINKD_CONFIG *config)
        state->bytes_sent, state->bytes_rcvd);
 }
 
-void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *config)
+void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, char *current_addr, BINKD_CONFIG *config)
 {
   STATE state;
   struct timeval tv;
@@ -3759,7 +3803,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
   int limited;
 #endif
 
-  if (!init_protocol (&state, socket, to, config))
+  if (!init_protocol (&state, socket_in, socket_out, to, fa, config))
     return;
 
   /* initialize variables */
@@ -3767,49 +3811,74 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
   host[0] = '\0';
   service[0] = '\0';
 
-  if (getpeername (socket, (struct sockaddr *)&peer_name, &peer_name_len) == -1)
+  if (current_addr)
   {
-    if (!binkd_exit)
-      Log (1, "getpeername: %s", TCPERR ());
-  }
+    struct addrinfo hints, *hres;
 
-  /* verify that output of getpeername() is safe (enough) and resolve
-   * IP and hostname if so requested and possible.
-   */
-  if ( ((struct sockaddr *)&peer_name)->sa_family == 0 || 
-       peer_name_len > sizeof(peer_name))
-    snprintf(ipaddr, BINKD_FQDNLEN, "invalid");
-  else
-  {
-    status = getnameinfo((struct sockaddr *)&peer_name, peer_name_len,
-		ipaddr, sizeof(ipaddr), service, sizeof(service),
-		NI_NUMERICSERV | NI_NUMERICHOST);
-    if (status == 0)
+    strnzcpy(ipaddr, current_addr, BINKD_FQDNLEN);
+    /* resolve current_addr to numeric form in peer_name */
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_flags = AI_NUMERICHOST;
+    if ((status = getaddrinfo(current_addr, NULL, &hints, &hres)) == 0)
     {
-      if (config->backresolv)	/* host name resolution */
+      if (hres)
       {
-        status = getnameinfo((struct sockaddr *)&peer_name, peer_name_len, 
-		host, sizeof(host), NULL, 0, NI_NAMEREQD);
-        if (status != 0 && status != EAI_NONAME)
-          Log(2, "Error in getnameinfo(): %s (%d)", 
-	    gai_strerror(status), status);
+        memcpy(&peer_name, hres->ai_addr, hres->ai_addrlen);
+	freeaddrinfo(hres);
+      }
+      else
+      {
+        status = -1;
+	if (!to)
+          Log (1, "%s, getaddrinfo error (empty result)", current_addr);
       }
     }
     else
     {
-      Log(1, "Error in numeric getnameinfo(): %s (%d)", 
-	    gai_strerror(status), status);
-      snprintf(ipaddr, BINKD_FQDNLEN, "unknown");
+      if (!to)
+        Log (1, "%s, getaddrinfo error: %s (%d)", current_addr, gai_strerror(status), status);
     }
   }
+  else
+  {
+    if ((status = getpeername (socket_in, (struct sockaddr *)&peer_name, &peer_name_len)) != 0)
+    {
+      if ((!binkd_exit && !inetd_flag) || TCPERRNO != ENOTSOCK)
+        Log (1, "getpeername: %s", TCPERR());
+    }
+    /* verify that output of getpeername() is safe (enough) and resolve
+     * IP and hostname if so requested and possible.
+     */
+    if (status != 0 || ((struct sockaddr *)&peer_name)->sa_family == 0 || 
+         peer_name_len > sizeof(peer_name))
+    {
+      snprintf(ipaddr, BINKD_FQDNLEN, "unknown");
+      status = -1;
+    }
+    else
+    {
+      if ((status = getnameinfo((struct sockaddr *)&peer_name, peer_name_len,
+		ipaddr, sizeof(ipaddr), service, sizeof(service),
+		NI_NUMERICSERV | NI_NUMERICHOST)) != 0)
+      {
+        Log(1, "Error in numeric getnameinfo(): %s (%d)", 
+	      gai_strerror(status), status);
+        snprintf(ipaddr, BINKD_FQDNLEN, "unknown");
+      }
+    }
+  }
+  if (status == 0 && config->backresolv)
+  {
+    status = getnameinfo((struct sockaddr *)&peer_name, peer_name_len, 
+		host, sizeof(host), NULL, 0, NI_NAMEREQD);
+    if (status != 0 && status != EAI_NONAME)
+      Log(2, "Error in getnameinfo(): %s (%d)", 
+	  gai_strerror(status), status);
+  }
 
-  if (to && current_addr)
-    state.peer_name = current_addr;
-  else
-  if (*host != '\0')
-    state.peer_name = host;
-  else
-    state.peer_name = ipaddr;
+  state.ipaddr = ipaddr;
+  state.peer_name = (*host != '\0' ? host : ipaddr);
 
   setproctitle ("%c [%s]", to ? 'o' : 'i', state.peer_name);
   if (*host != '\0')
@@ -3822,9 +3891,9 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
        state.peer_name,
        service);
 
-  if (getsockname (socket, (struct sockaddr *)&peer_name, &peer_name_len) == -1)
+  if (getsockname (socket_in, (struct sockaddr *)&peer_name, &peer_name_len) == -1)
   {
-    if (!binkd_exit)
+    if ((!binkd_exit && !current_addr && !inetd_flag) || TCPERRNO != ENOTSOCK)
       Log (1, "getsockname: %s", TCPERR ());
     memset(&peer_name, 0, sizeof (peer_name));
   }
@@ -3893,7 +3962,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
         limited = 1;
       else
 #endif
-        FD_SET (socket, &r);
+        FD_SET (socket_in, &r);
       if (state.msgs ||
           (state.out.f && !state.off_req_sent && !state.waiting_for_GOT) ||
           state.oleft || state.send_eof) {
@@ -3902,7 +3971,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
           limited = 1;
         else
 #endif
-          FD_SET (socket, &w);
+          FD_SET (socket_out, &w);
       }
 
       if (state.remote_EOB && state.sent_fls == 0 && state.local_EOB &&
@@ -3942,10 +4011,10 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
 #endif
         Log (8, "tv.tv_sec=%lu, tv.tv_usec=%lu",
            (unsigned long) tv.tv_sec, (unsigned long) tv.tv_usec);
-        no = SELECT (socket + 1, &r, &w, 0, &tv);
+        no = SELECT ((socket_in > socket_out ? socket_in : socket_out) + 1, &r, &w, 0, &tv);
         if (no < 0)
           save_err = TCPERR ();
-        Log (8, "selected %i (r=%i, w=%i)", no, FD_ISSET (socket, &r), FD_ISSET (socket, &w));
+        Log (8, "selected %i (r=%i, w=%i)", no, FD_ISSET (socket_in, &r), FD_ISSET (socket_out, &w));
 #if defined(WIN32) /* workaround winsock bug */
       }
       else
@@ -3972,19 +4041,19 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
         state.io_error = 1;
         if (!binkd_exit)
         {
-          Log (1, "select: %s (args: %i %i)", save_err, socket, tv.tv_sec);
+          Log (1, "select: %s (args: %i %i)", save_err, socket_in, tv.tv_sec);
           if (to)
             bad_try (&to->fa, save_err, BAD_IO, config);
         }
         break;
       }
-      rd = FD_ISSET (socket, &r);
+      rd = FD_ISSET (socket_in, &r);
       if (rd)       /* Have something to read */
       {
         if (!recv_block (&state, config))
           break;
       }
-      if (FD_ISSET (socket, &w))       /* Clear to send */
+      if (FD_ISSET (socket_out, &w))       /* Clear to send */
       {
         no = send_block (&state, config);
 #if defined(WIN32) /* workaround winsock bug - give up CPU */
@@ -3999,8 +4068,8 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
             limited = 1;
           else
 #endif
-            FD_SET (socket, &r);
-          if (!SELECT (socket + 1, &r, 0, 0, &tv)
+            FD_SET (socket_in, &r);
+          if (!SELECT (socket_in + 1, &r, 0, 0, &tv)
 #ifdef BW_LIM
               && !limited
 #endif
@@ -4023,7 +4092,7 @@ void protocol (SOCKET socket, FTN_NODE *to, char *current_addr, BINKD_CONFIG *co
   /* Flush input queue */
   while (!state.io_error)
   {
-    if ((no = recv(socket, state.ibuf, BLK_HDR_SIZE + MAX_BLKSIZE, 0)) == 0)
+    if ((no = RECV (socket_in, state.ibuf, BLK_HDR_SIZE + MAX_BLKSIZE, 0)) == 0)
       break;
     if (no < 0)
     {

@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2012/09/20 12:16:52  gul
+ * Added "call via external pipe" (for example ssh) functionality.
+ * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
+ *
  * Revision 2.10  2012/06/20 22:41:46  green
  * 1 hour timeout for defnode resolutions
  *
@@ -102,6 +106,7 @@ struct _FTN_NODE
   char obox_flvr;
   char *obox;
   char *ibox;
+  char *pipe;
   int NR_flag;
   int ND_flag;
   int MD_flag;

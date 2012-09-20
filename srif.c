@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.22  2012/09/20 12:16:54  gul
+ * Added "call via external pipe" (for example ssh) functionality.
+ * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
+ *
  * Revision 2.21  2012/01/08 17:34:58  green
  * Avoid using MAXHOSTNAMELEN
  *
@@ -291,7 +295,6 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, STATE *st, int imm)
   char *sp, *w;
   char *fn=filename0;
   char *pn=st->peer_name ? st->peer_name : "";
-  char ipaddr[BINKD_FQDNLEN + 1];
   char aka[4];
   char adr[FTN_ADDR_SZ + 2];
   int i;
@@ -307,25 +310,13 @@ static EVTQ *run_args(EVTQ *eq, char *cmd, char *filename0, STATE *st, int imm)
     break;
   }
   for (i=0; pn[i]; i++)
-  if ((!isalnum(pn[i])) && (!strchr(valid_filename_chars, pn[i])))
-  {
-    i=0;
-    break;
-  }
-  if (!i)
-  {
-    struct sockaddr_storage sin;
-    socklen_t si = sizeof (sin);
-    if ((!st) || (getpeername (st->s, (struct sockaddr *)&sin, &si) == -1))
-      strcpy(ipaddr, "-");
-    else
+    if ((!isalnum(pn[i])) && (!strchr(valid_filename_chars, pn[i])))
     {
-      if (getnameinfo((struct sockaddr *)&sin, si, ipaddr, sizeof(ipaddr), 
-                NULL, 0, NI_NUMERICHOST) != 0)
-        strcpy(ipaddr, "-");
+      i=0;
+      break;
     }
-    pn=ipaddr;
-  }
+  if (!i)
+    pn = st->ipaddr;
 
   if (sw<=strlen(cmd)) sw=strlen(cmd)+1;
   w=(char*)xalloc(sw);

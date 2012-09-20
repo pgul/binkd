@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.113  2012/09/20 12:16:52  gul
+ * Added "call via external pipe" (for example ssh) functionality.
+ * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
+ *
  * Revision 2.112  2012/05/14 06:14:57  gul
  * More safe signal handling
  *
@@ -431,6 +435,7 @@
 #include "setpttl.h"
 #include "sem.h"
 #include "ftnnode.h"
+#include "ftnaddr.h"
 #include "rfc2553.h"
 #include "srv_gai.h"
 
@@ -484,7 +489,8 @@ int pidcmgr = 0;		       /* pid for clientmgr */
 int pidCmgr = 0;		       /* real pid for clientmgr (not 0) */
 int pidsmgr = 0;		       /* pid for server */
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
-static SOCKET inetd_socket = 0;
+static SOCKET inetd_socket_in = 0, inetd_socket_out = 1;
+static char *remote_addr, *remote_node;
 #endif
 
 char *configpath = NULL;               /* Config file name */
@@ -590,7 +596,9 @@ void usage (void)
 	  "  -C       reload on config change\n"
 	  "  -c       run client only\n"
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
-	  "  -i       run from inetd\n"
+	  "  -i       run server on stdin/stdout pipe (by inetd or other)\n"
+	  "  -f node  run server protected session with this node\n"
+	  "  -a ip    assume remote address when running with '-i' switch\n"
 #elif defined(BINKD9X)
 	  "  -t cmd   (start|stop|restart|status|install|uninstall) service(s)\n"
 	  "  -S name  set Win9x service name, all - use all services\n"
@@ -666,7 +674,7 @@ const char *optstring = "CchmP:pqrsvd-:?n"
 			"D"
 #endif
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
-			"i"
+			"ia:f:"
 #endif
 #if defined(WIN32)
 #if !defined (BINKD9X)
@@ -711,6 +719,12 @@ char *parseargs (int argc, char *argv[])
 	    case 'i':
 	      inetd_flag = 1;
 	      break;
+	    case 'a': /* remote IP address */
+	      remote_addr = strdup(optarg);
+	      break;
+	    case 'f': /* remote FTN address */
+	      remote_node = strdup(optarg);
+	      break;
 #endif
 #if defined(WIN32)
 #if !defined (BINKD9X)
@@ -722,7 +736,7 @@ char *parseargs (int argc, char *argv[])
 	    case 't': /* service control/query */
 	      if (isService()) break;
 	      if ((service_flag != w32_noservice)) {
-	        Log (0, "%s: '-t' command line switch can't mixed with '-i', '-u' and other '-t'", extract_filename(argv[0]));
+	        Log (0, "%s: multiple '-t' switch", extract_filename(argv[0]));
 	      }
 	      if (!strcmp (optarg, "status"))
 	        service_flag = w32_queryservice;
@@ -743,35 +757,6 @@ char *parseargs (int argc, char *argv[])
 	      if (service_name)
 	        Log(0, "%s: '-S %s': service name specified before, can't overwrite!", extract_filename(argv[0]), optarg);
 	      service_name = strdup (optarg);
-	      break;
-	    case 'i': /* install service */
-	      Log(1,"Warning: switch \"-i\" is deprecated, use \"-t install\" instead");
-	      if (isService()) break;
-	      if ( service_flag==w32_installservice
-	        || service_flag==w32_uninstallservice
-	        || service_flag==w32_queryservice
-	        || service_flag==w32_startservice
-	        || service_flag==w32_restartservice
-	        || service_flag==w32_stopservice
-	         )
-	        Log (0, "%s: '-i' command line switch can't mixed with '-u', '-t' and other '-i'", extract_filename(argv[0]));
-	      if (!service_flag)
-	        service_flag = w32_installservice;
-	      break;
-
-	    case 'u': /* uninstall service */
-	      Log(1,"Warning: switch \"-u\" is deprecated, use \"-t uninstall\" instead");
-	      if (isService()) break;
-	      if ( service_flag==w32_installservice
-	        || service_flag==w32_uninstallservice
-	        || service_flag==w32_queryservice
-	        || service_flag==w32_startservice
-	        || service_flag==w32_restartservice
-	        || service_flag==w32_stopservice
-	         )
-	        Log (0, "%s: '-u' command line switch can't mixed with '-i', '-t' and other '-u'", extract_filename(argv[0]));
-	      if (!service_flag)
-	        service_flag = w32_uninstallservice;
 	      break;
 #endif
 
@@ -838,12 +823,13 @@ char *parseargs (int argc, char *argv[])
     cfgfile = argv[optind++];
 #ifdef OS2
   if (optind<argc)
-  { if ((inetd_socket = atoi(argv[argc-1])) == 0 && !isdigit(argv[argc-1][0]))
+  { if ((inetd_socket_in = atoi(argv[argc-1])) == 0 && !isdigit(argv[argc-1][0]))
       Log (0, "%s: bad socket number", argv[optind]);
 #ifdef EMX
-    if ((inetd_socket = _impsockhandle (inetd_socket, 0)) == -1)
+    if ((inetd_socket_in = _impsockhandle (inetd_socket_in, 0)) == -1)
       Log (0, "_impsockhandle: %s", strerror (errno));
 #endif
+    inetd_socket_out = inetd_socket_in;
   }
 #endif
   if (optind<argc)
@@ -1002,7 +988,7 @@ int main (int argc, char *argv[])
   if (!set_break_handlers ())
     Log (0, "cannot install break handlers");
 
-#if defined(SIGPIPE) && !defined(HAVE_MSG_NOSIGNAL)
+#if defined(SIGPIPE)
   signal(SIGPIPE, SIG_IGN);
 #endif
 
@@ -1058,8 +1044,36 @@ int main (int argc, char *argv[])
 #if defined(UNIX) || defined(OS2) || defined(AMIGA)
   if (inetd_flag)
   {
-    protocol (inetd_socket, 0, NULL, current_config);
-    soclose (inetd_socket);
+    FTN_ADDR ftn_addr, *pftn_addr;
+
+    pftn_addr = NULL;
+    if (remote_node)
+    {
+      if (parse_ftnaddress (remote_node, &ftn_addr, current_config->pDomains.first))
+      {
+        char szFTNAddr[FTN_ADDR_SZ + 1];
+
+        exp_ftnaddress (&ftn_addr, current_config->pAddr, current_config->nAddr, current_config->pDomains.first);
+        pftn_addr = &ftn_addr;
+        ftnaddress_to_str (szFTNAddr, pftn_addr);
+        Log (3, "Session with %s", szFTNAddr);
+      }
+      else
+        Log (1, "`%s' cannot be parsed as a Fido-style address", remote_node);
+    }
+    if (!remote_addr)
+    {
+      char *p = getenv("SSH_CONNECTION");
+
+      if (p)
+      {
+	remote_addr = strdup(p);
+	p = strchr(remote_addr, ' ');
+	if (p) *p = '\0';
+      }
+    }
+    protocol (inetd_socket_in, inetd_socket_out, NULL, pftn_addr, remote_addr, current_config);
+    soclose (inetd_socket_out);
     exit (0);
   }
 #endif
