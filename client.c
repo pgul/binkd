@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.86  2012/09/20 14:18:47  gul
+ * Minor fix in pipe processing
+ *
  * Revision 2.85  2012/09/20 14:13:08  gul
  * Minor memory leak
  *
@@ -699,6 +702,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       if (pid != -1)
       {
 	Log (4, "connected");
+	add_socket(sock_out);
 	break;
       }
       if (!binkd_exit)
@@ -898,6 +902,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   protocol (sockfd, sock_out, node, NULL, host, config);
   if (pid != -1)
   {
+    del_socket(sock_out);
     close(sock_out);
 #ifdef HAVE_WAITPID
     if (waitpid (pid, &rc, 0) == -1)
@@ -912,6 +917,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
         Log (4, "rc(%u)=%u", pid, WEXITSTATUS(rc));
     }
 #endif
+    close(sockfd);
   }
   else
   {
