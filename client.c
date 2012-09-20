@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.84  2012/09/20 14:10:44  gul
+ * Bugfix in previous patch
+ *
  * Revision 2.83  2012/09/20 12:16:52  gul
  * Added "call via external pipe" (for example ssh) functionality.
  * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
@@ -633,7 +636,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   setproctitle ("call to %s", szDestAddr);
 
 #ifdef HTTPS
-  use_proxy = (node->NP_flag != NP_ON) && !node->pipe && !node->pipe[0] && (proxy[0] || socks[0]);
+  use_proxy = (node->NP_flag != NP_ON) && (!node->pipe || !node->pipe[0]) && (proxy[0] || socks[0]);
   if (use_proxy)
   {
     char *sp, *sport;
