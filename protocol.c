@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.219.2.2  2012/09/20 12:18:20  gul
+ * Cosmitics
+ *
  * Revision 2.219.2.1  2012/06/26 09:57:59  gul
  * MD5 passwd is not mandatory (backport from tip branch)
  *
@@ -2804,7 +2807,7 @@ static int ND_set_status(char *status, FTN_ADDR *fa, STATE *state, BINKD_CONFIG 
     }
     rc = errno;
     if (access(buf, F_OK) == 0)
-    { Log(1, "Can't unlink %s: %s!\n", buf, strerror(rc));
+    { Log(1, "Can't unlink %s: %s!", buf, strerror(rc));
       return 0;
     }
     return 1;

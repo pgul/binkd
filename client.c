@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.82.2.1  2012/09/20 12:18:20  gul
+ * Cosmitics
+ *
  * Revision 2.82  2012/06/07 15:46:57  green
  * Really try all addresses returned by getaddrinfo()
  *
@@ -898,7 +901,7 @@ static void call (void *arg)
   if (poll_flag)
     PostSem(&wakecmgr);
   _endthread();
-#elif defined(DOS)
+#elif defined(DOS) || defined(DEBUGCHILD)
   --n_clients;
 #endif
 }
