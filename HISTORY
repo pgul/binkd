@@ -1,3 +1,7 @@
+2012/09/20 17:13:10 1.1a-11 gul
+client.c,2.84,2.85
+Minor memory leak
+
 2012/09/20 17:10:45 1.1a-10 gul
 client.c,2.83,2.84
 Bugfix in previous patch
