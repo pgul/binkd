@@ -1,3 +1,7 @@
+2012/09/20 17:18:49 1.1a-12 gul
+client.c,2.85,2.86
+Minor fix in pipe processing
+
 2012/09/20 17:13:10 1.1a-11 gul
 client.c,2.84,2.85
 Minor memory leak
