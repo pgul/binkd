@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.85  2012/09/20 14:13:08  gul
+ * Minor memory leak
+ *
  * Revision 2.84  2012/09/20 14:10:44  gul
  * Bugfix in previous patch
  *
@@ -691,7 +694,9 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       char *cmdline = strdup(node->pipe);
       cmdline = ed(cmdline, "*H", host, NULL);
       cmdline = ed(cmdline, "*I", port, NULL);
-      if ((pid = run3(cmdline, &sock_out, &sockfd, NULL)) != -1)
+      pid = run3(cmdline, &sock_out, &sockfd, NULL);
+      free(cmdline);
+      if (pid != -1)
       {
 	Log (4, "connected");
 	break;
