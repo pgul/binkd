@@ -1,3 +1,7 @@
+2012/09/22 08:17:20 1.1a-13 gul
+protocol.c,2.222,2.223
+Fix compilation under Windows
+
 2012/09/20 17:18:49 1.1a-12 gul
 client.c,2.85,2.86
 Minor fix in pipe processing
