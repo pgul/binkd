@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2012/09/22 19:19:37  gul
+ * Compilation under mingw
+ *
  * Revision 2.2  2012/09/20 12:16:54  gul
  * Added "call via external pipe" (for example ssh) functionality.
  * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
@@ -32,7 +35,7 @@
 #ifndef _run_h
 #define _run_h
 
-int run (const char *);
+int run (char *);
 int run3 (const char *cmd, int *in, int *out, int *err);
 
 #endif

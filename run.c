@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2012/09/22 19:19:37  gul
+ * Compilation under mingw
+ *
  * Revision 2.7  2012/09/20 12:16:53  gul
  * Added "call via external pipe" (for example ssh) functionality.
  * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
@@ -59,7 +62,7 @@
 #include "run.h"
 #include "tools.h"
 
-int run (const char *cmd)
+int run (char *cmd)
 {
   int rc=-1;
 #if !defined(WIN32) && !defined(EMX)
@@ -83,7 +86,7 @@ int run (const char *cmd)
   Log (3, "executing `%s'", cmd);
   memset(&si, 0, sizeof(si));
   si.cb=sizeof(si);
-  if(!sp) sp="command";
+  if (!sp) sp="command";
   cs=(char*)malloc(strlen(sp)+strlen(cmd)+6);
   dw=CREATE_DEFAULT_ERROR_MODE;
   strcpy(cs, sp);
