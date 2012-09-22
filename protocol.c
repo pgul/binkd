@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.223  2012/09/22 05:17:17  gul
+ * Fix compilation under Windows
+ *
  * Revision 2.222  2012/09/20 12:16:53  gul
  * Added "call via external pipe" (for example ssh) functionality.
  * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
@@ -3844,7 +3847,11 @@ void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, 
   {
     if ((status = getpeername (socket_in, (struct sockaddr *)&peer_name, &peer_name_len)) != 0)
     {
+#if defined(UNIX) || defined(OS2) || defined(AMIGA)
       if ((!binkd_exit && !inetd_flag) || TCPERRNO != ENOTSOCK)
+#else
+      if (!binkd_exit)
+#endif
         Log (1, "getpeername: %s", TCPERR());
     }
     /* verify that output of getpeername() is safe (enough) and resolve
@@ -3893,7 +3900,11 @@ void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, 
 
   if (getsockname (socket_in, (struct sockaddr *)&peer_name, &peer_name_len) == -1)
   {
+#if defined(UNIX) || defined(OS2) || defined(AMIGA)
     if ((!binkd_exit && !current_addr && !inetd_flag) || TCPERRNO != ENOTSOCK)
+#else
+    if (!binkd_exit)
+#endif
       Log (1, "getsockname: %s", TCPERR ());
     memset(&peer_name, 0, sizeof (peer_name));
   }
