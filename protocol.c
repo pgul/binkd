@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.224  2012/09/24 00:26:42  gul
+ * Resolve logic changed
+ *
  * Revision 2.223  2012/09/22 05:17:17  gul
  * Fix compilation under Windows
  *
@@ -1956,7 +1959,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
           continue;
 
         Log (5, "resolving `%s'...", host);
-	aiErr = getaddrinfo(host, "0", &hints, &aiHead);
+	aiErr = getaddrinfo(host, NULL, &hints, &aiHead);
 	if (aiErr != 0)
         {
 	  Log(3, "%s, getaddrinfo error: %s (%d)", host, gai_strerror(aiErr), aiErr);
@@ -3828,12 +3831,12 @@ void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, 
       if (hres)
       {
         memcpy(&peer_name, hres->ai_addr, hres->ai_addrlen);
-	freeaddrinfo(hres);
+        freeaddrinfo(hres);
       }
       else
       {
         status = -1;
-	if (!to)
+        if (!to)
           Log (1, "%s, getaddrinfo error (empty result)", current_addr);
       }
     }
@@ -3889,14 +3892,13 @@ void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, 
 
   setproctitle ("%c [%s]", to ? 'o' : 'i', state.peer_name);
   if (*host != '\0')
-    Log (2, "%s session with %s [%s] (%s)",
+    Log (2, "%s session with %s [%s]",
        to ? "outgoing" : "incoming",
-       host, ipaddr, service);
+       host, ipaddr);
   else
-    Log (2, "%s session with %s (%s)",
+    Log (2, "%s session with %s",
        to ? "outgoing" : "incoming",
-       state.peer_name,
-       service);
+       ipaddr);
 
   if (getsockname (socket_in, (struct sockaddr *)&peer_name, &peer_name_len) == -1)
   {

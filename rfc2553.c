@@ -12,6 +12,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2012/09/24 00:26:42  gul
+ * Resolve logic changed
+ *
  * Revision 2.4  2012/07/06 21:42:16  green
  * Corrected potential double-free
  *
@@ -60,7 +63,7 @@ int getaddrinfo(const char *nodename, const char *servname,
    *res = NULL;
    
    /* Try to convert the service as a number */
-   Port = htons(strtol(servname,(char **)&End,0));
+   Port = servname ? htons(strtol(servname,(char **)&End,0)) : 0;
    Proto = SOCK_STREAM;
 
    if (hints != NULL && hints->ai_socktype != 0)
@@ -69,7 +72,7 @@ int getaddrinfo(const char *nodename, const char *servname,
    lockresolvsem();
 
    /* Not a number, must be a name. */
-   if (End != servname + strlen(servname))
+   if (servname != NULL && End != servname + strlen(servname))
    {
       struct servent *Srv = NULL;
       

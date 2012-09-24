@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.46  2012/09/24 00:26:41  gul
+ * Resolve logic changed
+ *
  * Revision 2.45  2012/09/20 12:16:52  gul
  * Added "call via external pipe" (for example ssh) functionality.
  * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
@@ -417,7 +420,7 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
     if (!strcmp(host, "-"))
       continue;
 
-    aiErr = srv_getaddrinfo(host, port ? port : "0", &hints, &ai);
+    aiErr = srv_getaddrinfo(host, port ? port : NULL, &hints, &ai);
     if (aiErr != 0) continue;
     freeaddrinfo(ai);
     sprintf (host+strlen(host), ":%s", port);

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.87  2012/09/24 00:26:41  gul
+ * Resolve logic changed
+ *
  * Revision 2.86  2012/09/20 14:18:47  gul
  * Minor fix in pipe processing
  *
@@ -600,6 +603,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   char servbuf[MAXSERVNAME + 1];
   char *hosts;
   char *port;
+  char *dst_host;
   const char *save_err;
 #ifdef HTTPS
   int use_proxy;
@@ -656,16 +660,16 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
     }
     else
     {
-      if((sp=strchr(host, '/')) != NULL)
+      if ((sp=strchr(host, '/')) != NULL)
 	*sp++ = '\0';
       sport = proxy[0] ? "squid" : "socks"; /* default port */
     }
+    /* resolve proxy host */
     if ( (aiErr = srv_getaddrinfo(host, sport, &hints, &aiProxyHead)) != 0)
     {
 	Log(2, "Port %s not found, try default %d", sp, proxy[0] ? 3128 : 1080);
 	aiErr = getaddrinfo(host, proxy[0] ? "3128" : "1080", &hints, &aiProxyHead);
     }
-    /* resolve proxy host */
     if (aiErr != 0)
     {
       Log(1, "%s host %s not found", proxy[0] ? "Proxy" : "Socks", host);
@@ -703,6 +707,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       {
 	Log (4, "connected");
 	add_socket(sock_out);
+	dst_host = host;
 	break;
       }
       if (!binkd_exit)
@@ -750,9 +755,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 	  xfree(socks);
 #endif
 #endif
-#ifdef HAVE_THREADS
 	  freeaddrinfo(aiHead);
-#endif
 	  return 0;
 	}
       }
@@ -765,12 +768,9 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 #ifdef HTTPS
 	xfree(proxy);
 	xfree(socks);
-        freeaddrinfo(aiProxyHead);
 #endif
 #endif
-#ifdef HAVE_THREADS
-	freeaddrinfo(aiNodeHead);
-#endif
+	freeaddrinfo(aiHead);
 	return 0;
       }
       rc = getnameinfo(ai->ai_addr, ai->ai_addrlen, addrbuf, sizeof(addrbuf),
@@ -798,9 +798,9 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 #endif
       {
 	if (port == config->oport)
-          Log (4, "trying %s...", addrbuf);
+          Log (4, "trying %s [%s]...", host, addrbuf);
 	else
-          Log (4, "trying %s:%s...", addrbuf, servbuf);
+          Log (4, "trying %s [%s]:%s...", host, addrbuf, servbuf);
       }
       /* find bind addr with matching address family */
       if (config->bindaddr[0])
@@ -839,6 +839,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 #endif
 	Log (4, "connected");
 	sock_out = sockfd;
+	dst_host = addrbuf;
 	break;
       }
 
@@ -860,12 +861,10 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       soclose (sockfd);
       sockfd = INVALID_SOCKET;
     }
-#ifdef HAVE_THREADS
 #ifdef HTTPS
     if (!use_proxy)
 #endif
       freeaddrinfo(aiNodeHead);
-#endif
 #ifdef HTTPS
     if (sockfd != INVALID_SOCKET && use_proxy) {
       if (h_connect(sockfd, host, config, proxy, socks) != 0) {
@@ -881,6 +880,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
           *pp = '\0';
         }
       }
+      dst_host = host;
     }
 #endif
   }
@@ -899,7 +899,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   if (sockfd == INVALID_SOCKET)
     return 0;
 
-  protocol (sockfd, sock_out, node, NULL, host, config);
+  protocol (sockfd, sock_out, node, NULL, dst_host, config);
   if (pid != -1)
   {
     del_socket(sock_out);
