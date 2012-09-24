@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.88  2012/09/24 09:09:34  gul
+ * Avoid compilation warning
+ *
  * Revision 2.87  2012/09/24 00:26:41  gul
  * Resolve logic changed
  *
@@ -603,7 +606,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   char servbuf[MAXSERVNAME + 1];
   char *hosts;
   char *port;
-  char *dst_host;
+  char *dst_host = host;
   const char *save_err;
 #ifdef HTTPS
   int use_proxy;
@@ -707,7 +710,6 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       {
 	Log (4, "connected");
 	add_socket(sock_out);
-	dst_host = host;
 	break;
       }
       if (!binkd_exit)
@@ -880,7 +882,6 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
           *pp = '\0';
         }
       }
-      dst_host = host;
     }
 #endif
   }
