@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.82.2.2  2012/09/24 00:39:09  gul
+ * call freeaddrinfo() from client in fork version
+ *
  * Revision 2.82.2.1  2012/09/20 12:18:20  gul
  * Cosmitics
  *
@@ -714,9 +717,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 	  xfree(socks);
 #endif
 #endif
-#ifdef HAVE_THREADS
 	  freeaddrinfo(aiHead);
-#endif
 	  return 0;
 	}
       }
@@ -729,12 +730,9 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 #ifdef HTTPS
 	xfree(proxy);
 	xfree(socks);
-        freeaddrinfo(aiProxyHead);
 #endif
 #endif
-#ifdef HAVE_THREADS
-	freeaddrinfo(aiNodeHead);
-#endif
+	freeaddrinfo(aiHead);
 	return 0;
       }
       rc = getnameinfo(ai->ai_addr, ai->ai_addrlen, addrbuf, sizeof(addrbuf),
@@ -823,12 +821,10 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       soclose (sockfd);
       sockfd = INVALID_SOCKET;
     }
-#ifdef HAVE_THREADS
 #ifdef HTTPS
     if (!use_proxy)
 #endif
       freeaddrinfo(aiNodeHead);
-#endif
 #ifdef HTTPS
     if (sockfd != INVALID_SOCKET && use_proxy) {
       if (h_connect(sockfd, host, config, proxy, socks) != 0) {
