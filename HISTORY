@@ -1,3 +1,7 @@
+2012/09/24 03:39:10 1.0.2-pre3 gul
+client.c,2.82.2.1,2.82.2.2
+call freeaddrinfo() from client in fork version
+
 2012/09/20 15:18:22 1.0.2-pre2 gul
 client.c,2.82,2.82.2.1 ftnnode.c,2.44,2.44.2.1 protocol.c,2.219.2.1,2.219.2.2
 Cosmitics
