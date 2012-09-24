@@ -1,3 +1,7 @@
+2012/09/24 12:09:37 1.1a-16 gul
+client.c,2.87,2.88
+Avoid compilation warning
+
 2012/09/24 03:26:53 1.1a-15 gul
 client.c,2.86,2.87 ftnnode.c,2.45,2.46 protocol.c,2.223,2.224 rfc2553.c,2.4,2.5
 Resolve logic changed
