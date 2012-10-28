@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.77  2012/10/28 21:30:15  green
+ * Corrected Segfault in config error reporting on 64bit architectures
+ *
  * Revision 2.76  2012/06/25 06:15:33  gul
  * Cosmetics
  *
@@ -593,19 +596,16 @@ void InitLog(int loglevel, int conlog, char *logpath, void *first)
   ReleaseSem(&lsem);
 }
 
-void Log (int lev, char *s,...)
+void vLog (int lev, char *s, va_list ap)
 {
   static int first_time = 1;
   static const char *month[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
                                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
   char buf[1024];
   int ok = 1;
-  va_list ap;
 
   /* make string in buffer */
-  va_start(ap, s);
   vsnprintf(buf, sizeof(buf), s, ap);
-  va_end(ap);
   /* do perl hooks */
 #ifdef WITH_PERL
   if (!perl_on_log(buf, sizeof(buf), &lev)) ok = 0;
@@ -701,9 +701,7 @@ void Log (int lev, char *s,...)
     if (lev < 0 || lev >= sizeof log_levels / sizeof (int))
       lev = sizeof log_levels / sizeof (int) - 1;
 
-    va_start (ap, s);
     vsyslog (log_levels[lev], s, ap);
-    va_end (ap);
 
   }
 #endif
@@ -717,6 +715,15 @@ void Log (int lev, char *s,...)
   assert (_heapchk () == _HEAPOK || _heapchk () == _HEAPEMPTY);
 */
 #endif
+}
+
+void Log (int lev, char *s, ...)
+{
+  va_list ap;
+
+  va_start(ap, s);
+  vLog(lev, s, ap);
+  va_end(ap);
 }
 
 int o_memicmp (const void *s1, const void *s2, size_t n)

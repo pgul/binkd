@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.30  2012/10/28 21:30:15  green
+ * Corrected Segfault in config error reporting on 64bit architectures
+ *
  * Revision 2.29  2009/06/16 19:24:29  gul
  * Cosmetics around mkargv()
  *
@@ -149,7 +152,8 @@
 #define max(x,y) ((x) > (y) ? (x) : (y))
 #endif
 
-void Log (int lev, char *s,...);
+void vLog (int lev, char *s, va_list ap);
+void Log (int lev, char *s, ...);
 void InitLog(int loglevel, int conlog, char *logpath, void *first);
 
 #define LOGINT(v) Log(6, "%s=%i\n", #v, (int)(v))
