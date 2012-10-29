@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.104.2.1  2012/10/29 19:52:57  green
+ * Corrected Segfault in config error reporting on 64bit architectures
+ *
  * Revision 2.104  2012/06/17 00:21:40  green
  * Segmentation violation in config dump
  *
@@ -914,17 +917,11 @@ static int check_outbox(char *obox)
 
 static int ConfigError(char *format, ...)
 {
-#define MAX_CONFIGERROR_PARAMS 6
-
   va_list args;
-  int     data[MAX_CONFIGERROR_PARAMS];
-  int     i;
 
   va_start(args, format);
-  for (i = 0; i < MAX_CONFIGERROR_PARAMS; i++)
-    data[i] = va_arg(args, int);
   Log(-1, "%s: line %d: error in configuration files\n", current_path, current_line);
-  Log(1, format, data[0], data[1], data[2], data[3], data[4], data[5]);
+  vLog(1, format, args);
   va_end(args);
   return 0;
 }
