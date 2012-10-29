@@ -1,3 +1,7 @@
+2012/10/29 21:52:59 1.0.2-pre4 green
+readcfg.c,2.104,2.104.2.1 tools.c,2.75.2.1,2.75.2.2 tools.h,2.29,2.29.2.1
+Corrected Segfault in config error reporting on 64bit architectures
+
 2012/09/24 03:39:10 1.0.2-pre3 gul
 client.c,2.82.2.1,2.82.2.2
 call freeaddrinfo() from client in fork version
