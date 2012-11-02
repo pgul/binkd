@@ -1,3 +1,7 @@
+2012/11/02 13:25:36 1.1a-18 green
+run.c,2.8,2.9
+Check return value of pipe() call
+
 2012/10/28 23:30:17 1.1a-17 green
 readcfg.c,2.105,2.106 tools.c,2.76,2.77 tools.h,2.29,2.30
 Corrected Segfault in config error reporting on 64bit architectures 
