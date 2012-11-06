@@ -1,3 +1,7 @@
+2012/11/06 07:05:57 1.1a-19 stas
+run.c,2.9,2.10
+more comprehensible diagnostic message
+
 2012/11/02 13:25:36 1.1a-18 green
 run.c,2.8,2.9
 Check return value of pipe() call
