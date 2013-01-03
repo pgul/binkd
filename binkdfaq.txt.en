@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of February 10 2012
+        Version of January 3 2012
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -692,6 +692,10 @@ is created for unix-like OS and ported into Windows. One may obtain tmafreq
 from different BBS and FTP with fileecho archives, or may get tmafreq sources
 from anonymous CVS :pserver:anoncvs@tma.spb.ru:/cvsroot, module "tmafreq".
 
+    VIREQ/x by Volker Imre <volker@imre.dyndns.org > (2:246/2098): FREQ
+processor is created for unix-like OS but compiled in the OS/2, Windows and 
+may be other. Now it is included into "ftnapps" project on Sorceforge and may
+be downloaded from http://ftnapps.sourceforge.net/vireq.html.
 
 ----------------------------------------------------------------------------
 
