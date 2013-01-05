@@ -639,7 +639,7 @@ binkp stream tcp nowait root /usr/fido/binkd binkd -isq /usr/fido/binkd.cfg
 
     16. Можно ли сделать FREQ в binkd.
 
-    Запросто! Binkd поддерживает WAZOO FREQ.
+    Запросто! Binkd поддерживает WAZOO FREQ с помощью внешнего обработчика.
 
     Чтобы запросить файлы с удаленной системы нужно создать файл вида
 nnnnmmmm.REQ и поместить его в outbound рядом с файлами *.?ut и *.?lo,
@@ -656,8 +656,9 @@ nnnnmmmm.REQ и поместить его в outbound рядом с файлами *.?ut и *.?lo,
 
     exec "/ftn/bin/tmafreq-srif *S" *.[rR][eE][qQ]
 
-    С binkd совместимы следующие FREQ-процессоры (но не только эти, подойдет
-любой FREQ-процессор, поддерживающий SRIF):
+    С binkd начиная с версии 1.1a19 поставляется bash-скрипт srifreq, также
+с ним совместимы следующие FREQ-процессоры (но не только эти, подойдет любой
+FREQ-процессор, поддерживающий SRIF):
     Allfix от Harms Software Engineering: файлэхопроцессор со встроенным
 обработчиком файловых запросов, существуют версии под DOS и OS/2;
     ViReq от Michael Haase (2:2432/280): специализированный FREQ-процессор
