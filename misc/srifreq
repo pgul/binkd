@@ -1,0 +1,130 @@
+#!/bin/bash
+
+# Simple SRIF compatible FREQ processor
+# © Copyleft Stas Degteff 2:5080/102@fidonet
+version=1.0
+
+##### Configuration
+PUB=/ftp/pub
+if [ ${BASH_VERSINFO[1]} -ge 4 ]
+ then 
+  ALIASES=( [FILES]=/ftp/pub/FILES )
+fi
+logfacilityinfo=local1.notice
+logfacilityerror=local1.err
+logstderr= #-s
+
+##### Implementation
+
+function usage ()
+{
+   echo "Simple SRIF compatible Fidonet File Request processor v.${version}"
+   echo -e "@ copyleft Stas Degteff 2:5080/102\n"
+   if [ ${BASH_VERSINFO[1]} -ge 4 ]
+    then 
+     Aliases are supported
+   fi
+   echo "Usage: `basename $0` <SRIF-file>"
+}
+if [ ${BASH_VERSINFO[1]} -ge 4 ]
+ then 
+  declare -A ALIASES
+fi
+
+function getSrifFile ( )
+# read information from SRIF file
+# Parameters: $1 = SRIF file name
+{
+ local token value error
+
+ logger -p ${logfacilityinfo} ${logstderr} -t "srifreq[$$]" "parse SRIF file: ${1}"
+ { while read -u 4 token value
+   do 
+    token=${token//[\'\"\`\$]/}
+    value=${value//[\'\"\`\$]/}
+    if [ ${BASH_VERSINFO[1]} -ge 4 ]
+     then 
+      token=${token,,}
+    fi
+
+#   case ${token,,} in
+    case ${token} in
+#    [Ss][yY][sS][oO][pP])
+#             sysop=value
+#             logger -p ${logfacilityinfo} ${logstderr} -t "srifreq[$$]" "sysop: ${sysop}"
+#    ;;
+#    [Aa][Kk][Aa])
+#             aka=value
+#             logger -p ${logfacilityinfo} ${logstderr} -t "srifreq[$$]" "aka: ${aka}"
+#    ;;
+    [Rr][eE][qQ][uU][eE][sS][tT][Ll][iI][sS][tT])
+#     requestlist)
+             requestlist=${value//\.\.\/}
+             logger -p ${logfacilityinfo} ${logstderr} -t "srifreq[$$]" "requestlist: ${requestlist}"
+             if [ ! -s ${requestlist} ]
+              then
+               error=1
+               logger -p ${logfacilityerror} ${logstderr} -t "srifreq[$$]" "broken SRIF file: RequestList" ${requestlist} "is not exist or empty!"
+              else
+               if [ ! -r ${requestlist} ]
+                then
+                 error=1
+                 logger -p ${logfacilityerror} ${logstderr} -t "srifreq[$$]" "Error: RequestList" ${requestlist} "is not readable!"
+               fi
+             fi
+    ;;
+    [Rr][eE][sS][pP][oO][nN][sS][eE][Ll][iI][sS][tT])
+#     responselist)
+             responselist=${value//\.\.\/}
+             logger -p ${logfacilityinfo} ${logstderr} -t "srifreq[$$]" "responselist: ${responselist}"
+             if [ ! -w `dirname ${responselist}` ]
+              then
+               error=1
+               logger -p ${logfacilityerror} ${logstderr} -t "srifreq[$$]" "responselist ${responselist} is not writable"
+             fi
+    ;;
+    esac 
+   done
+  }  4<$1
+  if [ -z ${responselist} -o -z ${requestlist} ]
+   then
+    logger -p ${logfacilityerror} ${logstderr} -t "srifreq[$$]" "broken SRIF file: ResponseList or RequestList is not specified"
+    error=1
+  fi
+  if [ ${error} ] ; then exit ${error} ; fi
+}
+
+function processrequest ()
+# Process requested file list
+# Parameters: $1 = request file (one requesting file in line)
+#             $2 = responce file (found files prefixed with "+")
+{ local fname
+  while read -u4 fname
+   do
+    fname=${fname//[\'\"\`\$]}
+    fname=${fname//$'\r'}
+    fname=`basename ${fname}`
+    logger -p ${logfacilityinfo} ${logstderr} -t "srifreq[$$]" "Find file ${fname}"
+    if [ ${BASH_VERSINFO[1]} -ge 4 ]
+     then 
+      if [ -n ${ALIASES[${fname}]} ]
+       then
+        echo "+${ALIASES[${fname}]}" >>${2}
+       else
+        find ${PUB} -name ${fname} -printf "+%p\n" 2>/dev/null  >>${2}
+      fi
+     else
+      find ${PUB} -name ${fname} -printf "+%p\n" 2>/dev/null  >>${2}
+    fi
+   done
+} 4<${1}
+#### main code
+if [ $# != 1  -o ! -f "$1" ]
+ then
+   usage
+   exit 1
+fi
+
+getSrifFile $1
+processrequest ${requestlist} ${responselist}
+
