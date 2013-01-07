@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of January 5 2012
+        Version of January 7 2013
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -656,7 +656,7 @@ configuration file full path:
 
         16. Can One Make a File Request From BinkD?
 
-    It's a piece of cake! BinkD supports WAZOO FREQ with external helper.
+    It's a piece of cake! BinkD supports WAZOO FREQ with an external helper.
 
     To request files from a remote system it is necessary to create a file
 of type nnnnmmmm.REQ and to put it in the outbound directory near *.?ut and
@@ -677,9 +677,10 @@ BinkD to match both upper-case and lower-case letters, e.g. both *.REQ and
 
     exec "/ftn/bin/tmafreq-srif *S" *.[rR][eE][qQ]
 
-    With BinkD starting with version 1.1a19 delivers bash script "srifreq",
-also the following file request processors are compatible with BinkD (but they
-are not the only ones, any other one supporting SRIF will do):
+    A bash script "srifreq" is delivered with BinkD starting with version 
+1.1a19.
+    The following file request processors are also compatible with BinkD 
+(but they are not the only ones, any other one supporting SRIF will do):
 
     Allfix by Harms Software Engineering: it is a fileecho processor with
 built-in file request processor and it has versions for DOS and OS/2;
@@ -688,15 +689,16 @@ built-in file request processor and it has versions for DOS and OS/2;
 Windows, it is distributed by Michael Massenberg (2:2411/505) via modem,
 ISDN and Fido-over-IP.
 
-    tmafreq by Maxim Timofeyev <tmahome@mail.tma.spb.ru>: FREQ processor
-is created for unix-like OS and ported into Windows. One may obtain tmafreq
+    tmafreq by Maxim Timofeyev <tmahome@mail.tma.spb.ru>: the FREQ processor
+is created for a unix-like OS and ported into Windows. One may obtain tmafreq
 from different BBS and FTP with fileecho archives, or may get tmafreq sources
 from anonymous CVS :pserver:anoncvs@tma.spb.ru:/cvsroot, module "tmafreq".
 
-    VIREQ/x by Volker Imre <volker@imre.dyndns.org > (2:246/2098): FREQ
-processor is created for unix-like OS but compiled in the OS/2, Windows and 
-may be other. Now it is included into "ftnapps" project on Sorceforge and may
-be downloaded from http://ftnapps.sourceforge.net/vireq.html.
+    VIREQ/x by Volker Imre <volker@imre.dyndns.org> (2:246/2098): the FREQ
+processor is created for a unix-like OS but can be compiled in the OS/2, 
+Windows and maybe other operating systems. Now it is included into "ftnapps" 
+project on Sourceforge and may be downloaded from 
+http://ftnapps.sourceforge.net/vireq.html.
 
 ----------------------------------------------------------------------------
 
