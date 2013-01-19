@@ -27,7 +27,7 @@
 # ver 0.1 (28 May 2009): first
 # ver 0.2 ( 2 Jun 2009): avoid using glob() - File::Glob module needed, 
 #         and no all systems have fully installed perl
-# ver 0.3 (19 Jan 2012): support multiple IBN flags (ports)
+# ver 0.3 (19 Jan 2013): support multiple IBN flags (ports)
 
 my ($curnodelist, %nodelist, $glob);
 
