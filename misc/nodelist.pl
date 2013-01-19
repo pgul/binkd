@@ -1,6 +1,6 @@
 #
-# Perl nodelist compiler for binkd ver 0.2
-# Copyright (C) Pavel Gulchouck 2:463/68  28 May 2009
+# Perl nodelist compiler for binkd ver 0.3
+# Copyright (C) Pavel Gulchouck 2:463/68  2009-2013
 #
 # Add folowing lines to your binkd.cfg (with correct pathes):
 #
@@ -27,6 +27,7 @@
 # ver 0.1 (28 May 2009): first
 # ver 0.2 ( 2 Jun 2009): avoid using glob() - File::Glob module needed, 
 #         and no all systems have fully installed perl
+# ver 0.3 (19 Jan 2012): support multiple IBN flags (ports)
 
 my ($curnodelist, %nodelist, $glob);
 
@@ -172,9 +173,10 @@ sub compile_nodelist
 				$_ = "$uflag$_";
 			}
 			if (/:/) {
-				$flags{$`} .= "," if $flags{$`};
+				$flags{$`} .= "," if defined($flags{$`});
 				$flags{$`} .= $';
 			} else {
+				$flags{$_} .= "," if defined($flags{$_});
 				$flags{$_} .= "";
 			}
 		}
@@ -206,35 +208,38 @@ sub compile_nodelist
 			$ird = $flags{"IRD"};
 		}
 		next unless defined($flags{"IBN"});
-		$port = "";
-		if ($flags{"IBN"} =~ /\D/) {
-			foreach (split(/,/, $flags{"IBN"})) {
-				if (/^\d+$/) {
-					$port = ":$&";
-					next;
-				}
-				$lport = "";
-				($_, $lport) = ($`, ":$'") if /:/;
-				$_ .= "." unless /^\d+\.\d+\.\d+\.\d+$|\.$/;
-				$lport = $port unless $lport;
-				$_ .= $lport if $lport;
-				next if $addr{$_};
-				$addr{$_} = 1;
-				push(@addr, $_);
+		%port = ();
+		foreach (split(/,/, $flags{"IBN"})) {
+			if (/^\d*$/) {
+				$port{/\d/ ? ":$_" : ""} = 1;
+				next;
 			}
+			$lport = "";
+			($_, $lport) = ($`, ":$'") if /:/;
+			$_ .= "." unless /^\d+\.\d+\.\d+\.\d+$|\.$/;
+			%lport = ($lport ? ( ":$lport" => 1 ) : %port);
+			$lport{""} = 1 unless %lport;
+			foreach $lport (keys %lport) {
+				next if $addr{"$_$lport"};
+				$addr{"$_$lport"} = 1;
+				push(@addr, "$_$lport");
+			}
+		}
+		if (@addr) {
 			$nodelist{"$zone:$net/$node\@$domain"} = join(';', @addr);
 			$nodes++;
 			Log(8, "Fetch addr for $zone:$net/$node\@$domain: " . $nodelist{"$zone:$net/$node\@$domain"} . " (IBN flag)");
 			next;
 		}
-		$port = ":$&" if $flags{"IBN"} =~ /^\d+$/;
+		$port{""} = 1 unless %port;
 		if ($_ = $flags{"INA"}) {
 			foreach (split(/,/, $flags{"INA"})) {
 				$_ .= "." unless /^\d+\.\d+\.\d+\.\d+$|\.$/;
-				$_ .= $port;
-				next if $addr{$_};
-				$addr{$_} = 1;
-				push(@addr, $_);
+				foreach $port (keys %port) {
+					next if $addr{"$_$port"};
+					$addr{"$_$port"} = 1;
+					push(@addr, "$_$port");
+				}
 			}
 			$nodelist{"$zone:$net/$node\@$domain"} = join(';', @addr);
 			$nodes++;
@@ -288,8 +293,14 @@ sub compile_nodelist
 			}
 		}
 		next unless @addr;
+		%addr = ();
+		foreach $addr (@addr) {
+			foreach $port (keys %port) {
+				$addr{"$addr$port"} = 1;
+			}
+		}
 		$_ .= $port foreach @addr;
-		$nodelist{"$zone:$net/$node\@$domain"} = join(';', @addr);
+		$nodelist{"$zone:$net/$node\@$domain"} = join(';', keys %addr);
 		$nodes++;
 	}
 	close(F);
