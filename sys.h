@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.36  2013/01/24 17:36:53  gul
+ * Compilation on unix
+ *
  * Revision 2.35  2013/01/24 17:25:35  gul
  * Support "-pipe" option on Win32
  *
@@ -250,7 +253,7 @@
   #ifdef _O_BINARY
     #define O_BINARY _O_BINARY
   #else
-    #define O_BINARY
+    #define O_BINARY 0
   #endif
 #endif
 
@@ -258,7 +261,7 @@
   #ifdef _O_NOINHERIT
     #define O_NOINHERIT _O_NOINHERIT
   #else
-    #define O_NOINHERIT
+    #define O_NOINHERIT 0
   #endif
 #endif
 

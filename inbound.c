@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.47  2013/01/24 17:36:53  gul
+ * Compilation on unix
+ *
  * Revision 2.46  2013/01/24 17:25:35  gul
  * Support "-pipe" option on Win32
  *
@@ -195,6 +198,7 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 
 #include "readcfg.h"
 #include "inbound.h"
