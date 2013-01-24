@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.46  2013/01/24 17:25:35  gul
+ * Support "-pipe" option on Win32
+ *
  * Revision 2.45  2009/06/12 17:42:56  gul
  * close .hr
  *
@@ -428,12 +431,18 @@ FILE *inb_fopen (STATE *state, BINKD_CONFIG *config)
   char buf[MAXPATHLEN + 1];
   struct stat sb;
   FILE *f;
+  int fd;
 
   if (!find_tmp_name (buf, &(state->in), state, config))
     return 0;
 
 fopen_again:
-  if ((f = fopen (buf, "ab")) == 0)
+  if ((fd = open (buf, O_CREAT|O_APPEND|O_RDWR|O_BINARY|O_NOINHERIT, 0755)) == -1)
+  {
+    Log (1, "%s: %s", buf, strerror (errno));
+    return 0;
+  }
+  if ((f = fdopen (fd, "ab")) == 0)
   {
     Log (1, "%s: %s", buf, strerror (errno));
     return 0;

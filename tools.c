@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.78  2013/01/24 17:25:35  gul
+ * Support "-pipe" option on Win32
+ *
  * Revision 2.77  2012/10/28 21:30:15  green
  * Corrected Segfault in config error reporting on 64bit architectures
  *
@@ -614,98 +617,90 @@ void vLog (int lev, char *s, va_list ap)
   if (mask_test(buf, current_nolog) != NULL ) ok = 0;
   /* log output */
   if (ok)
-{ /* if (ok) */
+  { /* if (ok) */
 
-  char *__logpath=NULL;
-  struct tm tm;
-  time_t t;
-  static const char *marks = "!?+-";
-  char ch = (0 <= lev && lev < (int) strlen (marks)) ? marks[lev] : ' ';
-  t = safe_time();
-  safe_localtime (&t, &tm);
+    char *using_logpath=NULL;
+    struct tm tm;
+    time_t t;
+    static const char *marks = "!?+-";
+    char ch = (0 <= lev && lev < (int) strlen (marks)) ? marks[lev] : ' ';
+    t = safe_time();
+    safe_localtime (&t, &tm);
 
-  if (lev <= current_conlog
-#if defined(UNIX) || defined(OS2) || defined(AMIGA)
-      && !inetd_flag
-#endif
-     )
-  {
-    LockSem(&lsem);
-    fprintf (stderr, "%30.30s\r%c %02d:%02d [%u] %s%s", " ", ch,
-         tm.tm_hour, tm.tm_min, (unsigned) PID (), buf, (lev >= 0) ? "\n" : "");
-    fflush (stderr);
-    ReleaseSem(&lsem);
-    if (lev < 0)
-      return;
-  }
-
-  __logpath = (current_logpath && *current_logpath) ?
-                               current_logpath : getenv(BINKD_LOGPATH_ENVIRON);
-  if (lev <= current_loglevel && __logpath)
-  {
-    FILE *logfile = 0;
-    int i;
-
-    LockSem(&lsem);
-    for (i = 0; logfile == 0 && i < 10; ++i)
+    if (lev <= current_conlog && !inetd_flag)
     {
-      logfile = fopen (__logpath, "a");
+      LockSem(&lsem);
+      fprintf (stderr, "%30.30s\r%c %02d:%02d [%u] %s%s", " ", ch,
+           tm.tm_hour, tm.tm_min, (unsigned) PID (), buf, (lev >= 0) ? "\n" : "");
+      fflush (stderr);
+      ReleaseSem(&lsem);
+      if (lev < 0)
+        return;
     }
-    if (logfile)
+
+    using_logpath = (current_logpath && *current_logpath) ?
+                                 current_logpath : getenv(BINKD_LOGPATH_ENVIRON);
+    if (lev <= current_loglevel && using_logpath)
     {
-      fprintf (logfile, "%s%c %02d %s %02d:%02d:%02d [%u] %s\n",
-             first_time ? "\n" : "", ch,
-             tm.tm_mday, month[tm.tm_mon], tm.tm_hour, tm.tm_min, tm.tm_sec,
-             (unsigned) PID (), buf);
-      fclose (logfile);
-      first_time = 0;
+      FILE *logfile = 0;
+      int i;
+
+      LockSem(&lsem);
+      for (i = 0; logfile == 0 && i < 10; ++i)
+        logfile = fopen (using_logpath, "a");
+      if (logfile)
+      {
+        fprintf (logfile, "%s%c %02d %s %02d:%02d:%02d [%u] %s\n",
+               first_time ? "\n" : "", ch,
+               tm.tm_mday, month[tm.tm_mon], tm.tm_hour, tm.tm_min, tm.tm_sec,
+               (unsigned) PID (), buf);
+        fclose (logfile);
+        first_time = 0;
+      }
+      else
+        fprintf (stderr, "Cannot open %s: %s!\n", using_logpath, strerror (errno));
+      ReleaseSem(&lsem);
     }
-    else
-      fprintf (stderr, "Cannot open %s: %s!\n", __logpath, strerror (errno));
-    ReleaseSem(&lsem);
-  }
 #ifdef WIN32
 #ifdef BINKD9X
-  if (!lev)
+    if (!lev)
 #else
-  if (lev < 1 && isService() > 0)
+    if (lev < 1 && isService() > 0)
 #endif
-  {
-    MessageBox(NULL, buf, MYNAME, MB_OK|MB_ICONSTOP|0x00200000L|MB_SYSTEMMODAL|MB_SETFOREGROUND);
-  }
+      MessageBox(NULL, buf, MYNAME, MB_OK|MB_ICONSTOP|0x00200000L|MB_SYSTEMMODAL|MB_SETFOREGROUND);
 #endif
 
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
-  if (lev <= current_loglevel && syslog_facility >= 0)
-  {
-    static int opened = 0;
-    static int log_levels[] =
+    if (lev <= current_loglevel && syslog_facility >= 0)
     {
-      /* Correspondence between binkd's loglevel and syslog's priority */
-      LOG_ERR,			       /* 0 */
-      LOG_WARNING,		       /* 1 */
-      LOG_NOTICE,		       /* 2 */
-      LOG_INFO,			       /* 3 */
-      LOG_INFO,			       /* 4 */
-      LOG_INFO,			       /* 5 */
-      LOG_INFO,			       /* 6 */
-      LOG_DEBUG			       /* other */
-    };
+      static int opened = 0;
+      static int log_levels[] =
+      {
+        /* Correspondence between binkd's loglevel and syslog's priority */
+        LOG_ERR,		       /* 0 */
+        LOG_WARNING,		       /* 1 */
+        LOG_NOTICE,		       /* 2 */
+        LOG_INFO,		       /* 3 */
+        LOG_INFO,		       /* 4 */
+        LOG_INFO,		       /* 5 */
+        LOG_INFO,		       /* 6 */
+        LOG_DEBUG		       /* other */
+      }
 
-    if (!opened)
-    {
-      opened = 1;
-      openlog ("binkd", LOG_PID, syslog_facility);
+      if (!opened)
+      {
+        opened = 1;
+        openlog ("binkd", LOG_PID, syslog_facility);
+      }
+
+      if (lev < 0 || lev >= sizeof log_levels / sizeof (int))
+        lev = sizeof log_levels / sizeof (int) - 1;
+
+      vsyslog (log_levels[lev], s, ap);
+
     }
-
-    if (lev < 0 || lev >= sizeof log_levels / sizeof (int))
-      lev = sizeof log_levels / sizeof (int) - 1;
-
-    vsyslog (log_levels[lev], s, ap);
-
-  }
 #endif
-} /* if (ok) */
+  } /* if (ok) */
 
   if (lev == 0)
     exit (1);

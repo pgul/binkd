@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.114  2013/01/24 17:25:35  gul
+ * Support "-pipe" option on Win32
+ *
  * Revision 2.113  2012/09/20 12:16:52  gul
  * Added "call via external pipe" (for example ssh) functionality.
  * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
@@ -420,6 +423,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <fcntl.h>
 #ifdef HAVE_FORK
 #include <signal.h>
 #include <sys/wait.h>
@@ -488,10 +492,8 @@ MUTEXSEM fhsem = 0;
 int pidcmgr = 0;		       /* pid for clientmgr */
 int pidCmgr = 0;		       /* real pid for clientmgr (not 0) */
 int pidsmgr = 0;		       /* pid for server */
-#if defined(UNIX) || defined(OS2) || defined(AMIGA)
-static SOCKET inetd_socket_in = 0, inetd_socket_out = 1;
+static SOCKET inetd_socket_in = -1, inetd_socket_out = -1;
 static char *remote_addr, *remote_node;
-#endif
 
 char *configpath = NULL;               /* Config file name */
 char **saved_envp;
@@ -595,11 +597,10 @@ void usage (void)
 #endif
 	  "  -C       reload on config change\n"
 	  "  -c       run client only\n"
-#if defined(UNIX) || defined(OS2) || defined(AMIGA)
 	  "  -i       run server on stdin/stdout pipe (by inetd or other)\n"
 	  "  -f node  run server protected session with this node\n"
 	  "  -a ip    assume remote address when running with '-i' switch\n"
-#elif defined(BINKD9X)
+#if defined(BINKD9X)
 	  "  -t cmd   (start|stop|restart|status|install|uninstall) service(s)\n"
 	  "  -S name  set Win9x service name, all - use all services\n"
 #elif defined(WIN32)
@@ -638,9 +639,7 @@ extern char **environ;
 #endif
 
 /* Command line flags */
-#if defined(UNIX) || defined(OS2) || defined(AMIGA)
 int inetd_flag = 0;		       /* Run from inetd (-i) */
-#endif
 #ifdef BINKD_DAEMONIZE
 int daemon_flag = 0;		       /* Run as daemon (-D) */
 #endif
@@ -715,7 +714,6 @@ char *parseargs (int argc, char *argv[])
 	    case 'c':
 	      client_flag = 1;
 	      break;
-#if defined(UNIX) || defined(OS2) || defined(AMIGA)
 	    case 'i':
 	      inetd_flag = 1;
 	      break;
@@ -725,7 +723,6 @@ char *parseargs (int argc, char *argv[])
 	    case 'f': /* remote FTN address */
 	      remote_node = strdup(optarg);
 	      break;
-#endif
 #if defined(WIN32)
 #if !defined (BINKD9X)
 	    case 'T':
@@ -830,6 +827,7 @@ char *parseargs (int argc, char *argv[])
       Log (0, "_impsockhandle: %s", strerror (errno));
 #endif
     inetd_socket_out = inetd_socket_in;
+    argc++;
   }
 #endif
   if (optind<argc)
@@ -1041,10 +1039,10 @@ int main (int argc, char *argv[])
   if (no_flag)
     Log (0, "Exit on option '-n'");
 
-#if defined(UNIX) || defined(OS2) || defined(AMIGA)
   if (inetd_flag)
   {
     FTN_ADDR ftn_addr, *pftn_addr;
+    int tempfd;
 
     pftn_addr = NULL;
     if (remote_node)
@@ -1072,11 +1070,26 @@ int main (int argc, char *argv[])
 	if (p) *p = '\0';
       }
     }
+    /* not using stdin/stdout itself to avoid possible collisions */
+    if (inetd_socket_in == -1)
+      inetd_socket_in = dup(fileno(stdin));
+    if (inetd_socket_out == -1)
+      inetd_socket_out = dup(fileno(stdout));
+#ifdef UNIX
+    tempfd = open("/dev/null", O_RDWR);
+#else
+    tempfd = open("nul", O_RDWR);
+#endif
+    if (tempfd != -1)
+    {
+      dup2(tempfd, fileno(stdin));
+      dup2(tempfd, fileno(stdout));
+      close(tempfd);
+    }
     protocol (inetd_socket_in, inetd_socket_out, NULL, pftn_addr, remote_addr, current_config);
     soclose (inetd_socket_out);
     exit (0);
   }
-#endif
 
 #ifdef BINKD_DAEMONIZE
   if (daemon_flag)

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.225  2013/01/24 17:25:35  gul
+ * Support "-pipe" option on Win32
+ *
  * Revision 2.224  2012/09/24 00:26:42  gul
  * Resolve logic changed
  *
@@ -843,6 +846,9 @@ static char *scommand[] = {"NUL", "ADR", "PWD", "FILE", "OK", "EOB",
  */
 static int init_protocol (STATE *state, SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, BINKD_CONFIG *config)
 {
+  char val[4];
+  socklen_t lval;
+
   memset (state, 0, sizeof (STATE));
 
   state->major = 1;
@@ -909,7 +915,16 @@ static int init_protocol (STATE *state, SOCKET socket_in, SOCKET socket_out, FTN
   state->start_time = safe_time();
   state->evt_queue = NULL;
   state->config = config;
-  Log (6, "binkp init done, socket # is %i", state->s_in);
+  lval = sizeof(val);
+  if (getsockopt (socket_in, SOL_SOCKET, SO_TYPE, val, &lval) == -1)
+  { /* assume it's not a socket */
+    state->pipe = 1;
+    Log (6, "binkp init done, pipe handles are %i/%i", state->s_in, state->s_out);
+  }
+  else
+  {
+    Log (6, "binkp init done, socket # is %i", state->s_in);
+  }
   return 1;
 }
 
@@ -1090,33 +1105,52 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
   if (state->optr && state->oleft)
   {
     Log (7, "sending %i byte(s)", state->oleft);
-    n = SEND (state->s_out, state->optr, state->oleft, MSG_NOSIGNAL);
+    if (state->pipe)
+      /* TODO: this call should be non-blocking on WIN32 */
+      n = write (state->s_out, state->optr, state->oleft);
+    else
+      n = send (state->s_out, state->optr, state->oleft, MSG_NOSIGNAL);
 #ifdef BW_LIM
     state->bw_send.bytes += n;
 #endif
-    save_errno = TCPERRNO;
-    save_err = TCPERR ();
-    Log (7, "send() done, rc=%i", n);
+    if (state->pipe)
+    {
+      save_errno = errno;
+      save_err = strerror(errno);
+      Log (7, "write() done, rc=%i", n);
+    }
+    else
+    {
+      save_errno = TCPERRNO;
+      save_err = TCPERR ();
+      Log (7, "send() done, rc=%i", n);
+    }
     if (n == state->oleft)
     {
       state->optr = 0;
       state->oleft = 0;
       Log (7, "data sent");
     }
-    else if (n == SOCKET_ERROR)
+    else if (n == -1)
     {
-      if (save_errno != TCPERR_WOULDBLOCK && save_errno != TCPERR_AGAIN)
+      if ((state->pipe == 0 && save_errno != TCPERR_WOULDBLOCK && save_errno != TCPERR_AGAIN) ||
+          (state->pipe != 0 && save_errno != EWOULDBLOCK && errno != EAGAIN))
       {
         state->io_error = 1;
         if (!binkd_exit)
         {
-          Log (1, "send: %s", save_err);
+          Log (1, "%s: %s", state->pipe ? "write" : "send", save_err);
           if (state->to)
             bad_try (&state->to->fa, save_err, BAD_IO, config);
         }
         return 0;
       }
       Log (7, "data transfer would block");
+      return 2;
+    }
+    else if (n == 0)
+    {
+      /* pipe is not ready? */
       return 2;
     }
     else
@@ -1918,7 +1952,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
         if (aiHead)
         {
           memcpy(&sin, aiHead->ai_addr, aiHead->ai_addrlen);
-	  freeaddrinfo(aiHead);
+          freeaddrinfo(aiHead);
         }
         else
         {
@@ -1959,20 +1993,20 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
           continue;
 
         Log (5, "resolving `%s'...", host);
-	aiErr = getaddrinfo(host, NULL, &hints, &aiHead);
-	if (aiErr != 0)
+        aiErr = getaddrinfo(host, NULL, &hints, &aiHead);
+        if (aiErr != 0)
         {
-	  Log(3, "%s, getaddrinfo error: %s (%d)", host, gai_strerror(aiErr), aiErr);
+          Log(3, "%s, getaddrinfo error: %s (%d)", host, gai_strerror(aiErr), aiErr);
 #ifdef VAL_STYLE
           if (aiErr == EAI_NONAME)
             ip_found |= FOUND_UNKNOWN;
-	  else
+          else
             ip_found |= FOUND_ERROR;
 #endif
           continue;
         }
-	
-	for (ai = aiHead; ai != NULL; ai = ai->ai_next)
+
+        for (ai = aiHead; ai != NULL; ai = ai->ai_next)
 #ifndef VAL_STYLE
           if (sockaddr_cmp_addr(ai->ai_addr, (struct sockaddr *)&sin) == 0)
           {
@@ -1990,7 +2024,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
           }
         }
 #endif
-	freeaddrinfo(aiHead);
+        freeaddrinfo(aiHead);
 
 #ifndef VAL_STYLE
         if (ipok == 1)
@@ -3288,20 +3322,26 @@ static int recv_block (STATE *state, BINKD_CONFIG *config)
 
   if (sz == 0)
     no = 0;
-  else if ((no = RECV (state->s_in, state->ibuf + state->iread,
-                       sz - state->iread, 0)) == SOCKET_ERROR)
+  else
   {
-    if (TCPERRNO == TCPERR_WOULDBLOCK || TCPERRNO == TCPERR_AGAIN)
-    {
-      return 1;
-    }
+    if (state->pipe)
+      no = read (state->s_in, state->ibuf + state->iread, sz - state->iread);
     else
+      no = recv (state->s_in, state->ibuf + state->iread, sz - state->iread, 0);
+    Log (9, "Read %i bytes", no);
+    if (no == -1)
     {
-      const char *save_err = TCPERR();
+      const char *save_err;
+
+      if (state->pipe && (errno == EWOULDBLOCK || errno == EAGAIN))
+        return 1;
+      if (!state->pipe && (TCPERRNO == TCPERR_WOULDBLOCK || TCPERRNO == TCPERR_AGAIN))
+        return 1;
+      save_err = state->pipe ? strerror(errno) : TCPERR();
       state->io_error = 1;
       if (!binkd_exit)
       {
-        Log (1, "recv: %s", save_err);
+        Log (1, "%s: %s", state->pipe ? "read" : "recv", save_err);
         if (state->to)
           bad_try (&state->to->fa, save_err, BAD_IO, config);
       }
@@ -3816,6 +3856,7 @@ void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, 
   memset(&peer_name, 0, sizeof (peer_name));
   host[0] = '\0';
   service[0] = '\0';
+  status = -1;
 
   if (current_addr)
   {
@@ -3846,15 +3887,11 @@ void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, 
         Log (1, "%s, getaddrinfo error: %s (%d)", current_addr, gai_strerror(status), status);
     }
   }
-  else
+  else if (!state.pipe)
   {
     if ((status = getpeername (socket_in, (struct sockaddr *)&peer_name, &peer_name_len)) != 0)
     {
-#if defined(UNIX) || defined(OS2) || defined(AMIGA)
-      if ((!binkd_exit && !inetd_flag) || TCPERRNO != ENOTSOCK)
-#else
       if (!binkd_exit)
-#endif
         Log (1, "getpeername: %s", TCPERR());
     }
     /* verify that output of getpeername() is safe (enough) and resolve
@@ -3863,7 +3900,7 @@ void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, 
     if (status != 0 || ((struct sockaddr *)&peer_name)->sa_family == 0 || 
          peer_name_len > sizeof(peer_name))
     {
-      snprintf(ipaddr, BINKD_FQDNLEN, "unknown");
+      strnzcpy(ipaddr, "unknown", BINKD_FQDNLEN);
       status = -1;
     }
     else
@@ -3874,10 +3911,12 @@ void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, 
       {
         Log(1, "Error in numeric getnameinfo(): %s (%d)", 
 	      gai_strerror(status), status);
-        snprintf(ipaddr, BINKD_FQDNLEN, "unknown");
+        strnzcpy(ipaddr, "unknown", BINKD_FQDNLEN);
       }
     }
   }
+  else
+    strnzcpy(ipaddr, "unknown", BINKD_FQDNLEN);
   if (status == 0 && config->backresolv)
   {
     status = getnameinfo((struct sockaddr *)&peer_name, peer_name_len, 
@@ -3900,13 +3939,9 @@ void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, 
        to ? "outgoing" : "incoming",
        ipaddr);
 
-  if (getsockname (socket_in, (struct sockaddr *)&peer_name, &peer_name_len) == -1)
+  if (state.pipe || getsockname (socket_in, (struct sockaddr *)&peer_name, &peer_name_len) == -1)
   {
-#if defined(UNIX) || defined(OS2) || defined(AMIGA)
-    if ((!binkd_exit && !current_addr && !inetd_flag) || TCPERRNO != ENOTSOCK)
-#else
-    if (!binkd_exit)
-#endif
+    if (!state.pipe && !binkd_exit)
       Log (1, "getsockname: %s", TCPERR ());
     memset(&peer_name, 0, sizeof (peer_name));
   }
@@ -4019,23 +4054,48 @@ void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, 
       }
 
 #if defined(WIN32) /* workaround winsock bug */
-      if (t_out < u_nettimeout)
+      if (t_out >= u_nettimeout)
       {
+        Log (8, "win timeout detected (nettimeout=%u sec, t_out=%lu sec)", config->nettimeout, t_out/1000000);
+        no = 0;
+      }
+      else
 #endif
+      {
         Log (8, "tv.tv_sec=%lu, tv.tv_usec=%lu",
            (unsigned long) tv.tv_sec, (unsigned long) tv.tv_usec);
-        no = SELECT ((socket_in > socket_out ? socket_in : socket_out) + 1, &r, &w, 0, &tv);
+#ifdef WIN32
+        if (state.pipe)
+        {
+          no = 2;
+          if (!FD_ISSET (socket_out, &w))
+            no--;
+          if (!FD_ISSET (socket_in, &r))
+          {
+            no--;
+            if (no == 0)
+              no = SELECT (1, &r, &w, 0, &tv); /* just wait */
+          }
+          else
+          {
+            long avail = 0;
+            if (!PeekNamedPipe((HANDLE)_get_osfhandle(socket_in), NULL, 0, NULL, &avail, NULL))
+            {
+              if (!binkd_exit)
+                Log (1, "PeekNamedPipe error, errcode %lu", GetLastError());
+            }
+            else if (!avail)
+              FD_CLR (socket_in, &r);
+            /* if we have no input data, &r unset and no == 1 */
+          }
+        }
+        else
+#endif
+          no = SELECT ((socket_in > socket_out ? socket_in : socket_out) + 1, &r, &w, 0, &tv);
         if (no < 0)
           save_err = TCPERR ();
         Log (8, "selected %i (r=%i, w=%i)", no, FD_ISSET (socket_in, &r), FD_ISSET (socket_out, &w));
-#if defined(WIN32) /* workaround winsock bug */
       }
-      else
-      {
-        Log (8, "win9x winsock workaround: timeout detected (nettimeout=%u sec, t_out=%lu sec)", config->nettimeout, t_out/1000000);
-        no = 0;
-      }
-#endif
       bsy_touch (config);                       /* touch *.bsy's */
       if (no == 0
 #ifdef BW_LIM
@@ -4069,35 +4129,40 @@ void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, 
       if (FD_ISSET (socket_out, &w))       /* Clear to send */
       {
         no = send_block (&state, config);
-#if defined(WIN32) /* workaround winsock bug - give up CPU */
-        if (!rd && no == 2)
-        {
-          tv.tv_sec = 0;
-          tv.tv_usec = w9x_workaround_sleep; /* see iphdr.h */
-          FD_ZERO (&r);
+        if (!no && no != 2)
+          break;
+      }
+#if defined(WIN32) /* workaround - give up CPU */
+      if ((!state.pipe && FD_ISSET(socket_out, &w) && no == 2 && !rd) || /* win9x: write always allowed */
+          (state.pipe && !rd && !FD_ISSET(socket_out, &w)))             /* pipe: cannot wait for read */
+      {
+        tv.tv_sec = 0;
+        tv.tv_usec = w9x_workaround_sleep; /* see iphdr.h */
+        FD_ZERO (&r);
 #ifdef BW_LIM
-          limited = 0;
+        limited = 0;
+#endif
+        if (!state.pipe)
+        {
+#ifdef BW_LIM
           if (check_rate_limit(&state.bw_recv, &tv))
             limited = 1;
           else
 #endif
             FD_SET (socket_in, &r);
-          if (!SELECT (socket_in + 1, &r, 0, 0, &tv)
-#ifdef BW_LIM
-              && !limited
-#endif
-              )
-          {
-            t_out += w9x_workaround_sleep;
-          } else { t_out = 0; }
         }
-        else { t_out = 0; }
+        Log (9, "select for giveup cpu, r=%i, w=0, tv_sec=%lu, tv_usec=%lu", FD_ISSET(socket_in, &r), (unsigned long) tv.tv_sec, (unsigned long) tv.tv_usec);
+        if (!SELECT (socket_in + 1, &r, 0, 0, &tv)
+#ifdef BW_LIM
+            && !limited
 #endif
-        if (!no)
-          break;
+            )
+          t_out += w9x_workaround_sleep;
+        else
+          t_out = 0;
       }
-#if defined(WIN32) /* workaround winsock bug - give up CPU */
-      else { t_out = 0; }
+      else
+        t_out = 0;
 #endif
     }
   }
@@ -4105,11 +4170,16 @@ void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, 
   /* Flush input queue */
   while (!state.io_error)
   {
-    if ((no = RECV (socket_in, state.ibuf, BLK_HDR_SIZE + MAX_BLKSIZE, 0)) == 0)
+    if (state.pipe)
+      no = read (socket_in, state.ibuf, BLK_HDR_SIZE + MAX_BLKSIZE);
+    else
+      no = recv (socket_in, state.ibuf, BLK_HDR_SIZE + MAX_BLKSIZE, 0);
+    if (no == 0)
       break;
     if (no < 0)
     {
-      if (TCPERRNO != TCPERR_WOULDBLOCK && TCPERRNO != TCPERR_AGAIN)
+      if ((state.pipe == 0 && TCPERRNO != TCPERR_WOULDBLOCK && TCPERRNO != TCPERR_AGAIN) ||
+          (state.pipe == 1 && errno != EWOULDBLOCK && errno != EAGAIN))
         state.io_error = 1;
       break;
     }

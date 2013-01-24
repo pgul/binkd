@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.31  2013/01/24 17:25:35  gul
+ * Support "-pipe" option on Win32
+ *
  * Revision 2.30  2012/09/20 12:16:53  gul
  * Added "call via external pipe" (for example ssh) functionality.
  * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
@@ -185,6 +188,7 @@ struct _STATE
   struct _BINKD_CONFIG *config;
   FTN_NODE *to;			/* Dest. address (if an outbound connection) */
   char expected_pwd[MAXPWDLEN + 1];
+  int pipe;                     /* if 0 then s_in and s_out are sockets otherwise pipes */
 
   /* binkp buffres */
   char *obuf;

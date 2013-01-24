@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.26  2013/01/24 17:25:35  gul
+ * Support "-pipe" option on Win32
+ *
  * Revision 2.25  2012/09/20 12:16:53  gul
  * Added "call via external pipe" (for example ssh) functionality.
  * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
@@ -198,8 +201,6 @@ const char *tcperr (void);
   #define TCPERR_WOULDBLOCK EWOULDBLOCK
   #define TCPERR_AGAIN EAGAIN
   #define sock_deinit()
-  #define SEND(h, buf, n, opt) send(h, buf, n, opt)
-  #define RECV(h, buf, n, opt) recv(h, buf, n, opt)
   #ifndef MAXSOCKETS
     #define MAXSOCKETS 2048
   #endif
@@ -215,8 +216,6 @@ const char *tcperr (void);
   #define TCPERR_WOULDBLOCK EWOULDBLOCK
   #define TCPERR_AGAIN EAGAIN
   #define sock_deinit()
-  #define SEND(h, buf, n, opt) send(h, buf, n, opt)
-  #define RECV(h, buf, n, opt) recv(h, buf, n, opt)
 #elif defined(WIN32)
 const char *w32err (int);
 void ReleaseErrorList(void);
@@ -230,8 +229,6 @@ void ReleaseErrorList(void);
   #define sock_init() WinsockIni()
   #define sock_deinit() WinsockClean()
   #define soclose(h) closesocket(h)
-  #define SEND(h, buf, n, opt) send(h, buf, n, opt)
-  #define RECV(h, buf, n, opt) recv(h, buf, n, opt)
 /* w9x_workaround_sleep: 1000000 = 1 sec, 10000 = 10 ms */
   #define w9x_workaround_sleep 10000
 #else
@@ -244,8 +241,6 @@ void ReleaseErrorList(void);
   #define sock_init() 0
   #define sock_deinit()
   #define soclose(h) close(h)
-  #define SEND(h, buf, n, opt) write(h, buf, n)
-  #define RECV(h, buf, n, opt) read(h, buf, n)
 #endif
 
 #if !defined(WIN32)

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2013/01/24 17:25:35  gul
+ * Support "-pipe" option on Win32
+ *
  * Revision 2.10  2012/11/06 05:05:19  stas
  * more comprehensible diagnostic message
  *
@@ -65,16 +68,31 @@
 #include <unistd.h>
 #endif
 
+#include "sys.h"
 #include "run.h"
 #include "tools.h"
+#include "sem.h"
+
+#ifdef UNIX
+#define SHELL "/bin/sh"
+#define SHELL_META "\"\'\\$`[]*?(){};&|<>~"
+#define SHELLOPT "-c"
+#elif defined(WIN32)
+#define SHELL (getenv("COMSPEC") ? getenv("COMSPEC") : "cmd.exe")
+#define SHELL_META "\"\'\\%<>|&^@"
+#define SHELLOPT "/c"
+#elif defined(OS2)
+#define SHELL "cmd.exe"
+#define SHELL_META "\"\'\\%<>|" /* not sure */
+#define SHELLOPT "/c"
+#else
+#error "Unknown platform"
+#endif
 
 int run (char *cmd)
 {
   int rc=-1;
-#if !defined(WIN32) && !defined(EMX)
-  Log (3, "executing `%s'", cmd);
-  Log (3, "rc=%i", (rc=system (cmd)));
-#elif defined(EMX)
+#if defined(EMX)
   sigset_t s;
     
   sigemptyset(&s);
@@ -83,7 +101,7 @@ int run (char *cmd)
   Log (3, "executing `%s'", cmd);
   Log (3, "rc=%i", (rc=system (cmd)));
   sigprocmask(SIG_UNBLOCK, &s, NULL);
-#else /* WIN32 */
+#elif defined(WIN32)
   STARTUPINFO si;
   PROCESS_INFORMATION pi;
   DWORD dw;
@@ -126,15 +144,42 @@ int run (char *cmd)
   free(cs);
   CloseHandle(pi.hProcess);
   CloseHandle(pi.hThread);
+#else
+  Log (3, "executing `%s'", cmd);
+  Log (3, "rc=%i", (rc=system (cmd)));
 #endif
   return rc;
 }
 
+#ifdef __MINGW32__
+static int set_cloexec(int fd)
+{
+  HANDLE h, parent;
+  int newfd;
+
+  // return fd;
+  parent = GetCurrentProcess();
+  if (!DuplicateHandle(parent, (HANDLE)_get_osfhandle(fd), parent, &h, 0, FALSE, DUPLICATE_SAME_ACCESS)) {
+    Log(1, "Error DuplicateHandle");
+    return fd;
+  }
+  newfd = _open_osfhandle((int)h, O_NOINHERIT);
+  if (newfd < 0) {
+    Log(1, "Error open_odfhandle");
+    CloseHandle(h);
+    return fd;
+  }
+  close(fd);
+  // Log(1, "NoInherit set for %i, new handle %i", fd, newfd);
+  return newfd;
+}
+#endif
+
 int run3 (const char *cmd, int *in, int *out, int *err)
 {
-#ifdef HAVE_FORK
   int pid;
   int pin[2], pout[2], perr[2];
+  const char *shell;
 
   if (in && pipe(pin) == -1)
   {
@@ -155,6 +200,7 @@ int run3 (const char *cmd, int *in, int *out, int *err)
     return -1;
   }
 
+#ifdef HAVE_FORK
   pid = fork();
   if (pid == -1)
   {
@@ -184,9 +230,31 @@ int run3 (const char *cmd, int *in, int *out, int *err)
       close(perr[0]);
       close(perr[1]);
     }
-    /* todo: parse args and run via execvp() if no metacharacters */
-    /* or run process via exec "sh -c $cmd" */
-    _exit(system(cmd));
+    if (strpbrk(cmd, SHELL_META))
+    {
+      shell = SHELL;
+      execl(shell, shell, SHELLOPT, cmd, NULL);
+    }
+    else
+    {
+      /* execute command directly */
+      /* in case of shell builtin like "read line" you should specify 
+       * shell exclicitly, such as "/bin/sh -c read line" */
+      char **args, *word;
+      int i;
+
+      args = xalloc(sizeof(args[0]));
+      for (i=1; (word = getword(cmd, i)) != NULL; i++)
+      {
+        args = xrealloc(args, (i+1) * sizeof(*args));
+        args[i-1] = word;
+      }
+      args[i-1] = NULL;
+      execvp(args[0], args);
+      xfree(args);
+    }
+    Log (1, "Execution '%s' failed: %s", cmd, strerror(errno));
+    return -1;
   }
   if (in)
   {
@@ -203,11 +271,107 @@ int run3 (const char *cmd, int *in, int *out, int *err)
     *err = perr[0];
     close(perr[1]);
   }
-  Log (2, "External command '%s' started", cmd);
-  return pid;
 #else
-  Log (1, "Run via external command not implemented for this platform");
-  return -1;
+
+  /* redirect stdin/stdout/stderr takes effect for all threads */
+  /* use lsem to avoid console output during this */
+  {
+    int save_errno = 0, savein = -1, saveout = -1, saveerr = -1;
+
+    LockSem(&lsem);
+    fflush(stdout);
+    fflush(stderr);
+
+    if (in)
+    {
+      savein = dup(fileno(stdin));
+      dup2(pin[0], fileno(stdin));
+      *in = pin[1];
+      close(pin[0]);
+#if defined(OS2)
+      DosSetFHState(*in, OPEN_FLAGS_NOINHERIT);
+#elif defined(EMX)
+      fcntl(*in, F_SETFD, FD_CLOEXEC);
+#elif defined __MINGW32__
+      *in = set_cloexec(*in);
 #endif
+    }
+    if (out)
+    {
+      saveout = dup(fileno(stdout));
+      dup2(pout[1], fileno(stdout));
+      *out = pout[0];
+      close(pout[1]);
+#if defined(OS2)
+      DosSetFHState(*out, OPEN_FLAGS_NOINHERIT);
+#elif defined(EMX)
+      fcntl(*out, F_SETFD, FD_CLOEXEC);
+#elif defined __MINGW32__
+      *out = set_cloexec(*out);
+#endif
+    }
+    if (err)
+    {
+      saveerr = dup(fileno(stderr));
+      dup2(perr[1], fileno(stderr));
+      *err = perr[0];
+      close(perr[1]);
+#if defined(OS2)
+      DosSetFHState(*err, OPEN_FLAGS_NOINHERIT);
+#elif defined(EMX)
+      fcntl(*err, F_SETFD, FD_CLOEXEC);
+#elif defined __MINGW32__
+      *err = set_cloexec(*err);
+#endif
+    }
+    if (strpbrk(cmd, SHELL_META) == NULL)
+    {
+      /* execute command directly */
+      const char **args, *word;
+      int i;
+
+      args = xalloc(sizeof(args[0]));
+      for (i=1; (word = getword(cmd, i)) != NULL; i++)
+      {
+        args = xrealloc(args, (i+1) * sizeof(*args));
+        args[i-1] = word;
+      }
+      args[i-1] = NULL;
+      pid = spawnvp(P_NOWAIT, args[0], args);
+      xfree(args);
+    }
+    else
+    {
+      shell = SHELL;
+      pid = spawnl(P_NOWAIT, shell, shell, SHELLOPT, cmd, NULL);
+    }
+
+    if (pid == -1)
+      save_errno = errno;
+    if (savein != -1)
+    {
+      dup2(savein, fileno(stdin));
+      close(savein);
+    }
+    if (saveout != -1)
+    {
+      dup2(saveout, fileno(stdout));
+      close(saveout);
+    }
+    if (saveerr != -1)
+    {
+      dup2(saveerr, fileno(stderr));
+      close(saveerr);
+    }
+    ReleaseSem(&lsem);
+    if (pid == -1)
+    {
+      Log (1, "Cannot execute '%s': %s", cmd, strerror(save_errno));
+      return -1;
+    }
+  }
+#endif
+  Log (2, "External command '%s' started, pid %i", cmd, pid);
+  return pid;
 }
 

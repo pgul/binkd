@@ -8,7 +8,6 @@
 - charsets support, unicode
 - aftersession
 - "empty queue" flag (exit if "-p")
-- exit immediately after session in "-p" mode
 - force rescan by signal (SIGUSR1)
 - check netname (not realname) on "exec" and "flag"
 - binkd/dos: waterloo tcpip
@@ -20,7 +19,6 @@
 - TheBrake long style outbound
 - go to tray under windows
 - no-compression node switch
-- restart perl on reload config (should we call on_start() hook this case?)
 ? ssl
 ? true multibatch mode
 ? hide attaches and remove bsy during a session

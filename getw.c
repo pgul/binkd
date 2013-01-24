@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2013/01/24 17:25:35  gul
+ * Support "-pipe" option on Win32
+ *
  * Revision 2.8  2003/12/29 10:49:37  gul
  * Comments in config now starts by "#" only if prev char is space
  *
@@ -44,7 +47,7 @@
 #include "Config.h"
 #include "tools.h"
 
-char *getwordx2 (char *src, int n, int flags, char *fldsep, char *fldskip)
+char *getwordx2 (const char *src, int n, int flags, char *fldsep, char *fldskip)
 {
   char *dest;
   char quoted = 0;

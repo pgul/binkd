@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.35  2013/01/24 17:25:35  gul
+ * Support "-pipe" option on Win32
+ *
  * Revision 2.34  2012/05/14 06:14:59  gul
  * More safe signal handling
  *
@@ -189,6 +192,10 @@
   #include <winsock.h>
 #endif
 
+#ifdef __MINGW32__
+  #include <fcntl.h>
+#endif
+
 #ifdef OS2
   #define INCL_DOS
   #define INCL_ERRORS
@@ -235,6 +242,26 @@
   #define MSG_NOSIGNAL 0
 #endif
 
+#ifndef EWOULDBLOCK
+  #define EWOULDBLOCK EAGAIN
+#endif
+
+#ifndef O_BINARY
+  #ifdef _O_BINARY
+    #define O_BINARY _O_BINARY
+  #else
+    #define O_BINARY
+  #endif
+#endif
+
+#ifndef O_NOINHERIT
+  #ifdef _O_NOINHERIT
+    #define O_NOINHERIT _O_NOINHERIT
+  #else
+    #define O_NOINHERIT
+  #endif
+#endif
+
 #if defined(UNIX) || defined(AMIGA)
   /* To be sure rename will fail if the target exists */
   extern int o_rename (const char *from, const char *to);
@@ -250,7 +277,7 @@
 
 #ifdef __MINGW32__
   #define sleep(a) Sleep((a)*1000)
-  #define pipe(h)  _pipe(h, 0, 64)
+  #define pipe(h)  _pipe(h, 16384, _O_BINARY)
 #endif
 
 #if defined(WIN32)

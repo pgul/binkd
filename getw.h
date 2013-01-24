@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2  2013/01/24 17:25:35  gul
+ * Support "-pipe" option on Win32
+ *
  * Revision 2.1  2003/10/29 21:08:38  gul
  * Change include-files structure, relax dependences
  *
@@ -30,7 +33,7 @@
  * Src is a source string, n is a word number (1...), returned string must
  * be free()'d. Returns 0 if there is no word #n.
  */
-char *getwordx2 (char *src, int n, int flags, char *fldsep, char *fldskip);
+char *getwordx2 (const char *src, int n, int flags, char *fldsep, char *fldskip);
 
 #define getwordx(src,n,flags) \
 		getwordx2(src, n, flags, DEF_FLDSEP, DEF_FLDSKIP)
