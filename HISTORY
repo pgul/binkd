@@ -1,3 +1,7 @@
+2013/01/24 19:36:54 1.1a-22 gul
+inbound.c,2.46,2.47 sys.h,2.35,2.36
+Compilation on unix
+
 2013/01/24 19:33:42 1.1a-21 gul
 tools.c,2.78,2.79
 Syntax error
