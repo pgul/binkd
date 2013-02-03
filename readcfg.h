@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.41  2013/02/03 21:37:45  gul
+ * New option "rename-style [postfix|extension]"
+ *
  * Revision 2.40  2012/01/08 17:34:58  green
  * Avoid using MAXHOSTNAMELEN
  *
@@ -294,6 +297,7 @@ struct _BINKD_CONFIG
   int        deletedirs;
   int        havedefnode;
   enum dontsendemptytype dontsendempty;
+  enum renamestyletype   renamestyle;
 #ifdef AMIGADOS_4D_OUTBOUND
   int        aso;
 #endif

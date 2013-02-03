@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2013/02/03 21:37:44  gul
+ * New option "rename-style [postfix|extension]"
+ *
  * Revision 2.11  2012/09/20 12:16:52  gul
  * Added "call via external pipe" (for example ssh) functionality.
  * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
@@ -198,5 +201,7 @@ struct _RCVDLIST
 enum inbcasetype { INB_SAVE,INB_UPPER,INB_LOWER,INB_MIXED };
 
 enum dontsendemptytype { EMPTY_NO, EMPTY_ARCMAIL, EMPTY_ALL };
+
+enum renamestyletype { RENAME_POSTFIX, RENAME_EXTENSION, RENAME_BODY };
 
 #endif

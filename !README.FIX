@@ -599,3 +599,7 @@ NT/95:  ctrl-c problems fixed
 	New option "-pipe" in node line - call via stdin/stdout 
 	of external command.
 
+	New config option "rename-style [postfix|extension]" - method for
+	generate unique filename in inbound dir for received file if file 
+	with the same name already exists.
+

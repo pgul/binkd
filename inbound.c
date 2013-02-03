@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.48  2013/02/03 21:37:44  gul
+ * New option "rename-style [postfix|extension]"
+ *
  * Revision 2.47  2013/01/24 17:36:53  gul
  * Compilation on unix
  *
@@ -579,16 +582,67 @@ int check_pkthdr(STATE *state, char *netname, char *tmp_name,
   return 0;
 }
 
+/* make next possible realname */
+static int next_inb_filename (char *fname, char **s, enum renamestyletype ren_style)
+{
+  int num;
+  char *p;
+
+  if (ren_style == RENAME_POSTFIX)
+  {
+    if (**s == '\0')
+    {
+      strcpy(*s, ".1");
+      return 1;
+    }
+    num = atoi(s[0]+1);
+    if (num <= 0 || num > MAX_INB_RENAME)
+      return 0;
+    sprintf(*s + 1, "%i", num);
+    return 1;
+  }
+
+  if ((ren_style == RENAME_EXTENSION && **s == '\0') ||
+      (ren_style == RENAME_BODY && **s == '.'))
+  { /* first change */
+    *--*s = '0'; /* funny syntax :) */
+    return 1;
+  }
+  for (p = *s; isalnum(p[1]); p++);
+  while (1)
+  {
+    if (*p == '9')
+      *p = 'a';
+    else if ((ren_style == RENAME_EXTENSION && *p == 'z') ||
+             (ren_style == RENAME_BODY && *p == 'f'))
+    {
+      *p-- = '0';
+      if (strchr(PATH_SEPARATOR, *p) || *p == '.')
+        return 0;
+      if (p + 1 != *s)
+        continue;
+      *s = p;
+      *p = '0';
+      return 1;
+    }
+    else
+      ++*p;
+    break;
+  }
+  return 1;
+}
+
 /*
  * File is complete, rename it to it's realname. 1=ok, 0=failed.
  */
 int inb_done (TFILE *file, STATE *state, BINKD_CONFIG *config)
 {
   char tmp_name[MAXPATHLEN + 1];
-  char real_name[MAXPATHLEN + 1];
+  char real_name[MAXPATHLEN + 10];
   char szAddr[FTN_ADDR_SZ + 1];
   char *s, *u, *netname;
   int  unlinked = 0, i;
+  enum renamestyletype ren_style;
 
   *real_name = 0;
   netname = file->netname;
@@ -618,7 +672,7 @@ int inb_done (TFILE *file, STATE *state, BINKD_CONFIG *config)
 
   if (mask_test(netname, config->overwrite.first) && !ispkt(netname) && !isarcmail(netname))
   {
-    for(i=0; ; i++)
+    for (i=0; ; i++)
     {
       unlinked |= (unlink(real_name) == 0);
       if (!RENAME (tmp_name, real_name))
@@ -636,53 +690,55 @@ int inb_done (TFILE *file, STATE *state, BINKD_CONFIG *config)
     }
   } else
   {
+    /* check pkt file header */
+    if (ispkt (netname))
+      check_pkthdr(state, netname, tmp_name, real_name, config);
 
-    s = real_name + strlen (real_name) - 1;
+    s = real_name + strlen (real_name);
 
-    /* gul: for *.pkt and *.?ic (tic, zic etc.) change name but not extension */
-    /* ditto for arcmail -- mff */
+    ren_style = config->renamestyle;
+    /* for *.pkt, arcmail, *.?ic (tic, zic etc.) and *.req change name but not extension */
     if (ispkt (netname) || istic (netname) || isarcmail (netname) || isreq (netname))
+    {
       s -= 4;
-    /* val: check pkt file header */
-    if (ispkt (netname)) check_pkthdr(state, netname, tmp_name, real_name, config);
+      ren_style = RENAME_BODY;
+    }
 
     if (touch (tmp_name, file->time) != 0)
       Log (1, "touch %s: %s", tmp_name, strerror (errno));
 
-    while (1)
+    while (!RENAME (tmp_name, real_name))
     {
-      if (!RENAME (tmp_name, real_name))
+      if (errno != EEXIST && errno != EACCES && errno != EAGAIN)
       {
-        Log (2, "%s -> %s", netname, real_name);
-        break;
+        Log (1, "cannot rename %s to it's realname: %s! (data stored in %s)",
+             netname, strerror (errno), tmp_name);
+        *real_name = 0;
+        return 0;
       }
-      else
-      {
-        if (errno != EEXIST && errno != EACCES && errno != EAGAIN)
-        {
-          Log (1, "cannot rename %s to it's realname: %s! (data stored in %s)",
-               netname, strerror (errno), tmp_name);
-          *real_name = 0;
-          return 0;
-        }
-        Log (2, "error renaming `%s' to `%s': %s",
-             netname, real_name, strerror (errno));
-      }
+      Log (2, "error renaming `%s' to `%s': %s",
+           netname, real_name, strerror (errno));
 
-      if (isalpha (*s) && toupper (*s) != 'Z')
-        ++*s;
-      else if (isdigit (*s) && toupper (*s) != '9')
-        ++*s;
-      else if (*s == '9')
-        *s = 'a';
-      else if (*--s == '.' || *s == '\\' || *s == '/')
+      if (!next_inb_filename(real_name, &s, ren_style))
       {
+        if (ren_style == RENAME_EXTENSION)
+        {
+          ren_style = RENAME_POSTFIX;
+          strnzcpy (real_name, state->inbound, MAXPATHLEN);
+          strnzcat (real_name, PATH_SEPARATOR, MAXPATHLEN);
+          s = real_name + strlen (real_name);
+          strnzcat (real_name, u = makeinboundcase (strdequote (netname), (int)config->inboundcase), MAXPATHLEN);
+          free (u);
+          strwipe (s);
+          continue;
+        }
         Log (1, "cannot rename %s to it's realname! (data stored in %s)",
              netname, tmp_name);
         *real_name = 0;
         return 0;
       }
     }
+    Log (2, "%s -> %s", netname, real_name);
   }
 
   /* Replacing .dt with .hr and removing temp. file */
@@ -712,7 +768,8 @@ int inb_done (TFILE *file, STATE *state, BINKD_CONFIG *config)
  * Checks if the file already exists in our inbound. !0=ok, 0=failed.
  */
 int inb_test (char *filename, off_t size, time_t t,
-               char *inbound, char fp[])
+               char *inbound, char fp[],
+               enum renamestyletype ren_style)
 {
   char *s, *u;
   struct stat sb;
@@ -724,6 +781,19 @@ int inb_test (char *filename, off_t size, time_t t,
   free (u);
   strwipe (s);
 
-  return stat (fp, &sb) == 0 && sb.st_size == size &&
-    (sb.st_mtime & ~1) == (t & ~1);
+  s = fp + strlen (fp);
+  if (ispkt (filename) || istic (filename) || isarcmail (filename) || isreq (filename))
+  {
+    s -= 4;
+    ren_style = RENAME_BODY;
+  }
+
+  while (stat (fp, &sb) == 0)
+  {
+    if (sb.st_size == size && (sb.st_mtime & ~1) == (t & ~1))
+      return 1;
+    if (!next_inb_filename(fp, &s, ren_style))
+      return 0;
+  }
+  return 0;
 }

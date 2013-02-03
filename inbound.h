@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.9  2013/02/03 21:37:44  gul
+ * New option "rename-style [postfix|extension]"
+ *
  * Revision 2.8  2005/07/04 18:24:43  gul
  * Move events checking and running to inb_test() for reducing repeated code;
  * do not run immediate events twice;
@@ -49,7 +52,8 @@
  * Sets realname[MAXPATHLEN]
  */
 int inb_test (char *filename, off_t size, time_t t,
-	       char *inbound, char *realname);
+              char *inbound, char *realname,
+              enum renamestyletype ren_style);
 
 /*
  * Open a partial file in the inbound directory for appending.

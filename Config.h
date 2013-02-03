@@ -86,6 +86,7 @@
 
 #define MAXPWDLEN  40
 #define MAX_DOMAIN 32
+#define MAX_INB_RENAME  10000
 
 #define MAXSYSTEMNAME   120
 #define MAXSYSOPNAME    120

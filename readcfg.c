@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.107  2013/02/03 21:37:45  gul
+ * New option "rename-style [postfix|extension]"
+ *
  * Revision 2.106  2012/10/28 21:30:15  green
  * Corrected Segfault in config error reporting on 64bit architectures
  *
@@ -622,6 +625,7 @@ void lock_config_structure(BINKD_CONFIG *c)
     c->loglevel          = 4;
     c->conlog            = 1;
     c->inboundcase       = INB_SAVE;
+    c->renamestyle       = RENAME_POSTFIX;
     c->hold_skipped      = 60 * 60;
     c->tzoff             = -1; /* autodetect */
 
@@ -740,6 +744,7 @@ static int read_mask (KEYWORD *key, int wordcount, char **words);
 static int read_akachain (KEYWORD *key, int wordcount, char **words);
 static int read_inboundcase (KEYWORD *key, int wordcount, char **words);
 static int read_dontsendempty (KEYWORD *key, int wordcount, char **words);
+static int read_renamestyle (KEYWORD *key, int wordcount, char **words);
 static int read_port (KEYWORD *key, int wordcount, char **words);
 static int read_skip (KEYWORD *key, int wordcount, char **words);
 static int read_check_pkthdr (KEYWORD *key, int wordcount, char **words);
@@ -830,6 +835,7 @@ static KEYWORD keywords[] =
   {"deletedirs", read_bool, &work_config.deletedirs, 0, 0},
   {"overwrite", read_mask, &work_config.overwrite, 0, 0},
   {"dont-send-empty", read_dontsendempty, &work_config.dontsendempty, 0, 0},
+  {"rename-style", read_renamestyle, &work_config.renamestyle, 0, 0},
 
   /* shared akas definitions */
   {"share", read_shares, 0, 0, 0},
@@ -1874,6 +1880,24 @@ static int read_dontsendempty (KEYWORD *key, int wordcount, char **words)
   return 1;
 }
 
+static int read_renamestyle (KEYWORD *key, int wordcount, char **words)
+{
+  enum renamestyletype *target = (enum renamestyletype *) (key->var);
+
+  if (!isArgCount(1, wordcount))
+    return 0;
+
+  if (!STRICMP (words[0], "postfix"))
+    *target = RENAME_POSTFIX;
+  else if (!STRICMP (words[0], "extenstion"))
+    *target = RENAME_EXTENSION;
+  else
+    return SyntaxError(key);
+
+  return 1;
+}
+
+
 #if defined (HAVE_VSYSLOG) && defined (HAVE_FACILITYNAMES)
 static int read_syslog_facility (KEYWORD *key, int wordcount, char **words)
 {
@@ -2440,6 +2464,15 @@ void debug_readcfg (void)
       case INB_UPPER: printf("upper"); break;
       case INB_LOWER: printf("lower"); break;
       case INB_MIXED: printf("mixed"); break;
+      default:        printf("???");   break;
+      }
+    }
+    else if (k->callback == read_renamestyle)
+    {
+      switch (work_config.renamestyle)
+      {
+      case RENAME_POSTFIX:   printf("postfix");    break;
+      case RENAME_EXTENSION: printf("extenstion"); break;
       default:        printf("???");   break;
       }
     }
