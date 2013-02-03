@@ -1,3 +1,7 @@
+2013/02/03 10:22:21 1.0.2-pre6 gul
+rfc2553.c,2.2,2.2.2.1
+Corrected mutex handling for multi-threaded environments (backport from 1.1)
+
 2013/02/03 09:29:05 1.0.2-pre5 gul
 ftnq.c,2.39,2.39.2.1 protocol.c,2.219.2.2,2.219.2.3
 Possible segfault on after_session perl hook
