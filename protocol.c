@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.219.2.3  2013/02/03 07:29:03  gul
+ * Possible segfault on after_session perl hook
+ *
  * Revision 2.219.2.2  2012/09/20 12:18:20  gul
  * Cosmitics
  *
@@ -961,8 +964,6 @@ static int deinit_protocol (STATE *state, BINKD_CONFIG *config, int status)
   xfree (state->obuf);
   xfree (state->msgs);
   xfree (state->sent_fls);
-  if (state->q)
-    q_free (state->q, config);
   for (i = 0; i < state->nfa; ++i)
     bsy_remove (state->fa + i, F_BSY, config);
 
@@ -970,6 +971,8 @@ static int deinit_protocol (STATE *state, BINKD_CONFIG *config, int status)
   perl_after_session(state, status);
 #endif
 
+  if (state->q)
+    q_free (state->q, config);
   xfree (state->fa);
   xfree (state->pAddr);
   xfree (state->MD_challenge);
