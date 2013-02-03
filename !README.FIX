@@ -594,3 +594,5 @@ NT/95:  ctrl-c problems fixed
 	Failed DNS lookups in multi-threaded environments may lead to
 	mutex semaphore not being released.
 
+	Possible segfault on after_session perl hook.
+
