@@ -1,3 +1,7 @@
+2013/02/03 09:29:05 1.0.2-pre5 gul
+ftnq.c,2.39,2.39.2.1 protocol.c,2.219.2.2,2.219.2.3
+Possible segfault on after_session perl hook
+
 2012/10/29 21:52:59 1.0.2-pre4 green
 readcfg.c,2.104,2.104.2.1 tools.c,2.75.2.1,2.75.2.2 tools.h,2.29,2.29.2.1
 Corrected Segfault in config error reporting on 64bit architectures
