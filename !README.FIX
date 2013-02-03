@@ -596,3 +596,6 @@ NT/95:  ctrl-c problems fixed
 
 	Possible segfault on after_session perl hook.
 
+	New option "-pipe" in node line - call via stdin/stdout 
+	of external command.
+
