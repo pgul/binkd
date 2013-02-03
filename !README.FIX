@@ -597,4 +597,6 @@ NT/95:  ctrl-c problems fixed
 
 1.0.2
 -----
+	Possible segfault on after_session perl hook.
+
 
