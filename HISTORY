@@ -1,3 +1,7 @@
+2013/02/04 14:47:13 1.1a-26 gul
+!README.FIX,2.61,2.62 !README.perl,2.16,2.17 binkd.cfg,2.61,2.62 binkd.conf,1.6,1.7 perlhooks.c,2.81,2.82 protoco2.h,2.31,2.32 protocol.c,2.227,2.228 readcfg.c,2.107,2.108 readcfg.h,2.41,2.42 rfc2553.c,2.5,2.6 server.c,2.55,2.56 server.h,2.4,2.5
+New config option "listen"
+
 2013/02/04 13:36:22 1.1a-25 gul
 inbound.c,2.48,2.49
 Fix in prev patch
