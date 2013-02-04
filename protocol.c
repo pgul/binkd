@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.228  2013/02/04 12:47:12  gul
+ * New config option "listen"
+ *
  * Revision 2.227  2013/02/03 21:37:45  gul
  * New option "rename-style [postfix|extension]"
  *
@@ -3850,6 +3853,7 @@ void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, 
   char ipaddr[BINKD_FQDNLEN + 1];
   char ownhost[BINKD_FQDNLEN + 1];
   char service[MAXSERVNAME + 1];
+  char ownserv[MAXSERVNAME + 1];
   const char *save_err = NULL;
   int status;
 #ifdef BW_LIM
@@ -3956,9 +3960,12 @@ void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, 
   {
     status = getnameinfo((struct sockaddr *)&peer_name, peer_name_len, 
 		ownhost, sizeof(ownhost), 
-		NULL, 0, NI_NUMERICHOST);
+		ownserv, sizeof(ownserv), NI_NUMERICHOST | NI_NUMERICSERV);
     if (status == 0)
+    {
       state.our_ip=ownhost;
+      state.our_port=atoi(ownserv);
+    }
     else
       Log(2, "Error in getnameinfo(): %s (%d)", gai_strerror(status), status);
   }

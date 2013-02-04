@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.42  2013/02/04 12:47:12  gul
+ * New config option "listen"
+ *
  * Revision 2.41  2013/02/03 21:37:45  gul
  * New option "rename-style [postfix|extension]"
  *
@@ -218,6 +221,12 @@ struct akachain
   char *mask;
   enum { ACT_UNKNOWN=0, ACT_HIDE, ACT_PRESENT } type;
 };
+struct listenchain
+{
+  struct listenchain *next;
+  char addr[42];
+  char port[MAXSERVNAME + 1];
+};
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
 /* val: struct for zallow, zdeny */
 struct zrule
@@ -311,6 +320,7 @@ struct _BINKD_CONFIG
   DEFINE_LIST(_RF_RULE)      rf_rules;
   DEFINE_LIST(_EVT_FLAG)     evt_flags;
   DEFINE_LIST(akachain)      akamask;
+  DEFINE_LIST(listenchain)   listen;
   DEFINE_LIST(_SHARED_CHAIN) shares; /* Linked list for shared akas header */
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
   DEFINE_LIST(zrule)         zrules;
@@ -335,7 +345,7 @@ struct _BINKD_CONFIG
 
   char       root_domain[BINKD_FQDNLEN + 1];
   char       sysname[MAXSYSTEMNAME + 1];
-  char       bindaddr[16];
+  char       bindaddr[42];
   char       sysop[MAXSYSOPNAME + 1];
   char       location[MAXLOCATIONNAME + 1];
   char       nodeinfo[MAXNODEINFO + 1];

@@ -603,3 +603,5 @@ NT/95:  ctrl-c problems fixed
 	generate unique filename in inbound dir for received file if file 
 	with the same name already exists.
 
+	New config option "listen" for set incoming interface/port (multiple).
+

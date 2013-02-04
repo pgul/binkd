@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2013/02/04 12:47:12  gul
+ * New config option "listen"
+ *
  * Revision 2.4  2012/01/03 17:25:32  green
  * Implemented IPv6 support
  * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
@@ -31,7 +34,7 @@
 #ifndef _servmgr_h
 #define _servmgr_h
 
-#define MAX_LISTENSOCK 2
+#define MAX_LISTENSOCK 16
 
 extern SOCKET sockfd[MAX_LISTENSOCK];
 extern int sockfd_used;

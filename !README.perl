@@ -78,6 +78,9 @@ Common Data Structures
 
 @addr   - array of the node's addresses
 
+@listen - array of listen addresses, each element is a pointer to hash with two keys:
+              'addr' and 'port'
+
 @ftans, @overwrite - ftrans'es and overwrite's
 
 @skip   - array of skip rules, each element is a pointer to hash with keys:

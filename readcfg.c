@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.108  2013/02/04 12:47:12  gul
+ * New config option "listen"
+ *
  * Revision 2.107  2013/02/03 21:37:45  gul
  * New option "rename-style [postfix|extension]"
  *
@@ -665,6 +668,7 @@ void unlock_config_structure(BINKD_CONFIG *c, int on_exit)
 
     simplelist_free(&c->config_list.linkpoint, destroy_configlist);
     simplelist_free(&c->pDomains.linkpoint,    destroy_domains);
+    simplelist_free(&c->listen.linkpoint,      NULL);
     simplelist_free(&c->overwrite.linkpoint,   destroy_maskchain);
     simplelist_free(&c->nolog.linkpoint,       destroy_maskchain);
     simplelist_free(&c->skipmask.linkpoint,    destroy_skipchain);
@@ -746,6 +750,7 @@ static int read_inboundcase (KEYWORD *key, int wordcount, char **words);
 static int read_dontsendempty (KEYWORD *key, int wordcount, char **words);
 static int read_renamestyle (KEYWORD *key, int wordcount, char **words);
 static int read_port (KEYWORD *key, int wordcount, char **words);
+static int read_listen (KEYWORD *key, int wordcount, char **words);
 static int read_skip (KEYWORD *key, int wordcount, char **words);
 static int read_check_pkthdr (KEYWORD *key, int wordcount, char **words);
 #if defined(WITH_ZLIB) || defined(WITH_BZLIB2)
@@ -781,7 +786,8 @@ static KEYWORD keywords[] =
   {"domain", read_domain_info, NULL, 0, 0},
   {"address", read_aka_list, NULL, 0, 0},
   {"sysname", read_string, work_config.sysname, 0, MAXSYSTEMNAME},
-  {"bindaddr", read_string, work_config.bindaddr, 0, 16},
+  {"bindaddr", read_string, work_config.bindaddr, 0, 42},
+  {"listen", read_listen, &work_config.listen, 0, 0},
   {"sysop", read_string, work_config.sysop, 0, MAXSYSOPNAME},
   {"location", read_string, work_config.location, 0, MAXLOCATIONNAME},
   {"nodeinfo", read_string, work_config.nodeinfo, 0, MAXNODEINFO},
@@ -1184,6 +1190,23 @@ BINKD_CONFIG *readcfg (char *path)
         work_config.percents = work_config.printq = 1;
         work_config.loglevel = work_config.conlog = 6;
         break;
+      }
+
+      if (!work_config.listen.first)
+      {
+        struct listenchain new_entry;
+
+        new_entry.port[0] = '\0';
+        new_entry.addr[0] = '\0';
+        simplelist_add(&work_config.listen.linkpoint, &new_entry, sizeof(new_entry));
+      }
+      {
+        struct listenchain *cur;
+        for (cur = work_config.listen.first; cur; cur = cur->next)
+        {
+          if (cur->port[0] == '\0')
+            snprintf(cur->port, sizeof(cur->port), "%s", work_config.iport);
+        }
       }
 
       if (!*work_config.inbound_nonsecure)
@@ -1983,6 +2006,45 @@ static int read_akachain (KEYWORD *key, int wordcount, char **words)
   new_entry.type = type;
   new_entry.mask = xstrdup(mask);
   simplelist_add(key->var, &new_entry, sizeof(new_entry));
+
+  return 1;
+}
+
+static int read_listen (KEYWORD *key, int wordcount, char **words)
+{
+  int i;
+  char *p;
+  struct listenchain new_entry;
+
+  if (wordcount == 0)
+    return SyntaxError(key);
+
+  for (i = 0; i < wordcount; i++)
+  {
+    strncpy(new_entry.addr, words[i], sizeof(new_entry.addr));
+    new_entry.addr[sizeof(new_entry.addr)-1] = '\0';
+    new_entry.port[0] = '\0';
+    if (words[i][0] == '[')
+    { /* IPv6 */
+      p = strchr(words[i], ']');
+      if (p && p[1] == ':')
+      {
+        snprintf(new_entry.port, sizeof(new_entry.port), "%s", p + 2);
+        p = strchr(new_entry.addr, ']');
+        if (p) p[1] = '\0';
+      }
+    } else if ((p = strchr(words[i], ':')) != NULL)
+    {
+      snprintf(new_entry.port, sizeof(new_entry.port), "%s", p + 1);
+      p = strchr(new_entry.addr, ':');
+      if (p) p[0] = '\0';
+    }
+    if (find_port(new_entry.port) == NULL)
+      return ConfigError("%s: bad port number", new_entry.port);
+    if (strcmp(new_entry.addr, "*") == 0)
+      new_entry.addr[0] = '\0';
+    simplelist_add(key->var, &new_entry, sizeof(new_entry));
+  }
 
   return 1;
 }

@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.82  2013/02/04 12:47:12  gul
+ * New config option "listen"
+ *
  * Revision 2.81  2012/09/20 12:16:53  gul
  * Added "call via external pipe" (for example ssh) functionality.
  * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
@@ -978,7 +981,7 @@ struct perl_const { char *name; int value; } perl_consts[] = {
       (void) hv_store(_hv, _name, strlen(_name), _sv, 0);     \
     }
 #define VK_ADD_HASH_str(_hv,_sv,_name,_value)                            \
-    if ( (_value != NULL) && (_sv = newSVpv(_value, 0)) != NULL ) {      \
+    if ( ((_value) != NULL) && (_sv = newSVpv(_value, 0)) != NULL ) {    \
       SvREADONLY_on(_sv);                                                \
       (void) hv_store(_hv, _name, strlen(_name), _sv, 0);                \
     }                                                                    \
@@ -1399,6 +1402,22 @@ static void perl_setup(BINKD_CONFIG *cfg, PerlInterpreter *perl) {
     av_push(av, sv);
   }
   Log(LL_DBG2, "perl_setup(): @addr done");
+  /* listen */
+  av = perl_get_av("listen", TRUE);
+  av_clear(av);
+  {
+    struct listenchain *cur = cfg->listen.first;
+    while (cur) {
+      hv2 = newHV();
+      VK_ADD_HASH_str(hv2, sv, "port", cur->port);
+      VK_ADD_HASH_str(hv2, sv, "addr", cur->addr[0] ? cur->addr : "*");
+      sv = newRV_noinc((SV*)hv2);
+      SvREADONLY_on(sv);
+      av_push(av, sv);
+      cur = cur->next;
+    }
+  }
+  Log(LL_DBG2, "perl_setup(): @listen done");
   /* ftrans */
   av = perl_get_av("ftrans", TRUE);
   av_clear(av);
@@ -1768,7 +1787,8 @@ static void setup_session(STATE *state, int lvl) {
     VK_ADD_intz(sv, "start", (int)state->start_time);
     VK_ADD_str (sv, "host", state->peer_name);
     VK_ADD_str (sv, "host", state->ipaddr);
-    VK_ADD_str(sv, "our_ip", state->our_ip);
+    VK_ADD_str (sv, "our_ip", state->our_ip);
+    VK_ADD_intz(sv, "our_port", state->our_port);
     state->perl_set_lvl = 1;
   }
   /* lvl 2 */

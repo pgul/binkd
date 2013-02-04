@@ -12,6 +12,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2013/02/04 12:47:12  gul
+ * New config option "listen"
+ *
  * Revision 2.5  2012/09/24 00:26:42  gul
  * Resolve logic changed
  *
@@ -261,7 +264,7 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen,
    
    if (host != 0)
    {
-      /* Try to resolve the hostnamea */
+      /* Try to resolve the hostname */
       if ((flags & NI_NUMERICHOST) != NI_NUMERICHOST)
       {
 	 struct hostent *Ent;
@@ -277,14 +280,14 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen,
 	    {
 	       if (h_errno == TRY_AGAIN)
 	       {
-	          releaseresolvsem();
+		  releaseresolvsem();
 		  return EAI_AGAIN;
-               }
+	       }
 	       if (h_errno == NO_RECOVERY)
 	       {
-	          releaseresolvsem();
+		  releaseresolvsem();
 		  return EAI_FAIL;
-               }
+	       }
 	       releaseresolvsem();
 	       return EAI_NONAME;
 	    }
@@ -296,44 +299,42 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen,
       /* Resolve as a plain numberic */
       if ((flags & NI_NUMERICHOST) == NI_NUMERICHOST)
       {
-         lockhostsem();
+	 lockhostsem();
 	 strncpy(host,inet_ntoa(sin->sin_addr),hostlen);
-         releasehostsem();
+	 releasehostsem();
       }
    }
    
    if (serv != 0)
    {
-      /* Try to resolve the hostname */
+      /* Try to get service name */
       if ((flags & NI_NUMERICSERV) != NI_NUMERICSERV)
       {
 	 struct servent *Ent;
-         lockresolvsem();
+	 lockresolvsem();
 	 if ((flags & NI_DATAGRAM) == NI_DATAGRAM)
-	    Ent = getservbyport(ntohs(sin->sin_port),"udp");
+	    Ent = getservbyport(ntohs(sin->sin_port), "udp");
 	 else
-	    Ent = getservbyport(ntohs(sin->sin_port),"tcp");
+	    Ent = getservbyport(ntohs(sin->sin_port), "tcp");
 	 
 	 if (Ent != 0)
-	    strncpy(serv,Ent->s_name,servlen);
+	    strncpy(serv,Ent->s_name, servlen);
 	 else
 	 {
 	    if ((flags & NI_NAMEREQD) == NI_NAMEREQD)
 	    {
-               releaseresolvsem();
+	       releaseresolvsem();
 	       return EAI_NONAME;
 	    }
 
 	    flags |= NI_NUMERICSERV;
 	 }
-         releaseresolvsem();
+	 releaseresolvsem();
       }
       
-      /* Resolve as a plain numberic */
+      /* Resolve as a plain numeric */
       if ((flags & NI_NUMERICSERV) == NI_NUMERICSERV)
-      {
-	 snprintf(serv,servlen,"%u",ntohs(sin->sin_port));
-      }
+	 snprintf(serv, servlen, "%u", ntohs(sin->sin_port));
    }
    
    return 0;

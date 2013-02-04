@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.56  2013/02/04 12:47:12  gul
+ * New config option "listen"
+ *
  * Revision 2.55  2012/09/20 12:16:54  gul
  * Added "call via external pipe" (for example ssh) functionality.
  * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
@@ -312,6 +315,7 @@ static int do_server(BINKD_CONFIG *config)
   struct sockaddr_storage client_addr;
   int opt = 1;
   int save_errno;
+  struct listenchain *listen_list;
 
   /* setup hints for getaddrinfo */
   memset((void *)&hints, 0, sizeof(hints));
@@ -320,59 +324,63 @@ static int do_server(BINKD_CONFIG *config)
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_protocol = IPPROTO_TCP;
 
-  if ((aiErr = getaddrinfo(config->bindaddr[0] ? config->bindaddr : NULL, 
-		config->iport, &hints, &aiHead)) != 0)
+  for (listen_list = config->listen.first; listen_list; listen_list = listen_list->next)
   {
-    Log(0, "servmgr getaddrinfo: %s (%d)", gai_strerror(aiErr), aiErr);
-    return -1;
-  }
-
-  for (ai = aiHead; ai != NULL && sockfd_used < MAX_LISTENSOCK; ai = ai->ai_next)
-  {
-    sockfd[sockfd_used] = socket(ai->ai_family, ai->ai_socktype, 
-	    ai->ai_protocol);
-    if (sockfd[sockfd_used] < 0)
+    if ((aiErr = getaddrinfo(listen_list->addr[0] ? listen_list->addr : NULL, 
+                             listen_list->port, &hints, &aiHead)) != 0)
     {
-      Log (0, "servmgr socket(): %s", TCPERR ());
-      continue;
+      Log(0, "servmgr getaddrinfo: %s (%d)", gai_strerror(aiErr), aiErr);
+      return -1;
     }
+
+    for (ai = aiHead; ai != NULL && sockfd_used < MAX_LISTENSOCK; ai = ai->ai_next)
+    {
+      sockfd[sockfd_used] = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+      if (sockfd[sockfd_used] < 0)
+      {
+        Log (0, "servmgr socket(): %s", TCPERR ());
+        continue;
+      }
 #ifdef IPV6_V6ONLY
-    if (ai->ai_family == PF_INET6)
-    {
-      int v6only = 1;
-      if (setsockopt(sockfd[sockfd_used], IPPROTO_IPV6, IPV6_V6ONLY, 
+      if (ai->ai_family == PF_INET6)
+      {
+        int v6only = 1;
+        if (setsockopt(sockfd[sockfd_used], IPPROTO_IPV6, IPV6_V6ONLY, 
 		  (char *) &v6only, sizeof(v6only)) == SOCKET_ERROR)
-        Log(1, "servmgr setsockopt (IPV6_V6ONLY): %s", TCPERR());
-    }
+          Log(1, "servmgr setsockopt (IPV6_V6ONLY): %s", TCPERR());
+      }
 #endif
-    if (setsockopt (sockfd[sockfd_used], SOL_SOCKET, SO_REUSEADDR,
-                  (char *) &opt, sizeof opt) == SOCKET_ERROR)
-      Log (1, "servmgr setsockopt (SO_REUSEADDR): %s", TCPERR ());
+      if (setsockopt (sockfd[sockfd_used], SOL_SOCKET, SO_REUSEADDR,
+                    (char *) &opt, sizeof opt) == SOCKET_ERROR)
+        Log (1, "servmgr setsockopt (SO_REUSEADDR): %s", TCPERR ());
     
-    if (bind (sockfd[sockfd_used], ai->ai_addr, ai->ai_addrlen) != 0)
-    {
-      Log (0, "servmgr bind(): %s", TCPERR ());
-      soclose(sockfd[sockfd_used]);
-      continue;
-    }
-    if (listen (sockfd[sockfd_used], 5) != 0)
-    {
-      Log(0, "servmgr listen(): %s", TCPERR ());
-      soclose(sockfd[sockfd_used]);
-      continue;
+      if (bind (sockfd[sockfd_used], ai->ai_addr, ai->ai_addrlen) != 0)
+      {
+        Log (0, "servmgr bind(): %s", TCPERR ());
+        soclose(sockfd[sockfd_used]);
+        continue;
+      }
+      if (listen (sockfd[sockfd_used], 5) != 0)
+      {
+        Log(0, "servmgr listen(): %s", TCPERR ());
+        soclose(sockfd[sockfd_used]);
+        continue;
+      }
+
+      sockfd_used++;
     }
 
-    sockfd_used++;
-  }
+    Log (3, "servmgr listen on %s:%s", listen_list->addr[0] ? listen_list->addr : "*", listen_list->port);
   
-  freeaddrinfo(aiHead);
+    freeaddrinfo(aiHead);
+  }
 
   if (sockfd_used == 0) {
     Log(0, "servmgr: No listen socket open");
     return -1;
   }
 
-  setproctitle ("server manager (listen %s)", config->iport);
+  setproctitle ("server manager (listen %s)", config->listen.first->port);
 
   for (;;)
   {
@@ -522,7 +530,7 @@ void servmgr (void)
   signal (SIGCHLD, sighandler);
 #endif
 
-  /* Loop on socket (bindaddr can be changed by reload)
+  /* Loop on socket (listen can be changed by reload)
    * do_server() will return 0 to restart and -1 to terminate
    */
   do

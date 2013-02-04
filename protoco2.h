@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.32  2013/02/04 12:47:12  gul
+ * New config option "listen"
+ *
  * Revision 2.31  2013/01/24 17:25:35  gul
  * Support "-pipe" option on Win32
  *
@@ -223,6 +226,7 @@ struct _STATE
   char *peer_name;              /* Remote host's name */
   char *ipaddr;			/* Remote IP */
   char *our_ip;			/* Local IP */
+  int our_port;			/* Local port */
   int io_error;
   int msgs_in_batch;
   int minor, major;		/* Version of remote binkp */
