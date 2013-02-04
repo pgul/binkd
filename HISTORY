@@ -1,3 +1,7 @@
+2013/02/04 13:36:22 1.1a-25 gul
+inbound.c,2.48,2.49
+Fix in prev patch
+
 2013/02/03 23:37:46 1.1a-24 gul
 !README.FIX,2.60,2.61 Config.h,2.667,2.668 binkd.cfg,2.60,2.61 binkd.conf,1.5,1.6 btypes.h,2.11,2.12 inbound.c,2.47,2.48 inbound.h,2.8,2.9 protocol.c,2.226,2.227 readcfg.c,2.106,2.107 readcfg.h,2.40,2.41
 New option "rename-style [postfix|extension]"
