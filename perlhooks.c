@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.83  2013/02/24 07:50:58  gul
+ * Fixed $ip var in perlhooks
+ *
  * Revision 2.82  2013/02/04 12:47:12  gul
  * New config option "listen"
  *
@@ -1786,7 +1789,7 @@ static void setup_session(STATE *state, int lvl) {
     VK_ADD_intz(sv, "call", state->to != NULL);
     VK_ADD_intz(sv, "start", (int)state->start_time);
     VK_ADD_str (sv, "host", state->peer_name);
-    VK_ADD_str (sv, "host", state->ipaddr);
+    VK_ADD_str (sv, "ip", state->ipaddr);
     VK_ADD_str (sv, "our_ip", state->our_ip);
     VK_ADD_intz(sv, "our_port", state->our_port);
     state->perl_set_lvl = 1;
