@@ -64,6 +64,10 @@
     http://binkd.spb.ru/cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/
       (Россия, Andrey Ostanovsky 2:5030/1957)
 
+    Скомпилированные версии (windows, os/2):
+    http://sites.google.com/site/vasilyevmax/fido
+      (Max Vasilyev 2:5057/77)
+
     Бэты:
     Публичный CVS
        :pserver:binkd@cvs.happy.kiev.ua:/cvs , модуль binkd, пароль пустой
@@ -81,10 +85,6 @@
     Анонимный FTP:
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/snapshot (основной)
     ftp://ftp.grumbler.org/pub/binkd/current (зеркало, обновляется 23:50 UTC+5)
-
-    Binkd, портированный под Windows CE:
-    http://nicka-s.narod.ru/fido/index.html
-      (Россия, Nickita Startcev 2:469/105.96 & 2:5030/777.319)
 
     Binkd для DOS-DPMI с использованием стека (драйверов IP) Watt-32 авторства
     Gisle Vanem giva@bgnett.no (http://www.bgnett.no/~giva/):

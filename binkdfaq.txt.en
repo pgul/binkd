@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of January 7 2013
+        Version of June 29 2013
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -63,10 +63,12 @@ from Russian by Michael Dukelsky 2:5020/1042.
     2:463/68):
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/
     The mirrors:
-    ftp://cheetah.itpark.com.ua/pub/fido/binkd/
-      (Ukraine, Pavel Gulchouck 2:463/68)
     http://binkd.spb.ru/cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/
       (Russia, Andrey Ostanovsky 2:5030/1957)
+
+    Binaries (windows, os/2):
+    http://sites.google.com/site/vasilyevmax/fido
+      (Max Vasilyev 2:5057/77)
 
     Beta versions:
     Public CVS
@@ -86,16 +88,11 @@ from Russian by Michael Dukelsky 2:5020/1042.
     ftp://ftp.grumbler.org/pub/binkd/current (the mirror is refreshed
                                               at 23:50 UTC+5)
 
-    Binkd port for Windows CE:
-    http://nicka-s.narod.ru/fido/index.html
-      (Russia, Nickita Startcev 2:469/105.96 & 2:5030/777.319)
-
-    Binkd/2 1.0a (current, EMX), compiled everynight:
+    Binkd/2 1.1a (current, EMX), compiled everynight:
     FREQ from node 2:221/1, file alias: binkd2e. It's possibe to download from
     BBS of node 2:221/1 (accessed also via telnet:rbb.cjb.net)
     http://rbb.homeip.net/pub/os2/comm/bbs/binkd2e.rar
       (Suomi, Tommi Koivula 2:221/1 & 2:221/360 & 2:221/361)
-
 
     Documentation, log analyzers etc.:
     http://www.doe.carleton.ca/~nsoveiko/fido/binkd/
