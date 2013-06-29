@@ -1,3 +1,7 @@
+2013/06/29 10:20:51 1.1a-28 gul
+protocol.c,2.228,2.229
+Fix warning on windows
+
 2013/02/24 09:51:00 1.1a-27 gul
 perlhooks.c,2.82,2.83
 Fixed $ip var in perlhooks
