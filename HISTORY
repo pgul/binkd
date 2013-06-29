@@ -1,3 +1,7 @@
+2013/06/29 10:35:02 1.0.2 gul
+!README,2.4.2.1,2.4.2.2 !README.FIX,2.56.2.5,2.56.2.6 Config.h,2.642.2.20,2.642.2.21
+binkd 1.0.2 release
+
 2013/02/03 10:22:21 1.0.2-pre6 gul
 rfc2553.c,2.2,2.2.2.1
 Corrected mutex handling for multi-threaded environments (backport from 1.1)
