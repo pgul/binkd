@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.229  2013/06/29 07:20:49  gul
+ * Fix warning on windows
+ *
  * Revision 2.228  2013/02/04 12:47:12  gul
  * New config option "listen"
  *
@@ -4092,7 +4095,7 @@ void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, 
           }
           else
           {
-            long avail = 0;
+            unsigned long avail = 0;
             if (!PeekNamedPipe((HANDLE)_get_osfhandle(socket_in), NULL, 0, NULL, &avail, NULL))
             {
               if (!binkd_exit)
