@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of Febriary 10 2012
+        Version of June 29 2013
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -63,10 +63,12 @@ from Russian by Michael Dukelsky 2:5020/1042.
     2:463/68):
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/
     The mirrors:
-    ftp://cheetah.itpark.com.ua/pub/fido/binkd/
-      (Ukraine, Pavel Gulchouck 2:463/68)
     http://binkd.spb.ru/cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/
       (Russia, Andrey Ostanovsky 2:5030/1957)
+
+    Binaries (windows, os/2):
+    http://sites.google.com/site/vasilyevmax/fido
+      (Max Vasilyev 2:5057/77)
 
     Beta versions:
     Public CVS
@@ -86,16 +88,11 @@ from Russian by Michael Dukelsky 2:5020/1042.
     ftp://ftp.grumbler.org/pub/binkd/current (the mirror is refreshed
                                               at 23:50 UTC+5)
 
-    Binkd port for Windows CE:
-    http://nicka-s.narod.ru/fido/index.html
-      (Russia, Nickita Startcev 2:469/105.96 & 2:5030/777.319)
-
-    Binkd/2 1.0a (current, EMX), compiled everynight:
+    Binkd/2 1.1a (current, EMX), compiled everynight:
     FREQ from node 2:221/1, file alias: binkd2e. It's possibe to download from
     BBS of node 2:221/1 (accessed also via telnet:rbb.cjb.net)
     http://rbb.homeip.net/pub/os2/comm/bbs/binkd2e.rar
       (Suomi, Tommi Koivula 2:221/1 & 2:221/360 & 2:221/361)
-
 
     Documentation, log analyzers etc.:
     http://www.doe.carleton.ca/~nsoveiko/fido/binkd/
@@ -618,7 +615,7 @@ Krysin, 2:5054/84: http://deep.perm.ru/files/fido/fustat-0.02.tar.gz
     http://www.vk.kiev.ua/create/soft.html#bnkds
     http://binkd.grumbler.org/loganalisers/stat-binkd.pl.gz
 
-    binkdstat (‘) val khokhlov, Dmitry Kolvakh, updated at April 2006
+    binkdstat (c) val khokhlov, Dmitry Kolvakh, updated at April 2006
     http://www.pstu.ru/~keu/binkdstat.zip
     http://binkd.grumbler.org/loganalisers/binkdstat.zip
 
@@ -656,7 +653,7 @@ configuration file full path:
 
         16. Can One Make a File Request From BinkD?
 
-    It's a piece of cake! BinkD supports WAZOO FREQ.
+    It's a piece of cake! BinkD supports WAZOO FREQ with an external helper.
 
     To request files from a remote system it is necessary to create a file
 of type nnnnmmmm.REQ and to put it in the outbound directory near *.?ut and
@@ -677,8 +674,10 @@ BinkD to match both upper-case and lower-case letters, e.g. both *.REQ and
 
     exec "/ftn/bin/tmafreq-srif *S" *.[rR][eE][qQ]
 
-    The following file request processors are compatible with BinkD (but
-they are not the only ones, any other one supporting SRIF will do):
+    A bash script "srifreq" is delivered with BinkD starting with version 
+1.1a19.
+    The following file request processors are also compatible with BinkD 
+(but they are not the only ones, any other one supporting SRIF will do):
 
     Allfix by Harms Software Engineering: it is a fileecho processor with
 built-in file request processor and it has versions for DOS and OS/2;
@@ -687,11 +686,16 @@ built-in file request processor and it has versions for DOS and OS/2;
 Windows, it is distributed by Michael Massenberg (2:2411/505) via modem,
 ISDN and Fido-over-IP.
 
-    tmafreq by Maxim Timofeyev <tmahome@mail.tma.spb.ru>: FREQ processor
-is created for unix-like OS and ported into Windows. One may obtain tmafreq
+    tmafreq by Maxim Timofeyev <tmahome@mail.tma.spb.ru>: the FREQ processor
+is created for a unix-like OS and ported into Windows. One may obtain tmafreq
 from different BBS and FTP with fileecho archives, or may get tmafreq sources
 from anonymous CVS :pserver:anoncvs@tma.spb.ru:/cvsroot, module "tmafreq".
 
+    VIREQ/x by Volker Imre <volker@imre.dyndns.org> (2:246/2098): the FREQ
+processor is created for a unix-like OS but can be compiled in the OS/2, 
+Windows and maybe other operating systems. Now it is included into "ftnapps" 
+project on Sourceforge and may be downloaded from 
+http://ftnapps.sourceforge.net/vireq.html.
 
 ----------------------------------------------------------------------------
 
