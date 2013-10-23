@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2013/10/23 19:21:58  stream
+ * Fix incorrect type and crash on Win64
+ *
  * Revision 2.4  2004/01/08 13:27:49  val
  * * extend struct dirent for dos and win32 in order to get file attribute
  * * ignore hidden files in boxes for dos/win32/os2
@@ -46,6 +49,15 @@
 
 #include <stdlib.h>
 
+#ifndef _INTPTR_T_DEFINED
+#ifdef  _WIN64
+typedef __int64             intptr_t;
+#else
+typedef /* _W64 */ int            intptr_t;
+#endif
+#define _INTPTR_T_DEFINED
+#endif
+
 struct dirent {
    char        d_name[_MAX_PATH+1];  /* file's name */
    unsigned    d_attrib;             /* file's attributes */
@@ -53,7 +65,7 @@ struct dirent {
 
 typedef struct {
    struct dirent	de;
-   long			handle;
+   intptr_t		handle;
    char			first_time;
 } DIR;
 
