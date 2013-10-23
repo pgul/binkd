@@ -1,3 +1,7 @@
+2013/10/23 22:25:59 1.1a-30 stream
+!README.FIX,2.62,2.63 ftnq.c,2.39,2.40 protocol.c,2.229,2.230 run.c,2.11,2.12 sys.h,2.36,2.37
+EWOULDBLOCK, O_BINARY, O_NOINHERIT could be defined to wrong value
+
 2013/10/23 22:22:01 1.1a-29 stream
 dirwin32.c,2.2,2.3 dirwin32.h,2.4,2.5
 Fix incorrect type and crash on Win64
