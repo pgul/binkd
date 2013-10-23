@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2013/10/23 19:25:56  stream
+ * EWOULDBLOCK, O_BINARY, O_NOINHERIT could be defined to wrong value
+ *
  * Revision 2.11  2013/01/24 17:25:35  gul
  * Support "-pipe" option on Win32
  *
@@ -327,7 +330,7 @@ int run3 (const char *cmd, int *in, int *out, int *err)
     if (strpbrk(cmd, SHELL_META) == NULL)
     {
       /* execute command directly */
-      const char **args, *word;
+      char **args, *word;
       int i;
 
       args = xalloc(sizeof(args[0]));

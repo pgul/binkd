@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.37  2013/10/23 19:25:56  stream
+ * EWOULDBLOCK, O_BINARY, O_NOINHERIT could be defined to wrong value
+ *
  * Revision 2.36  2013/01/24 17:36:53  gul
  * Compilation on unix
  *
@@ -177,6 +180,8 @@
 #ifdef HAVE_STDARG_H
   #include <stdarg.h>
 #endif
+#include <errno.h>   // EWOULDBLOCK etc.
+#include <fcntl.h>   // O_BINARY, O_NOINHERIT
 
 #if defined(__WATCOMC__) && !defined(__IBMC__)
   #include <utils.h>
@@ -307,9 +312,6 @@ int snprintf (va_alist) va_dcl;
 int vsnprintf (char *str, size_t count, const char *fmt, va_list args);
 #endif
 
-#ifndef O_BINARY
-  #define O_BINARY 0
-#endif
 #if defined(__WATCOMC__) || defined(VISUALCPP) || defined(__MINGW32__) || defined(IBMC) || defined(__MSC__)
   #define MKDIR(s) mkdir(s)
 #else

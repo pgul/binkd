@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.40  2013/10/23 19:25:56  stream
+ * EWOULDBLOCK, O_BINARY, O_NOINHERIT could be defined to wrong value
+ *
  * Revision 2.39  2011/05/06 15:44:04  gul
  * Fixed sorting files in filebox by time
  *
@@ -1053,7 +1056,8 @@ void q_get_sizes (FTNQ *q, uintmax_t *netsize, uintmax_t *filessize)
         *filessize += curr->size;
       else if ((f = fopen(curr->path, "r")) != NULL)
       {
-        curr->size = curr->time = 0;
+        curr->size = 0;
+        curr->time = 0;
         while (fgets (str, sizeof(str), f))
         {
           if (*str == '~' || *str == '$') continue;

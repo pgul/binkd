@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.230  2013/10/23 19:25:56  stream
+ * EWOULDBLOCK, O_BINARY, O_NOINHERIT could be defined to wrong value
+ *
  * Revision 2.229  2013/06/29 07:20:49  gul
  * Fix warning on windows
  *
@@ -3034,7 +3037,7 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
         /* to satisfy remote GET_FILE_balance */
         msg_sendf (state, M_FILE, "%s %" PRIuMAX " %" PRIuMAX " %" PRIuMAX,
                    state->out.netname, (uintmax_t) state->out.size,
-                   (uintmax_t) state->out.time, strtoul(argv[3], NULL, 10));
+                   (uintmax_t) state->out.time, strtoumax(argv[3], NULL, 10));
         if (strtoumax(argv[3], NULL, 10) == (uintmax_t) state->out.size &&
             (state->ND_flag & WE_ND))
         {

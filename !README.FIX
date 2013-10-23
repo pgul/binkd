@@ -569,6 +569,9 @@ NT/95:  ctrl-c problems fixed
 	New config parameters zlib-dll and bzlib2-dll for win32 versions
 	compiled with ZLIBDL support.
 
+	Fixed ND-mode which was broken 01 Oct 2004 in all versions
+	of BinkD (Roman Trunov).
+
 	New optional parameter root-domain for 'domain' config option.
 
 	New config option dont-send-empty - inhibit sending empty
