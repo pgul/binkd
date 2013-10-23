@@ -1,3 +1,7 @@
+2013/10/23 22:22:01 1.1a-29 stream
+dirwin32.c,2.2,2.3 dirwin32.h,2.4,2.5
+Fix incorrect type and crash on Win64
+
 2013/06/29 10:20:51 1.1a-28 gul
 protocol.c,2.228,2.229
 Fix warning on windows
