@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.7  2004/11/05 05:30:55  stas
  * Checks for NULL pointer in get_matched_domain()
  *
@@ -55,6 +58,7 @@
  */
 
 #include <stdio.h>
+#include "sys.h"
 #include "ftndom.h"
 #include "tools.h"
 

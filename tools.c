@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.80  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.79  2013/01/24 17:33:40  gul
  * Syntax error
  *
@@ -341,10 +344,10 @@
 #include <syslog.h>
 #endif
 
+#include "sys.h"
 #include "readcfg.h"
 #include "common.h"
 #include "tools.h"
-#include "sys.h"
 #include "readdir.h"		       /* for [sys/]utime.h */
 #include "sem.h"
 #include "assert.h"
@@ -1205,7 +1208,9 @@ long safe_atol(char* str, char** msg){
     }
   }else{
     errno = EINVAL;
-    *msg = "Invalid argument (NULL instead string)";
+    if (msg) {
+      *msg = "Invalid argument (NULL instead string)";
+   }
   }
   return (long)ul;
 }

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.10  2008/04/17 15:19:44  gul
  * Fixed sending files with space or control chars in name
  *
@@ -68,14 +71,16 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "sys.h"
 #include "prothlp.h"
 #include "tools.h"
 #include "crypt.h"
 
-int tfile_cmp (TFILE *a, char *netname, off_t size, time_t time)
+int tfile_cmp (TFILE *a, char *netname, boff_t size, time_t time)
 {
   int rc;
   char *anetname;
+  boff_t sizediff;
 
   anetname = strdequote(a->netname);
   netname = strdequote(netname);
@@ -83,8 +88,10 @@ int tfile_cmp (TFILE *a, char *netname, off_t size, time_t time)
   free(anetname);
   free(netname);
   if (rc) return rc;
-  if (a->size != size)
-    return a->size - size;
+  /* File size could be 64 bits */
+  sizediff = a->size - size;
+  if (sizediff)
+    return sizediff > 0 ? 1 : -1;
   if (a->time != time)
     return a->time - time;
   return 0;
@@ -188,6 +195,7 @@ void netname_ (char *s, TFILE *q
 	  memset(&sb,0,sizeof(sb));
 	  stat(q->path, &sb);
 	  if (sscanf(s, "%lu.%lu.%lu.%lu.%3s", &zone, &net, &node, &p, ext) == 5){
+            /* TODO: What if size is 64 bits? */
 	    unsigned long C = CRC32(sb.st_size,CRC32(p,CRC32(node,CRC32(net,CRC32(zone,0)))));
 	    sprintf(s, "%08lx.%s",  /* Convert long name to CRC32 from zone,net,node,point numbers */
 	            C, ext);

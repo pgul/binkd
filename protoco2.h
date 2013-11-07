@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.33  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.32  2013/02/04 12:47:12  gul
  * New config option "listen"
  *
@@ -178,7 +181,7 @@ struct _BW
   unsigned long abs;            /* min limit in abs-value */
   unsigned long rel;            /* min limit in percents */
   struct timeval utime;         /* bandwidth limit cps counter update time */
-  off_t bytes;                  /* bytes transferred after update time */
+  boff_t bytes;                 /* bytes transferred after update time */
   double cps;                   /* avg.cps for last 10 sec */
   unsigned long cpsN;           /* cps measurements pool size */
 };
@@ -274,8 +277,8 @@ struct _STATE
   int z_recv, z_send;           /* gzip is on for current file */
   int z_oleft;			/* length of actual data */
   char *z_obuf;			/* compression buffers */
-  off_t z_osize, z_isize;	/* original (uncompressed) size */
-  off_t z_cosize, z_cisize;	/* compressed size */
+  boff_t z_osize, z_isize;	/* original (uncompressed) size */
+  boff_t z_cosize, z_cisize;	/* compressed size */
   void *z_idata, *z_odata;	/* data for zstream */
 #endif
   int delay_ADR, delay_EOB;     /* delay sending of the command */

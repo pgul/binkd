@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.231  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.230  2013/10/23 19:25:56  stream
  * EWOULDBLOCK, O_BINARY, O_NOINHERIT could be defined to wrong value
  *
@@ -819,6 +822,7 @@
 #include <time.h>
 #endif
 
+#include "sys.h"
 #include "readcfg.h"
 #include "common.h"
 #include "protocol.h"
@@ -949,7 +953,7 @@ static int init_protocol (STATE *state, SOCKET socket_in, SOCKET socket_out, FTN
  */
 static int close_partial (STATE *state, BINKD_CONFIG *config)
 {
-  off_t s;
+  boff_t s;
 
   if (state->in.f)
   {
@@ -1240,9 +1244,10 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
           buf = (unsigned char *)state->z_obuf + state->z_oleft;
         } else
           sz = config->oblksize;
-        sz = min ((off_t) sz, state->out.size - ftello (state->out.f));
+        sz = min ((boff_t) sz, state->out.size - ftello (state->out.f));
 #else
-        sz = min ((off_t) config->oblksize, state->out.size - ftello (state->out.f));
+        /* OK to truncate to 32bits because config->oblksize is plain int */
+        sz = (int) min ((boff_t) config->oblksize, state->out.size - ftello (state->out.f));
 #endif
       }
       else
@@ -1268,7 +1273,7 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
          *  3. pkt destination is shared address
          *  change destination address to main aka.
          */
-        if ((ftello(state->out.f)==(off_t)sz) && (sz >= 60) /* size of pkt header + 2 bytes */
+        if ((ftello(state->out.f)==(boff_t)sz) && (sz >= 60) /* size of pkt header + 2 bytes */
             && ispkt(state->out.netname))
         {
           short cz, cnet, cnode, cp;
@@ -1312,7 +1317,7 @@ static int send_block (STATE *state, BINKD_CONFIG *config)
         int nget = 0;  /* number of read uncompressed bytes from buffer */
         int ocnt;      /* number of bytes compressed by one call */
         int rc;
-        off_t fleft;
+        boff_t fleft;
 
         sz += state->z_oleft;
         while (1)
@@ -1446,7 +1451,7 @@ static int remove_from_spool (STATE *state, char *flopath,
 {
   char buf[MAXPATHLEN + 1], *w = 0;
   FILE *flo = 0;
-  off_t offset = 0, curr_offset;
+  boff_t offset = 0, curr_offset;
   int i;
   int seek_flag = 0;                       /* Seek _state->flo.f_ to */
 
@@ -1466,7 +1471,7 @@ static int remove_from_spool (STATE *state, char *flopath,
     {
       flo = state->flo.f;
       offset = ftello (flo);
-      fseek (flo, 0, SEEK_SET);
+      fseeko (flo, 0, SEEK_SET);
       seek_flag = 1;
     }
     else
@@ -2679,7 +2684,7 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
 {
   int argc = 4;
   char *argv[4], *w;
-  off_t offset;
+  boff_t offset;
   UNUSED_ARG(sz);
 
   if ((args = parse_msg_args (argc, argv, args, "M_FILE", state)) != NULL)
@@ -2719,14 +2724,14 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
 
       state->in.start = safe_time();
       strnzcpy (state->in.netname, argv[0], MAX_NETNAME);
-      state->in.size = atol (argv[1]);
+      state->in.size = (boff_t)strtoumax (argv[1], NULL, 10);
       errno=0;
       state->in.time = safe_atol (argv[2], &errmesg);
       if (errmesg) {
           Log ( 1, "File time parsing error: %s! (M_FILE \"%s %s %s %s\")", errmesg, argv[0], argv[1], argv[0], argv[2], argv[3] );
       }
     }
-    offset = (off_t) strtoumax (argv[3], NULL, 10);
+    offset = (boff_t) strtoumax (argv[3], NULL, 10);
     if (!strcmp (argv[3], "-1"))
     {
       off_req = 1;
@@ -2987,14 +2992,14 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
   char *argv[4];
   char *extra;
   int i, rc = 0, nz = 0;
-  off_t offset, fsize=0;
+  boff_t offset, fsize=0;
   time_t ftime=0;
 
   UNUSED_ARG(sz);
 
   if ((args = parse_msg_args (argc, argv, args, "M_GET", state)) != NULL)
   { {char *errmesg = NULL;
-      fsize = atol (argv[1]);
+      fsize = (boff_t)strtoumax (argv[1], NULL, 10);
       ftime = safe_atol (argv[2], &errmesg);
       if(errmesg){
         Log ( 1, "File time parsing error: %s! (M_GET \"%s %s %s %s\")", errmesg, argv[0], argv[1], argv[0], argv[2], argv[3] );
@@ -3052,7 +3057,7 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
           ND_set_status("", &state->out.fa, state, config);
         TF_ZERO(&state->out);
       }
-      else if ((offset = (off_t)strtoumax (argv[3], NULL, 10)) > state->out.size)
+      else if ((offset = (boff_t)strtoumax (argv[3], NULL, 10)) > state->out.size)
       {
         Log (1, "GET: remote requests seeking %s to %" PRIuMAX ", file size " PRIuMAX,
              argv[0], (uintmax_t) offset, state->out.size);
@@ -3124,7 +3129,7 @@ static int SKIP (STATE *state, char *args, int sz, BINKD_CONFIG *config)
   char *argv[3];
   int n;
   time_t ftime=0;
-  off_t  fsize=0;
+  boff_t fsize=0;
 
   UNUSED_ARG(sz);
 
@@ -3132,7 +3137,7 @@ static int SKIP (STATE *state, char *args, int sz, BINKD_CONFIG *config)
   {
     {
       char *errmesg=NULL;
-      fsize = (off_t)strtoumax (argv[1], NULL, 10);
+      fsize = (boff_t)strtoumax (argv[1], NULL, 10);
       ftime = safe_atol (argv[2], &errmesg);
       if (errmesg)
       {
@@ -3186,7 +3191,7 @@ static int GOT (STATE *state, char *args, int sz, BINKD_CONFIG *config)
   int n, rc=1;
   char *status = NULL;
   time_t ftime=0;
-  off_t  fsize=0;
+  boff_t fsize=0;
   char *errmesg = NULL;
   char *saved_args;
 
@@ -3200,7 +3205,7 @@ static int GOT (STATE *state, char *args, int sz, BINKD_CONFIG *config)
       ND_set_status("", &state->ND_addr, state, config);
     else
       status = saved_args;
-    fsize = (off_t) strtoumax (argv[1], NULL, 10);
+    fsize = (boff_t) strtoumax (argv[1], NULL, 10);
     errno = 0;
     ftime = safe_atol (argv[2], &errmesg);
     if (errmesg)
@@ -3288,7 +3293,7 @@ static int EOB (STATE *state, char *buf, int sz, BINKD_CONFIG *config)
   state->remote_EOB = 1;
   if (state->in.f)
   {
-    off_t offset;
+    boff_t offset;
  
     offset = ftello (state->in.f);
     if ((state->NR_flag & THEY_NR) == 0 && offset != 0)

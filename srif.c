@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.23  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.22  2012/09/20 12:16:54  gul
  * Added "call via external pipe" (for example ssh) functionality.
  * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
@@ -116,6 +119,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "sys.h"
 #include "readcfg.h"
 #include "protoco2.h"
 #include "srif.h"
@@ -256,11 +260,13 @@ static FTNQ *parse_response (FTNQ *q, char *rsp, FTN_ADDR *fa, BINKD_CONFIG *con
   {
     char buf[MAXPATHLEN + 1];
     int i;
+    int haveSomething = 0;
 
     while (!feof (in))
     {
       if (!fgets (buf, MAXPATHLEN, in))
 	break;
+      haveSomething = 1;
       for (i = 0; i < sizeof (buf) - 1 && !isspace (buf[i]); ++i);
       buf[i] = 0;
       Log (4, "parse_response: add file `%s' to queue", buf + 1);
@@ -280,7 +286,7 @@ static FTNQ *parse_response (FTNQ *q, char *rsp, FTN_ADDR *fa, BINKD_CONFIG *con
 	    break;
 	}
     }
-    if (ftell (in) == 0)
+    if (!haveSomething)
 	Log (3, "SRIF response file is empty");
     fclose (in);
   }

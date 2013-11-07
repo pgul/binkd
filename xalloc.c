@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.5  2003/10/29 21:08:40  gul
  * Change include-files structure, relax dependences
  *
@@ -43,6 +46,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "sys.h"
 #include "tools.h"
 
 void *xalloc (size_t size)

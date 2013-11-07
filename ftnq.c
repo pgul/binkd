@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.41  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.40  2013/10/23 19:25:56  stream
  * EWOULDBLOCK, O_BINARY, O_NOINHERIT could be defined to wrong value
  *
@@ -190,6 +193,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "sys.h"
 #include "readcfg.h"
 #include "ftnq.h"
 #include "ftnnode.h"
@@ -848,8 +852,8 @@ FTNQ *q_add_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action
     q->sent = 0;
 
     if (type == 's')
-    { q->size = atol(argv[1]);
-      q->time = atol(argv[2]);
+    { q->size = (boff_t) strtoumax(argv[1], NULL, 10);
+      q->time = safe_atol(argv[2], NULL);
       strnzcpy (q->path, argv[0], MAXPATHLEN);
     }
     else

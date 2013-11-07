@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.89  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.88  2012/09/24 09:09:34  gul
  * Avoid compilation warning
  *
@@ -346,6 +349,7 @@
 #include <sys/wait.h>
 #endif
 
+#include "sys.h"
 #include "readcfg.h"
 #include "client.h"
 #include "ftnnode.h"

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.45  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.44  2012/01/03 17:25:31  green
  * Implemented IPv6 support
  * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
@@ -174,6 +177,7 @@
 
 #include <signal.h>
 
+#include "sys.h"
 #include "readcfg.h"
 #include "common.h"
 #include "ftnnode.h"

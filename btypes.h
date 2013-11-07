@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.12  2013/02/03 21:37:44  gul
  * New option "rename-style [postfix|extension]"
  *
@@ -150,7 +153,7 @@ struct _FTNQ
 				        * instead, now it's obsolete),
 				        * other -- a file to send. */
   char path[MAXPATHLEN + 1];
-  off_t size;
+  boff_t size;
   time_t time;			       /* this field seems to be used only in
 				        * cmp_filebox_files(), when sorting
 				        * files from a filebox before sending */
@@ -168,7 +171,7 @@ struct _TFILE
   char action;				    /* 'd'elete, 't'runcate, '\0' -- * *
 					     * none */
   char type;
-  off_t size;
+  boff_t size;
   time_t start;				    /* The transfer started at... */
   time_t time;				    /* Filetime */
   FILE *f;

@@ -26,6 +26,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.14  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.13  2010/05/22 08:11:30  gul
  * Call after_session() hook after removing bsy
  *
@@ -89,6 +92,7 @@
 /*                        Local include files                         */
 /*--------------------------------------------------------------------*/
 
+#include "sys.h"
 #include "readcfg.h"
 #include "iphdr.h"
 #include "protoco2.h"

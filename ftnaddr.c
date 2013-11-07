@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.11  2012/01/08 17:34:57  green
  * Avoid using MAXHOSTNAMELEN
  *
@@ -66,6 +69,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "sys.h"
 #include "tools.h"
 #include "ftndom.h"
 #include "ftnaddr.h"

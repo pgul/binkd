@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.27  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.26  2012/01/08 14:09:04  green
  * Corrected initialization of getaddrinfo hints
  *
@@ -120,6 +123,7 @@
 #include <time.h>
 #endif
 
+#include "sys.h"
 #include "readcfg.h"
 #include "https.h"
 #include "tools.h"

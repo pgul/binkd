@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.109  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.108  2013/02/04 12:47:12  gul
  * New config option "listen"
  *
@@ -426,6 +429,7 @@
 #include <syslog.h>
 #endif
 
+#include "sys.h"
 #include "readcfg.h"
 #include "common.h"
 #include "sem.h"
@@ -2091,7 +2095,7 @@ static addrtype parse_addrtype(char *w)
 static int read_skip (KEYWORD *key, int wordcount, char **words)
 {
   int i, destr, maskonly = 0;
-  off_t sz = 0;
+  boff_t sz = 0;
   addrtype at = A_ALL;
   struct skipchain new_entry;
 
@@ -2113,7 +2117,7 @@ static int read_skip (KEYWORD *key, int wordcount, char **words)
       if (*w == '!') { destr = 1; w++; }
       if (!isdigit(*w))
         return ConfigNeedNumber(w);
-      sz = atoi(w);
+      sz = (boff_t)strtoumax(w, NULL, 10);
       maskonly = 1; /* size detected, only masks are allowed further */
       continue;
     }

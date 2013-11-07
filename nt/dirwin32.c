@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2013/11/07 16:21:34  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.3  2013/10/23 19:21:58  stream
  * Fix incorrect type and crash on Win64
  *
@@ -40,6 +43,9 @@
 
 #include "dirwin32.h"
 
+/*
+ * Note: still uses 32-bit (2G) file API because returned length is ignored
+ */
 DIR* opendir(const char* mask)
 {
     DIR* dir;

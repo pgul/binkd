@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.84  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.83  2013/02/24 07:50:58  gul
  * Fixed $ip var in perlhooks
  *
@@ -2247,7 +2250,7 @@ void perl_after_session(STATE *state, int status) {
 }
 
 /* before receiving file */
-int perl_before_recv(STATE *state, off_t offs) {
+int perl_before_recv(STATE *state, boff_t offs) {
   int    rc;
   SV     *svret, *sv;
   BINKD_CONFIG *cfg = state->config;

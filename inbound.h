@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.9  2013/02/03 21:37:44  gul
  * New option "rename-style [postfix|extension]"
  *
@@ -51,7 +54,7 @@
  * Checks if the file already exists in our inbound. !0=ok, 0=failed.
  * Sets realname[MAXPATHLEN]
  */
-int inb_test (char *filename, off_t size, time_t t,
+int inb_test (char *filename, boff_t size, time_t t,
               char *inbound, char *realname,
               enum renamestyletype ren_style);
 

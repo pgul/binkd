@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.12  2013/01/24 17:25:35  gul
  * Support "-pipe" option on Win32
  *
@@ -57,6 +60,7 @@
 #include <string.h>
 #include <fcntl.h>
 
+#include "sys.h"
 #include "readcfg.h"
 #include "bsy.h"
 #include "ftnaddr.h"

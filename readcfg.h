@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.43  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.42  2013/02/04 12:47:12  gul
  * New config option "listen"
  *
@@ -210,7 +213,7 @@ struct skipchain
   struct skipchain *next;
   char *mask;
   addrtype atype;
-  off_t size;
+  boff_t size;
   int destr;
 };
 /* val: struct for hide-aka, present-aka */

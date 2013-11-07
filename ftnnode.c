@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.47  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.46  2012/09/24 00:26:41  gul
  * Resolve logic changed
  *
@@ -189,6 +192,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "sys.h"
 #include "readcfg.h"
 #include "ftnnode.h"
 #include "ftnaddr.h"

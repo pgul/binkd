@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.38  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.37  2013/10/23 19:25:56  stream
  * EWOULDBLOCK, O_BINARY, O_NOINHERIT could be defined to wrong value
  *
@@ -200,16 +203,11 @@
   #include <winsock.h>
 #endif
 
-#ifdef __MINGW32__
-  #include <fcntl.h>
-#endif
-
 #ifdef OS2
   #define INCL_DOS
   #define INCL_ERRORS
   #include <os2.h>
   #include <process.h>
-  #include <fcntl.h>
 #endif
 
 #ifdef HAVE_THREADS
@@ -281,6 +279,32 @@
 #ifdef VISUALCPP
   #define sleep(a) Sleep((a)*1000)
   #define pipe(h)  _pipe(h, 0, 64)
+
+  /* MSVC Versions (_MSC_VER):
+   * 2010(10): 1600
+   * 2005( 8): 1400
+   */
+
+  /* [u]intmax_t introduced at least in MSVC 2010 */
+  #if _MSC_VER >= 1600
+    #include <stdint.h>
+  #else
+    typedef          __int64  intmax_t;
+    typedef unsigned __int64 uintmax_t;
+  #endif
+  #define HAVE_INTMAX_T
+  #define stat  _stat64
+  #define fstat _fstat64
+
+  #define fseeko _fseeki64
+  #define ftello _ftelli64
+  #define HAVE_FSEEKO
+
+  #define PRIdMAX "I64i"
+  #define PRIuMAX "I64u"
+
+  #define strtoumax _strtoui64
+  #define HAVE_STRTOUMAX
 #endif
 
 #ifdef __MINGW32__
@@ -324,6 +348,17 @@ int vsnprintf (char *str, size_t count, const char *fmt, va_list args);
 #define BEGINTHREAD(a, b, c)   _beginthread(a, b, c)
 #endif
 
+/* 
+ * We cannot use off_t because Microsoft, as usual, sucks - in MSVC off_t
+ * is forced to 32 bits. So, DON'T USE OFF_T ANYWHERE IN THE CODE.
+ * Use our own boff_t instead.
+ */
+#ifdef VISUALCPP
+  typedef __int64 boff_t;
+#else
+  typedef off_t   boff_t;
+#endif
+
 typedef unsigned char u8;
 #if defined(SIZEOF_INT) && SIZEOF_INT!=0
 #if SIZEOF_SHORT==2
@@ -363,7 +398,7 @@ typedef unsigned long int u32;
 
 #ifndef HAVE_FSEEKO
 #define fseeko(f, offset, whence)	fseek(f, (long)(offset), whence)
-#define ftello(f)			(off_t)ftell(f)
+#define ftello(f)			(boff_t)ftell(f)
 #endif
 
 #define UNUSED_ARG(s)  (void)(s)

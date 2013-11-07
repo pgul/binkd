@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.5  2003/10/29 21:08:39  gul
  * Change include-files structure, relax dependences
  *
@@ -47,7 +50,7 @@
 
 #define TF_ZERO(a) (memset(a, 0, sizeof(*a)))
 
-int tfile_cmp (TFILE *a, char *netname, off_t size, time_t time);
+int tfile_cmp (TFILE *a, char *netname, boff_t size, time_t time);
 
 /* Adds a file to killlist */
 void add_to_killlist (KILLLIST **killlist, int *n_killlist, char *name, int cond);

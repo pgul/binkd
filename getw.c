@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10  2013/11/07 16:21:33  stream
+ * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
+ *
  * Revision 2.9  2013/01/24 17:25:35  gul
  * Support "-pipe" option on Win32
  *
@@ -45,6 +48,7 @@
 #include <stddef.h>
 
 #include "Config.h"
+#include "sys.h"
 #include "tools.h"
 
 char *getwordx2 (const char *src, int n, int flags, char *fldsep, char *fldskip)
