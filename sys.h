@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.39  2013/11/08 18:22:32  stream
+ * Build on MSVC 2000
+ *
  * Revision 2.38  2013/11/07 16:21:33  stream
  * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
  *
@@ -183,6 +186,7 @@
 #ifdef HAVE_STDARG_H
   #include <stdarg.h>
 #endif
+#include <stdio.h>   // FILE
 #include <errno.h>   // EWOULDBLOCK etc.
 #include <fcntl.h>   // O_BINARY, O_NOINHERIT
 
@@ -280,9 +284,10 @@
   #define sleep(a) Sleep((a)*1000)
   #define pipe(h)  _pipe(h, 0, 64)
 
-  /* MSVC Versions (_MSC_VER):
+  /* MSVC (Visual Studio) Versions (_MSC_VER):
    * 2010(10): 1600
    * 2005( 8): 1400
+   * 2000( 6): 1200
    */
 
   /* [u]intmax_t introduced at least in MSVC 2010 */
@@ -293,9 +298,26 @@
     typedef unsigned __int64 uintmax_t;
   #endif
   #define HAVE_INTMAX_T
-  #define stat  _stat64
-  #define fstat _fstat64
 
+  #if _MSC_VER <= 1200
+    /* Only one type of 64-bit stat() in old versions */
+    #define stat  _stati64
+    #define fstat _fstati64
+  #else
+    /* There are FOUR types of stat() in these MSVC! (for all 32/64 bits time_t and filesize combinations) */
+    /* Use "filesize: 64 bits, time_t: default" version */
+    #define stat  _stat64
+    #define fstat _fstat64
+  #endif
+
+  #if _MSC_VER <= 1200
+    /* These functions exists, but in static libraries only and not declared in headers... */
+    #ifdef _DLL  /* /MD option - with runtime DLL */
+      #error Use static build to get 64-bit file I/O (nmake ... STATIC=1)
+    #endif
+    _CRTIMP int     __cdecl _fseeki64(FILE *, __int64, int);
+    _CRTIMP __int64 __cdecl _ftelli64(FILE *);
+  #endif
   #define fseeko _fseeki64
   #define ftello _ftelli64
   #define HAVE_FSEEKO
@@ -303,7 +325,12 @@
   #define PRIdMAX "I64i"
   #define PRIuMAX "I64u"
 
-  #define strtoumax _strtoui64
+  #if _MSC_VER <= 1200
+    /* TODO: although nobody uses 2nd and 3rd parameters now, write normal wrapper - safe_umax(s) or whatever */
+    #define strtoumax(s, p, n) _atoi64(s)
+  #else
+    #define strtoumax _strtoui64
+  #endif
   #define HAVE_STRTOUMAX
 #endif
 
