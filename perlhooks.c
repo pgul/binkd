@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.85  2013/11/08 12:02:16  stream
+ * Fix order of dependent includes
+ *
  * Revision 2.84  2013/11/07 16:21:33  stream
  * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
  *
@@ -332,8 +335,8 @@
 #endif
 
 /* ---------------- binkd stuff --------------- */
-#include "readcfg.h"
 #include "sys.h"
+#include "readcfg.h"
 #include "tools.h"
 #include "ftnaddr.h"
 #include "ftnq.h"

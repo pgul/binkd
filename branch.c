@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2013/11/08 12:02:16  stream
+ * Fix order of dependent includes
+ *
  * Revision 2.11  2003/10/29 21:08:38  gul
  * Change include-files structure, relax dependences
  *
@@ -75,9 +78,9 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "sys.h"
 #include "common.h"
 #include "tools.h"
-#include "sys.h"
 
 #ifdef AMIGA
 int ix_vfork (void);

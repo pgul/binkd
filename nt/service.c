@@ -18,6 +18,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.58  2013/11/08 12:02:16  stream
+ * Fix order of dependent includes
+ *
  * Revision 2.57  2012/01/24 17:06:05  gul
  * Remove third arg in binkd_main() call
  *
@@ -213,7 +216,6 @@
  *
  */
 
-#include "../iphdr.h"
 #include <stdio.h>
 #include <process.h>
 #include <windows.h>
@@ -221,11 +223,11 @@
 #include <direct.h>
 #include <string.h>
 #include <malloc.h>
+#include "../sys.h"
+#include "../iphdr.h"
 #include "../readcfg.h"
 #include "../tools.h"
 #include "../common.h"
-#include "../iphdr.h"
-#include "../sys.h"
 #include "service.h"
 #include "w32tools.h"
 #include "tray.h"

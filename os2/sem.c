@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.6  2013/11/08 12:02:17  stream
+ * Fix order of dependent includes
+ *
  * Revision 2.5  2003/08/26 22:18:49  gul
  * Fix compilation under w32-mingw and os2-emx
  *
@@ -50,8 +53,8 @@
  *
  */
 
-#include "../readcfg.h"
 #include "../sys.h"
+#include "../readcfg.h"
 #include "../tools.h"
 
 #define INCL_DOS
