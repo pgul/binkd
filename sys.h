@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.40  2013/11/15 12:00:11  stream
+ * Fix EMX build
+ *
  * Revision 2.39  2013/11/08 18:22:32  stream
  * Build on MSVC 2000
  *
@@ -189,6 +192,7 @@
 #include <stdio.h>   // FILE
 #include <errno.h>   // EWOULDBLOCK etc.
 #include <fcntl.h>   // O_BINARY, O_NOINHERIT
+#include <sys/types.h> // off_t (at least on EMX)
 
 #if defined(__WATCOMC__) && !defined(__IBMC__)
   #include <utils.h>
