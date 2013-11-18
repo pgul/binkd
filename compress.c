@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2013/11/18 06:49:29  stream
+ * Add required include
+ *
  * Revision 2.4  2004/01/08 12:46:01  val
  * correct macrodef for msvc (_msc_ver instead of __msc__)
  *
@@ -50,6 +53,7 @@
 #endif
 
 #include <stdlib.h>
+#include "sys.h"
 #include "zlibdl.h"
 #include "compress.h"
 #include "tools.h"
