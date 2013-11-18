@@ -1,3 +1,7 @@
+2013/11/18 08:49:31 1.1a-37 stream
+compress.c,2.4,2.5
+Add required include
+
 2013/11/15 14:00:43 1.1a-36 stream
 sys.h,2.39,2.40
 Fix EMX build
