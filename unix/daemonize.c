@@ -3,6 +3,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.8  2013/11/25 19:46:03  stream
+ * Add include (last one, I hope)/Fix UNIX build
+ *
  * Revision 2.7  2003/10/29 21:08:41  gul
  * Change include-files structure, relax dependences
  *
@@ -46,6 +49,7 @@
 #include <sys/ioctl.h>
 #endif
 
+#include "../sys.h"
 #include "../tools.h"
 #include "daemonize.h"
 
