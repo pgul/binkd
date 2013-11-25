@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.42  2013/11/25 19:49:52  stream
+ * Fix possibly uninitialized variable: A node could be held to random time if it was an error during processing of .hld file
+ *
  * Revision 2.41  2013/11/07 16:21:33  stream
  * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
  *
@@ -582,7 +585,10 @@ void process_hld (FTN_ADDR *fa, char *path, BINKD_CONFIG *config)
     {
       node->hold_until = 0;
     }
-    node->hold_until = (time_t)hold_until_tmp;
+    else
+    {
+      node->hold_until = (time_t)hold_until_tmp;
+    }
     if (f)
       fclose (f);
 
