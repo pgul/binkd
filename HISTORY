@@ -1,3 +1,7 @@
+2013/11/25 21:46:05 1.1a-38 stream
+daemonize.c,2.7,2.8
+Add include (last one, I hope)/Fix UNIX build
+
 2013/11/18 08:49:31 1.1a-37 stream
 compress.c,2.4,2.5
 Add required include
