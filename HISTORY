@@ -1,3 +1,7 @@
+2013/11/25 21:49:54 1.1a-39 stream
+ftnq.c,2.41,2.42
+Fix possibly uninitialized variable: A node could be held to random time if it was an error during processing of .hld file
+
 2013/11/25 21:46:05 1.1a-38 stream
 daemonize.c,2.7,2.8
 Add include (last one, I hope)/Fix UNIX build
