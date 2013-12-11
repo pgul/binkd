@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2013/12/11 13:06:12  stas
+ * Fix warning "missing sentinel in function call"
+ *
  * Revision 2.12  2013/10/23 19:25:56  stream
  * EWOULDBLOCK, O_BINARY, O_NOINHERIT could be defined to wrong value
  *
@@ -236,7 +239,7 @@ int run3 (const char *cmd, int *in, int *out, int *err)
     if (strpbrk(cmd, SHELL_META))
     {
       shell = SHELL;
-      execl(shell, shell, SHELLOPT, cmd, NULL);
+      execl(shell, shell, SHELLOPT, cmd, (char *)NULL);
     }
     else
     {
