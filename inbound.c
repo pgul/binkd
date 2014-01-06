@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.51  2014/01/06 13:53:17  gul
+ * Change inbound file mode 0755 to 0666
+ *
  * Revision 2.50  2013/11/07 16:21:33  stream
  * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
  *
@@ -451,7 +454,7 @@ FILE *inb_fopen (STATE *state, BINKD_CONFIG *config)
     return 0;
 
 fopen_again:
-  if ((fd = open (buf, O_CREAT|O_APPEND|O_RDWR|O_BINARY|O_NOINHERIT, 0755)) == -1)
+  if ((fd = open (buf, O_CREAT|O_APPEND|O_RDWR|O_BINARY|O_NOINHERIT, 0666)) == -1)
   {
     Log (1, "%s: %s", buf, strerror (errno));
     return 0;
