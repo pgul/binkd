@@ -1,3 +1,7 @@
+2014/01/06 15:53:19 1.1a-41 gul
+inbound.c,2.50,2.51
+Change inbound file mode 0755 to 0666
+
 2013/12/11 15:06:15 1.1a-40 stas
 run.c,2.12,2.13
 Fix warning "missing sentinel in function call"
