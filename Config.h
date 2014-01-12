@@ -18,8 +18,8 @@
 #ifndef _Config_h
 #define _Config_h
 
-#if defined(HAVE_FORK) + defined(HAVE_THREADS) + defined(DOS) != 1
-#error You must defined either HAVE_FORK either HAVE_THREADS!
+#if defined(HAVE_FORK) + defined(HAVE_THREADS) + defined(DOS) == 0
+#error You must define either HAVE_FORK or HAVE_THREADS!
 #endif
 
 #ifdef __WATCOMC__

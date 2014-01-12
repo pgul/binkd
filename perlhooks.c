@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.86  2014/01/12 13:25:30  gul
+ * unix (linux) pthread version
+ *
  * Revision 2.85  2013/11/08 12:02:16  stream
  * Fix order of dependent includes
  *
@@ -873,7 +876,7 @@ struct perl_dlfunc { void **f; char *name; } perl_dlfuncs[] = {
 };
 #endif                                                      /* PERLDL */
 
-#if defined(HAVE_FORK) && !defined(Perl_get_context)
+#if defined(HAVE_FORK) && !defined(HAVE_THREADS) && !defined(Perl_get_context)
 #  define Perl_get_context() cfg->perl
 #endif
 #if !defined(PERL_SET_CONTEXT)

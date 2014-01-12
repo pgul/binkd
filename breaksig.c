@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6  2014/01/12 13:25:30  gul
+ * unix (linux) pthread version
+ *
  * Revision 2.5  2003/10/29 21:08:38  gul
  * Change include-files structure, relax dependences
  *
@@ -59,7 +62,7 @@
 static void exitsig (int arg)
 {
   /* Log (0, ...) will call exit(), exit() will call exitlist */
-#ifdef HAVE_FORK
+#if defined(HAVE_FORK) && !defined(HAVE_THREADS)
   if (pidcmgr)
     Log (0, "got signal #%i. Killing %i and quitting...", arg, (int) pidcmgr);
   else

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.13  2014/01/12 13:25:30  gul
+ * unix (linux) pthread version
+ *
  * Revision 2.12  2013/11/08 12:02:16  stream
  * Fix order of dependent includes
  *
@@ -88,6 +91,25 @@ void vfork_setup_child (void);
 void ix_vfork_resume (void);
 #endif
 
+#ifdef WITH_PTHREADS
+typedef struct {
+    void (*F) (void *);
+    void *args;
+  } thread_args_t;
+
+static void *thread_start(void *arg)
+{
+  void (*F) (void*);
+  void *args;
+
+  F = ((thread_args_t *)arg)->F;
+  args = ((thread_args_t *)arg)->args;
+  free(arg);
+  F(args);
+  return NULL;
+}
+#endif
+
 int branch (register void (*F) (void *), register void *arg, register size_t size)
 {
   register int rc;
@@ -113,7 +135,7 @@ int branch (register void (*F) (void *), register void *arg, register size_t siz
   else
     arg = 0;
 
-#if defined(HAVE_FORK) && !defined(AMIGA) && !defined(DEBUGCHILD)
+#if defined(HAVE_FORK) && !defined(HAVE_THREADS) && !defined(AMIGA) && !defined(DEBUGCHILD)
 again:
   if (!(rc = fork ()))
   {
@@ -136,10 +158,20 @@ again:
 #endif
 
 #if defined(HAVE_THREADS) && !defined(DEBUGCHILD)
-  if ((rc = BEGINTHREAD (F, STACKSIZE, arg)) < 0)
-  {
-    Log (1, "_beginthread: %s", strerror (errno));
+  #ifdef WITH_PTHREADS
+  { thread_args_t *args;
+    pthread_t tid;
+
+    args = malloc(sizeof(*args));
+    args->F = F;
+    args->args = arg;
+    if ((rc = pthread_create (&tid, NULL, thread_start, args)) < 0)
+      Log (1, "_beginthread: %s", strerror (rc));
   }
+  #else
+  if ((rc = BEGINTHREAD (F, STACKSIZE, arg)) < 0)
+    Log (1, "_beginthread: %s", strerror (errno));
+  #endif
 #endif
 
 #ifdef AMIGA

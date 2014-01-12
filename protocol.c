@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.232  2014/01/12 13:25:30  gul
+ * unix (linux) pthread version
+ *
  * Revision 2.231  2013/11/07 16:21:33  stream
  * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
  *
@@ -2155,11 +2158,13 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
       else s = "remote IP can't be verified";
       Log (2, "addr: %s (%s)", szFTNAddr, s);
 #endif
+#ifndef HAVE_THREADS
       if (state->nfa == 0)
         setproctitle ("%c %s [%s]",
                       state->to ? 'o' : 'i',
                       szFTNAddr,
                       state->peer_name);
+#endif
       state->fa = xrealloc (state->fa, sizeof (FTN_ADDR) * ++state->nallfa);
       ++state->nfa;
       rel_grow_handles(1);
@@ -3951,7 +3956,9 @@ void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, 
   state.ipaddr = ipaddr;
   state.peer_name = (*host != '\0' ? host : ipaddr);
 
+#ifndef HAVE_THREADS
   setproctitle ("%c [%s]", to ? 'o' : 'i', state.peer_name);
+#endif
   if (*host != '\0')
     Log (2, "%s session with %s [%s]",
        to ? "outgoing" : "incoming",

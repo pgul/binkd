@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.46  2014/01/12 13:25:30  gul
+ * unix (linux) pthread version
+ *
  * Revision 2.45  2013/11/07 16:21:33  stream
  * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
  *
@@ -253,15 +256,7 @@ void exitfunc (void)
 
   Log(7, "exitfunc()");
 
-#ifdef HAVE_FORK
-  if (pidcmgr)
-  { int i;
-    i=pidcmgr, pidcmgr=0; /* prevent abort when cmgr exits */
-    kill (i, SIGTERM);
-    /* sleep (1); */
-  }
-  close_srvmgr_socket();
-#elif defined(HAVE_THREADS)
+#if defined(HAVE_THREADS)
   /* exit all threads */
   { SOCKET h;
     int timeout = 0;
@@ -300,6 +295,14 @@ void exitfunc (void)
 	break;
       }
   }
+#elif defined(HAVE_FORK)
+  if (pidcmgr)
+  { int i;
+    i=pidcmgr, pidcmgr=0; /* prevent abort when cmgr exits */
+    kill (i, SIGTERM);
+    /* sleep (1); */
+  }
+  close_srvmgr_socket();
 #endif
 
   config = lock_current_config();
@@ -312,7 +315,7 @@ void exitfunc (void)
     if (*config->pid_file && pidsmgr == (int) getpid ())
       delete (config->pid_file);
 	/* completely unload config */
-#ifdef HAVE_FORK
+#if defined(HAVE_FORK) && !defined(HAVE_THREADS)
     unlock_config_structure(config, inetd_flag || (!pidsmgr && pidCmgr == (int) getpid()) || (pidsmgr == (int) getpid()));
 #else
     unlock_config_structure(config, 1);

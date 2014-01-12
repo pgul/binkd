@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2014/01/12 13:25:31  gul
+ * unix (linux) pthread version
+ *
  * Revision 2.14  2010/05/24 14:24:32  gul
  * Exit immediately after all jobs done in "-p" mode
  *
@@ -93,6 +96,14 @@ typedef HEV  EVENTSEM;
 #include <exec/exec.h>
 typedef struct SignalSemaphore MUTEXSEM;
 
+#elif defined(WITH_PTHREADS)
+
+#include <pthread.h>
+typedef pthread_mutex_t MUTEXSEM;
+typedef struct { pthread_cond_t cond;
+                 pthread_mutex_t mutex;
+               } EVENTSEM;
+
 #endif
 
 
@@ -144,24 +155,33 @@ int _WaitSem (void *, int);
 
 int _CleanEventSem (void *);
 
-#if defined(HAVE_THREADS) || defined(AMIGA)
-#define InitSem(vpSem) _InitSem(vpSem)
-#define CleanSem(vpSem) _CleanSem(vpSem)
-#define LockSem(vpSem) _LockSem(vpSem)
-#define ReleaseSem(vpSem) _ReleaseSem(vpSem)
-#define InitEventSem(vpSem) _InitEventSem(vpSem)
-#define PostSem(vpSem) _PostSem(vpSem)
-#define WaitSem(vpSem, sec) _WaitSem(vpSem, sec)
-#define CleanEventSem(vpSem) _CleanEventSem(vpSem)
+#if defined(WITH_PTHREADS)
+  #define InitSem(sem)       pthread_mutex_init(sem, NULL)
+  #define CleanSem(sem)      pthread_mutex_destroy(sem)
+  #define LockSem(sem)       pthread_mutex_lock(sem)
+  #define ReleaseSem(sem)    pthread_mutex_unlock(sem)
+  #define InitEventSem(sem)  (pthread_cond_init(&((sem)->cond), NULL), pthread_mutex_init(&((sem)->mutex), NULL))
+  #define PostSem(sem)       (LockSem(&((sem)->mutex)), pthread_cond_signal(&((sem)->cond)), ReleaseSem(&((sem)->mutex)))
+  #define WaitSem(sem, sec)  _WaitSem(sem, sec)
+  #define CleanEventSem(sem) (pthread_cond_destroy(&((sem)->cond)), pthread_mutex_destroy(&((sem)->mutex)))
+#elif defined(HAVE_THREADS) || defined(AMIGA)
+  #define InitSem(vpSem) _InitSem(vpSem)
+  #define CleanSem(vpSem) _CleanSem(vpSem)
+  #define LockSem(vpSem) _LockSem(vpSem)
+  #define ReleaseSem(vpSem) _ReleaseSem(vpSem)
+  #define InitEventSem(vpSem) _InitEventSem(vpSem)
+  #define PostSem(vpSem) _PostSem(vpSem)
+  #define WaitSem(vpSem, sec) _WaitSem(vpSem, sec)
+  #define CleanEventSem(vpSem) _CleanEventSem(vpSem)
 #else		/* Do nothing */
-#define InitSem(vpSem)
-#define CleanSem(vpSem)
-#define LockSem(vpSem)
-#define ReleaseSem(vpSem)
-#define InitEventSem(vpSem)
-#define PostSem(vpSem)
-#define WaitSem(vpSem, sec)
-#define CleanEventSem(vpSem)
+  #define InitSem(vpSem)
+  #define CleanSem(vpSem)
+  #define LockSem(vpSem)
+  #define ReleaseSem(vpSem)
+  #define InitEventSem(vpSem)
+  #define PostSem(vpSem)
+  #define WaitSem(vpSem, sec)
+  #define CleanEventSem(vpSem)
 #endif
 
 #ifdef HAVE_THREADS

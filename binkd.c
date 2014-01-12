@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.116  2014/01/12 13:25:30  gul
+ * unix (linux) pthread version
+ *
  * Revision 2.115  2013/11/07 16:21:33  stream
  * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
  *
@@ -477,16 +480,16 @@
 #include "confopt.h"
 
 #ifdef HAVE_THREADS
-MUTEXSEM hostsem = 0;
-MUTEXSEM resolvsem = 0;
-MUTEXSEM lsem = 0;
-MUTEXSEM blsem = 0;
-MUTEXSEM varsem = 0;
-MUTEXSEM config_sem = 0;
-EVENTSEM eothread = 0;
-EVENTSEM wakecmgr = 0;
+MUTEXSEM hostsem;
+MUTEXSEM resolvsem;
+MUTEXSEM lsem;
+MUTEXSEM blsem;
+MUTEXSEM varsem;
+MUTEXSEM config_sem;
+EVENTSEM eothread;
+EVENTSEM wakecmgr;
 #ifdef OS2
-MUTEXSEM fhsem = 0;
+MUTEXSEM fhsem;
 #endif
 #endif
 
@@ -1100,8 +1103,10 @@ int main (int argc, char *argv[])
   {
     if (binkd_daemonize(1) < 0)
       Log (0, "Cannot daemonize");
+#ifndef HAVE_THREADS
     else
       mypid = getpid();
+#endif
   }
 #endif
 

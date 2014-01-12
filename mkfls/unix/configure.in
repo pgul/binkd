@@ -503,6 +503,20 @@ if test ".$do_bzip2" != ".no" ; then
 	fi
 fi
 
+AC_ARG_WITH(pthreads,
+            [  --with-pthreads         Use posix threads (default no, not recommended)],
+            [ with_pthreads=$withval])
+case x$with_pthreads in
+  xyes)
+     # TODO: check if posix threads and semaphores work good,
+     # check for clock_gettime() function and required libs ("-lrt")
+     AC_DEFINE(WITH_PTHREADS)
+     AC_DEFINE(HAVE_THREADS)
+     OPT_SRC="$OPT_SRC unix/sem.c"
+     LIBS="$LIBS -lrt"
+     ;;
+esac
+
 case $ac_cv_func_getopt in
  no) OPT_SRC="$OPT_SRC getopt.c"
      ;;

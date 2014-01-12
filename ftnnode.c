@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.48  2014/01/12 13:25:30  gul
+ * unix (linux) pthread version
+ *
  * Revision 2.47  2013/11/07 16:21:33  stream
  * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
  *
@@ -506,25 +509,33 @@ FTN_NODE *get_node_info (FTN_ADDR *fa, BINKD_CONFIG *config)
  */
 int foreach_node (int (*func) (FTN_NODE *, void *), void *arg, BINKD_CONFIG *config)
 {
-  int i, rc = 0;
+  int nNod, i, rc = 0;
+  FTN_NODE **pNodArray;
 
   locknodesem();
 
   if (!config->nNodSorted)
     sort_nodes (config);
 
-  for (i = 0; i < config->nNod; ++i)
+  /* copy node array and release semaphore */
+  /* avoid deadlock if get_node_info() used by func() */
+  nNod = config->nNod;
+  pNodArray = xalloc(nNod * sizeof(FTN_NODE *));
+  memcpy(pNodArray, config->pNodArray, nNod * sizeof(FTN_NODE *));
+  releasenodesem();
+
+  for (i = 0; i < nNod; ++i)
   {
-    FTN_NODE *n = config->pNodArray[i];
+    FTN_NODE *n = pNodArray[i];
 
     if (!n->hosts)
-      rc = func (get_node_info_nolock(&(n->fa), config), arg);
+      rc = func (get_node_info(&(n->fa), config), arg);
     else
       rc = func (n, arg);
     if (rc != 0)
       break;
   }
-  releasenodesem();
+  xfree(pNodArray);
   return rc;
 }
 

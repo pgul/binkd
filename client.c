@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.90  2014/01/12 13:25:30  gul
+ * unix (linux) pthread version
+ *
  * Revision 2.89  2013/11/07 16:21:33  stream
  * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
  *
@@ -344,7 +347,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#ifdef HAVE_FORK
+#if defined(HAVE_FORK) || defined(WITH_PTHREADS)
 #include <signal.h>
 #include <sys/wait.h>
 #endif
@@ -378,7 +381,7 @@ static void call (void *arg);
 
 int n_clients = 0;
 
-#ifdef HAVE_FORK
+#if defined(HAVE_FORK) && !defined(HAVE_THREADS)
 
 static void alrm (int signo)
 {
@@ -394,7 +397,7 @@ static void alrm (int signo)
 void SLEEP (time_t s)
 {
   while ((s = sleep (s)) > 0 && !binkd_exit && !poll_flag
-#ifdef HAVE_FORK
+#if defined(HAVE_FORK) && !defined(HAVE_THREADS)
          && !got_sighup && !got_sigchld
 #endif
          );
@@ -491,7 +494,7 @@ static int do_client(BINKD_CONFIG *config)
       else
       {
         Log (5, "started client #%i, id=%i", n_clients, pid);
-#if defined(HAVE_FORK) && !defined(AMIGA)
+#if defined(HAVE_FORK) && !defined(HAVE_THREADS) && !defined(AMIGA)
         unlock_config_structure(config, 0); /* Forked child has own copy */
 #endif
       }
@@ -535,13 +538,13 @@ void clientmgr (void *arg)
 
   UNUSED_ARG(arg);
 
-#ifdef HAVE_FORK
+#ifdef HAVE_THREADS
+  pidcmgr = PID();
+#elif defined(HAVE_FORK)
   pidcmgr = 0;
   pidCmgr = (int) getpid();
   blocksig();
   signal (SIGCHLD, sighandler);
-#elif HAVE_THREADS
-  pidcmgr = PID();
 #endif
 
   config = lock_current_config();
@@ -550,7 +553,9 @@ void clientmgr (void *arg)
     cperl = perl_init_clone(config);
 #endif
 
+#ifndef HAVE_THREADS
   setproctitle ("client manager");
+#endif
   Log (4, "clientmgr started");
 
   for (;;)
@@ -594,7 +599,7 @@ void clientmgr (void *arg)
   pidcmgr = 0;
   PostSem(&eothread);
   if (binkd_exit)
-    _endthread();
+    ENDTHREAD();
 #endif
   exit (0);
 }
@@ -650,7 +655,9 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 
   ftnaddress_to_str (szDestAddr, &node->fa);
   Log (2, "call to %s", szDestAddr);
+#ifndef HAVE_THREADS
   setproctitle ("call to %s", szDestAddr);
+#endif
 
 #ifdef HTTPS
   use_proxy = (node->NP_flag != NP_ON) && (!node->pipe || !node->pipe[0]) && (proxy[0] || socks[0]);
@@ -831,7 +838,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 	    /* otherwise just warn and don't bind() */
 	    Log(2, "bind -- getaddrinfo: %s (%d)", gai_strerror(aiErr), aiErr);
       }
-#ifdef HAVE_FORK
+#if defined(HAVE_FORK) && !defined(HAVE_THREADS)
       if (config->connect_timeout)
       {
 	signal(SIGALRM, alrm);
@@ -840,7 +847,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 #endif
       if (connect (sockfd, ai->ai_addr, ai->ai_addrlen) == 0)
       {
-#ifdef HAVE_FORK
+#if defined(HAVE_FORK) && !defined(HAVE_THREADS)
 	alarm(0);
 #endif
 	Log (4, "connected");
@@ -849,7 +856,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 	break;
       }
 
-#ifdef HAVE_FORK
+#if defined(HAVE_FORK) && !defined(HAVE_THREADS)
       if (errno == EINTR && config->connect_timeout)
 	save_err = strerror (ETIMEDOUT);
       else
@@ -964,7 +971,7 @@ static void call (void *arg)
   PostSem(&eothread);
   if (poll_flag)
     PostSem(&wakecmgr);
-  _endthread();
+  ENDTHREAD();
 #elif defined(DOS) || defined(DEBUGCHILD)
   --n_clients;
 #endif

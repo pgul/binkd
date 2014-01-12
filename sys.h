@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.41  2014/01/12 13:25:31  gul
+ * unix (linux) pthread version
+ *
  * Revision 2.40  2013/11/15 12:00:11  stream
  * Fix EMX build
  *
@@ -219,14 +222,19 @@
 #endif
 
 #ifdef HAVE_THREADS
-  #include <process.h>
-  #if defined(OS2)
-    int gettid (void);
-    #define PID() gettid()
-  #elif defined(WIN32)
-    #define PID() ((int)(0xffff & GetCurrentThreadId()))
+  #ifdef WITH_PTHREADS
+    #include <pthread.h>
+    #define PID() (int)pthread_self()
   #else
-    #define PID() ((int)gettid())
+    #include <process.h>
+    #if defined(OS2)
+      int gettid (void);
+      #define PID() gettid()
+    #elif defined(WIN32)
+      #define PID() ((int)(0xffff & GetCurrentThreadId()))
+    #else
+      #define PID() ((int)gettid())
+    #endif
   #endif
 #elif defined(__MSC__)
   #include <process.h>
@@ -374,9 +382,14 @@ int vsnprintf (char *str, size_t count, const char *fmt, va_list args);
 #endif
 
 #if defined(__WATCOMC__) || defined(__EMX__) /* expand list if necessary */
-#define BEGINTHREAD(a, b, c)   _beginthread(a, NULL, b, c)
+  #define BEGINTHREAD(a, b, c)   _beginthread(a, NULL, b, c)
+  #define ENDTHREAD()            _endthread()
+#elif defined(WITH_PTHREADS)
+  /* #define BEGINTHREAD(a, b, c)   pthread_create(NULL, NULL, a, c) */
+  #define ENDTHREAD()            pthread_exit(NULL)
 #elif defined(HAVE_THREADS)
-#define BEGINTHREAD(a, b, c)   _beginthread(a, b, c)
+  #define BEGINTHREAD(a, b, c)   _beginthread(a, b, c)
+  #define ENDTHREAD()            _endthread()
 #endif
 
 /* 

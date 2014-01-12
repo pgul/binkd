@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.57  2014/01/12 13:25:31  gul
+ * unix (linux) pthread version
+ *
  * Revision 2.56  2013/02/04 12:47:12  gul
  * New config option "listen"
  *
@@ -271,7 +274,7 @@ static void serv (void *arg)
   void *cperl;
 #endif
 
-#if defined(HAVE_FORK) && !defined(DEBUGCHILD)
+#if defined(HAVE_FORK) && !defined(HAVE_THREADS) && !defined(DEBUGCHILD)
   int curfd;
   pidcmgr = 0;
   for (curfd=0; curfd<sockfd_used; curfd++)
@@ -295,7 +298,7 @@ static void serv (void *arg)
 #ifdef HAVE_THREADS
   threadsafe(--n_servers);
   PostSem(&eothread);
-  _endthread();
+  ENDTHREAD();
 #elif defined(DOS) || defined(DEBUGCHILD)
   --n_servers;
 #endif
@@ -507,7 +510,7 @@ static int do_server(BINKD_CONFIG *config)
         else
         {
           Log (5, "started server #%i, id=%i", n_servers, pid);
-#ifdef HAVE_FORK
+#if defined(HAVE_FORK) && !defined(HAVE_THREADS)
           soclose (new_sockfd);
 #endif
         }
@@ -525,7 +528,7 @@ void servmgr (void)
   setproctitle ("server manager");
   Log (4, "servmgr started");
 
-#ifdef HAVE_FORK
+#if defined(HAVE_FORK) && !defined(HAVE_THREADS)
   blocksig();
   signal (SIGCHLD, sighandler);
 #endif
