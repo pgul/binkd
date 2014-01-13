@@ -5348,7 +5348,7 @@ $as_echo "$ac_cv_lib_rt_clock_gettime" >&6; }
 if test "x$ac_cv_lib_rt_clock_gettime" = xyes; then :
   LIBS="$LIBS -lrt"
 else
-  as_fn_error $? "clock_gettime() needed for thread version" "$LINENO" 5
+  as_fn_error $? "clock_gettime() required for thread version" "$LINENO" 5
 fi
 
            ;;

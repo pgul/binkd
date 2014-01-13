@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16  2014/01/13 13:41:58  gul
+ * pthread creating error handling, detach created threads
+ *
  * Revision 2.15  2014/01/13 12:33:10  gul
  * configure and small changes for multithread unix version
  *
@@ -119,6 +122,7 @@ static void *thread_start(void *arg)
   ((thread_args_t *)arg)->tid = PID();
 #endif
   ReleaseSem(&((thread_args_t *)arg)->mutex);
+  pthread_detach(pthread_self());
   F(args);
   return NULL;
 }
@@ -181,13 +185,19 @@ again:
     InitSem(&args.mutex);
     LockSem(&args.mutex);
     if ((rc = pthread_create (&tid, NULL, thread_start, &args)) != 0)
-      Log (1, "_beginthread: %s", strerror (rc));
-    LockSem(&args.mutex); /* wait until thread releases this mutex */
-    #ifdef HAVE_GETTID
-    rc = args.tid;
-    #else
-    rc = (int)(0xffff & (int)tid);
-    #endif
+    {
+      Log (1, "pthread_create: %s", strerror (rc));
+      rc = -1;
+    }
+    else
+    {
+      LockSem(&args.mutex); /* wait until thread releases this mutex */
+      #ifdef HAVE_GETTID
+      rc = args.tid;
+      #else
+      rc = (int)(0xffff & (int)tid);
+      #endif
+    }
     ReleaseSem(&args.mutex);
     CleanSem(&args.mutex);
   }
