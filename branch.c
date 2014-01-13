@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.15  2014/01/13 12:33:10  gul
+ * configure and small changes for multithread unix version
+ *
  * Revision 2.14  2014/01/13 10:32:50  gul
  * Unix multithread version
  *
@@ -183,7 +186,7 @@ again:
     #ifdef HAVE_GETTID
     rc = args.tid;
     #else
-    rc = (int)(0xffff & tid);
+    rc = (int)(0xffff & (int)tid);
     #endif
     ReleaseSem(&args.mutex);
     CleanSem(&args.mutex);

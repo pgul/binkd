@@ -508,12 +508,28 @@ AC_ARG_WITH(pthreads,
             [ with_pthreads=$withval])
 case x$with_pthreads in
   xyes)
-     # TODO: check if posix threads and semaphores work good,
-     # check for clock_gettime() function and required libs ("-lrt")
+     # TODO: check if posix threads and semaphores work good
      AC_DEFINE(WITH_PTHREADS)
      AC_DEFINE(HAVE_THREADS)
      OPT_SRC="$OPT_SRC unix/sem.c"
+     AC_CHECK_FUNCS(clock_gettime)
+     case x$ac_cv_func_clock_gettime in
+       xyes) ;;
+       *)  AC_CHECK_LIB(rt, clock_gettime, [LIBS="$LIBS -lrt"],
+                        AC_ERROR(clock_gettime() needed for thread version))
+           ;;
+     esac
+
      LIBS="$LIBS -lrt"
+     AC_MSG_CHECKING(for gettid syscall)
+     AC_TRY_COMPILE([
+        #include <sys/syscall.h>
+     ], [
+        return syscall(SYS_gettid);
+     ], AC_DEFINE(HAVE_GETTID) AC_MSG_RESULT(yes),
+       AC_MSG_RESULT(no),
+       AC_MSG_RESULT(cross-compiling. No assumptions made)
+     )
      ;;
 esac
 

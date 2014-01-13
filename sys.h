@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.43  2014/01/13 12:33:10  gul
+ * configure and small changes for multithread unix version
+ *
  * Revision 2.42  2014/01/13 10:32:50  gul
  * Unix multithread version
  *
@@ -231,7 +234,7 @@
       #include <sys/syscall.h>
       #define PID() (int)syscall(SYS_gettid)
     #else
-      #define PID() ((int)(0xffff & pthread_self()))
+      #define PID() ((int)(0xffff & (int)pthread_self()))
     #endif
   #else
     #include <process.h>
