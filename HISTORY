@@ -1,3 +1,7 @@
+2014/01/13 15:42:29 1.1a-46 gul
+branch.c,2.15,2.16
+pthread creating error handling, detach created threads
+
 2014/01/13 14:33:41 1.1a-45 gul
 branch.c,2.14,2.15 sys.h,2.42,2.43
 configure and small changes for multithread unix version
