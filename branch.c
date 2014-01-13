@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2014/01/13 10:32:50  gul
+ * Unix multithread version
+ *
  * Revision 2.13  2014/01/12 13:25:30  gul
  * unix (linux) pthread version
  *
@@ -84,6 +87,7 @@
 #include "sys.h"
 #include "common.h"
 #include "tools.h"
+#include "sem.h"
 
 #ifdef AMIGA
 int ix_vfork (void);
@@ -95,6 +99,10 @@ void ix_vfork_resume (void);
 typedef struct {
     void (*F) (void *);
     void *args;
+    MUTEXSEM mutex;
+#ifdef HAVE_GETTID
+    pid_t tid;
+#endif
   } thread_args_t;
 
 static void *thread_start(void *arg)
@@ -104,7 +112,10 @@ static void *thread_start(void *arg)
 
   F = ((thread_args_t *)arg)->F;
   args = ((thread_args_t *)arg)->args;
-  free(arg);
+#ifdef HAVE_GETTID
+  ((thread_args_t *)arg)->tid = PID();
+#endif
+  ReleaseSem(&((thread_args_t *)arg)->mutex);
   F(args);
   return NULL;
 }
@@ -159,14 +170,23 @@ again:
 
 #if defined(HAVE_THREADS) && !defined(DEBUGCHILD)
   #ifdef WITH_PTHREADS
-  { thread_args_t *args;
+  { thread_args_t args;
     pthread_t tid;
 
-    args = malloc(sizeof(*args));
-    args->F = F;
-    args->args = arg;
-    if ((rc = pthread_create (&tid, NULL, thread_start, args)) < 0)
+    args.F = F;
+    args.args = arg;
+    InitSem(&args.mutex);
+    LockSem(&args.mutex);
+    if ((rc = pthread_create (&tid, NULL, thread_start, &args)) != 0)
       Log (1, "_beginthread: %s", strerror (rc));
+    LockSem(&args.mutex); /* wait until thread releases this mutex */
+    #ifdef HAVE_GETTID
+    rc = args.tid;
+    #else
+    rc = (int)(0xffff & tid);
+    #endif
+    ReleaseSem(&args.mutex);
+    CleanSem(&args.mutex);
   }
   #else
   if ((rc = BEGINTHREAD (F, STACKSIZE, arg)) < 0)

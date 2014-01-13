@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.42  2014/01/13 10:32:50  gul
+ * Unix multithread version
+ *
  * Revision 2.41  2014/01/12 13:25:31  gul
  * unix (linux) pthread version
  *
@@ -224,7 +227,12 @@
 #ifdef HAVE_THREADS
   #ifdef WITH_PTHREADS
     #include <pthread.h>
-    #define PID() (int)pthread_self()
+    #ifdef HAVE_GETTID
+      #include <sys/syscall.h>
+      #define PID() (int)syscall(SYS_gettid)
+    #else
+      #define PID() ((int)(0xffff & pthread_self()))
+    #endif
   #else
     #include <process.h>
     #if defined(OS2)

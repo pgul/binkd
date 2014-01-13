@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.117  2014/01/13 10:32:50  gul
+ * Unix multithread version
+ *
  * Revision 2.116  2014/01/12 13:25:30  gul
  * unix (linux) pthread version
  *
@@ -1032,7 +1035,7 @@ int main (int argc, char *argv[])
   }
 #endif
 
-#ifdef HAVE_FORK
+#if defined(HAVE_FORK) && !defined(HAVE_THREADS)
   signal (SIGCHLD, sighandler);
 #endif
 

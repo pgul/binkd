@@ -74,3 +74,6 @@ perlhooks.o: perlhooks.c readcfg.h Config.h btypes.h iphdr.h sys.h \
  protocol.h common.h perlhooks.h prothlp.h rfc2553.h
 compress.o: compress.c zlibdl.h compress.h tools.h getw.h btypes.h \
  Config.h
+sem.o: unix/sem.c unix/../sys.h unix/../readcfg.h unix/../Config.h \
+ unix/../btypes.h unix/../iphdr.h unix/../sys.h unix/../tools.h \
+ unix/../getw.h unix/../sem.h
