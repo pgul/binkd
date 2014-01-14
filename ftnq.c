@@ -15,6 +15,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.39.2.2  2014/01/14 07:11:21  gul
+ * Fix possibly uninitialized variable:
+ * A node could be held to random time if it was an error during processing of .hld file
+ * (backport from default branch)
+ *
  * Revision 2.39.2.1  2013/02/03 07:29:03  gul
  * Possible segfault on after_session perl hook
  *
@@ -575,10 +580,9 @@ void process_hld (FTN_ADDR *fa, char *path, BINKD_CONFIG *config)
 
     if ((f = fopen (path, "r")) == NULL ||
 	fscanf (f, "%ld", &hold_until_tmp) != 1)
-    {
       node->hold_until = 0;
-    }
-    node->hold_until = (time_t)hold_until_tmp;
+    else
+      node->hold_until = (time_t)hold_until_tmp;
     if (f)
       fclose (f);
 
