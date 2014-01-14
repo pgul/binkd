@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.219.2.4  2014/01/14 08:27:36  gul
+ * Fix large files support for systems with 64-bit off_t
+ *
  * Revision 2.219.2.3  2013/02/03 07:29:03  gul
  * Possible segfault on after_session perl hook
  *
@@ -2623,7 +2626,7 @@ static int start_file_recv (STATE *state, char *args, int sz, BINKD_CONFIG *conf
 
       state->in.start = safe_time();
       strnzcpy (state->in.netname, argv[0], MAX_NETNAME);
-      state->in.size = atol (argv[1]);
+      state->in.size = (off_t)strtoumax (argv[1], NULL, 10);
       errno=0;
       state->in.time = safe_atol (argv[2], &errmesg);
       if (errmesg) {
@@ -2896,12 +2899,11 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
   UNUSED_ARG(sz);
 
   if ((args = parse_msg_args (argc, argv, args, "M_GET", state)) != NULL)
-  { {char *errmesg = NULL;
-      fsize = atol (argv[1]);
-      ftime = safe_atol (argv[2], &errmesg);
-      if(errmesg){
-        Log ( 1, "File time parsing error: %s! (M_GET \"%s %s %s %s\")", errmesg, argv[0], argv[1], argv[0], argv[2], argv[3] );
-      }
+  { char *errmesg = NULL;
+    fsize = (off_t)strtoumax (argv[1], NULL, 10);
+    ftime = safe_atol (argv[2], &errmesg);
+    if (errmesg) {
+      Log ( 1, "File time parsing error: %s! (M_GET \"%s %s %s %s\")", errmesg, argv[0], argv[1], argv[0], argv[2], argv[3] );
     }
     /* Check if the file was already sent */
     for (i = 0; i < state->n_sent_fls; ++i)
@@ -2958,7 +2960,7 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
       else if ((offset = (off_t)strtoumax (argv[3], NULL, 10)) > state->out.size)
       {
         Log (1, "GET: remote requests seeking %s to %" PRIuMAX ", file size " PRIuMAX,
-             argv[0], (uintmax_t) offset, state->out.size);
+             argv[0], (uintmax_t) offset, (uintmax_t) state->out.size);
         msg_sendf(state, M_ERR, "Invalid M_GET violates binkp: offset " PRIuMAX " after end of file, file %s size " PRIuMAX,
                   (uintmax_t)offset, argv[0], (uintmax_t)state->out.size);
         /* touch the file and drop session */
