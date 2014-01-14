@@ -60,7 +60,7 @@
 #define MYNAME "binkd"
 #define MAJOR 1
 #define MINOR 0
-#define BUILD 2
+#define BUILD 3
 #define SUFFIX "-pre" /* comment out this define for release versions */
 #define PATCHLEVEL 3
 #define MYVER_S(s) _MYVER_S(s)
