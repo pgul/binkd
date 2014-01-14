@@ -1,3 +1,9 @@
+2014/01/14 09:11:25 1.0.2-pre3 gul
+ftnq.c,2.39.2.1,2.39.2.2
+Fix possibly uninitialized variable:
+A node could be held to random time if it was an error during processing of .hld file
+(backport from default branch)
+
 2013/06/29 10:37:46 1.0.2-pre2 gul
 !README.FIX,2.56.2.6,2.56.2.7 Config.h,2.642.2.22,2.642.2.23
 binkd 1.0.3-pre1
