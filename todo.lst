@@ -19,6 +19,7 @@
 - TheBrake long style outbound
 - go to tray under windows
 - no-compression node switch
+- binkd/pthreads: safe shutdown all threads on exitproc()
 ? ssl
 ? true multibatch mode
 ? hide attaches and remove bsy during a session

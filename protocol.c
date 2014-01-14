@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.233  2014/01/14 08:20:10  gul
+ * Possible segfault on some systems in rare case
+ *
  * Revision 2.232  2014/01/12 13:25:30  gul
  * unix (linux) pthread version
  *
@@ -3065,7 +3068,7 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
       else if ((offset = (boff_t)strtoumax (argv[3], NULL, 10)) > state->out.size)
       {
         Log (1, "GET: remote requests seeking %s to %" PRIuMAX ", file size " PRIuMAX,
-             argv[0], (uintmax_t) offset, state->out.size);
+             argv[0], (uintmax_t) offset, (uintmax_t) state->out.size);
         msg_sendf(state, M_ERR, "Invalid M_GET violates binkp: offset " PRIuMAX " after end of file, file %s size " PRIuMAX,
                   (uintmax_t)offset, argv[0], (uintmax_t)state->out.size);
         /* touch the file and drop session */
