@@ -1,3 +1,7 @@
+2014/01/14 10:27:37 1.0.3-pre5 gul
+protocol.c,2.219.2.3,2.219.2.4
+Fix large files support for systems with 64-bit off_t
+
 2014/01/14 09:42:25 1.0.3-pre4 gul
 Config.h,2.642.2.25,2.642.2.26
 1.0.3-pre
