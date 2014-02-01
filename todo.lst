@@ -1,6 +1,8 @@
 - large files (win32)
 - remove call-delay, start outbound session immediately after finish previous one if max-clients limit reached
 - on_incoming() perl hook
+- occasionally "servmgr bind(): Address already in use" on config reload (pthread version)
+- "exitfunc(): warning, threads exit timeout" (pthread version)
 - rexx hooks
 - do not kill attaches (save and ignore) if drive missing (unmounted)
 - no incoming calls under BeOS (file locking problem)
