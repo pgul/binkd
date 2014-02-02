@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.58  2014/02/02 07:46:47  gul
+ * Set FD_CLOEXEC on listening socket
+ *
  * Revision 2.57  2014/01/12 13:25:31  gul
  * unix (linux) pthread version
  *
@@ -344,12 +347,16 @@ static int do_server(BINKD_CONFIG *config)
         Log (0, "servmgr socket(): %s", TCPERR ());
         continue;
       }
+#ifdef UNIX /* Not sure how to set NOINHERIT flag for socket on Windows and OS/2 */
+      if (fcntl(sockfd[sockfd_used], F_SETFD, FD_CLOEXEC) != 0)
+        Log(1, "servmgr fcntl set FD_CLOEXEC error: %s", strerror(errno));
+#endif
 #ifdef IPV6_V6ONLY
       if (ai->ai_family == PF_INET6)
       {
         int v6only = 1;
         if (setsockopt(sockfd[sockfd_used], IPPROTO_IPV6, IPV6_V6ONLY, 
-		  (char *) &v6only, sizeof(v6only)) == SOCKET_ERROR)
+                 (char *) &v6only, sizeof(v6only)) == SOCKET_ERROR)
           Log(1, "servmgr setsockopt (IPV6_V6ONLY): %s", TCPERR());
       }
 #endif
