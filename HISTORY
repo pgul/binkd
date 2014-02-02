@@ -1,3 +1,7 @@
+2014/02/02 09:46:49 1.1a-49 gul
+server.c,2.57,2.58
+Set FD_CLOEXEC on listening socket
+
 2014/02/02 09:12:34 1.1a-48 gul
 inbound.c,2.51,2.52
 Fix generate unique name for inbound file (broken in 1.1a-24)
