@@ -1,3 +1,7 @@
+2014/02/02 09:12:34 1.1a-48 gul
+inbound.c,2.51,2.52
+Fix generate unique name for inbound file (broken in 1.1a-24)
+
 2014/01/14 10:20:12 1.1a-47 gul
 protocol.c,2.232,2.233 todo.lst,2.52,2.53
 Possible segfault on some systems in rare case
