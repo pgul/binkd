@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.52  2014/02/02 07:12:32  gul
+ * Fix generate unique name for inbound file (broken in 1.1a-24)
+ *
  * Revision 2.51  2014/01/06 13:53:17  gul
  * Change inbound file mode 0755 to 0666
  *
@@ -608,7 +611,7 @@ static int next_inb_filename (char *fname, char **s, enum renamestyletype ren_st
     num = atoi(s[0]+1);
     if (num <= 0 || num > MAX_INB_RENAME)
       return 0;
-    sprintf(*s + 1, "%i", num);
+    sprintf(*s + 1, "%i", num + 1);
     return 1;
   }
 
