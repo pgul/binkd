@@ -1,3 +1,7 @@
+2014/08/02 12:54:06 1.1a-50 gul
+client.c,2.90,2.91 common.h,2.16,2.17 server.c,2.58,2.59
+Fix in signal handling
+
 2014/02/02 09:46:49 1.1a-49 gul
 server.c,2.57,2.58
 Set FD_CLOEXEC on listening socket
