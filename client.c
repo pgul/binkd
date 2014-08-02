@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.91  2014/08/02 09:54:04  gul
+ * Fix in signal handling
+ *
  * Revision 2.90  2014/01/12 13:25:30  gul
  * unix (linux) pthread version
  *
@@ -391,16 +394,29 @@ static void alrm (int signo)
 
 #if defined(HAVE_THREADS)
 #define SLEEP(x) WaitSem(&wakecmgr, x)
-#elif defined(VOID_SLEEP) || !defined(HAVE_FORK)
+#elif !defined(HAVE_FORK)
 #define SLEEP(x) sleep(x)
 #else
 void SLEEP (time_t s)
 {
-  while ((s = sleep (s)) > 0 && !binkd_exit && !poll_flag
+  unblocksig();
+  check_child(&n_clients);
+  while (s > 0 && !binkd_exit && !poll_flag
 #if defined(HAVE_FORK) && !defined(HAVE_THREADS)
-         && !got_sighup && !got_sigchld
+         && !got_sighup
 #endif
          );
+  {
+#if defined(VOID_SLEEP)
+    time_t start_sleep = time(NULL);
+    sleep(s);
+    s -= time(NULL) - start_sleep;
+#else
+    s = sleep(s);
+#endif
+    check_child(&n_clients);
+  }
+  blocksig();
 }
 #endif
 
@@ -485,10 +501,7 @@ static int do_client(BINKD_CONFIG *config)
         threadsafe(--n_clients);
         PostSem(&eothread);
         Log (1, "cannot branch out");
-        unblocksig();
         SLEEP(1);
-        blocksig();
-        check_child(&n_clients);
       }
 #if !defined(DEBUGCHILD)
       else
@@ -511,18 +524,12 @@ static int do_client(BINKD_CONFIG *config)
         }
       } else
         config->q_present = 0;
-      unblocksig();
       SLEEP (config->rescan_delay);
-      blocksig();
-      check_child(&n_clients);
     }
   }
   else
   {
-    unblocksig();
     SLEEP (config->call_delay);
-    blocksig();
-    check_child(&n_clients);
   }
 
   return 0;

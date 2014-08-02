@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.59  2014/08/02 09:54:04  gul
+ * Fix in signal handling
+ *
  * Revision 2.58  2014/02/02 07:46:47  gul
  * Set FD_CLOEXEC on listening socket
  *
@@ -409,10 +412,9 @@ static int do_server(BINKD_CONFIG *config)
     tv.tv_usec = 0;
     tv.tv_sec  = CHECKCFG_INTERVAL;
     unblocksig();
-    blocksig();
     check_child(&n_servers);
-    unblocksig();
     n = select(maxfd+1, &r, NULL, NULL, &tv);
+    check_child(&n_servers);
     blocksig();
     switch (n)
     { case 0: /* timeout */
@@ -423,7 +425,6 @@ static int do_server(BINKD_CONFIG *config)
           sockfd_used = 0;
           return 0;
 	}
-        check_child(&n_servers);
         continue;
       case -1:
         if (TCPERRNO == EINTR)
@@ -435,7 +436,6 @@ static int do_server(BINKD_CONFIG *config)
             sockfd_used = 0;
             return 0;
           }
-          check_child(&n_servers);
           continue;
         }
         save_errno = TCPERRNO;
