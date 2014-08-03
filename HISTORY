@@ -1,3 +1,7 @@
+2014/08/04 00:23:58 1.0.3-pre6 gul
+!README.FIX,2.56.2.7,2.56.2.8 client.c,2.82.2.2,2.82.2.3 common.h,2.16,2.16.2.1 server.c,2.54,2.54.2.1
+Fix in clientmgr scheduler
+
 2014/01/14 10:27:37 1.0.3-pre5 gul
 protocol.c,2.219.2.3,2.219.2.4
 Fix large files support for systems with 64-bit off_t
