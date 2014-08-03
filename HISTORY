@@ -1,3 +1,7 @@
+2014/08/04 00:28:42 1.0.3 gul
+!README.FIX,2.56.2.8,2.56.2.9 Config.h,2.642.2.29,2.642.2.30
+binkd 1.0.3 release
+
 2014/08/04 00:23:58 1.0.3-pre6 gul
 !README.FIX,2.56.2.7,2.56.2.8 client.c,2.82.2.2,2.82.2.3 common.h,2.16,2.16.2.1 server.c,2.54,2.54.2.1
 Fix in clientmgr scheduler
