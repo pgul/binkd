@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.92  2014/08/03 20:58:57  gul
+ * Fix in previous patch (typo, clientmgr was broken)
+ *
  * Revision 2.91  2014/08/02 09:54:04  gul
  * Fix in signal handling
  *
@@ -405,7 +408,7 @@ void SLEEP (time_t s)
 #if defined(HAVE_FORK) && !defined(HAVE_THREADS)
          && !got_sighup
 #endif
-         );
+         )
   {
 #if defined(VOID_SLEEP)
     time_t start_sleep = time(NULL);
