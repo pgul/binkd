@@ -13,6 +13,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16.2.1  2014/08/03 21:23:56  gul
+ * Fix in clientmgr scheduler
+ *
  * Revision 2.16  2012/05/14 06:14:58  gul
  * More safe signal handling
  *
@@ -155,7 +158,7 @@ extern int tray_flag;
 extern int got_sigchld, got_sighup;
 void sighandler(int signo);
 void chld(int *childcount);
-#define check_child(counter) if (got_sigchld) chld(counter);
+#define check_child(counter) if (got_sigchld) { blocksig(); chld(counter); unblocksig(); }
 #else
 #define check_child(counter)
 #endif

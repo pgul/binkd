@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.54.2.1  2014/08/03 21:23:56  gul
+ * Fix in clientmgr scheduler
+ *
  * Revision 2.54  2012/05/14 06:14:59  gul
  * More safe signal handling
  *
@@ -387,10 +390,9 @@ static int do_server(BINKD_CONFIG *config)
     tv.tv_usec = 0;
     tv.tv_sec  = CHECKCFG_INTERVAL;
     unblocksig();
-    blocksig();
     check_child(&n_servers);
-    unblocksig();
     n = select(maxfd+1, &r, NULL, NULL, &tv);
+    check_child(&n_servers);
     blocksig();
     switch (n)
     { case 0: /* timeout */
@@ -401,7 +403,6 @@ static int do_server(BINKD_CONFIG *config)
           sockfd_used = 0;
           return 0;
 	}
-        check_child(&n_servers);
         continue;
       case -1:
         if (TCPERRNO == EINTR)
@@ -413,7 +414,6 @@ static int do_server(BINKD_CONFIG *config)
             sockfd_used = 0;
             return 0;
           }
-          check_child(&n_servers);
           continue;
         }
         save_errno = TCPERRNO;

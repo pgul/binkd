@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.82.2.3  2014/08/03 21:23:56  gul
+ * Fix in clientmgr scheduler
+ *
  * Revision 2.82.2.2  2012/09/24 00:39:09  gul
  * call freeaddrinfo() from client in fork version
  *
@@ -370,16 +373,36 @@ static void alrm (int signo)
 
 #if defined(HAVE_THREADS)
 #define SLEEP(x) WaitSem(&wakecmgr, x)
-#elif defined(VOID_SLEEP) || !defined(HAVE_FORK)
+#elif !defined(HAVE_FORK)
 #define SLEEP(x) sleep(x)
 #else
 void SLEEP (time_t s)
 {
-  while ((s = sleep (s)) > 0 && !binkd_exit && !poll_flag
-#ifdef HAVE_FORK
-         && !got_sighup && !got_sigchld
+  unblocksig();
+  check_child(&n_clients);
+  while (s > 0 && !binkd_exit && !poll_flag
+#if defined(HAVE_FORK) && !defined(HAVE_THREADS)
+         && !got_sighup
 #endif
-         );
+         )
+  {
+#if defined(VOID_SLEEP)
+    time_t start_sleep, end_sleep;
+    start_sleep = time(NULL);
+    sleep(s);
+    end_sleep = time(NULL);
+    if (end_sleep < start_sleep)
+      start_sleep = end_sleep;
+    if (end_sleep - start_sleep > s)
+      s = 0;
+    else
+      s -= end_sleep - start_sleep;
+#else
+    s = sleep(s);
+#endif
+    check_child(&n_clients);
+  }
+  blocksig();
 }
 #endif
 
@@ -464,10 +487,7 @@ static int do_client(BINKD_CONFIG *config)
         threadsafe(--n_clients);
         PostSem(&eothread);
         Log (1, "cannot branch out");
-        unblocksig();
         SLEEP(1);
-        blocksig();
-        check_child(&n_clients);
       }
 #if !defined(DEBUGCHILD)
       else
@@ -490,18 +510,12 @@ static int do_client(BINKD_CONFIG *config)
         }
       } else
         config->q_present = 0;
-      unblocksig();
       SLEEP (config->rescan_delay);
-      blocksig();
-      check_child(&n_clients);
     }
   }
   else
   {
-    unblocksig();
     SLEEP (config->call_delay);
-    blocksig();
-    check_child(&n_clients);
   }
 
   return 0;

@@ -601,4 +601,5 @@ NT/95:  ctrl-c problems fixed
 
 1.0.3   
 -----
+	Fix in signal handling (possible non-stop loop in client manager)
 
