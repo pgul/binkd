@@ -599,7 +599,7 @@ NT/95:  ctrl-c problems fixed
 -----
 	Possible segfault on after_session perl hook.
 
-1.0.3   
+1.0.3   (Mon Aug 4 2014)
 -----
 	Fix in signal handling (possible non-stop loop in client manager)
 
