@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.93  2014/08/03 21:01:58  gul
+ * More clean sleep in some rare OS
+ *
  * Revision 2.92  2014/08/03 20:58:57  gul
  * Fix in previous patch (typo, clientmgr was broken)
  *
@@ -411,9 +414,16 @@ void SLEEP (time_t s)
          )
   {
 #if defined(VOID_SLEEP)
-    time_t start_sleep = time(NULL);
+    time_t start_sleep, end_sleep;
+    start_sleep = time(NULL);
     sleep(s);
-    s -= time(NULL) - start_sleep;
+    end_sleep = time(NULL);
+    if (end_sleep < start_sleep)
+      start_sleep = end_sleep;
+    if (end_sleep - start_sleep > s)
+      s = 0;
+    else
+      s -= end_sleep - start_sleep;
 #else
     s = sleep(s);
 #endif
