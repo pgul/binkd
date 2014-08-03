@@ -1,3 +1,7 @@
+2014/08/03 23:58:59 1.1a-51 gul
+client.c,2.91,2.92
+Fix in previous patch (typo, clientmgr was broken)
+
 2014/08/02 12:54:06 1.1a-50 gul
 client.c,2.90,2.91 common.h,2.16,2.17 server.c,2.58,2.59
 Fix in signal handling
