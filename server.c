@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.54.2.2  2014/08/09 14:09:58  gul
+ * Fix servermgr broken in 1.0.3
+ *
  * Revision 2.54.2.1  2014/08/03 21:23:56  gul
  * Fix in clientmgr scheduler
  *
@@ -320,7 +323,7 @@ static int do_server(BINKD_CONFIG *config)
   hints.ai_protocol = IPPROTO_TCP;
 
   if ((aiErr = getaddrinfo(config->bindaddr[0] ? config->bindaddr : NULL, 
-		config->iport, &hints, &aiHead)) != 0)
+        	config->iport, &hints, &aiHead)) != 0)
   {
     Log(0, "servmgr getaddrinfo: %s (%d)", gai_strerror(aiErr), aiErr);
     return -1;
@@ -329,7 +332,7 @@ static int do_server(BINKD_CONFIG *config)
   for (ai = aiHead; ai != NULL && sockfd_used < MAX_LISTENSOCK; ai = ai->ai_next)
   {
     sockfd[sockfd_used] = socket(ai->ai_family, ai->ai_socktype, 
-	    ai->ai_protocol);
+            ai->ai_protocol);
     if (sockfd[sockfd_used] < 0)
     {
       Log (0, "servmgr socket(): %s", TCPERR ());
@@ -340,7 +343,7 @@ static int do_server(BINKD_CONFIG *config)
     {
       int v6only = 1;
       if (setsockopt(sockfd[sockfd_used], IPPROTO_IPV6, IPV6_V6ONLY, 
-		  (char *) &v6only, sizeof(v6only)) == SOCKET_ERROR)
+        	  (char *) &v6only, sizeof(v6only)) == SOCKET_ERROR)
         Log(1, "servmgr setsockopt (IPV6_V6ONLY): %s", TCPERR());
     }
 #endif
@@ -392,25 +395,30 @@ static int do_server(BINKD_CONFIG *config)
     unblocksig();
     check_child(&n_servers);
     n = select(maxfd+1, &r, NULL, NULL, &tv);
-    check_child(&n_servers);
     blocksig();
     switch (n)
     { case 0: /* timeout */
+        unblocksig();
+        check_child(&n_servers);
+        blocksig();
         if (checkcfg()) 
-	{
+        {
           for (curfd=0; curfd<sockfd_used; curfd++)
-	    soclose(sockfd[curfd]);
+          soclose(sockfd[curfd]);
           sockfd_used = 0;
           return 0;
-	}
+        }
         continue;
       case -1:
         if (TCPERRNO == EINTR)
         {
+          unblocksig();
+          check_child(&n_servers);
+          blocksig();
           if (checkcfg())
-	  {
+          {
             for (curfd=0; curfd<sockfd_used; curfd++)
-	      soclose(sockfd[curfd]);
+            soclose(sockfd[curfd]);
             sockfd_used = 0;
             return 0;
           }
@@ -456,7 +464,7 @@ static int do_server(BINKD_CONFIG *config)
       {
         char host[BINKD_FQDNLEN + 1];
         char service[MAXSERVNAME + 1];
-	int aiErr;
+        int aiErr;
   
         add_socket(new_sockfd);
         /* Was the socket created after close_sockets loop in exitfunc()? */
@@ -468,17 +476,17 @@ static int do_server(BINKD_CONFIG *config)
         }
         rel_grow_handles (6);
         ext_rand=rand();
-	/* never resolve name in here, will be done during session */
-	aiErr = getnameinfo((struct sockaddr *)&client_addr, client_addr_len,
-	    host, sizeof(host), service, sizeof(service),
-	    NI_NUMERICHOST | NI_NUMERICSERV);
-	if (aiErr == 0) 
+        /* never resolve name in here, will be done during session */
+        aiErr = getnameinfo((struct sockaddr *)&client_addr, client_addr_len,
+            host, sizeof(host), service, sizeof(service),
+            NI_NUMERICHOST | NI_NUMERICSERV);
+        if (aiErr == 0) 
           Log (3, "incoming from %s (%s)", host, service);
         else
         {
           Log(2, "Error in getnameinfo(): %s (%d)", gai_strerror(aiErr), aiErr);
-	  Log(3, "incoming from unknown");
-	}
+          Log(3, "incoming from unknown");
+        }
   
         /* Creating a new process for the incoming connection */
         threadsafe(++n_servers);
