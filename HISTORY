@@ -1,3 +1,7 @@
+2014/08/09 20:09:50 1.0.4-pre6 gul
+https.c,2.26.2.1,2.26.2.2
+Fixed outbound port number when using socks4
+
 2014/08/09 18:31:10 1.0.4-pre5 gul
 dirwin32.c,2.2,2.2.2.1 dirwin32.h,2.4,2.4.2.1
 Fix incorrect type and crash on Win64 (backport)
