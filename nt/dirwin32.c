@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2.2.1  2014/08/09 15:31:08  gul
+ * Fix incorrect type and crash on Win64 (backport)
+ *
  * Revision 2.2  2004/01/08 13:27:49  val
  * * extend struct dirent for dos and win32 in order to get file attribute
  * * ignore hidden files in boxes for dos/win32/os2
@@ -41,7 +44,7 @@ DIR* opendir(const char* mask)
 {
     DIR* dir;
     char *ch;
-    int  h;
+    intptr_t h;
     char fmask[_MAX_PATH+1];
     struct _finddata_t dt;
 
