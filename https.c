@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.26.2.2  2014/08/09 17:09:48  gul
+ * Fixed outbound port number when using socks4
+ *
  * Revision 2.26.2.1  2014/08/09 15:17:42  gul
  * Large files support on Win32 (backport from develop branch)
  *
@@ -421,7 +424,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 
 		for (ai = aiHead; ai != NULL; ai = ai->ai_next)
 		{
-			unsigned short portnum = ((struct sockaddr_in*)(ai->ai_addr))->sin_port;
+			unsigned short portnum = ntohs(((struct sockaddr_in*)(ai->ai_addr))->sin_port);
 			if (!sauth) /* SOCKS4 */
 			{
 				buf[0]=4;
