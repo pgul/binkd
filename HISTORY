@@ -1,3 +1,7 @@
+2014/08/09 16:58:05 1.1a-53 gul
+server.c,2.59,2.60
+Fix servmgr exit after incoming session (broken in 1.1a-50)
+
 2014/08/04 00:02:00 1.1a-52 gul
 client.c,2.92,2.93
 More clean sleep in some rare OS
