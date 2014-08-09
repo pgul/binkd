@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.28  2014/08/09 17:08:09  gul
+ * Fixed outbount port number when using socks4
+ *
  * Revision 2.27  2013/11/07 16:21:33  stream
  * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
  *
@@ -421,7 +424,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 
 		for (ai = aiHead; ai != NULL; ai = ai->ai_next)
 		{
-			unsigned short portnum = ((struct sockaddr_in*)(ai->ai_addr))->sin_port;
+			unsigned short portnum = ntohs(((struct sockaddr_in*)(ai->ai_addr))->sin_port);
 			if (!sauth) /* SOCKS4 */
 			{
 				buf[0]=4;
