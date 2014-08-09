@@ -1,3 +1,7 @@
+2014/08/09 18:31:10 1.0.4-pre5 gul
+dirwin32.c,2.2,2.2.2.1 dirwin32.h,2.4,2.4.2.1
+Fix incorrect type and crash on Win64 (backport)
+
 2014/08/09 18:18:16 1.0.4-pre4 gul
 !README.FIX,2.56.2.10,2.56.2.11 binkd.c,2.112,2.112.2.1 binlog.c,2.13,2.13.2.1 bsy.c,2.11,2.11.2.1 btypes.h,2.10,2.10.2.1 client.c,2.82.2.3,2.82.2.4 compress.c,2.4,2.4.2.1 exitproc.c,2.44,2.44.2.1 ftnaddr.c,2.11,2.11.2.1 ftndom.c,2.7,2.7.2.1 ftnnode.c,2.44.2.1,2.44.2.2 ftnq.c,2.39.2.2,2.39.2.3 getw.c,2.8,2.8.2.1 https.c,2.26,2.26.2.1 inbound.c,2.45,2.45.2.1 inbound.h,2.8,2.8.2.1 perlhooks.c,2.79.2.1,2.79.2.2 perlhooks.h,2.16,2.16.2.1 prothlp.c,2.10,2.10.2.1 prothlp.h,2.5,2.5.2.1 protoco2.h,2.29,2.29.2.1 protocol.c,2.219.2.4,2.219.2.5 readcfg.c,2.104.2.1,2.104.2.2 readcfg.h,2.40,2.40.2.1 readflo.c,2.5,2.5.2.1 run.c,2.6,2.6.2.1 srif.c,2.21,2.21.2.1 sys.h,2.34,2.34.2.1 tools.c,2.75.2.2,2.75.2.3 xalloc.c,2.5,2.5.2.1
 Large files support on Win32 (backport from develop branch)
