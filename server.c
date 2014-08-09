@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.60  2014/08/09 13:58:04  gul
+ * Fix servmgr exit after incoming session (broken in 1.1a-50)
+ *
  * Revision 2.59  2014/08/02 09:54:04  gul
  * Fix in signal handling
  *
@@ -414,25 +417,30 @@ static int do_server(BINKD_CONFIG *config)
     unblocksig();
     check_child(&n_servers);
     n = select(maxfd+1, &r, NULL, NULL, &tv);
-    check_child(&n_servers);
     blocksig();
     switch (n)
     { case 0: /* timeout */
         if (checkcfg()) 
-	{
+        {
           for (curfd=0; curfd<sockfd_used; curfd++)
-	    soclose(sockfd[curfd]);
+            soclose(sockfd[curfd]);
           sockfd_used = 0;
           return 0;
-	}
+        }
+        unblocksig();
+        check_child(&n_servers);
+        blocksig();
         continue;
       case -1:
         if (TCPERRNO == EINTR)
         {
+          unblocksig();
+          check_child(&n_servers);
+          blocksig();
           if (checkcfg())
-	  {
+          {
             for (curfd=0; curfd<sockfd_used; curfd++)
-	      soclose(sockfd[curfd]);
+              soclose(sockfd[curfd]);
             sockfd_used = 0;
             return 0;
           }
@@ -478,7 +486,7 @@ static int do_server(BINKD_CONFIG *config)
       {
         char host[BINKD_FQDNLEN + 1];
         char service[MAXSERVNAME + 1];
-	int aiErr;
+        int aiErr;
   
         add_socket(new_sockfd);
         /* Was the socket created after close_sockets loop in exitfunc()? */
@@ -490,17 +498,17 @@ static int do_server(BINKD_CONFIG *config)
         }
         rel_grow_handles (6);
         ext_rand=rand();
-	/* never resolve name in here, will be done during session */
-	aiErr = getnameinfo((struct sockaddr *)&client_addr, client_addr_len,
-	    host, sizeof(host), service, sizeof(service),
-	    NI_NUMERICHOST | NI_NUMERICSERV);
-	if (aiErr == 0) 
+        /* never resolve name in here, will be done during session */
+        aiErr = getnameinfo((struct sockaddr *)&client_addr, client_addr_len,
+            host, sizeof(host), service, sizeof(service),
+            NI_NUMERICHOST | NI_NUMERICSERV);
+        if (aiErr == 0) 
           Log (3, "incoming from %s (%s)", host, service);
         else
         {
           Log(2, "Error in getnameinfo(): %s (%d)", gai_strerror(aiErr), aiErr);
-	  Log(3, "incoming from unknown");
-	}
+          Log(3, "incoming from unknown");
+        }
   
         /* Creating a new process for the incoming connection */
         threadsafe(++n_servers);
