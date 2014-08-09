@@ -1,3 +1,7 @@
+2014/08/09 20:08:10 1.1a-54 gul
+https.c,2.27,2.28
+Fixed outbount port number when using socks4
+
 2014/08/09 16:58:05 1.1a-53 gul
 server.c,2.59,2.60
 Fix servmgr exit after incoming session (broken in 1.1a-50)
