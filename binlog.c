@@ -26,6 +26,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.13.2.1  2014/08/09 15:17:41  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.13  2010/05/22 08:11:30  gul
  * Call after_session() hook after removing bsy
  *
@@ -89,6 +92,7 @@
 /*                        Local include files                         */
 /*--------------------------------------------------------------------*/
 
+#include "sys.h"
 #include "readcfg.h"
 #include "iphdr.h"
 #include "protoco2.h"

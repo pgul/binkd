@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5.2.1  2014/08/09 15:17:43  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.5  2003/10/29 21:08:39  gul
  * Change include-files structure, relax dependences
  *
@@ -47,7 +50,7 @@
 
 #define TF_ZERO(a) (memset(a, 0, sizeof(*a)))
 
-int tfile_cmp (TFILE *a, char *netname, off_t size, time_t time);
+int tfile_cmp (TFILE *a, char *netname, boff_t size, time_t time);
 
 /* Adds a file to killlist */
 void add_to_killlist (KILLLIST **killlist, int *n_killlist, char *name, int cond);

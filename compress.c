@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4.2.1  2014/08/09 15:17:42  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.4  2004/01/08 12:46:01  val
  * correct macrodef for msvc (_msc_ver instead of __msc__)
  *
@@ -50,6 +53,8 @@
 #endif
 
 #include <stdlib.h>
+
+#include "sys.h"
 #include "zlibdl.h"
 #include "compress.h"
 #include "tools.h"

@@ -3,6 +3,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.7.2.1  2014/08/09 15:17:44  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.7  2003/10/29 21:08:41  gul
  * Change include-files structure, relax dependences
  *
@@ -46,6 +49,7 @@
 #include <sys/ioctl.h>
 #endif
 
+#include "../sys.h"
 #include "../tools.h"
 #include "daemonize.h"
 

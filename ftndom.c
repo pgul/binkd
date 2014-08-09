@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7.2.1  2014/08/09 15:17:42  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.7  2004/11/05 05:30:55  stas
  * Checks for NULL pointer in get_matched_domain()
  *
@@ -55,6 +58,8 @@
  */
 
 #include <stdio.h>
+
+#include "sys.h"
 #include "ftndom.h"
 #include "tools.h"
 

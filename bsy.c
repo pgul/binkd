@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11.2.1  2014/08/09 15:17:42  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.11  2010/06/15 20:24:48  gul
  * Improve diagnostics
  *
@@ -54,6 +57,7 @@
 #include <string.h>
 #include <fcntl.h>
 
+#include "sys.h"
 #include "readcfg.h"
 #include "bsy.h"
 #include "ftnaddr.h"

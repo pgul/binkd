@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.75.2.3  2014/08/09 15:17:44  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.75.2.2  2012/10/29 19:52:57  green
  * Corrected Segfault in config error reporting on 64bit architectures
  *
@@ -335,10 +338,10 @@
 #include <syslog.h>
 #endif
 
+#include "sys.h"
 #include "readcfg.h"
 #include "common.h"
 #include "tools.h"
-#include "sys.h"
 #include "readdir.h"		       /* for [sys/]utime.h */
 #include "sem.h"
 #include "assert.h"
@@ -1208,7 +1211,8 @@ long safe_atol(char *str, char **msg)
     }
   } else {
     errno = EINVAL;
-    *msg = "Invalid argument (NULL instead string)";
+    if (msg)
+      *msg = "Invalid argument (NULL instead string)";
   }
   return (long)ul;
 }

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.40.2.1  2014/08/09 15:17:43  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.40  2012/01/08 17:34:58  green
  * Avoid using MAXHOSTNAMELEN
  *
@@ -204,7 +207,7 @@ struct skipchain
   struct skipchain *next;
   char *mask;
   addrtype atype;
-  off_t size;
+  boff_t size;
   int destr;
 };
 /* val: struct for hide-aka, present-aka */

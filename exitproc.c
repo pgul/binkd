@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.44.2.1  2014/08/09 15:17:42  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.44  2012/01/03 17:25:31  green
  * Implemented IPv6 support
  * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
@@ -174,6 +177,7 @@
 
 #include <signal.h>
 
+#include "sys.h"
 #include "readcfg.h"
 #include "common.h"
 #include "ftnnode.h"

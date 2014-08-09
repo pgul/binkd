@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.34.2.1  2014/08/09 15:17:44  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.34  2012/05/14 06:14:59  gul
  * More safe signal handling
  *
@@ -246,6 +249,56 @@
 #ifdef VISUALCPP
   #define sleep(a) Sleep((a)*1000)
   #define pipe(h)  _pipe(h, 0, 64)
+
+  /* MSVC (Visual Studio) Versions (_MSC_VER):
+   * 2010(10): 1600
+   * 2005( 8): 1400
+   * 2000( 6): 1200
+   */
+
+  /* [u]intmax_t introduced at least in MSVC 2010 */
+  #if _MSC_VER >= 1600
+    #include <stdint.h>
+  #else
+    typedef          __int64  intmax_t;
+    typedef unsigned __int64 uintmax_t;
+  #endif
+  #define HAVE_INTMAX_T
+
+  #if _MSC_VER <= 1200
+    /* Only one type of 64-bit stat() in old versions */
+    #define stat  _stati64
+    #define fstat _fstati64
+  #else
+    /* There are FOUR types of stat() in these MSVC! (for all 32/64 bits time_t and filesize combinations) */
+    /* Use "filesize: 64 bits, time_t: default" version */
+    #define stat  _stat64
+    #define fstat _fstat64
+  #endif
+
+  #if _MSC_VER <= 1200
+    /* These functions exists, but in static libraries only and not declared in headers... */
+    #ifdef _DLL  /* /MD option - with runtime DLL */
+      #error Use static build to get 64-bit file I/O (nmake ... STATIC=1)
+    #endif
+    _CRTIMP int     __cdecl _fseeki64(FILE *, __int64, int);
+    _CRTIMP __int64 __cdecl _ftelli64(FILE *);
+  #endif
+  #define fseeko _fseeki64
+  #define ftello _ftelli64
+  #define HAVE_FSEEKO
+
+  #define PRIdMAX "I64i"
+  #define PRIuMAX "I64u"
+
+  #if _MSC_VER <= 1200
+    /* TODO: although nobody uses 2nd and 3rd parameters now, write normal wrapper - safe_umax(s) or whatever */
+    #define strtoumax(s, p, n) _atoi64(s)
+  #else
+    #define strtoumax _strtoui64
+  #endif
+  #define HAVE_STRTOUMAX
+
 #endif
 
 #ifdef __MINGW32__
@@ -292,6 +345,17 @@ int vsnprintf (char *str, size_t count, const char *fmt, va_list args);
 #define BEGINTHREAD(a, b, c)   _beginthread(a, b, c)
 #endif
 
+/*
+ * We cannot use off_t because Microsoft, as usual, sucks - in MSVC off_t
+ * is forced to 32 bits. So, DON'T USE OFF_T ANYWHERE IN THE CODE.
+ * Use our own boff_t instead.
+ */
+#ifdef VISUALCPP
+  typedef __int64 boff_t;
+#else
+  typedef off_t   boff_t;
+#endif
+
 typedef unsigned char u8;
 #if defined(SIZEOF_INT) && SIZEOF_INT!=0
 #if SIZEOF_SHORT==2
@@ -331,7 +395,7 @@ typedef unsigned long int u32;
 
 #ifndef HAVE_FSEEKO
 #define fseeko(f, offset, whence)	fseek(f, (long)(offset), whence)
-#define ftello(f)			(off_t)ftell(f)
+#define ftello(f)			(boff_t)ftell(f)
 #endif
 
 #define UNUSED_ARG(s)  (void)(s)

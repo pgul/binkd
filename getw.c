@@ -6,6 +6,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8.2.1  2014/08/09 15:17:42  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.8  2003/12/29 10:49:37  gul
  * Comments in config now starts by "#" only if prev char is space
  *
@@ -42,6 +45,7 @@
 #include <stddef.h>
 
 #include "Config.h"
+#include "sys.h"
 #include "tools.h"
 
 char *getwordx2 (char *src, int n, int flags, char *fldsep, char *fldskip)

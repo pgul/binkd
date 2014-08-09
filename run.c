@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6.2.1  2014/08/09 15:17:44  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.6  2003/10/29 21:08:39  gul
  * Change include-files structure, relax dependences
  *
@@ -48,6 +51,7 @@
 #include <windows.h>
 #endif
 
+#include "sys.h"
 #include "run.h"
 #include "tools.h"
 

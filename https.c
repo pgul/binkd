@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.26.2.1  2014/08/09 15:17:42  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.26  2012/01/08 14:09:04  green
  * Corrected initialization of getaddrinfo hints
  *
@@ -120,6 +123,7 @@
 #include <time.h>
 #endif
 
+#include "sys.h"
 #include "readcfg.h"
 #include "https.h"
 #include "tools.h"

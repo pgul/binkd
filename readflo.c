@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5.2.1  2014/08/09 15:17:44  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.5  2003/10/29 21:08:39  gul
  * Change include-files structure, relax dependences
  *
@@ -46,6 +49,7 @@
 #include <ctype.h>
 
 #include "Config.h"
+#include "sys.h"
 #include "tools.h"
 #include "readflo.h"
 

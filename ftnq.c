@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.39.2.3  2014/08/09 15:17:42  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.39.2.2  2014/01/14 07:11:21  gul
  * Fix possibly uninitialized variable:
  * A node could be held to random time if it was an error during processing of .hld file
@@ -195,6 +198,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "sys.h"
 #include "readcfg.h"
 #include "ftnq.h"
 #include "ftnnode.h"
@@ -852,8 +856,8 @@ FTNQ *q_add_file (FTNQ *q, char *filename, FTN_ADDR *fa1, char flvr, char action
     q->sent = 0;
 
     if (type == 's')
-    { q->size = atol(argv[1]);
-      q->time = atol(argv[2]);
+    { q->size = (boff_t) strtoumax(argv[1], NULL, 10);
+      q->time = safe_atol(argv[2], NULL);
       strnzcpy (q->path, argv[0], MAXPATHLEN);
     }
     else

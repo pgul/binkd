@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.21.2.1  2014/08/09 15:17:44  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.21  2012/01/08 17:34:58  green
  * Avoid using MAXHOSTNAMELEN
  *
@@ -112,6 +115,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "sys.h"
 #include "readcfg.h"
 #include "protoco2.h"
 #include "srif.h"
@@ -252,11 +256,13 @@ static FTNQ *parse_response (FTNQ *q, char *rsp, FTN_ADDR *fa, BINKD_CONFIG *con
   {
     char buf[MAXPATHLEN + 1];
     int i;
+    int haveSomething = 0;
 
     while (!feof (in))
     {
       if (!fgets (buf, MAXPATHLEN, in))
-	break;
+        break;
+      haveSomething = 1;
       for (i = 0; i < sizeof (buf) - 1 && !isspace (buf[i]); ++i);
       buf[i] = 0;
       Log (4, "parse_response: add file `%s' to queue", buf + 1);
@@ -276,8 +282,8 @@ static FTNQ *parse_response (FTNQ *q, char *rsp, FTN_ADDR *fa, BINKD_CONFIG *con
 	    break;
 	}
     }
-    if (ftell (in) == 0)
-	Log (3, "SRIF response file is empty");
+    if (!haveSomething)
+        Log (3, "SRIF response file is empty");
     fclose (in);
   }
   else

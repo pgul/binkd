@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.112.2.1  2014/08/09 15:17:41  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.112  2012/05/14 06:14:57  gul
  * More safe signal handling
  *
@@ -421,6 +424,7 @@
 #include <sys/wait.h>
 #endif
 
+#include "sys.h"
 #include "readcfg.h"
 #include "common.h"
 #include "server.h"

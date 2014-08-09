@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.79.2.2  2014/08/09 15:17:43  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.79.2.1  2012/06/26 11:42:58  gul
  * Leave expected password unchanged if unmodified in on_handhsake hook
  *
@@ -319,8 +322,8 @@
 #endif
 
 /* ---------------- binkd stuff --------------- */
-#include "readcfg.h"
 #include "sys.h"
+#include "readcfg.h"
 #include "tools.h"
 #include "ftnaddr.h"
 #include "ftnq.h"
@@ -2226,7 +2229,7 @@ void perl_after_session(STATE *state, int status) {
 }
 
 /* before receiving file */
-int perl_before_recv(STATE *state, off_t offs) {
+int perl_before_recv(STATE *state, boff_t offs) {
   int    rc;
   SV     *svret, *sv;
   BINKD_CONFIG *cfg = state->config;

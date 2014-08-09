@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.10.2.1  2014/08/09 15:17:42  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.10  2012/06/20 22:41:46  green
  * 1 hour timeout for defnode resolutions
  *
@@ -142,7 +145,7 @@ struct _FTNQ
 				        * instead, now it's obsolete),
 				        * other -- a file to send. */
   char path[MAXPATHLEN + 1];
-  off_t size;
+  boff_t size;
   time_t time;			       /* this field seems to be used only in
 				        * cmp_filebox_files(), when sorting
 				        * files from a filebox before sending */
@@ -160,7 +163,7 @@ struct _TFILE
   char action;				    /* 'd'elete, 't'runcate, '\0' -- * *
 					     * none */
   char type;
-  off_t size;
+  boff_t size;
   time_t start;				    /* The transfer started at... */
   time_t time;				    /* Filetime */
   FILE *f;

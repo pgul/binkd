@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.44.2.2  2014/08/09 15:17:42  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.44.2.1  2012/09/20 12:18:20  gul
  * Cosmitics
  *
@@ -185,6 +188,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "sys.h"
 #include "readcfg.h"
 #include "ftnnode.h"
 #include "ftnaddr.h"

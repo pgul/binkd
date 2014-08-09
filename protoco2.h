@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.29.2.1  2014/08/09 15:17:43  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.29  2012/05/13 17:26:40  gul
  * Possibility to specify $passwd for session in on_handshake() perl hook
  *
@@ -168,7 +171,7 @@ struct _BW
   unsigned long abs;            /* min limit in abs-value */
   unsigned long rel;            /* min limit in percents */
   struct timeval utime;         /* bandwidth limit cps counter update time */
-  off_t bytes;                  /* bytes transferred after update time */
+  boff_t bytes;                 /* bytes transferred after update time */
   double cps;                   /* avg.cps for last 10 sec */
   unsigned long cpsN;           /* cps measurements pool size */
 };
@@ -260,8 +263,8 @@ struct _STATE
   int z_recv, z_send;           /* gzip is on for current file */
   int z_oleft;			/* length of actual data */
   char *z_obuf;			/* compression buffers */
-  off_t z_osize, z_isize;	/* original (uncompressed) size */
-  off_t z_cosize, z_cisize;	/* compressed size */
+  boff_t z_osize, z_isize;	/* original (uncompressed) size */
+  boff_t z_cosize, z_cisize;	/* compressed size */
   void *z_idata, *z_odata;	/* data for zstream */
 #endif
   int delay_ADR, delay_EOB;     /* delay sending of the command */

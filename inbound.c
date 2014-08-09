@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.45.2.1  2014/08/09 15:17:43  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.45  2009/06/12 17:42:56  gul
  * close .hr
  *
@@ -193,6 +196,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "sys.h"
 #include "readcfg.h"
 #include "inbound.h"
 #include "common.h"
@@ -260,7 +264,7 @@ static int creat_tmp_name (char *s, TFILE *file, FTN_ADDR *from, char *inbound)
   return 1;
 }
 
-static int to_be_deleted (char *tmp_name, char *netname, off_t filesize, BINKD_CONFIG *config)
+static int to_be_deleted (char *tmp_name, char *netname, boff_t filesize, BINKD_CONFIG *config)
 {
   struct stat sb, sd, *sp;
 
@@ -320,7 +324,7 @@ static int find_tmp_name (char *s, TFILE *file, STATE *state, BINKD_CONFIG *conf
     else if (fgets (buf, sizeof (buf), f)==NULL)
     {  /* This .hr is empty, now checks to old */
       fclose (f);
-      if (to_be_deleted (s, "unknown", (off_t)-1, config))
+      if (to_be_deleted (s, "unknown", (boff_t)-1, config))
       {
         Log (5, "old empty partial file %s is removed", de->d_name);
         remove_hr (s);
@@ -337,7 +341,7 @@ static int find_tmp_name (char *s, TFILE *file, STATE *state, BINKD_CONFIG *conf
         w[i] = getwordx (buf, i + 1, GWX_NOESC);
       if (!w[3])
       {
-        if (to_be_deleted (s, "unknown", (off_t)-1, config))
+        if (to_be_deleted (s, "unknown", (boff_t)-1, config))
         {
           Log (5, "old partial file %s with garbage is removed", de->d_name);
           remove_hr (s);
@@ -361,8 +365,8 @@ static int find_tmp_name (char *s, TFILE *file, STATE *state, BINKD_CONFIG *conf
         }
         else if (i >= 0 && !strcmp (w[0], file->netname))
         {
-          if (file->size == (off_t) strtoul (w[1], NULL, 10) &&
-              (file->time & ~1) == (time_t) (strtoul (w[2], NULL, 10) & ~1) &&
+          if (file->size == (boff_t) strtoumax (w[1], NULL, 10) &&
+              (file->time & ~1) == (time_t) (safe_atol (w[2], NULL) & ~1) &&
               i < state->nallfa)
           { /* non-destructive skip file from busy aka */
             if (i >= state->nfa)
@@ -381,7 +385,7 @@ static int find_tmp_name (char *s, TFILE *file, STATE *state, BINKD_CONFIG *conf
             remove_hr (s);
           }
         }
-        else if (to_be_deleted (s, w[0], strtoul (w[1], NULL, 10), config))
+        else if (to_be_deleted (s, w[0], strtoumax (w[1], NULL, 10), config))
         {
           Log (5, "old partial file %s removed", w[0]);
           remove_hr (s);
@@ -438,7 +442,7 @@ fopen_again:
     Log (1, "%s: %s", buf, strerror (errno));
     return 0;
   }
-  fseek (f, 0, SEEK_END);               /* Work-around MSVC bug */
+  fseeko(f, 0, SEEK_END);               /* Work-around MSVC bug */
 
 #if defined(OS2)
   DosSetFHState(fileno(f), OPEN_FLAGS_NOINHERIT);
@@ -698,7 +702,7 @@ int inb_done (TFILE *file, STATE *state, BINKD_CONFIG *config)
 /*
  * Checks if the file already exists in our inbound. !0=ok, 0=failed.
  */
-int inb_test (char *filename, off_t size, time_t t,
+int inb_test (char *filename, boff_t size, time_t t,
                char *inbound, char fp[])
 {
   char *s, *u;

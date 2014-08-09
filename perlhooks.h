@@ -14,6 +14,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.16.2.1  2014/08/09 15:17:43  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.16  2010/05/22 08:11:30  gul
  * Call after_session() hook after removing bsy
  *
@@ -107,7 +110,7 @@ char *perl_on_handshake(STATE *);       /* before xmitting ADR */
 char *perl_after_handshake(STATE *);    /* after handshake complete */
 void perl_after_session(STATE *, int);  /* after session done */
 
-int perl_before_recv(STATE *, off_t offs); /* before receiving file */
+int perl_before_recv(STATE *, boff_t offs); /* before receiving file */
 int perl_after_recv(STATE *, TFILE *, char *tmp_name,
 		char *real_name);  /* after file has been received */
 int perl_before_send(STATE *);         /* before sending file */

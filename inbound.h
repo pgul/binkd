@@ -2,6 +2,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8.2.1  2014/08/09 15:17:43  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.8  2005/07/04 18:24:43  gul
  * Move events checking and running to inb_test() for reducing repeated code;
  * do not run immediate events twice;
@@ -48,7 +51,7 @@
  * Checks if the file already exists in our inbound. !0=ok, 0=failed.
  * Sets realname[MAXPATHLEN]
  */
-int inb_test (char *filename, off_t size, time_t t,
+int inb_test (char *filename, boff_t size, time_t t,
 	       char *inbound, char *realname);
 
 /*

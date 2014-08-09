@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.11.2.1  2014/08/09 15:17:42  gul
+ * Large files support on Win32 (backport from develop branch)
+ *
  * Revision 2.11  2012/01/08 17:34:57  green
  * Avoid using MAXHOSTNAMELEN
  *
@@ -66,6 +69,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "sys.h"
 #include "tools.h"
 #include "ftndom.h"
 #include "ftnaddr.h"
