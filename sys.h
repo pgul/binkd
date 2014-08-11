@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.34.2.2  2014/08/11 18:43:39  gul
+ * Fixed compilation by MSVC6
+ *
  * Revision 2.34.2.1  2014/08/09 15:17:44  gul
  * Large files support on Win32 (backport from develop branch)
  *
@@ -174,6 +177,9 @@
 #ifdef HAVE_STDARG_H
   #include <stdarg.h>
 #endif
+#include <stdio.h>   /* FILE */
+#include <fcntl.h>   /* O_BINARY, O_NOINHERIT */
+#include <sys/types.h> /* off_t (at least on EMX) */
 
 #if defined(__WATCOMC__) && !defined(__IBMC__)
   #include <utils.h>
@@ -197,7 +203,6 @@
   #define INCL_ERRORS
   #include <os2.h>
   #include <process.h>
-  #include <fcntl.h>
 #endif
 
 #ifdef HAVE_THREADS
