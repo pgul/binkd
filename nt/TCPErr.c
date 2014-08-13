@@ -24,6 +24,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.17  2014/08/13 20:50:55  gul
+ * Fixed IPv6 support with MSVC build
+ *
  * Revision 2.16  2012/01/03 17:25:35  green
  * Implemented IPv6 support
  * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
@@ -97,7 +100,6 @@
 /*                        System include files                        */
 /*--------------------------------------------------------------------*/
 
-#include "../iphdr.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -105,6 +107,8 @@
 /*                        Local include files                         */
 /*--------------------------------------------------------------------*/
 
+#include "../sys.h"
+#include "../iphdr.h"
 #include "../sem.h"
 
 /*--------------------------------------------------------------------*/

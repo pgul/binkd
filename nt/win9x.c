@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.29  2014/08/13 20:50:55  gul
+ * Fixed IPv6 support with MSVC build
+ *
  * Revision 2.28  2006/02/02 18:44:06  stas
  * fix mingw warnings (binkd/9x)
  *
@@ -121,9 +124,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <conio.h>
-#include <windows.h>
 #include <process.h>
 #include <io.h>
+#include "../sys.h"
 #include "../readcfg.h"
 #include "../tools.h"
 #include "../common.h"

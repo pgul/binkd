@@ -17,6 +17,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.44  2014/08/13 20:50:54  gul
+ * Fixed IPv6 support with MSVC build
+ *
  * Revision 2.43  2014/01/13 12:33:10  gul
  * configure and small changes for multithread unix version
  *
@@ -215,9 +218,20 @@
   #endif
 #endif
 
+#if defined(WIN32) && defined(IPV6)
+  #if _WIN32_WINNT < 0x0502
+    #define _WIN32_WINNT 0x0502              /* WinXP SP2 contains RFC2553 */
+  #endif
+  #include <winsock2.h>
+  #include <ws2tcpip.h>
+#endif
+
 #if defined(WIN32)
   #include <windows.h>
-  #include <winsock.h>
+  #if !defined(IPV6)
+    #include <winsock.h>
+    #undef AF_INET6                         /* Winsock 1 cannot support IPv6 */
+  #endif
 #endif
 
 #ifdef OS2

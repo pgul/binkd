@@ -27,6 +27,9 @@ documentation and/or software.
  * $Id$
  *
  * $Log$
+ * Revision 2.12  2014/08/13 20:50:54  gul
+ * Fixed IPv6 support with MSVC build
+ *
  * Revision 2.11  2012/01/07 16:22:26  green
  * Fix some compiler warnings
  *
@@ -65,7 +68,6 @@ documentation and/or software.
  *
  */
 
-#include "iphdr.h"
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -76,6 +78,7 @@ documentation and/or software.
 #include <time.h>
 #endif
 #include "sys.h"
+#include "iphdr.h"
 #include "protoco2.h"
 #include "md5b.h"
 #include "tools.h"

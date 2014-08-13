@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.81  2014/08/13 20:50:54  gul
+ * Fixed IPv6 support with MSVC build
+ *
  * Revision 2.80  2013/11/07 16:21:33  stream
  * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
  *
@@ -509,7 +512,6 @@ struct tm *safe_gmtime(time_t *t, struct tm *tm)
 #endif
 
 #ifdef WIN32
-#include <windows.h>
 
 static void stime_to_tm(const SYSTEMTIME *stime, struct tm *tm)
 {

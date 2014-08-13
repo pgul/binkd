@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.61  2014/08/13 20:50:54  gul
+ * Fixed IPv6 support with MSVC build
+ *
  * Revision 2.60  2014/08/09 13:58:04  gul
  * Fix servmgr exit after incoming session (broken in 1.1a-50)
  *
@@ -242,7 +245,6 @@
  * We now use branch(). Listening changed.
  */
 
-#include "iphdr.h"
 #include <stdlib.h>
 #include <string.h>
 #ifdef HAVE_SYS_TIME_H
@@ -255,6 +257,8 @@
 #include <sys/wait.h>
 #endif
 
+#include "sys.h"
+#include "iphdr.h"
 #include "readcfg.h"
 #include "common.h"
 #include "server.h"

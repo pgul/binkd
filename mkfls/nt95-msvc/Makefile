@@ -105,7 +105,7 @@ BINKDNAME=binkd
 !endif
 !ifdef IPV6
 OUTDIR=$(OUTDIR)-binkd-ipv6
-CDEFS=$(CDEFS) -D_CONSOLE
+CDEFS=$(CDEFS) -D_CONSOLE -DIPV6
 SUBSYSTEM=console
 OBJS=$(OBJS) "$(OBJDIR)\nt\service.obj"
 LIBS=$(LIBS) ws2_32.lib

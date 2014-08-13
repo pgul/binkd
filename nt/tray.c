@@ -13,7 +13,6 @@
  */
 
 #include <stdlib.h>
-#include <windows.h>
 #include "../sys.h"
 #include "../iphdr.h"
 #include "../tools.h"

@@ -25,6 +25,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.7  2014/08/13 20:50:54  gul
+ * Fixed IPv6 support with MSVC build
+ *
  * Revision 2.6  2012/02/18 16:43:39  green
  * Corrected linking issues on Win32
  *
@@ -48,7 +51,6 @@
  *
  */
 
-#include "srv_gai.h"
 
 /* 
  * Do not compile if fall-through is in use
@@ -64,7 +66,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "sys.h"
 #include "iphdr.h"
+#include "srv_gai.h"
 
 int srv_getaddrinfo(const char *node, const char *service,
 		    const struct addrinfo *hints,

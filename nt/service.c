@@ -18,6 +18,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.59  2014/08/13 20:50:55  gul
+ * Fixed IPv6 support with MSVC build
+ *
  * Revision 2.58  2013/11/08 12:02:16  stream
  * Fix order of dependent includes
  *
@@ -218,7 +221,6 @@
 
 #include <stdio.h>
 #include <process.h>
-#include <windows.h>
 #include <io.h>
 #include <direct.h>
 #include <string.h>

@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.27  2014/08/13 20:50:54  gul
+ * Fixed IPv6 support with MSVC build
+ *
  * Revision 2.26  2013/01/24 17:25:35  gul
  * Support "-pipe" option on Win32
  *
@@ -121,12 +124,6 @@
 
 #include <sys/types.h>
 
-
-#if defined(WIN32) && defined(IPV6)
-  #define _WIN32_WINNT 0x0502		    /* WinXP SP2 contains RFC2553 */
-  #include <winsock2.h>
-  #include <ws2tcpip.h>
-#endif
 #ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
@@ -167,11 +164,6 @@
 
 #if !defined(WIN32)
   #include <sys/socket.h>
-#else
-  #ifndef IPV6
-    #include <winsock.h>
-    #undef AF_INET6			    /* Winsock 1 cannot support IPv6 */
-  #endif
 #endif
 
 /* Some systems have MAXHOSTNAMELEN = 64 */

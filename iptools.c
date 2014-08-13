@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.21  2014/08/13 20:50:54  gul
+ * Fixed IPv6 support with MSVC build
+ *
  * Revision 2.20  2013/01/24 17:25:35  gul
  * Support "-pipe" option on Win32
  *
@@ -101,7 +104,6 @@
  * Initial revision
  */
 
-#include "iphdr.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -111,7 +113,9 @@
 #include <sys/ioctl.h>
 #endif
 
+#include "sys.h"
 #include "Config.h"
+#include "iphdr.h"
 #include "common.h"
 #include "iptools.h"
 #include "tools.h"

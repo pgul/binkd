@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.14  2014/08/13 20:50:54  gul
+ * Fixed IPv6 support with MSVC build
+ *
  * Revision 2.13  2013/12/11 13:06:12  stas
  * Fix warning "missing sentinel in function call"
  *
@@ -67,9 +70,6 @@
 #include <string.h>
 #include <signal.h>
 #include <errno.h>
-#if defined WIN32
-#include <windows.h>
-#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif

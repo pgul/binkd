@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.118  2014/08/13 20:50:54  gul
+ * Fixed IPv6 support with MSVC build
+ *
  * Revision 2.117  2014/01/13 10:32:50  gul
  * Unix multithread version
  *
@@ -472,7 +475,6 @@
 #endif
 
 #ifdef WIN32
-#include <windows.h>
 #include "nt/service.h"
 #include "nt/w32tools.h"
 #ifdef BINKD9X
