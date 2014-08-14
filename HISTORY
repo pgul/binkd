@@ -1,3 +1,7 @@
+2014/08/14 09:42:05 1.1a-57 gul
+ns_parse.c,1.2,1.3
+Fixed compilation on unix
+
 2014/08/13 23:51:26 1.1a-56 gul
 binkd.c,2.117,2.118 iphdr.h,2.26,2.27 iptools.c,2.20,2.21 md5b.c,2.11,2.12 run.c,2.13,2.14 server.c,2.60,2.61 srv_gai.c,2.6,2.7 sys.h,2.43,2.44 tools.c,2.80,2.81
 Fixed IPv6 support with MSVC build
