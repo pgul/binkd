@@ -25,6 +25,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.8  2014/08/14 06:42:02  gul
+ * Fixed compilation on unix
+ *
  * Revision 2.7  2014/08/13 20:50:54  gul
  * Fixed IPv6 support with MSVC build
  *
@@ -51,21 +54,10 @@
  *
  */
 
-
-/* 
- * Do not compile if fall-through is in use
- * This function requires a working resolver library
-*/
-#ifndef srv_getaddrinfo
-
-#ifdef WIN32
-#  include <windns.h>
-#else
-#  include <resolv.h>
-#endif
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/types.h>
 #include "sys.h"
 #include "iphdr.h"
 #include "srv_gai.h"
@@ -212,5 +204,3 @@ int srv_getaddrinfo(const char *node, const char *service,
 
     return 0;
 }
-
-#endif /* srv_getaddrinfo */

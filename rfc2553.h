@@ -20,6 +20,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.3  2014/08/14 06:42:02  gul
+ * Fixed compilation on unix
+ *
  * Revision 2.2  2012/01/07 13:52:23  green
  * Removed C++ comments (bad style, I know)
  *
@@ -51,7 +54,7 @@
 
 /* getaddrinfo support? */
 #ifndef HAVE_GETADDRINFO
-  /* Renamed to advoid type clashing.. (for debugging) */
+  /* Renamed to avoid type clashing.. (for debugging) */
   struct addrinfo_emu
   {   
      int     ai_flags;     /* AI_PASSIVE, AI_CANONNAME, AI_NUMERICHOST */

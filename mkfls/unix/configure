@@ -3762,7 +3762,7 @@ fi
 
 done
 
-for ac_header in netinet/in.h netdb.h
+for ac_header in netinet/in.h netdb.h arpa/nameser.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -3781,6 +3781,9 @@ do :
 #include <sys/types.h>
 #ifdef HAVE_NETINET_IN_H
 #  include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_NAMESER_H
+#  include <arpa/nameser.h>
 #endif
 
 "
@@ -4099,6 +4102,8 @@ $as_echo "#define HAVE_FSEEKO 1" >>confdefs.h
 fi
 
 
+OPT_SRC=""
+
 ac_fn_c_check_func "$LINENO" "socket" "ac_cv_func_socket"
 if test "x$ac_cv_func_socket" = xyes; then :
 
@@ -4257,16 +4262,21 @@ if test "x$ac_cv_lib_util_setproctitle" = xyes; then :
 fi
  ;;
 esac
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_search" >&5
+case x$ac_cv_header_resolv_h in
+ xyes)
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_search" >&5
 $as_echo_n "checking for res_search... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-#include <sys/types.h>
-#ifdef HAVE_NETINET_IN_H
-#  include <netinet/in.h>
-#endif
-#include <resolv.h>
+  #include <sys/types.h>
+  #ifdef HAVE_NETINET_IN_H
+  #  include <netinet/in.h>
+  #endif
+  #ifdef HAVE_ARPA_NAMESER_H
+  #  include <arpa/nameser.h>
+  #endif
+  #include <resolv.h>
 
 int
 main ()
@@ -4285,18 +4295,21 @@ $as_echo "no" >&6; }; ac_cv_func_res_search=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-case x$ac_cv_func_res_search in
- xno) { $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_search in libresolv" >&5
+  case x$ac_cv_func_res_search in
+   xno) { $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_search in libresolv" >&5
 $as_echo_n "checking for res_search in libresolv... " >&6; }
-      LIBS="$LIBS -lresolv"
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+        LIBS="$LIBS -lresolv"
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-#include <sys/types.h>
-#ifdef HAVE_NETINET_IN_H
-#  include <netinet/in.h>
-#endif
-#include <resolv.h>
+  #include <sys/types.h>
+  #ifdef HAVE_NETINET_IN_H
+  #  include <netinet/in.h>
+  #endif
+  #ifdef HAVE_ARPA_NAMESER_H
+  #  include <arpa/nameser.h>
+  #endif
+  #include <resolv.h>
 
 int
 main ()
@@ -4315,19 +4328,22 @@ $as_echo "no" >&6; }; as_fn_error $? "no resolv library found" "$LINENO" 5
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-     ;;
-esac
+       ;;
+  esac
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ns_initparse" >&5
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ns_initparse" >&5
 $as_echo_n "checking for ns_initparse... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-#include <sys/types.h>
-#ifdef HAVE_NETINET_IN_H
-#  include <netinet/in.h>
-#endif
-#include <resolv.h>
+  #include <sys/types.h>
+  #ifdef HAVE_NETINET_IN_H
+  #  include <netinet/in.h>
+  #endif
+  #ifdef HAVE_ARPA_NAMESER_H
+  #  include <arpa/nameser.h>
+  #endif
+  #include <resolv.h>
 
 int
 main ()
@@ -4348,9 +4364,9 @@ fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
-case x$ac_cv_func_ns_initparse in
- xno)
-    ac_fn_c_check_member "$LINENO" "ns_msg" "_msg_ptr" "ac_cv_member_ns_msg__msg_ptr" "#include <resolv.h>
+  case x$ac_cv_func_ns_initparse in
+   xno)
+      ac_fn_c_check_member "$LINENO" "ns_msg" "_msg_ptr" "ac_cv_member_ns_msg__msg_ptr" "#include <resolv.h>
 "
 if test "x$ac_cv_member_ns_msg__msg_ptr" = xyes; then :
 
@@ -4371,7 +4387,10 @@ _ACEOF
 
 fi
 
-    ;;
+      OPT_SRC="$OPT_SRC unix/ns_parse.c"
+      ;;
+  esac
+  ;;
 esac
 
 # The cast to long int works around a bug in the HP C Compiler
@@ -4728,7 +4747,7 @@ case x$do_proxy in
   xyes)
    $as_echo "#define HTTPS 1" >>confdefs.h
 
-   OPT_SRC=https.c
+   OPT_SRC="$OPT_SRC https.c"
    ;;
 esac
 
@@ -4738,7 +4757,7 @@ case x$do_ntlm in
 
    $as_echo "#define HTTPS 1" >>confdefs.h
 
-   OPT_SRC="https.c ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c"
+   OPT_SRC="$OPT_SRC https.c ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c"
    ;;
 esac
 
@@ -5391,6 +5410,11 @@ esac
 
 case $ac_cv_func_vsnprintf$ac_cv_func_vsnprintf in
  *no*) OPT_SRC="$OPT_SRC snprintf.c"
+     ;;
+esac
+
+case x$ac_cv_header_resolv_h in
+ xyes) OPT_SRC="$OPT_SRC srv_gai.c"
      ;;
 esac
 

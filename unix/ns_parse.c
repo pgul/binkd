@@ -19,8 +19,6 @@
 static const char rcsid[] = "Id: ns_parse.c,v 8.13 1999/10/13 16:39:35 vixie Exp";
 #endif
 
-#ifndef HAVE_NS_INITPARSE
-
 /* Import. */
 
 #include <sys/types.h>
@@ -206,4 +204,3 @@ setsection(ns_msg *msg, ns_sect sect) {
 		msg->_MSG_PTR = msg->_sections[(int)sect];
 	}
 }
-#endif /* HAVE_NS_INITPARSE */
