@@ -1,3 +1,7 @@
+2014/08/14 10:37:22 1.1a-59 gul
+client.c,2.93,2.94
+Fix 100% cpu load when called with "-p" option
+
 2014/08/14 09:42:34 1.1a-58 gul
 rfc2553.h,2.2,2.3 srv_gai.c,2.7,2.8 srv_gai.h,2.2,2.3
 Fixed compilation on unix
