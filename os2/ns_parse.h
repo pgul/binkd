@@ -25,6 +25,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 1.3  2014/08/18 16:57:55  gul
+ * Fixed OS/2 compilation
+ *
  * Revision 1.2  2012/01/23 21:01:59  green
  * Add FSP1035 support for EMX (using own import library)
  *
@@ -35,9 +38,6 @@
 
 #ifndef __NS_PARSE_H__
 #define __NS_PARSE_H__
-
-#include <arpa/nameser.h>
-#include <resolv.h>
 
 /*
  * These can be expanded with synonyms, just keep ns_parse.c:ns_parserecord()
