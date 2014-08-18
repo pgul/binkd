@@ -16,6 +16,9 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.30  2014/08/18 04:32:18  gul
+ * Fixed binkd9x compilation
+ *
  * Revision 2.29  2014/08/13 20:50:55  gul
  * Fixed IPv6 support with MSVC build
  *
@@ -347,7 +350,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 {
   atexit(win9xAtExit);
 
-  return binkd_main(__argc, __argv, environ);
+  return binkd_main(__argc, __argv);
 }
 
 LRESULT CALLBACK MainWin9xWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
