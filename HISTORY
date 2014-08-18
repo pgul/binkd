@@ -1,3 +1,7 @@
+2014/08/18 07:49:04 1.1a-61 gul
+sys.h,2.44,2.45
+Fix MSVC + IPV6
+
 2014/08/18 07:32:21 1.1a-60 gul
 win9x.c,2.29,2.30
 Fixed binkd9x compilation
