@@ -25,6 +25,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 1.4  2014/08/19 06:41:36  gul
+ * OS/2 compilation
+ *
  * Revision 1.3  2014/08/18 16:57:55  gul
  * Fixed OS/2 compilation
  *
@@ -38,6 +41,13 @@
 
 #ifndef __NS_PARSE_H__
 #define __NS_PARSE_H__
+
+#ifdef HAVE_ARPA_NAMESER_H
+#  include <arpa/nameser.h>
+#endif
+#ifdef HAVE_RESOLV_H
+#  include <resolv.h>
+#endif
 
 /*
  * These can be expanded with synonyms, just keep ns_parse.c:ns_parserecord()
