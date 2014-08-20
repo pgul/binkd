@@ -1,3 +1,7 @@
+2014/08/20 14:07:19 1.0.4-pre11 gul
+sem.c,2.5,2.5.2.1
+Fixed OS/2 compilation
+
 2014/08/20 09:13:13 1.0.4-pre10 gul
 TCPErr.c,2.16,2.16.2.1 WSock.c,2.4,2.4.2.1 breaksig.c,2.24,2.24.2.1 getfree.c,2.12,2.12.2.1 sem.c,2.9,2.9.2.1 service.c,2.57,2.57.2.1 tray.c,2.12,2.12.2.1 w32tools.c,2.20,2.20.2.1 win9x.c,2.28,2.28.2.1
 Fixed 100% cpu load if called with poll flag,
