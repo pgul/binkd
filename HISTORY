@@ -1,3 +1,8 @@
+2014/08/20 09:13:13 1.0.4-pre10 gul
+TCPErr.c,2.16,2.16.2.1 WSock.c,2.4,2.4.2.1 breaksig.c,2.24,2.24.2.1 getfree.c,2.12,2.12.2.1 sem.c,2.9,2.9.2.1 service.c,2.57,2.57.2.1 tray.c,2.12,2.12.2.1 w32tools.c,2.20,2.20.2.1 win9x.c,2.28,2.28.2.1
+Fixed 100% cpu load if called with poll flag,
+backport many fixes related to compilation on win32 and os/2.
+
 2014/08/20 09:13:10 1.0.4-pre9 gul
 binkd.c,2.112.2.1,2.112.2.2 client.c,2.82.2.4,2.82.2.5 iphdr.h,2.24,2.24.2.1 iptools.c,2.19,2.19.2.1 md5b.c,2.11,2.11.2.1 rfc2553.h,2.2,2.2.2.1 run.c,2.6.2.1,2.6.2.2 server.c,2.54.2.2,2.54.2.3 srv_gai.c,2.6,2.6.2.1 srv_gai.h,2.2,2.2.2.1 sys.h,2.34.2.2,2.34.2.3 tools.c,2.75.2.3,2.75.2.4
 Fixed 100% cpu load if called with poll flag,
