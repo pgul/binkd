@@ -16,11 +16,14 @@ AC_CHECK_HEADERS(sys/mount.h,,,[[
 #endif
 ]])
 AC_CHECK_HEADERS(arpa/inet.h sys/ioctl.h sys/time.h stdarg.h io.h)
-AC_CHECK_HEADERS(netinet/in.h netdb.h)
+AC_CHECK_HEADERS(netinet/in.h netdb.h arpa/nameser.h)
 AC_CHECK_HEADERS(resolv.h,,,[[
 #include <sys/types.h>
 #ifdef HAVE_NETINET_IN_H
 #  include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_NAMESER_H
+#  include <arpa/nameser.h>
 #endif
 ]])
 
@@ -32,6 +35,8 @@ AC_CHECK_FUNCS(daemon setsid getopt localtime_r strtoumax sigprocmask)
 AC_CHECK_FUNCS(gettimeofday)
 AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
+
+OPT_SRC=""
 
 dnl Checks for libraries.
 AC_CHECK_FUNC(socket)
@@ -48,34 +53,56 @@ case $ac_cv_func_setproctitle in
 esac
 dnl AC_CHECK_FUNC(res_search)
 AC_MSG_CHECKING(for res_search)
-AC_TRY_LINK([
-#include <sys/types.h>
-#ifdef HAVE_NETINET_IN_H
-#  include <netinet/in.h>
-#endif
-#include <resolv.h>
-], [res_search(0,0,0,0,0);], AC_MSG_RESULT(yes), AC_MSG_RESULT(no); ac_cv_func_res_search=no)
-case x$ac_cv_func_res_search in
- xno) AC_MSG_CHECKING(for res_search in libresolv)
-      LIBS="$LIBS -lresolv"
-      AC_TRY_LINK([
-#include <sys/types.h>
-#ifdef HAVE_NETINET_IN_H
-#  include <netinet/in.h>
-#endif
-#include <resolv.h>
-], [res_search(0,0,0,0,0);], AC_MSG_RESULT(yes), AC_MSG_RESULT(no); AC_ERROR(no resolv library found))
-     ;;
-esac
+case x$ac_cv_header_resolv_h in
+ xyes)
+  OPT_SRC="$OPT_SRC srv_gai.c"
+  AC_MSG_CHECKING(for res_search)
+  AC_TRY_LINK([
+  #include <sys/types.h>
+  #ifdef HAVE_NETINET_IN_H
+  #  include <netinet/in.h>
+  #endif
+  #ifdef HAVE_ARPA_NAMESER_H
+  #  include <arpa/nameser.h>
+  #endif
+  #include <resolv.h>
+  ], [res_search(0,0,0,0,0);], AC_MSG_RESULT(yes), AC_MSG_RESULT(no); ac_cv_func_res_search=no)
+  case x$ac_cv_func_res_search in
+   xno) AC_MSG_CHECKING(for res_search in libresolv)
+        LIBS="$LIBS -lresolv"
+        AC_TRY_LINK([
+    #include <sys/types.h>
+    #ifdef HAVE_NETINET_IN_H
+    #  include <netinet/in.h>
+    #endif
+    #ifdef HAVE_ARPA_NAMESER_H
+    #  include <arpa/nameser.h>
+    #endif
+    #include <resolv.h>
+    ], [res_search(0,0,0,0,0);], AC_MSG_RESULT(yes), AC_MSG_RESULT(no); AC_ERROR(no resolv library found))
+       ;;
+  esac
 
-AC_MSG_CHECKING(for ns_initparse)
-AC_TRY_LINK([
-#include <sys/types.h>
-#ifdef HAVE_NETINET_IN_H
-#  include <netinet/in.h>
-#endif
-#include <resolv.h>
-], [ns_initparse(0,0,0);], AC_DEFINE(HAVE_NS_INITPARSE) AC_MSG_RESULT(yes), AC_MSG_RESULT(no); ac_cv_func_ns_initparse=no)
+  AC_MSG_CHECKING(for ns_initparse)
+  AC_TRY_LINK([
+  #include <sys/types.h>
+  #ifdef HAVE_NETINET_IN_H
+  #  include <netinet/in.h>
+  #endif
+  #ifdef HAVE_ARPA_NAMESER_H
+  #  include <arpa/nameser.h>
+  #endif
+  #include <resolv.h>
+  ], [ns_initparse(0,0,0);], AC_DEFINE(HAVE_NS_INITPARSE) AC_MSG_RESULT(yes), AC_MSG_RESULT(no); ac_cv_func_ns_initparse=no)
+
+  case x$ac_cv_func_ns_initparse in
+   xno)
+      AC_CHECK_MEMBERS([ns_msg._msg_ptr, ns_msg._ptr], [], [], [#include <resolv.h>])
+      OPT_SRC="$OPT_SRC unix/ns_parse.c"
+      ;;
+  esac
+  ;;
+esac
 
 case x$ac_cv_func_ns_initparse in
  xno) 
@@ -219,7 +246,7 @@ AC_ARG_WITH(ntlm,
 case x$do_proxy in
   xyes)
    AC_DEFINE(HTTPS)
-   OPT_SRC=https.c
+   OPT_SRC="$OPT_SRC https.c"
    ;;
 esac
 
@@ -227,7 +254,7 @@ case x$do_ntlm in
   xyes)
    AC_DEFINE(NTLM)
    AC_DEFINE(HTTPS)
-   OPT_SRC="https.c ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c"
+   OPT_SRC="$OPT_SRC https.c ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c"
    ;;
 esac
 

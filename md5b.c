@@ -27,6 +27,10 @@ documentation and/or software.
  * $Id$
  *
  * $Log$
+ * Revision 2.11.2.1  2014/08/20 06:12:37  gul
+ * Fixed 100% cpu load if called with poll flag,
+ * backport many fixes related to compilation on win32 and os/2.
+ *
  * Revision 2.11  2012/01/07 16:22:26  green
  * Fix some compiler warnings
  *
@@ -65,7 +69,6 @@ documentation and/or software.
  *
  */
 
-#include "iphdr.h"
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -76,6 +79,7 @@ documentation and/or software.
 #include <time.h>
 #endif
 #include "sys.h"
+#include "iphdr.h"
 #include "protoco2.h"
 #include "md5b.h"
 #include "tools.h"

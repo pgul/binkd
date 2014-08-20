@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19.2.1  2014/08/20 06:12:37  gul
+ * Fixed 100% cpu load if called with poll flag,
+ * backport many fixes related to compilation on win32 and os/2.
+ *
  * Revision 2.19  2012/01/22 00:19:47  green
  * Post lookup without host requires AI_PASSIVE
  *
@@ -98,7 +102,6 @@
  * Initial revision
  */
 
-#include "iphdr.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -108,7 +111,9 @@
 #include <sys/ioctl.h>
 #endif
 
+#include "sys.h"
 #include "Config.h"
+#include "iphdr.h"
 #include "common.h"
 #include "iptools.h"
 #include "tools.h"

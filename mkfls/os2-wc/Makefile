@@ -19,7 +19,8 @@ CFLAGS    = -DOS2 -DHAVE_THREADS -DHAVE_IO_H -DHAVE_SYS_TIME_H      &
             -DHAVE_VSNPRINTF -Dvsnprintf=_vbprintf -DHAVE_DOS_H     &
             -DHAVE_STDARG_H -DIBMTCPIP -DVOID_SLEEP                 &
             -DHTTPS -DNTLM -DAMIGADOS_4D_OUTBOUND -DHAVE_RESOLV_H   &
-	    -DHAVE_NETINET_IN_H -DHAVE_NETDB_H -w4 -bm -zq
+            -DHAVE_NETINET_IN_H -DHAVE_NETDB_H                      &
+            -DHAVE_ARPA_NAMESER_H -w4 -bm -zq
 
 !ifeq DEBUG 1
 CFLAGS    += -d3 -hw

@@ -24,6 +24,10 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.9.2.1  2014/08/20 06:12:40  gul
+ * Fixed 100% cpu load if called with poll flag,
+ * backport many fixes related to compilation on win32 and os/2.
+ *
  * Revision 2.9  2012/01/03 17:25:35  green
  * Implemented IPv6 support
  * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
@@ -75,13 +79,13 @@
 /*                        System include files                        */
 /*--------------------------------------------------------------------*/
 
-#include "../iphdr.h"
-
 
 /*--------------------------------------------------------------------*/
 /*                        Local include files                         */
 /*--------------------------------------------------------------------*/
 
+#include "../sys.h"
+#include "../iphdr.h"
 #include "../readcfg.h"
 #include "../tools.h"
 

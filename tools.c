@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.75.2.4  2014/08/20 06:12:38  gul
+ * Fixed 100% cpu load if called with poll flag,
+ * backport many fixes related to compilation on win32 and os/2.
+ *
  * Revision 2.75.2.3  2014/08/09 15:17:44  gul
  * Large files support on Win32 (backport from develop branch)
  *
@@ -503,7 +507,6 @@ struct tm *safe_gmtime(time_t *t, struct tm *tm)
 #endif
 
 #ifdef WIN32
-#include <windows.h>
 
 static void stime_to_tm(const SYSTEMTIME *stime, struct tm *tm)
 {

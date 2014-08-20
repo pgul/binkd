@@ -25,6 +25,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.6.2.1  2014/08/20 06:12:38  gul
+ * Fixed 100% cpu load if called with poll flag,
+ * backport many fixes related to compilation on win32 and os/2.
+ *
  * Revision 2.6  2012/02/18 16:43:39  green
  * Corrected linking issues on Win32
  *
@@ -48,23 +52,13 @@
  *
  */
 
-#include "srv_gai.h"
-
-/* 
- * Do not compile if fall-through is in use
- * This function requires a working resolver library
-*/
-#ifndef srv_getaddrinfo
-
-#ifdef WIN32
-#  include <windns.h>
-#else
-#  include <resolv.h>
-#endif
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/types.h>
+#include "sys.h"
 #include "iphdr.h"
+#include "srv_gai.h"
 
 int srv_getaddrinfo(const char *node, const char *service,
 		    const struct addrinfo *hints,
@@ -208,5 +202,3 @@ int srv_getaddrinfo(const char *node, const char *service,
 
     return 0;
 }
-
-#endif /* srv_getaddrinfo */

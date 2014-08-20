@@ -25,6 +25,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 1.2.2.1  2014/08/20 06:12:41  gul
+ * Fixed 100% cpu load if called with poll flag,
+ * backport many fixes related to compilation on win32 and os/2.
+ *
  * Revision 1.2  2012/01/23 21:01:59  green
  * Add FSP1035 support for EMX (using own import library)
  *
@@ -36,8 +40,15 @@
 #ifndef __NS_PARSE_H__
 #define __NS_PARSE_H__
 
-#include <arpa/nameser.h>
-#include <resolv.h>
+#ifdef HAVE_NETINET_IN_H
+#  include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_NAMESER_H
+#  include <arpa/nameser.h>
+#endif
+#ifdef HAVE_RESOLV_H
+#  include <resolv.h>
+#endif
 
 /*
  * These can be expanded with synonyms, just keep ns_parse.c:ns_parserecord()

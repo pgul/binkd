@@ -25,6 +25,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.2.2.1  2014/08/20 06:12:38  gul
+ * Fixed 100% cpu load if called with poll flag,
+ * backport many fixes related to compilation on win32 and os/2.
+ *
  * Revision 2.2  2012/01/22 01:27:19  green
  * Implement FSP1035 support for OS/2/Watcom
  *
@@ -40,12 +44,26 @@
 #define __SRV_GETADDRINFO_H__
 
 #if defined(HAVE_RESOLV_H) || defined(WITH_FSP1035)
+
+#ifdef WIN32
+#  include <windns.h>
+#else
+#  ifdef HAVE_NETINET_IN_H
+#    include <netinet/in.h>
+#  endif
+#  ifdef HAVE_ARPA_NAMESER_H
+#    include <arpa/nameser.h>
+#  endif
+#  ifdef HAVE_RESOLV_H
+#    include <resolv.h>
+#  endif
+#endif
+
 #include "iphdr.h"
 #include "rfc2553.h"
 #ifdef OS2
 #include "os2/ns_parse.h"
 #endif
-
 
 #define SRVGAI_DNSRESPLEN 1024
 

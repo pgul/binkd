@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.54.2.3  2014/08/20 06:12:38  gul
+ * Fixed 100% cpu load if called with poll flag,
+ * backport many fixes related to compilation on win32 and os/2.
+ *
  * Revision 2.54.2.2  2014/08/09 14:09:58  gul
  * Fix servermgr broken in 1.0.3
  *
@@ -229,7 +233,6 @@
  * We now use branch(). Listening changed.
  */
 
-#include "iphdr.h"
 #include <stdlib.h>
 #include <string.h>
 #ifdef HAVE_SYS_TIME_H
@@ -242,6 +245,8 @@
 #include <sys/wait.h>
 #endif
 
+#include "sys.h"
+#include "iphdr.h"
 #include "readcfg.h"
 #include "common.h"
 #include "server.h"

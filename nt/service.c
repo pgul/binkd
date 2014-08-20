@@ -18,6 +18,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.57.2.1  2014/08/20 06:12:40  gul
+ * Fixed 100% cpu load if called with poll flag,
+ * backport many fixes related to compilation on win32 and os/2.
+ *
  * Revision 2.57  2012/01/24 17:06:05  gul
  * Remove third arg in binkd_main() call
  *
@@ -213,19 +217,17 @@
  *
  */
 
-#include "../iphdr.h"
 #include <stdio.h>
 #include <process.h>
-#include <windows.h>
 #include <io.h>
 #include <direct.h>
 #include <string.h>
 #include <malloc.h>
+#include "../sys.h"
 #include "../readcfg.h"
 #include "../tools.h"
 #include "../common.h"
 #include "../iphdr.h"
-#include "../sys.h"
 #include "service.h"
 #include "w32tools.h"
 #include "tray.h"

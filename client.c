@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.82.2.5  2014/08/20 06:12:37  gul
+ * Fixed 100% cpu load if called with poll flag,
+ * backport many fixes related to compilation on win32 and os/2.
+ *
  * Revision 2.82.2.4  2014/08/09 15:17:42  gul
  * Large files support on Win32 (backport from develop branch)
  *
@@ -377,37 +381,8 @@ static void alrm (int signo)
 
 #if defined(HAVE_THREADS)
 #define SLEEP(x) WaitSem(&wakecmgr, x)
-#elif !defined(HAVE_FORK)
+#else
 #define SLEEP(x) sleep(x)
-#else
-void SLEEP (time_t s)
-{
-  unblocksig();
-  check_child(&n_clients);
-  while (s > 0 && !binkd_exit && !poll_flag
-#if defined(HAVE_FORK) && !defined(HAVE_THREADS)
-         && !got_sighup
-#endif
-         )
-  {
-#if defined(VOID_SLEEP)
-    time_t start_sleep, end_sleep;
-    start_sleep = time(NULL);
-    sleep(s);
-    end_sleep = time(NULL);
-    if (end_sleep < start_sleep)
-      start_sleep = end_sleep;
-    if (end_sleep - start_sleep > s)
-      s = 0;
-    else
-      s -= end_sleep - start_sleep;
-#else
-    s = sleep(s);
-#endif
-    check_child(&n_clients);
-  }
-  blocksig();
-}
 #endif
 
 #if defined(HAVE_THREADS) && defined(OS2)
@@ -505,21 +480,47 @@ static int do_client(BINKD_CONFIG *config)
     }
     else
     {
-      if (poll_flag)
+      int need_sleep = config->rescan_delay;
+      time_t start_sleep = time(NULL), end_sleep;
+
+      unblocksig();
+      while (need_sleep > 0 && !binkd_exit
+#if defined(HAVE_FORK) && !defined(HAVE_THREADS)
+             && !got_sighup
+#endif
+            )
       {
-        if (n_clients <= 0 && q_not_empty (config) == 0)
+        check_child(&n_clients);
+        if (poll_flag && n_clients <= 0)
         {
-          Log (4, "the queue is empty, quitting...");
-          return -1;
+          blocksig();
+          if (q_not_empty(config) == 0)
+          {
+            Log (4, "the queue is empty, quitting...");
+            return -1;
+          }
+          unblocksig();
         }
-      } else
+        SLEEP (need_sleep);
+        end_sleep = time(NULL);
+        if (end_sleep > start_sleep)
+          need_sleep -= (int)(end_sleep - start_sleep);
+        start_sleep = end_sleep;
+      }
+      check_child(&n_clients);
+      blocksig();
+      if (!poll_flag)
         config->q_present = 0;
-      SLEEP (config->rescan_delay);
     }
   }
   else
   {
+    /* This sleep can be interrupted by signal, it's OK */
+    unblocksig();
+    check_child(&n_clients);
     SLEEP (config->call_delay);
+    check_child(&n_clients);
+    blocksig();
   }
 
   return 0;

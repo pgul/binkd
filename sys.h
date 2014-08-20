@@ -17,6 +17,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.34.2.3  2014/08/20 06:12:38  gul
+ * Fixed 100% cpu load if called with poll flag,
+ * backport many fixes related to compilation on win32 and os/2.
+ *
  * Revision 2.34.2.2  2014/08/11 18:43:39  gul
  * Fixed compilation by MSVC6
  *
@@ -193,9 +197,21 @@
   #endif
 #endif
 
-#if defined(WIN32)
-  #include <windows.h>
-  #include <winsock.h>
+#ifdef WIN32
+  #ifdef IPV6
+    #if _WIN32_WINNT < 0x0502
+      #define _WIN32_WINNT 0x0502            /* WinXP SP2 contains RFC2553 */
+    #endif
+    #define _WINSOCKAPI_                     /* do NOT include winsock.h from windows.h */
+  #endif
+  #include <windows.h>                       /* windows.h MUST be before winsock2.h */
+  #ifdef IPV6
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+  #else
+    #include <winsock.h>
+    #undef AF_INET6                         /* Winsock 1 cannot support IPv6 */
+  #endif
 #endif
 
 #ifdef OS2

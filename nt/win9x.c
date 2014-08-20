@@ -16,6 +16,10 @@
  *
  * Revision history:
  * $Log$
+ * Revision 2.28.2.1  2014/08/20 06:12:41  gul
+ * Fixed 100% cpu load if called with poll flag,
+ * backport many fixes related to compilation on win32 and os/2.
+ *
  * Revision 2.28  2006/02/02 18:44:06  stas
  * fix mingw warnings (binkd/9x)
  *
@@ -121,9 +125,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <conio.h>
-#include <windows.h>
 #include <process.h>
 #include <io.h>
+#include "../sys.h"
 #include "../readcfg.h"
 #include "../tools.h"
 #include "../common.h"
@@ -344,7 +348,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 {
   atexit(win9xAtExit);
 
-  return binkd_main(__argc, __argv, environ);
+  return binkd_main(__argc, __argv);
 }
 
 LRESULT CALLBACK MainWin9xWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)

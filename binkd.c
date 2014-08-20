@@ -15,6 +15,10 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.112.2.2  2014/08/20 06:12:37  gul
+ * Fixed 100% cpu load if called with poll flag,
+ * backport many fixes related to compilation on win32 and os/2.
+ *
  * Revision 2.112.2.1  2014/08/09 15:17:41  gul
  * Large files support on Win32 (backport from develop branch)
  *
@@ -457,7 +461,6 @@
 #endif
 
 #ifdef WIN32
-#include <windows.h>
 #include "nt/service.h"
 #include "nt/w32tools.h"
 #ifdef BINKD9X
