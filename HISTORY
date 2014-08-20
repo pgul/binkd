@@ -1,3 +1,8 @@
+2014/08/20 09:12:43 1.0.4-pre8 gul
+ns_parse.h,1.2,1.2.2.1
+Fixed 100% cpu load if called with poll flag,
+backport many fixes related to compilation on win32 and os/2.
+
 2014/08/11 21:43:40 1.0.4-pre7 gul
 sys.h,2.34.2.1,2.34.2.2
 Fixed compilation by MSVC6
