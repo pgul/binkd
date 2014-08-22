@@ -603,7 +603,7 @@ NT/95:  ctrl-c problems fixed
 -----
 	Fix in signal handling (possible non-stop loop in client manager)
 
-1.0.4   
+1.0.4   (Fri Aug 22 2014)
 -----
 	Fixed servermgr broken in 1.0.3
 
