@@ -1,3 +1,7 @@
+2014/08/22 18:09:23 1.0.4 gul
+!README.FIX,2.56.2.11,2.56.2.12 Config.h,2.642.2.43,2.642.2.44
+Binkd release 1.0.4
+
 2014/08/20 14:07:19 1.0.4-pre11 gul
 sem.c,2.5,2.5.2.1
 Fixed OS/2 compilation
