@@ -608,4 +608,7 @@ NT/95:  ctrl-c problems fixed
 	Fixed servermgr broken in 1.0.3
 
 	Support large files (> 4G) on Win32 (backported from current)
+ 
+1.0.5
+-----
 
