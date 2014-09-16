@@ -16,7 +16,9 @@ OBJS=${SRCS:.c=.o}
 AUTODEFS=@DEFS@
 AUTOLIBS=@LIBS@
 DEFINES=$(AUTODEFS) -DHAVE_FORK -DUNIX -DOS="\"UNIX\""
-CFLAGS=$(DEFINES) @CFLAGS@
+CPPFLAGS=@CPPFLAGS@
+CFLAGS=@CFLAGS@
+LDFLAGS=@LDFLAGS@
 LIBS=$(AUTOLIBS)
 
 all: compile banner
@@ -25,7 +27,7 @@ compile: $(APPL)
 
 $(APPL): $(OBJS)
 	@echo Linking $(APPL)...
-	@$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
 banner:
 	@echo
@@ -73,14 +75,14 @@ realclean: cleanall
 
 .c.o:
 	@echo Compiling $*.c...
-	@$(CC) -c $(CFLAGS) -o $*.o $*.c
+	@$(CC) -c $(DEFINES) $(CPPFLAGS) $(CFLAGS) -o $*.o $*.c
 
 binkd.txt: binkd.8
 	@groff -Tascii -mman binkd.8 | perl -npe 's/.\010//g' >binkd.txt
 
 depend Makefile.dep:   Makefile
 	@echo Making depends...
-	@$(CC) -MM $(CFLAGS) $(SRCS) $(SYS) | \
+	@$(CC) -MM $(DEFINES) $(CPPFLAGS) $(CFLAGS) $(SRCS) $(SYS) | \
 	      $(AWK) '{ if ($$1 != prev) { if (rec != "") print rec; \
 		  rec = $$0; prev = $$1; } \
 		  else { if (length(rec $$2) > 78) { print rec; rec = $$0; } \
