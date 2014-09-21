@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.120  2014/09/21 11:59:36  gul
+ * Fixed broken iport/oport in config on win32
+ *
  * Revision 2.119  2014/09/21 08:44:51  gul
  * Write configured remote hostname and port in log line "outgoing session with ..."
  *
@@ -937,6 +940,10 @@ int main (int argc, char *argv[])
   /* Init for ftnnode.c */
   nodes_init ();
 
+  /* Needed for getaddrinfo() in find_port() */
+  if (sock_init ())
+    Log (0, "sock_init: %s", TCPERR ());
+
   if (configpath)
   {
     current_config = readcfg (configpath);
@@ -987,8 +994,6 @@ int main (int argc, char *argv[])
 #else
   Log (4, "BEGIN, " MYNAME "/" MYVER "%s%s", get_os_string(), tmp);
 #endif
-  if (sock_init ())
-    Log (0, "sock_init: %s", TCPERR ());
 
   bsy_init ();
   rnd ();
