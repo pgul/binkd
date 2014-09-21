@@ -1,3 +1,7 @@
+2014/09/21 14:59:39 1.1a-65 gul
+binkd.c,2.119,2.120
+Fixed broken iport/oport in config on win32
+
 2014/09/21 11:44:53 1.1a-64 gul
 binkd.c,2.118,2.119 client.c,2.94,2.95 protocol.c,2.233,2.234 protocol.h,2.4,2.5 server.c,2.61,2.62
 Write configured remote hostname and port in log line "outgoing session with ..."
