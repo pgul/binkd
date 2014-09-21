@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.62  2014/09/21 08:44:51  gul
+ * Write configured remote hostname and port in log line "outgoing session with ..."
+ *
  * Revision 2.61  2014/08/13 20:50:54  gul
  * Fixed IPv6 support with MSVC build
  *
@@ -298,7 +301,7 @@ static void serv (void *arg)
 #if defined(WITH_PERL) && defined(HAVE_THREADS)
   cperl = perl_init_clone(config);
 #endif
-  protocol (h, h, NULL, NULL, NULL, config);
+  protocol (h, h, NULL, NULL, NULL, NULL, NULL, config);
   Log (5, "downing server...");
 #if defined(WITH_PERL) && defined(HAVE_THREADS)
   perl_done_clone(cperl);

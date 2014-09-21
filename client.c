@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.95  2014/09/21 08:44:51  gul
+ * Write configured remote hostname and port in log line "outgoing session with ..."
+ *
  * Revision 2.94  2014/08/14 07:37:20  gul
  * Fix 100% cpu load when called with "-p" option
  *
@@ -635,7 +638,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   char servbuf[MAXSERVNAME + 1];
   char *hosts;
   char *port;
-  char *dst_host = host;
+  char *dst_ip = NULL;
   const char *save_err;
 #ifdef HTTPS
   int use_proxy;
@@ -825,7 +828,6 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 	else
 	  Log (4, "trying %s:%s via %s %s:%s...", host, port,
 	       proxy[0] ? "proxy" : "socks", addrbuf, servbuf);
-	sprintf(host+strlen(host), ":%s", port);
       }
       else
 #endif
@@ -834,6 +836,8 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
           Log (4, "trying %s [%s]...", host, addrbuf);
 	else
           Log (4, "trying %s [%s]:%s...", host, addrbuf, servbuf);
+	dst_ip = addrbuf;
+	port = servbuf;
       }
       /* find bind addr with matching address family */
       if (config->bindaddr[0])
@@ -872,7 +876,6 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 #endif
 	Log (4, "connected");
 	sock_out = sockfd;
-	dst_host = addrbuf;
 	break;
       }
 
@@ -931,7 +934,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   if (sockfd == INVALID_SOCKET)
     return 0;
 
-  protocol (sockfd, sock_out, node, NULL, dst_host, config);
+  protocol (sockfd, sock_out, node, NULL, host, port, dst_ip, config);
   if (pid != -1)
   {
     del_socket(sock_out);

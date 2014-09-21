@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.119  2014/09/21 08:44:51  gul
+ * Write configured remote hostname and port in log line "outgoing session with ..."
+ *
  * Revision 2.118  2014/08/13 20:50:54  gul
  * Fixed IPv6 support with MSVC build
  *
@@ -1098,7 +1101,7 @@ int main (int argc, char *argv[])
       dup2(tempfd, fileno(stdout));
       close(tempfd);
     }
-    protocol (inetd_socket_in, inetd_socket_out, NULL, pftn_addr, remote_addr, current_config);
+    protocol (inetd_socket_in, inetd_socket_out, NULL, pftn_addr, NULL, NULL, remote_addr, current_config);
     soclose (inetd_socket_out);
     exit (0);
   }

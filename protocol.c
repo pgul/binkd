@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.234  2014/09/21 08:44:51  gul
+ * Write configured remote hostname and port in log line "outgoing session with ..."
+ *
  * Revision 2.233  2014/01/14 08:20:10  gul
  * Possible segfault on some systems in rare case
  *
@@ -3856,7 +3859,8 @@ static void log_end_of_session (int status, STATE *state, BINKD_CONFIG *config)
        state->bytes_sent, state->bytes_rcvd);
 }
 
-void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, char *current_addr, BINKD_CONFIG *config)
+void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa,
+               char *current_addr, char *current_port, char *remote_ip, BINKD_CONFIG *config)
 {
   STATE state;
   struct timeval tv;
@@ -3888,33 +3892,37 @@ void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, 
   service[0] = '\0';
   status = -1;
 
-  if (current_addr)
+  if (current_addr || remote_ip)
   {
-    struct addrinfo hints, *hres;
-
-    strnzcpy(ipaddr, current_addr, BINKD_FQDNLEN);
+    strnzcpy(ipaddr, remote_ip ? remote_ip : current_addr, BINKD_FQDNLEN);
     /* resolve current_addr to numeric form in peer_name */
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_flags = AI_NUMERICHOST;
-    if ((status = getaddrinfo(current_addr, NULL, &hints, &hres)) == 0)
+    if (remote_ip)
     {
-      if (hres)
+      struct addrinfo hints, *hres;
+
+      memset(&hints, 0, sizeof(hints));
+      hints.ai_family = AF_UNSPEC;
+      hints.ai_flags = AI_NUMERICHOST;
+
+      if ((status = getaddrinfo(ipaddr, NULL, &hints, &hres)) == 0)
       {
-        memcpy(&peer_name, hres->ai_addr, hres->ai_addrlen);
-        freeaddrinfo(hres);
+        if (hres)
+        {
+          memcpy(&peer_name, hres->ai_addr, hres->ai_addrlen);
+          freeaddrinfo(hres);
+        }
+        else
+        {
+          status = -1;
+          if (!to)
+            Log (1, "%s, getaddrinfo error (empty result)", current_addr);
+        }
       }
       else
       {
-        status = -1;
         if (!to)
-          Log (1, "%s, getaddrinfo error (empty result)", current_addr);
+          Log (1, "%s, getaddrinfo error: %s (%d)", current_addr, gai_strerror(status), status);
       }
-    }
-    else
-    {
-      if (!to)
-        Log (1, "%s, getaddrinfo error: %s (%d)", current_addr, gai_strerror(status), status);
     }
   }
   else if (!state.pipe)
@@ -3947,7 +3955,7 @@ void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, 
   }
   else
     strnzcpy(ipaddr, "unknown", BINKD_FQDNLEN);
-  if (status == 0 && config->backresolv)
+  if (status == 0 && config->backresolv && !current_addr)
   {
     status = getnameinfo((struct sockaddr *)&peer_name, peer_name_len, 
 		host, sizeof(host), NULL, 0, NI_NAMEREQD);
@@ -3957,19 +3965,24 @@ void protocol (SOCKET socket_in, SOCKET socket_out, FTN_NODE *to, FTN_ADDR *fa, 
   }
 
   state.ipaddr = ipaddr;
-  state.peer_name = (*host != '\0' ? host : ipaddr);
+  state.peer_name = (*host != '\0' ? host : (current_addr ? current_addr : ipaddr));
+  if (state.peer_name[strlen(state.peer_name)-1] == '.')
+    state.peer_name[strlen(state.peer_name)-1] = '\0';
 
 #ifndef HAVE_THREADS
   setproctitle ("%c [%s]", to ? 'o' : 'i', state.peer_name);
 #endif
-  if (*host != '\0')
-    Log (2, "%s session with %s [%s]",
+  if (strcmp(state.ipaddr, state.peer_name))
+    Log (2, "%s session with %s%s%s [%s]",
        to ? "outgoing" : "incoming",
-       host, ipaddr);
+       state.peer_name,
+       current_port ? ":" : "", current_port ? current_port : "",
+       state.ipaddr);
   else
-    Log (2, "%s session with %s",
+    Log (2, "%s session with %s%s%s",
        to ? "outgoing" : "incoming",
-       ipaddr);
+       state.peer_name,
+       current_port ? ":" : "", current_port ? current_port : "");
 
   if (state.pipe || getsockname (socket_in, (struct sockaddr *)&peer_name, &peer_name_len) == -1)
   {
