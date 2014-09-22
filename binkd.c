@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.112.2.3  2014/09/22 19:56:46  gul
+ * Fixed broken iport/oport in config on win32
+ *
  * Revision 2.112.2.2  2014/08/20 06:12:37  gul
  * Fixed 100% cpu load if called with poll flag,
  * backport many fixes related to compilation on win32 and os/2.
@@ -945,6 +948,10 @@ int main (int argc, char *argv[])
   /* Init for ftnnode.c */
   nodes_init ();
 
+  /* Needed for getaddrinfo() in find_port() */
+  if (sock_init ())
+    Log (0, "sock_init: %s", TCPERR ());
+
   if (configpath)
   {
     current_config = readcfg (configpath);
@@ -995,8 +1002,6 @@ int main (int argc, char *argv[])
 #else
   Log (4, "BEGIN, " MYNAME "/" MYVER "%s%s", get_os_string(), tmp);
 #endif
-  if (sock_init ())
-    Log (0, "sock_init: %s", TCPERR ());
 
   bsy_init ();
   rnd ();

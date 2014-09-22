@@ -611,4 +611,5 @@ NT/95:  ctrl-c problems fixed
  
 1.0.5
 -----
+        Fixed broken iport/oport in config on win32.
 
