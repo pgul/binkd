@@ -1,3 +1,7 @@
+2014/09/22 22:56:48 1.0.5-pre2 gul
+binkd.c,2.112.2.2,2.112.2.3 !README.FIX,2.56.2.13,2.56.2.14
+Fixed broken iport/oport in config on win32
+
 2014/08/22 18:15:28 1.0.5-pre1 gul
 !README.FIX,2.56.2.12,2.56.2.13 Config.h,2.642.2.45,2.642.2.46
 1.0.5-pre
