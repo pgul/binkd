@@ -233,7 +233,7 @@ AC_ARG_WITH(proxy,
 
 AC_ARG_WITH(ntlm,
             [  --with-ntlm             NTLM proxy authorization support (default no)],
-            do_ntlm=yes, do_ntlm=no)
+            do_ntlm=yes; do_proxy=yes, do_ntlm=no)
 
 case x$do_proxy in
   xyes)
@@ -245,8 +245,7 @@ esac
 case x$do_ntlm in
   xyes)
    AC_DEFINE(NTLM)
-   AC_DEFINE(HTTPS)
-   OPT_SRC="$OPT_SRC https.c ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c"
+   OPT_SRC="$OPT_SRC ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c"
    ;;
 esac
 
