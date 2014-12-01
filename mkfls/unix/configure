@@ -4764,7 +4764,7 @@ fi
 
 # Check whether --with-ntlm was given.
 if test "${with_ntlm+set}" = set; then :
-  withval=$with_ntlm; do_ntlm=yes
+  withval=$with_ntlm; do_ntlm=yes; do_proxy=yes
 else
   do_ntlm=no
 fi
@@ -4782,9 +4782,7 @@ case x$do_ntlm in
   xyes)
    $as_echo "#define NTLM 1" >>confdefs.h
 
-   $as_echo "#define HTTPS 1" >>confdefs.h
-
-   OPT_SRC="$OPT_SRC https.c ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c"
+   OPT_SRC="$OPT_SRC ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c"
    ;;
 esac
 
