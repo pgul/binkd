@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.19.2.7  2014/12/03 10:44:07  gul
+ * Fix possibly uninitialized variable: A node could be held to random time if it was an error during processing of .hld file
+ *
  * Revision 2.19.2.6  2005/10/02 15:23:35  gul
  * Fileboxes was not scanned for unlisted links
  *
@@ -530,7 +533,10 @@ void process_hld (FTN_ADDR *fa, char *path)
     {
       node->hold_until = 0;
     }
-    node->hold_until = (time_t)hold_until_tmp;
+    else
+    {
+      node->hold_until = (time_t)hold_until_tmp;
+    }
     if (f)
       fclose (f);
 
