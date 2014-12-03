@@ -27,6 +27,9 @@ documentation and/or software.
  * $Id$
  *
  * $Log$
+ * Revision 2.6.2.2  2014/12/03 10:51:11  gul
+ * Fix warnings
+ *
  * Revision 2.6.2.1  2004/10/18 10:45:30  gul
  * Bugfix in MD_getChallenge(), thanks to Victor Levenets <aq@takas.lt>
  *
@@ -440,7 +443,7 @@ static void getrand(unsigned char *res, int len, STATE *rnd)
   rd.ext_rand=ext_rand;
   hmac_md5((void *)&rd, sizeof(rd), (void *)rnd, sizeof(STATE), digest);
   if((rnd->peer_name)&&(rnd->peer_name[0]))
-    hmac_md5(rnd->peer_name, strlen(rnd->peer_name), digest, sizeof(digest), digest);
+    hmac_md5((void *)rnd->peer_name, strlen(rnd->peer_name), digest, sizeof(digest), digest);
   memcpy(res, digest, len);
 }
 
@@ -503,7 +506,7 @@ char *MD_buildDigest(char *pw, unsigned char *challenge)
   char *rs=NULL;
   MDcaddr_t digest;
   if((!pw)||(!challenge)) return rs;
-  hmac_md5(challenge+1, challenge[0], pw, strlen(pw), digest);
+  hmac_md5(challenge+1, challenge[0], (void *)pw, strlen(pw), digest);
   rs=(char*)xalloc(MD5_DIGEST_LEN*2+10);
   MD_toString(rs, MD5_DIGEST_LEN, digest);
   return rs;
