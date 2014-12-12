@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.110  2014/12/12 06:27:39  gul
+ * Fixed iport/oport output in dumpcfg mode
+ *
  * Revision 2.109  2013/11/07 16:21:33  stream
  * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
  *
@@ -2434,9 +2437,9 @@ void debug_readcfg (void)
   for (k = keywords; k->key; k++)
   {
     printf("%-24s ", k->key);
-    if (k->callback == read_string || k->callback == read_log_string)
+    if (k->callback == read_string || k->callback == read_log_string || k->callback == read_port)
       printf("\"%s\"", (char *)k->var);
-    else if (k->callback == read_int || k->callback == read_port || k->callback == read_log_int)
+    else if (k->callback == read_int || k->callback == read_log_int)
       printf("%d", *(int *)(k->var));
     else if (k->callback == read_bool)
       printf(*(int *)(k->var) ? "[yes]" : "<not defined>");
