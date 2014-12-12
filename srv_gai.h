@@ -25,6 +25,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.4  2014/12/12 05:41:24  gul
+ * Compilation flag FSP1035 renamed to FTS5004
+ *
  * Revision 2.3  2014/08/14 06:42:02  gul
  * Fixed compilation on unix
  *
@@ -42,7 +45,7 @@
 #ifndef __SRV_GETADDRINFO_H__
 #define __SRV_GETADDRINFO_H__
 
-#if defined(HAVE_RESOLV_H) || defined(WITH_FSP1035)
+#if defined(HAVE_RESOLV_H) || defined(WITH_FTS5004)
 
 #ifdef WIN32
 #  include <windns.h>
@@ -69,7 +72,7 @@
 extern int srv_getaddrinfo(const char *node, const char *service,
 			   const struct addrinfo *hints,
 			   struct addrinfo **res);
-#else	/*  defined(HAVE_RESOLV_H) || defined(WITH_FSP1035) */
+#else	/*  defined(HAVE_RESOLV_H) || defined(WITH_FTS5004) */
 /* fallback if we don't have a resolver */
 #define srv_getaddrinfo(a,b,c,d) getaddrinfo(a,b,c,d)
 #endif

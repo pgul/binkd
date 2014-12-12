@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.121  2014/12/12 05:41:24  gul
+ * Compilation flag FSP1035 renamed to FTS5004
+ *
  * Revision 2.120  2014/09/21 11:59:36  gul
  * Fixed broken iport/oport in config on win32
  *
@@ -969,7 +972,7 @@ int main (int argc, char *argv[])
       printf ("Compilation flags: " _DBNKD ".\n");
       printf ("Facilities: "
 #ifndef srv_getaddrinfo
-              "fsp1035 "
+              "fts5004 "
 #endif
 #ifndef HAVE_GETADDRINFO
               "rfc2553emu "

@@ -3,7 +3,7 @@
 
 # Usage: make [DEBUG=1] [BINKD9X=1] [PERL=1] [PERLDL=1]
 #             [ZLIB=1] [BZLIB2=1] [ZLIBDL=1] [DEBUGCHILD=1]
-#             [IPV6=1] [FSP1035=1] [BW_LIM=1]
+#             [IPV6=1] [FTS5004=1] [BW_LIM=1]
 #
 #
 
@@ -68,8 +68,8 @@ SRCS+= nt/service.c
 BINKDNAME=binkd-mingw
 OUTDIR:=$(OUTDIR)-binkd
 endif
-ifdef FSP1035
-CDEFS+= -DWITH_FSP1035
+ifdef FTS5004
+CDEFS+= -DWITH_FTS5004
 LIBS+= -ldnsapi
 SRCS+= srv_gai.c
 endif
