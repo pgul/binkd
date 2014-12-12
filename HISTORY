@@ -1,3 +1,7 @@
+2014/12/12 07:41:57 1.1a-66 gul
+binkd.c,2.120,2.121 srv_gai.h,2.3,2.4
+Compilation flag FSP1035 renamed to FTS5004
+
 2014/09/21 14:59:39 1.1a-65 gul
 binkd.c,2.119,2.120
 Fixed broken iport/oport in config on win32
