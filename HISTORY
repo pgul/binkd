@@ -1,3 +1,7 @@
+2014/12/12 08:27:41 1.1a-67 gul
+readcfg.c,2.109,2.110
+Fixed iport/oport output in dumpcfg mode
+
 2014/12/12 07:41:57 1.1a-66 gul
 binkd.c,2.120,2.121 srv_gai.h,2.3,2.4
 Compilation flag FSP1035 renamed to FTS5004
