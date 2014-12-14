@@ -1,3 +1,7 @@
+2014/12/14 19:48:21 1.1a-68 gul
+client.c,2.95,2.96 https.c,2.28,2.29 https.h,2.4,2.5
+Fixed outgoing connects via proxy
+
 2014/12/12 08:27:41 1.1a-67 gul
 readcfg.c,2.109,2.110
 Fixed iport/oport output in dumpcfg mode
