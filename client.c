@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.96  2014/12/14 17:48:18  gul
+ * Fixed outgoing connects via proxy
+ *
  * Revision 2.95  2014/09/21 08:44:51  gul
  * Write configured remote hostname and port in log line "outgoing session with ..."
  *
@@ -903,18 +906,12 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       freeaddrinfo(aiNodeHead);
 #ifdef HTTPS
     if (sockfd != INVALID_SOCKET && use_proxy) {
-      if (h_connect(sockfd, host, config, proxy, socks) != 0) {
+      if (h_connect(sockfd, host, port, config, proxy, socks) != 0) {
         if (!binkd_exit)
           bad_try (&node->fa, TCPERR (), BAD_CALL, config);
         del_socket(sockfd);
         soclose (sockfd);
         sockfd = INVALID_SOCKET;
-      }
-      else if (port == config->oport) {
-        char *pp;
-        if( (pp = strchr(host, ':')) ){
-          *pp = '\0';
-        }
       }
     }
 #endif

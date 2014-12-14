@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.29  2014/12/14 17:48:18  gul
+ * Fixed outgoing connects via proxy
+ *
  * Revision 2.28  2014/08/09 17:08:09  gul
  * Fixed outbount port number when using socks4
  *
@@ -178,7 +181,7 @@ static int enbase64(char *data, int size, char *p)
 #define SetTCPError(x) errno=x
 #define PR_ERROR EACCES
 #endif
-int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks)
+int h_connect(int so, const char *host, const char *port, BINKD_CONFIG *config, const char *proxy, const char *socks)
 {
 	int ntlm = 0;
 #ifdef NTLM
@@ -190,7 +193,6 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 	char buf[1024], *pbuf;
 	char *sp, *sauth;
 	struct in_addr defaddr;
-	char *port;
 
 	/* setup hints for getaddrinfo */
 	memset((void *)&hints, 0, sizeof(hints));
@@ -235,7 +237,7 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 			free(sp1);
 		}
 		else
-			i=snprintf(buf, sizeof(buf), "CONNECT %s HTTP/1.%d\r\n", host, ntlm);
+			i=snprintf(buf, sizeof(buf), "CONNECT %s:%s HTTP/1.%d\r\n", host, port, ntlm);
 		if (sp)
 		{
 #ifdef NTLM
@@ -309,8 +311,8 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 						}
 					}
 					memset(buf, 0, sizeof(buf));
-					i=snprintf(buf, sizeof(buf), "CONNECT %s HTTP/1.%d\r\nProxy-Authorization: NTLM ",
-						 host, ntlm);
+					i=snprintf(buf, sizeof(buf), "CONNECT %s:%s HTTP/1.%d\r\nProxy-Authorization: NTLM ",
+						 host, port, ntlm);
 					i = getNTLM2(ntlmsp, sp, buf + i, sizeof(buf) - i);
 					free(sp);
 					if (i) Log(2, "Invalid username/password/host/domain string (%s) %d", ntlmsp, i);
@@ -347,13 +349,6 @@ int h_connect(int so, char *host, BINKD_CONFIG *config, char *proxy, char *socks
 		if ((sauth=strchr(buf, '/')) != NULL)
 			*sauth++ = '\0';
 		Log(4, "connected to socks%c %s", sauth ? '5' : '4', buf);
-		if ((sp = strchr(host, ':')) != NULL)
-		{
-			*sp++ = '\0';
-			port = sp;
-		}
-		else
-			port = config->oport; /* should never happens */
 		if (!sauth) /* SOCKS4 */
 		{
 			/* SOCKS4 only support IPv4 and we need the IP address */

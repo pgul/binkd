@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.5  2014/12/14 17:48:19  gul
+ * Fixed outgoing connects via proxy
+ *
  * Revision 2.4  2005/09/23 13:32:46  gul
  * Bugfix in work via proxy with authorization
  *
@@ -36,5 +39,5 @@
  *
  */
 
-int h_connect(int socket, char *host, BINKD_CONFIG *config, char *proxy, char *socks);
+int h_connect(int socket, const char *host, const char *port, BINKD_CONFIG *config, const char *proxy, const char *socks);
 
