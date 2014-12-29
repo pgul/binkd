@@ -25,25 +25,26 @@ from Russian by Michael Dukelsky 2:5020/1042.
     14. BinkD Connects Too Slowly Though I Have a High-Speed LAN.
     15. Why Does BinkD Not Understand Command Line Options When I Start It From inetd?
     16. Can One Make a File Request From BinkD?
-    17. How Can I Add BinkD To a Fidonet Box Working With a Modem?
-    18. Flags Are Not Created On Receiving a File, Programs Do Not Start.
-    19. 'skipmask' Keyword Does Not Work.
-    20. BinkD Under Windows 3.x.
-    21. Different FTN Domains in BinkD And a Tosser Without 5D Support.
-    22. How Does "domain ... alias-for ..." In The Configuration File Work?
-    23. What Does "send: TCP/IP error (-10000)" Mean and How To Cure It?
-    24. Argus (Radius) and BinkD: Argus Error "Aborting due to carrier loss"
-    25. The Outbound Name Has a Comment Char and Binkd Doesn't See It
-    26. Is There a Possibility to Start an Application On an Event From BinkD?
-    27. What Is the Difference Between BinkD/w32 and BinkD/w9x?
-    28. I Miss a Chat in BinkD And I Want To Synchronize Time!
-    29. BinkD Receives an Incoming Call Only After an Outgoing One.
-    30. "start_file_transfer: ECHO is off.: No such file or directory" Error.
-    31. How to Create a Poll Correctly.
-    32. What Does the Number in Brackets in the Log Mean?
-    33. How to Configure BinkD for sending outgoing mail?
-    34. What for Does One Need the "share" Directive in the Configuration File?
-    35. What for Does One Need the "ftrans" Directive in the Configuration File?
+    17. How Can my Binkd Respond to a File Request?
+    18. How Can I Add BinkD To a Fidonet Box Working With a Modem?
+    19. Flags Are Not Created On Receiving a File, Programs Do Not Start.
+    20. 'skipmask' Keyword Does Not Work.
+    21. BinkD Under Windows 3.x.
+    22. Different FTN Domains in BinkD And a Tosser Without 5D Support.
+    23. How Does "domain ... alias-for ..." In The Configuration File Work?
+    24. What Does "send: TCP/IP error (-10000)" Mean and How To Cure It?
+    25. Argus (Radius) and BinkD: Argus Error "Aborting due to carrier loss"
+    26. The Outbound Name Has a Comment Char and Binkd Doesn't See It
+    27. Is There a Possibility to Start an Application On an Event From BinkD?
+    28. What Is the Difference Between BinkD/w32 and BinkD/w9x?
+    29. I Miss a Chat in BinkD And I Want To Synchronize Time!
+    30. BinkD Receives an Incoming Call Only After an Outgoing One.
+    31. "start_file_transfer: ECHO is off.: No such file or directory" Error.
+    32. How to Create a Poll Correctly.
+    33. What Does the Number in Brackets in the Log Mean?
+    34. How to Configure BinkD for sending outgoing mail?
+    35. What for Does One Need the "share" Directive in the Configuration File?
+    36. What for Does One Need the "ftrans" Directive in the Configuration File?
     A1. I Have Found a Bug in BinkD!
     A2. I Want To Talk To Developers.
     A3. I Want To Get Information About Changes In BinkD Immediately!
@@ -656,9 +657,17 @@ configuration file full path:
     It's a piece of cake! BinkD supports WAZOO FREQ with an external helper.
 
     To request files from a remote system it is necessary to create a file
-of type nnnnmmmm.REQ and to put it in the outbound directory near *.?ut and
-*.?lo files. But *.REQ files do not initiate BinkD to call a link so to
-make a FREQ it is necessary to make a poll.
+of type nnnnmmmm.REQ and to put it in the outbound directory next to *.?ut
+and *.?lo files. But *.REQ files do not initiate BinkD to call a link so 
+to make a FREQ it is necessary to make a poll. The contents of a .REQ file
+is described in the "!SRIF.TXT" file which is a copy of FSC-0086.001 from
+http://ftsc.org
+
+
+----------------------------------------------------------------------------
+
+
+        17. How Can my BinkD Respond to a File Request?
 
     One can configure BinkD for calling an external file request processor
 supporting SRIF (FSC-0086) for receiving and handling FREQs in BinkD. Please
@@ -700,7 +709,7 @@ http://ftnapps.sourceforge.net/vireq.html.
 ----------------------------------------------------------------------------
 
 
-        17. How Can I Add BinkD To a Fidonet Box Working With a Modem?
+        18. How Can I Add BinkD To a Fidonet Box Working With a Modem?
 
     You must configure your modem mailer and tosser for BSO (binkley-style
 outbound) mode so that all of them including BinkD would have the same
@@ -716,13 +725,13 @@ FrontDoor. Such a means disables a possibility of sending your mail to the
 same link both by IP and by modem (for instance, when one of the channels
 failed). There is another more radical but more flexible way: you may change
 your mailer.
-    See also question 34.
+    See also question 35.
 
 
 ----------------------------------------------------------------------------
 
 
-        18. Flags Are Not Created On Receiving a File, Programs Do Not Start
+        19. Flags Are Not Created On Receiving a File, Programs Do Not Start
 
     For sure you have a wrong template in the configuration file. You have to
 use it this way (the first two lines are for Windows and OS/2, the rest are
@@ -759,7 +768,7 @@ sensitive. Please use regular expressions in templates.
 ----------------------------------------------------------------------------
 
 
-        19. 'skipmask' Keyword Does Not Work
+        20. 'skipmask' Keyword Does Not Work
 
     A filename is compared without path and the comparison is case
 sensitive when 'skipmask' is used.
@@ -768,7 +777,7 @@ sensitive when 'skipmask' is used.
 ----------------------------------------------------------------------------
 
 
-        20. BinkD Under Windows 3.x
+        21. BinkD Under Windows 3.x
 
     Sergey Zharsky (zharik@usa.net) ported BinkD 0.9.2 and BinkD 0.9.5 for
 Windows 3.x. They work using IP stacks Trumpet Winsock ver. 3.0 revision D
@@ -784,7 +793,7 @@ and Novell TCP/IP Client for Win 3.11 (see the answer to the question
 ----------------------------------------------------------------------------
 
 
-        21. Different FTN Domains in BinkD And a Tosser Without 5D Support
+        22. Different FTN Domains in BinkD And a Tosser Without 5D Support
 
     Suppose there are two domains (with different zone numbers though it
 does not matter).  Mail can be successfully sent to the first domain but
@@ -819,7 +828,7 @@ considers all addresses to belong to one domain).
 ----------------------------------------------------------------------------
 
 
-        22. How Does "domain ... alias-for ..." In The Configuration File Work?
+        23. How Does "domain ... alias-for ..." In The Configuration File Work?
 
     An alias is taken into consideration when the remote site address is
 analyzed.
@@ -834,7 +843,7 @@ address 1:2/3.4@fidonet.org will be dealt with as 1:2/3.4@fidonet.
 ----------------------------------------------------------------------------
 
 
-        23. What Does "send: TCP/IP error (-10000)" Mean and How To Cure It?
+        24. What Does "send: TCP/IP error (-10000)" Mean and How To Cure It?
 
     There are two bugs here, one of them had been fixed before a branch for
 binkd 0.9.5-stable was created.
@@ -870,7 +879,7 @@ complicate the code.
 ----------------------------------------------------------------------------
 
 
-        24. Argus (Radius) and BinkD: Argus Error "Aborting due to carrier loss"
+        25. Argus (Radius) and BinkD: Argus Error "Aborting due to carrier loss"
 
     A session between BinkD and Radius (or Argus, it does not matter) is
 aborted "due to carrier loss" when traffic encryption is enabled in Radius.
@@ -902,7 +911,7 @@ should inform the remote of aborting the session, for example in such a way:
 ----------------------------------------------------------------------------
 
 
-        25. The Outbound Name Has a Comment Char and Binkd Doesn't See It
+        26. The Outbound Name Has a Comment Char and Binkd Doesn't See It
 
     If BinkD is configured in a working system where Bink/+ is used and the
 outbound path contains "#" character which is a comment character for BinkD
@@ -929,7 +938,7 @@ of a line is now the sequence of either a space and the pound character
 ----------------------------------------------------------------------------
 
 
-        26. Is There a Possibility to Start an Application On an Event From BinkD?
+        27. Is There a Possibility to Start an Application On an Event From BinkD?
 
     If time events are discussed then no, there is not and there will never
 be.  There are diverse schedulers for controlling such events and they are
@@ -943,7 +952,7 @@ file.
 ----------------------------------------------------------------------------
 
 
-        27. What Is the Difference Between BinkD/w32 and BinkD/w9x?
+        28. What Is the Difference Between BinkD/w32 and BinkD/w9x?
 
     Binkd/w32 is a traditional version of BinkD and a console application.
 Binkd/w9x is a GUI Win32 application creating temporary console windows in
@@ -973,7 +982,7 @@ because of the described console features in the systems.
 ----------------------------------------------------------------------------
 
 
-        28. I Miss a Chat in BinkD And I Want To Synchronize Time!
+        29. I Miss a Chat in BinkD And I Want To Synchronize Time!
 
     You may use talk, icq or irc (or even Gadu-Gadu) for chatting. If you
 can start BinkD then all the programs mentioned here and many other ones
@@ -987,7 +996,7 @@ time servers.
 ----------------------------------------------------------------------------
 
 
-        29. BinkD Receives an Incoming Call Only After an Outgoing One.
+        30. BinkD Receives an Incoming Call Only After an Outgoing One.
 
     Such a behaviour was observed for BinkD/w32 working as a service on a
 computer with McAfee Firewall installed. The firewall starts after BinkD
@@ -1003,7 +1012,7 @@ or stop using such a firewall.
 ----------------------------------------------------------------------------
 
 
-        30. "start_file_transfer: ECHO is off.: No such file or directory" Error.
+        31. "start_file_transfer: ECHO is off.: No such file or directory" Error.
 
     One may see the following in the log file:
     ? 10 Sep 20:37:23 [1664] start_file_transfer: ECHO is on.: No such file
@@ -1020,7 +1029,7 @@ on how to correctly create a poll. See also question 09.
 ----------------------------------------------------------------------------
 
 
-        31. How to Create a Poll Correctly.
+        32. How to Create a Poll Correctly.
 
     To create a poll in BSO one should create an empty file NNNNMMMM.ilo,
 NNNNMMMM.clo, NNNNMMMM.dlo or NNNNMMMM.flo. The filename consists of the
@@ -1051,7 +1060,7 @@ clones, CP/M and many others) is
 ----------------------------------------------------------------------------
 
 
-        32. What Does the Number in Brackets in the Log Mean?
+        33. What Does the Number in Brackets in the Log Mean?
 
     It is either PID (Process ID) in the multiprocess BinkD versions (for
 example, in the versions for UNIX-like OS), or TID (Thread ID) in the
@@ -1064,20 +1073,20 @@ particular, it allows separating the messages from the different sessions.
 ----------------------------------------------------------------------------
 
 
-        33. How to Configure BinkD for sending outgoing mail?
+        34. How to Configure BinkD for sending outgoing mail?
 
     You should configure your netmail packer in such a way that your mail
 is packed to BSO (Binkley Style Outbound) packets. If you have not used
 such a program before then you should install it. In some modem mailers the
 possibility of packing netmail to BSO has been provided by their developers
 (for example, in T-Mail starting with the version 2500).
-    See also the answer to question 17.
+    See also the answer to question 18.
 
 
 ----------------------------------------------------------------------------
 
 
-        34. What for Does One Need the "share" Directive in the Configuration File?
+        35. What for Does One Need the "share" Directive in the Configuration File?
 
     Shared AKA is used for sending netmail to one of the alternative routes
 and is your protection for the case when your netmail link goes down.  In
@@ -1098,7 +1107,7 @@ Shared AKA is implemented in binkd 1.0 and above.
 ----------------------------------------------------------------------------
 
 
-        35. What for Does One Need the "ftrans" Directive in the Configuration File?
+        36. What for Does One Need the "ftrans" Directive in the Configuration File?
 
     It is necessary for placing BinkD and your tosser at different computers
 in the net, when outbound resides at a net drive and the paths to it are
