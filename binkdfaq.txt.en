@@ -1,7 +1,7 @@
         BinkD FAQ
 
         Frequently Asked Questions on FTN Mailer Binkd
-        Version of June 29 2013
+        $Date$
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -90,7 +90,7 @@ from Russian by Michael Dukelsky 2:5020/1042.
 
     Binkd/2 1.1a (current, EMX), compiled everynight:
     FREQ from node 2:221/1, file alias: binkd2e. It's possibe to download from
-    BBS of node 2:221/1 (accessed also via telnet:rbb.cjb.net)
+    BBS of node 2:221/1 (accessed also via telnet:rbb.dy.fi)
     http://rbb.homeip.net/pub/os2/comm/bbs/binkd2e.rar
       (Suomi, Tommi Koivula 2:221/1 & 2:221/360 & 2:221/361)
 
