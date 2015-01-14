@@ -1,3 +1,7 @@
+2015/01/14 09:43:44 1.0.5-pre4 gul
+protocol.c,2.219.2.5,2.219.2.6
+Improve logging
+
 2014/12/12 08:30:05 1.0.5-pre3 gul
 readcfg.c,2.104.2.2,2.104.2.3
 Fixed iport/oport output in dumpcfg mode
