@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.219.2.6  2015/01/14 07:43:42  gul
+ * Improve logging
+ *
  * Revision 2.219.2.5  2014/08/09 15:17:43  gul
  * Large files support on Win32 (backport from develop branch)
  *
@@ -2057,6 +2060,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
             Log (2, "inconsistent pwd settings for this node, aka %s dropped", szFTNAddr);
           else
           { /* drop incoming session with M_ERR "Bad password" */
+            Log (2, "addr: %s", szFTNAddr);
             Log (1, "inconsistent pwd settings for this node");
             state->expected_pwd[0] = '\0';
           }
