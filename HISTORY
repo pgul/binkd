@@ -1,3 +1,7 @@
+2015/01/14 09:42:29 1.1a-69 gul
+protocol.c,2.234,2.235
+Improve logging
+
 2014/12/14 19:48:21 1.1a-68 gul
 client.c,2.95,2.96 https.c,2.28,2.29 https.h,2.4,2.5
 Fixed outgoing connects via proxy
