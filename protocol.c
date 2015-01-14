@@ -15,6 +15,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 2.235  2015/01/14 07:42:26  gul
+ * Improve logging
+ *
  * Revision 2.234  2014/09/21 08:44:51  gul
  * Write configured remote hostname and port in log line "outgoing session with ..."
  *
@@ -2145,6 +2148,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
             Log (2, "inconsistent pwd settings for this node, aka %s dropped", szFTNAddr);
           else
           { /* drop incoming session with M_ERR "Bad password" */
+            Log (2, "addr: %s", szFTNAddr);
             Log (1, "inconsistent pwd settings for this node");
             state->expected_pwd[0] = '\0';
           }
