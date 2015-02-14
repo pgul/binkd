@@ -87,19 +87,11 @@
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/snapshot (основной)
     ftp://ftp.grumbler.org/pub/binkd/current (зеркало, обновляется 23:50 UTC+5)
 
-    Binkd для DOS-DPMI с использованием стека (драйверов IP) Watt-32 авторства
-    Gisle Vanem giva@bgnett.no (http://www.bgnett.no/~giva/):
-    http://mik.mkw.ru/dos-stuff/binkd.zip
-      (Россия, Michael Kostylev 2:5030/1530 mik@niipt.ru)
-
     Binkd/2 1.1a (current, EMX), скомпилированный еженощно:
     FREQ c узла 2:221/1, алиас файла: binkd2e. Можно скачать также с BBS узла
     2:221/1 (доступна по telnet:rbb.dy.fi)
     http://rbb.homeip.net/pub/os2/comm/bbs/binkd2e.rar
       (Финляндия, Tommi Koivula 2:221/1 & 2:221/360 & 2:221/361)
-
-    Документация (англ.), анализаторы логов и пр.:
-    http://www.doe.carleton.ca/~nsoveiko/fido/binkd/
 
     Man page, описание binkp, бинарники и пр. (Stas Degteff 2:5080/102):
     http://binkd.grumbler.org/

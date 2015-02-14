@@ -68,6 +68,7 @@ from Russian by Michael Dukelsky 2:5020/1042.
       (Russia, Andrey Ostanovsky 2:5030/1957)
 
     Binaries (windows, os/2):
+    http://download.binkd.org
     http://sites.google.com/site/vasilyevmax/fido
       (Max Vasilyev 2:5057/77)
 
@@ -77,12 +78,12 @@ from Russian by Michael Dukelsky 2:5020/1042.
        Command examples.
        Login to the cvs server:
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs login
-       Retrieve the latest sources of the current branch (v.1.0 at the moment):
+       Retrieve the latest sources of the current branch (v.1.1 at the moment):
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co binkd
-       Retrieve the latest sources of the binkd 0.9.x-stable branch:
-       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9-stable binkd
-       Retrieve the sources of the binkd 0.9.10-release:
-       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-0_9_10 binkd
+       Retrieve the latest sources of the binkd 1.0.x-stable branch:
+       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-1_0-stable binkd
+       Retrieve the sources of the binkd 1.0.0-release:
+       cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-1_0_0 binkd
 
     Anonymous FTP:
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/snapshot (main)
@@ -94,9 +95,6 @@ from Russian by Michael Dukelsky 2:5020/1042.
     BBS of node 2:221/1 (accessed also via telnet:rbb.dy.fi)
     http://rbb.homeip.net/pub/os2/comm/bbs/binkd2e.rar
       (Suomi, Tommi Koivula 2:221/1 & 2:221/360 & 2:221/361)
-
-    Documentation, log analyzers etc.:
-    http://www.doe.carleton.ca/~nsoveiko/fido/binkd/
 
     Man page, binkp description, binaries etc. (Stas Degteff 2:5080/102):
     http://binkd.grumbler.org/
