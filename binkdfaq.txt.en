@@ -1117,6 +1117,68 @@ of the /mnt/samba/wincomp1/path/to type.
 ----------------------------------------------------------------------------
 
 
+        37. Why BinkD in Windows Works As a Service With Admin Rights Only?
+
+    Information security manuals advise running each service with rights of a
+separate user. But if one tries to do it for BinkD, it will result in an error
+and to get the correct result one has to change some settings. It is easier to
+take BinkD version 1.0-499 or later, where the rights needed for running BinkD
+are minimized. If you are using BinkD 0.9.x, some additional tweaks are 
+necessary.
+    First of all only administrator can install and start a Windows service.
+One may use Group Policy to give a user rights to install, start, stop and 
+uninstall a service. One may also use for that subinacl.exe utility which may 
+be downloaded from here:
+http://www.microsoft.com/en-us/download/details.aspx?id=23510
+    Secondly, when BinkD 0.9.x works as a service, it needs a right to write
+to the registry branch 
+HKLM\\SYSTEM\\CurrentControlSet\\Services\\binkd-service\\parameters
+(if you have chosen a special service name at the BinkD service installation,
+the chosen name with removed spaces will be there instead of "binkd-service").
+    So you may install the service using an administrative account and after 
+that you may edit the service settings in the System Services snap-in: set a
+user (for example, 'fido') and a password. For BinkD 0.9.x you also have to 
+allow editing the registry branch to 'fido' user. This can be done with the 
+help of registry editor or the above mentioned subinacl.exe.
+    To allow a user 'username' to start and stop BinkD service with the name
+'binkd-service' one may use the command:
+
+    subinacl /service binkd-service /grant=username=TO
+
+    For more details see http://support.microsoft.com/kb/288129/en-us and
+http://tinyurl.com/kqnbpfu
+
+
+----------------------------------------------------------------------------
+
+
+        38. Will Anybody Make Nodelist Support in BinkD After All?
+
+    BinkD is a daemon in which binkp protocol is implemented. It performs this
+function only. It has no netmail scanning (AMA), chat, areafix and other 
+Fidonet thingies. Actually it can be used outside of Fidonet for batch file
+transfer.
+    It is enough versatile to satisfy users' wants and wishes without necessity
+to patch the source code and to rebuild binaries. Settings are defined in a
+text configuration file and when it is not enough, Perl hooks can be used. In 
+fact it is a part of the configuration written in Perl. In such a way one may,
+for example, store links and password information in MySQL or LDAP and perform
+many other tricks.
+    Retrieving addresses from the nodelist is one of such functions which may
+naturally be realized using Perl hooks. If some changes in the nodelist format
+happen, it is not necessary to issue a new BinkD version and update BinkD at
+all nodes. It is enough to change the Perl nodelist parsing function (i.e. in
+fact in configuration file) leaving BinkD binary the same.
+    If on the other hand there is a solid reason to parse the nodelist using
+BinkD itself (for instance, if your BinkD works in a laundry washer which has 
+no Perl and using DDN is undesirable for some reason), and if someone sends
+along a patch for parsing nodelist inside BinkD, then with high probability
+the patch will be applied and BinkD will support nodelist natively.
+
+
+----------------------------------------------------------------------------
+
+
         A1. I Have Found a Bug in BinkD!
 
     Try to refresh your BinkD version (it is possible that the bug has
