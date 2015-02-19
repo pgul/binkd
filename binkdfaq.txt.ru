@@ -66,6 +66,7 @@
       (Россия, Andrey Ostanovsky 2:5030/1957)
 
     Скомпилированные версии (windows, os/2):
+    http://download.binkd.org
     http://sites.google.com/site/vasilyevmax/fido
       (Max Vasilyev 2:5057/77)
 
