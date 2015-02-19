@@ -45,6 +45,8 @@ from Russian by Michael Dukelsky 2:5020/1042.
     34. How to Configure BinkD for sending outgoing mail?
     35. What for Does One Need the "share" Directive in the Configuration File?
     36. What for Does One Need the "ftrans" Directive in the Configuration File?
+    37. Why BinkD in Windows Works As a Service With Admin Rights Only?
+    38. Will Anybody Make Nodelist Support in BinkD After All?
     A1. I Have Found a Bug in BinkD!
     A2. I Want To Talk To Developers.
     A3. I Want To Get Information About Changes In BinkD Immediately!
