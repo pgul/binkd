@@ -1,3 +1,9 @@
+2015/04/08 16:26:20 gul
+binkd9x-en.txt,NONE,2.1 binkd9x-ru.txt,NONE,2.1 binkdfaq-en.txt,NONE,2.1 binkdfaq-ru.txt,NONE,2.1 release-notes.txt,NONE,2.1 !README.FIX,2.63,NONE !README.perl,2.17,NONE !SRIF.TXT,2.0,NONE binkd9x.txt,2.14,NONE binkd9x.txt.en,1.1,NONE binkdfaq.txt.en,1.77,NONE binkdfaq.txt.ru,1.100,NONE readme.ND,2.1,NONE
+Переименованы файлы документации
+
+Signed-off-by: Pavel Gulchuk <pashakiev@yandex-team.ru>
+
 2015/01/14 09:42:29 1.1a-69 gul
 protocol.c,2.234,2.235
 Improve logging
