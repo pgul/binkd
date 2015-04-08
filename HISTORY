@@ -1,3 +1,7 @@
+2015/04/08 20:10:24 1.1a-70 gul
+daemonize.c,2.8,2.9 daemonize.h,2.1,2.2 getfree.c,2.1,2.2 rename.c,2.0,2.1 sem.c,1.1,1.2 setpttl.c,2.3,2.4
+Убраны CVS макросы '$Log' и частично '$Id'
+
 2015/04/08 16:26:20 gul
 binkd9x-en.txt,NONE,2.1 binkd9x-ru.txt,NONE,2.1 binkdfaq-en.txt,NONE,2.1 binkdfaq-ru.txt,NONE,2.1 release-notes.txt,NONE,2.1 !README.FIX,2.63,NONE !README.perl,2.17,NONE !SRIF.TXT,2.0,NONE binkd9x.txt,2.14,NONE binkd9x.txt.en,1.1,NONE binkdfaq.txt.en,1.77,NONE binkdfaq.txt.ru,1.100,NONE readme.ND,2.1,NONE
 Переименованы файлы документации
