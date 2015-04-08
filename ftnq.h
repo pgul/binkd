@@ -11,69 +11,6 @@
  *  (at your option) any later version. See COPYING.
  */
 
-/* $Id$
- *
- * $Log$
- * Revision 2.11  2009/05/31 07:16:17  gul
- * Warning: many changes, may be unstable.
- * Perl interpreter is now part of config and rerun on config reload.
- * Perl 5.10 compatibility.
- * Changes in outbound queue managing and sorting.
- *
- * Revision 2.10  2005/10/02 15:03:11  gul
- * Fileboxes did not works for unlisted nodes
- *
- * Revision 2.9  2004/08/04 11:32:29  gul
- * Attemp to support large files (>4G)
- *
- * Revision 2.8  2003/10/29 21:08:38  gul
- * Change include-files structure, relax dependences
- *
- * Revision 2.7  2003/09/05 10:17:21  gul
- * Send argus-compatible freqs.
- * Warning: works only with prescan!
- *
- * Revision 2.6  2003/08/26 16:06:26  stream
- * Reload configuration on-the fly.
- *
- * Warning! Lot of code can be broken (Perl for sure).
- * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
- *
- * Revision 2.5  2003/06/20 10:37:02  val
- * Perl hooks for binkd - initial revision
- *
- * Revision 2.4  2003/05/28 14:32:57  gul
- * new function q_add_last_file() - add file to the end of queue
- *
- * Revision 2.3  2003/03/01 18:04:30  gul
- * Remove redundrant include <sys/time.h>
- *
- * Revision 2.2  2003/02/28 20:39:08  gul
- * Code cleanup:
- * change "()" to "(void)" in function declarations;
- * change C++-style comments to C-style
- *
- * Revision 2.1  2003/02/22 12:56:00  gul
- * Do not give unsecure mail to secuse link when send-if-pwd
- *
- * Revision 2.0  2001/01/10 12:12:38  gul
- * Binkd is under CVS again
- *
- * Revision 1.8  1998/05/05  23:59:33  mff
- * Added comment about FTNQ.time.
- *
- * Revision 1.7  1997/10/23  04:04:45  mff
- * q_not_empty() returns FTN_NODE now
- *
- * Revision 1.6  1997/06/16  05:47:13  mff
- * Remove old .bsy/.csy files, queue handling changed again.
- *
- * Revision 1.5  1997/02/13  07:08:39  mff
- * Support for fileboxes
- *
- * Revision 1.2  1996/12/14  07:04:39  mff
- * Addedd q_scan_addrs()
- */
 #ifndef _ftnq_h
 #define _ftnq_h
 

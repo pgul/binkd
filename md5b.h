@@ -23,30 +23,6 @@ These notices must be retained in any copies of any part of this
 documentation and/or software.
  */
 
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.6  2003/10/29 21:08:39  gul
- * Change include-files structure, relax dependences
- *
- * Revision 2.5  2003/08/26 16:06:26  stream
- * Reload configuration on-the fly.
- *
- * Warning! Lot of code can be broken (Perl for sure).
- * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
- *
- * Revision 2.4  2003/03/10 10:57:45  gul
- * Extern declarations moved to header files
- *
- * Revision 2.3  2003/03/05 13:21:50  gul
- * Fix warnings
- *
- * Revision 2.2  2003/03/02 08:08:49  gul
- * Added CVS ID and Revision
- *
- */
-
 /* ------------------------------------------------------------------ */
 /* GLOBAL.H - RSAREF types and constants
  */

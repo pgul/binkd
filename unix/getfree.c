@@ -1,17 +1,4 @@
 /*
- * $Id$
- *
- * Revision history:
- * $Log$
- * Revision 2.1  2001/04/23 07:58:57  gul
- * getfree() on large drives fixed
- *
- * Revision 2.0  2001/01/10 12:12:40  gul
- * Binkd is under CVS again
- *
- *
- */
-/*
    This was taken from ifmail, and modified a bit for binkd -- mff, 1997
 
    Copyright (c) 1993-1995 Eugene G. Crosser

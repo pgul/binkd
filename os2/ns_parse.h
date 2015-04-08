@@ -21,24 +21,6 @@
  *
  */
 
-/*
- * $Id$
- *
- * $Log$
- * Revision 1.4  2014/08/19 06:41:36  gul
- * OS/2 compilation
- *
- * Revision 1.3  2014/08/18 16:57:55  gul
- * Fixed OS/2 compilation
- *
- * Revision 1.2  2012/01/23 21:01:59  green
- * Add FSP1035 support for EMX (using own import library)
- *
- * Revision 1.1  2012/01/22 01:27:20  green
- * Implement FSP1035 support for OS/2/Watcom
- *
- */
-
 #ifndef __NS_PARSE_H__
 #define __NS_PARSE_H__
 

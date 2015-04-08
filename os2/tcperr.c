@@ -1,18 +1,3 @@
-/*
- * $Id$
- *
- * Revision history:
- * $Log$
- * Revision 2.1  2003/02/28 20:39:09  gul
- * Code cleanup:
- * change "()" to "(void)" in function declarations;
- * change C++-style comments to C-style
- *
- * Revision 2.0  2001/01/10 12:12:40  gul
- * Binkd is under CVS again
- *
- *
- */
 #include <nerrno.h>
 
 static const char *sockerrors[] =

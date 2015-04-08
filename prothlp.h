@@ -11,38 +11,6 @@
  *  (at your option) any later version. See COPYING.
  */
 
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.6  2013/11/07 16:21:33  stream
- * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
- *
- * Revision 2.5  2003/10/29 21:08:39  gul
- * Change include-files structure, relax dependences
- *
- * Revision 2.4  2003/08/26 16:06:26  stream
- * Reload configuration on-the fly.
- *
- * Warning! Lot of code can be broken (Perl for sure).
- * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
- *
- * Revision 2.3  2003/06/26 13:21:32  gul
- * More clean status process in no-NR mode
- *
- * Revision 2.2  2003/03/01 18:29:52  gul
- * Change size_t to off_t for file sizes and offsets
- *
- * Revision 2.1  2002/02/22 00:18:34  gul
- * Run by-file events with the same command-line once after session
- *
- * Revision 2.0  2001/01/10 12:12:38  gul
- * Binkd is under CVS again
- *
- * Revision 1.1  1997/03/28  06:49:13  mff
- * Initial revision
- *
- */
 #ifndef _prothlp_h
 #define _prothlp_h
 

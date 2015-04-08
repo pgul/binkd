@@ -21,27 +21,6 @@
  *
  */
 
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.4  2014/12/12 05:41:24  gul
- * Compilation flag FSP1035 renamed to FTS5004
- *
- * Revision 2.3  2014/08/14 06:42:02  gul
- * Fixed compilation on unix
- *
- * Revision 2.2  2012/01/22 01:27:19  green
- * Implement FSP1035 support for OS/2/Watcom
- *
- * Revision 2.1  2012/01/03 17:52:32  green
- * Implement FSP-1035 (SRV record usage)
- * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
- * - Unix (libresolv, autodetected) and Win32 support implemented
- * - Port information is stored as string now, i.e. may be service name
- *
- */
-
 #ifndef __SRV_GETADDRINFO_H__
 #define __SRV_GETADDRINFO_H__
 

@@ -11,42 +11,6 @@
  *  (at your option) any later version. See COPYING.
  */
 
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.6  2008/08/05 06:05:17  gul
- * Optimize srif functions params
- *
- * Revision 2.5  2005/07/04 18:24:43  gul
- * Move events checking and running to inb_test() for reducing repeated code;
- * do not run immediate events twice;
- * fixed argus-style freqs (not tested).
- *
- * Revision 2.4  2003/10/29 21:08:40  gul
- * Change include-files structure, relax dependences
- *
- * Revision 2.3  2003/08/26 16:06:27  stream
- * Reload configuration on-the fly.
- *
- * Warning! Lot of code can be broken (Perl for sure).
- * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
- *
- * Revision 2.2  2003/08/23 15:51:51  stream
- * Implemented common list routines for all linked records in configuration
- *
- * Revision 2.1  2002/02/22 00:18:34  gul
- * Run by-file events with the same command-line once after session
- *
- * Revision 2.0  2001/01/10 12:12:39  gul
- * Binkd is under CVS again
- *
- * Revision 1.3  1997/10/23  03:37:25  mff
- * *** empty log message ***
- *
- * Revision 1.2  1997/03/28  06:12:48  mff
- * Changes to support SRIF: + evt_run(), etc.
- */
 #ifndef _srif_h
 #define _srif_h
 

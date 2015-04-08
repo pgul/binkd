@@ -10,15 +10,6 @@
  *  the Free Software Foundation; either version 2 of the License, or
  *  (at your option) any later version. See COPYING.
  */
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.0  2001/01/10 12:12:39  gul
- * Binkd is under CVS again
- *
- *
- */
 
 #ifndef _setpttl_h
 #define _setpttl_h

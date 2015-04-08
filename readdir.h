@@ -12,35 +12,6 @@
  *  (at your option) any later version. See COPYING.
  */
 
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.6  2003/03/12 08:57:54  gul
- * Fix for MSVC
- *
- * Revision 2.5  2003/03/11 00:04:26  gul
- * Use patches for compile under MSDOS by MSC 6.0 with IBMTCPIP
- *
- * Revision 2.4  2003/03/10 12:16:53  gul
- * Use HAVE_DOS_H macro
- *
- * Revision 2.3  2003/03/10 11:40:09  gul
- * Use self opendir/readdir/closedir functions for watcom
- *
- * Revision 2.2  2003/03/01 20:16:27  gul
- * OS/2 IBM C support
- *
- * Revision 2.1  2001/09/24 10:31:39  gul
- * Build under mingw32
- *
- * Revision 2.0  2001/01/10 12:12:39  gul
- * Binkd is under CVS again
- *
- * Revision 1.1  1996/12/29  09:46:20  mff
- * Initial revision
- *
- */
 #ifndef _readdir_h
 #define _readdir_h
 

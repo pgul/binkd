@@ -10,43 +10,6 @@
  *  the Free Software Foundation; either version 2 of the License, or
  *  (at your option) any later version. See COPYING.
  */
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.5  2013/11/18 06:49:29  stream
- * Add required include
- *
- * Revision 2.4  2004/01/08 12:46:01  val
- * correct macrodef for msvc (_msc_ver instead of __msc__)
- *
- * Revision 2.3  2003/12/10 11:12:10  gul
- * Minor fix in decompression deinit
- *
- * Revision 2.2  2003/12/09 21:58:20  gul
- * Bugfix in resend file in compression mode,
- * new functions compress_abort() and decompress_abort().
- *
- * Revision 2.1  2003/10/19 12:21:46  gul
- * Stream compression
- *
- * Revision 2.8  2003/10/06 08:25:28  val
- * turn off optimization for zlibdl.c
- *
- * Revision 2.7  2003/10/06 06:30:36  val
- * zlib code fix
- *
- * Revision 2.6  2003/09/25 06:41:43  val
- * fix compilation under win32
- *
- * Revision 2.5  2003/09/24 09:53:16  val
- * fix warnings
- *
- * Revision 2.4  2003/09/24 07:32:17  val
- * bzlib2 compression support, new compression keyword: zlevel
- *
- *
- */
 
 #if defined(ZLIBDL) && defined(_MSC_VER)
 #pragma optimize("", off)

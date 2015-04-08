@@ -11,61 +11,6 @@
  *  (at your option) any later version. See COPYING.
  */
 
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.12  2013/11/07 16:21:33  stream
- * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
- *
- * Revision 2.11  2012/01/08 17:34:57  green
- * Avoid using MAXHOSTNAMELEN
- *
- * Revision 2.10  2011/08/17 09:02:56  gul
- * Default root-domain fidonet.net changed to binkp.net
- *
- * Revision 2.9  2005/09/28 20:40:45  gul
- * Optional parameter root-domain for domain config option.
- *
- * Revision 2.8  2003/10/29 21:08:38  gul
- * Change include-files structure, relax dependences
- *
- * Revision 2.7  2003/08/26 21:01:09  gul
- * Fix compilation under unix
- *
- * Revision 2.6  2003/08/26 16:06:26  stream
- * Reload configuration on-the fly.
- *
- * Warning! Lot of code can be broken (Perl for sure).
- * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
- *
- * Revision 2.5  2003/08/24 19:42:08  gul
- * Get FTN-domain from matched zone in exp_ftnaddress()
- *
- * Revision 2.4  2003/08/18 07:35:08  val
- * multiple changes:
- * - hide-aka/present-aka logic
- * - address mask matching via pmatch
- * - delay_ADR in STATE (define DELAY_ADR removed)
- * - ftnaddress_to_str changed to xftnaddress_to_str (old version #define'd)
- * - parse_ftnaddress now sets zone to domain default if it's omitted
- *
- * Revision 2.3  2003/08/14 08:29:22  gul
- * Use snprintf() from sprintf.c if no such libc function
- *
- * Revision 2.2  2003/02/22 21:32:46  gul
- * Amiga Style Outbound support
- *
- * Revision 2.1  2003/01/29 19:32:03  gul
- * Code cleanup, prevent segfault on bad config
- *
- * Revision 2.0  2001/01/10 12:12:37  gul
- * Binkd is under CVS again
- *
- * Revision 1.4  1997/10/23  04:11:58  mff
- * +ftnaddress_to_domain()
- */
-
 #include <string.h>
 #include <ctype.h>
 

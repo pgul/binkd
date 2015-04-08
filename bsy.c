@@ -2,59 +2,6 @@
  * You must be VERY CAREFUL with this module. Note, this
  * code is working in VERY diff. ways in forking vs. threading versions!!
  */
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.13  2013/11/07 16:21:33  stream
- * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
- *
- * Revision 2.12  2013/01/24 17:25:35  gul
- * Support "-pipe" option on Win32
- *
- * Revision 2.11  2010/06/15 20:24:48  gul
- * Improve diagnostics
- *
- * Revision 2.10  2003/11/20 17:56:53  gul
- * Delete empty zone outbound directories with "deletedirs"
- *
- * Revision 2.9  2003/10/29 21:08:38  gul
- * Change include-files structure, relax dependences
- *
- * Revision 2.8  2003/08/26 22:18:47  gul
- * Fix compilation under w32-mingw and os2-emx
- *
- * Revision 2.7  2003/08/26 21:01:09  gul
- * Fix compilation under unix
- *
- * Revision 2.6  2003/08/26 16:06:26  stream
- * Reload configuration on-the fly.
- *
- * Warning! Lot of code can be broken (Perl for sure).
- * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
- *
- * Revision 2.5  2003/06/11 13:10:34  gul
- * Do not try to remove bsy for 0:0/0 at exitlist
- *
- * Revision 2.4  2003/03/11 09:21:29  gul
- * Fixed OS/2 Watcom compilation
- *
- * Revision 2.3  2003/03/03 22:11:27  gul
- * Fix compilation by msvc/2
- *
- * Revision 2.2  2003/02/28 20:39:08  gul
- * Code cleanup:
- * change "()" to "(void)" in function declarations;
- * change C++-style comments to C-style
- *
- * Revision 2.1  2002/05/11 08:37:32  gul
- * Added token deletedirs
- *
- * Revision 2.0  2001/01/10 12:12:37  gul
- * Binkd is under CVS again
- *
- *
- */
 
 #include <stdlib.h>
 #include <string.h>

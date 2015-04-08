@@ -10,73 +10,7 @@
  *  the Free Software Foundation; either version 2 of the License, or
  *  (at your option) any later version. See COPYING.
  */
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.17  2013/11/07 16:21:33  stream
- * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
- *
- * Revision 2.16  2010/05/22 08:11:30  gul
- * Call after_session() hook after removing bsy
- *
- * Revision 2.15  2009/06/02 17:09:35  gul
- * Build binkd for OS/2 with perl support
- *
- * Revision 2.14  2009/05/31 07:16:17  gul
- * Warning: many changes, may be unstable.
- * Perl interpreter is now part of config and rerun on config reload.
- * Perl 5.10 compatibility.
- * Changes in outbound queue managing and sorting.
- *
- * Revision 2.13  2009/05/26 13:04:35  gul
- * New perl hooks:
- * need_reload() - is it needed to reload config
- * config_loaded() - after successful reading config
- *
- * Revision 2.12  2005/10/03 06:49:04  gul
- * Fixed typos in previous patch
- *
- * Revision 2.11  2005/10/02 21:47:35  gul
- * setup_rlimit() perl hook
- *
- * Revision 2.10  2005/09/23 12:24:33  gul
- * define $hosts variable for on_call() perl hook (can be changed).
- * Changes for $proxy and $socks are now local for the single outgoing call.
- *
- * Revision 2.9  2005/03/28 10:15:13  val
- * manage proxy/socks via perl-hook on_call()
- *
- * Revision 2.8  2003/10/30 10:57:46  gul
- * Change inb_done arguments, optimize a bit
- *
- * Revision 2.7  2003/10/30 10:37:00  gul
- * Do not append file partially received from busy remote aka,
- * non-destructive skip it.
- *
- * Revision 2.6  2003/10/29 21:08:39  gul
- * Change include-files structure, relax dependences
- *
- * Revision 2.5  2003/09/05 06:49:06  val
- * Perl support restored after config reloading patch
- *
- * Revision 2.4  2003/08/18 09:41:00  gul
- * Little cleanup in handle perl errors
- *
- * Revision 2.3  2003/08/18 07:29:09  val
- * multiple changes:
- * - perl error handling made via fork/thread
- * - on_log() perl hook
- * - perl: msg_send(), on_send(), on_recv()
- * - unless using threads define log buffer via xalloc()
- *
- * Revision 2.2  2003/08/13 08:20:45  val
- * try to avoid mixing Log() output and Perl errors in stderr
- *
- * Revision 2.1  2003/06/20 10:37:02  val
- * Perl hooks for binkd - initial revision
- *
-*/
+
 #ifndef _PERLHOOKS_H_
 #define _PERLHOOKS_H_
 

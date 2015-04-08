@@ -1,39 +1,3 @@
-/*
- * $Id$
- *
- * Revision history:
- * $Log$
- * Revision 2.8  2013/11/25 19:46:03  stream
- * Add include (last one, I hope)/Fix UNIX build
- *
- * Revision 2.7  2003/10/29 21:08:41  gul
- * Change include-files structure, relax dependences
- *
- * Revision 2.6  2003/08/26 21:01:11  gul
- * Fix compilation under unix
- *
- * Revision 2.5  2003/07/13 09:37:50  gul
- * Fix daemonize with libc5
- *
- * Revision 2.4  2003/07/11 15:06:43  gul
- * Fix building with libc5
- *
- * Revision 2.3  2003/03/01 17:33:25  gul
- * Clean daemonize code
- *
- * Revision 2.2  2001/02/15 10:38:12  gul
- * fix #include pathes
- *
- * Revision 2.1  2001/01/16 03:57:06  gul
- * Added HAVE_SYS_IOCTL_H
- *
- * Revision 2.0  2001/01/16 03:49:26  gul
- * *** empty log message ***
- *
- * Revision 1.1  2001/01/15 22:04:52  gul
- * Added -D switch (run as daemon)
- *
- */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

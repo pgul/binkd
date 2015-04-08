@@ -1,23 +1,3 @@
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.2  2003/08/26 16:06:26  stream
- * Reload configuration on-the fly.
- *
- * Warning! Lot of code can be broken (Perl for sure).
- * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
- *
- * Revision 2.1  2003/02/28 20:39:08  gul
- * Code cleanup:
- * change "()" to "(void)" in function declarations;
- * change C++-style comments to C-style
- *
- * Revision 2.0  2001/01/10 12:12:37  gul
- * Binkd is under CVS again
- *
- *
- */
 #ifndef _bsy_h
 #define _bsy_h
 

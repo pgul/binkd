@@ -15,44 +15,6 @@
 /*  the License, or (at your option) any later version. See COPYING.  */
 /*--------------------------------------------------------------------*/
 
-/*--------------------------------------------------------------------*/
-/*                          RCS Information                           */
-/*--------------------------------------------------------------------*/
-
-/*
- * $Id$
- *
- * Revision history:
- * $Log$
- * Revision 2.6  2013/11/08 12:02:17  stream
- * Fix order of dependent includes
- *
- * Revision 2.5  2003/08/26 22:18:49  gul
- * Fix compilation under w32-mingw and os2-emx
- *
- * Revision 2.4  2003/03/31 22:11:34  gul
- * Fixed semaphores usage
- *
- * Revision 2.3  2003/03/31 19:56:12  gul
- * minor fix in close semaphores functions
- *
- * Revision 2.2  2003/03/31 19:35:17  gul
- * Clean semaphores usage
- *
- * Revision 2.1  2003/03/11 11:42:23  gul
- * Use event semaphores for exit threads
- *
- * Revision 2.0  2001/01/10 12:12:40  gul
- * Binkd is under CVS again
- *
- * Revision 1.2  1996/11/05 04:06:06  mff
- *      Added support for multiple semaphores
- *
- * Revision 0.01  1996/12/04  14:52:58  ufm
- *      First revision
- *
- */
-
 #include "../sys.h"
 #include "../readcfg.h"
 #include "../tools.h"

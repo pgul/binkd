@@ -10,32 +10,6 @@
  *  the Free Software Foundation; either version 2 of the License, or
  *  (at your option) any later version. See COPYING.
  */
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.4  2013/11/07 16:21:34  stream
- * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
- *
- * Revision 2.3  2013/10/23 19:21:58  stream
- * Fix incorrect type and crash on Win64
- *
- * Revision 2.2  2004/01/08 13:27:49  val
- * * extend struct dirent for dos and win32 in order to get file attribute
- * * ignore hidden files in boxes for dos/win32/os2
- * * if we can differ files from directories w/o stat(), don't call stat()
- *   when scanning boxes (unix: freebsd)
- * * if we can't unlink file, don't send it again in the same session
- * * for dos/win32/os2 try to clear read/only attribute if can't unlink file
- *
- * Revision 2.1  2003/03/22 08:59:58  gul
- * opendir() return NULL if directori does not exist
- *
- * Revision 2.0  2001/01/10 12:12:40  gul
- * Binkd is under CVS again
- *
- *
- */
 
 #include <string.h>
 #include <stdio.h>

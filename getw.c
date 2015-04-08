@@ -2,45 +2,6 @@
  * getwordx public domain library v.2.0
  * (c) 1995,1996,1997 <maloff@tts.magadan.su>
  */
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.10  2013/11/07 16:21:33  stream
- * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
- *
- * Revision 2.9  2013/01/24 17:25:35  gul
- * Support "-pipe" option on Win32
- *
- * Revision 2.8  2003/12/29 10:49:37  gul
- * Comments in config now starts by "#" only if prev char is space
- *
- * Revision 2.7  2003/10/29 21:08:38  gul
- * Change include-files structure, relax dependences
- *
- * Revision 2.6  2003/08/26 21:01:10  gul
- * Fix compilation under unix
- *
- * Revision 2.5  2003/05/27 18:58:42  gul
- * Minor fix in parsing quoted words
- *
- * Revision 2.4  2003/04/07 18:24:54  gul
- * Move functions declaration to header-file
- *
- * Revision 2.3  2003/03/01 20:16:27  gul
- * OS/2 IBM C support
- *
- * Revision 2.2  2003/03/01 18:06:45  gul
- * Add include <sys/types.h>
- *
- * Revision 2.1  2003/01/29 19:32:03  gul
- * Code cleanup, prevent segfault on bad config
- *
- * Revision 2.0  2001/01/10 12:12:38  gul
- * Binkd is under CVS again
- *
- *
- */
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>

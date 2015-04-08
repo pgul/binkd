@@ -11,16 +11,6 @@
  *  (at your option) any later version. See COPYING.
  */
 
-/*
- * $Id$
- *
- * $Log$
- * Revision 1.1  2014/01/13 12:33:11  gul
- * configure and small changes for multithread unix version
- *
- *
- */
-
 #include <time.h>
 #include "../sys.h"
 #include "../readcfg.h"

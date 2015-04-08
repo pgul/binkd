@@ -11,46 +11,6 @@
  *  (at your option) any later version. See COPYING.
  */
 
-/*
- * $Id$
- *
- * Revision history:
- * $Log$
- * Revision 2.11  2012/02/02 08:42:42  gul
- * Fixed gcc version for emx/klibc (by Max Vasilyev)
- *
- * Revision 2.10  2012/01/25 21:02:43  green
- * Some changes to enable compilation on OS/2 with GCC/kLIBC
- *
- * Revision 2.9  2012/01/08 16:23:52  green
- * Fixed compilation in Cygwin/MinGW
- *
- * Revision 2.8  2012/01/07 17:00:21  green
- * Added detection for PCC compiler
- *
- * Revision 2.7  2012/01/07 13:24:44  green
- * Fixed small typo
- *
- * Revision 2.6  2012/01/07 13:16:18  green
- * Some more information in binkd -vv output
- *
- * Revision 2.5  2008/01/15 11:19:01  gul
- * Show bwlim setting on "binkd -vv" output
- *
- * Revision 2.4  2004/02/07 14:06:06  hbrew
- * Macros: RTLDLL-->RTLSTATIC, BINKDW9X-->BINKD9X
- *
- * Revision 2.3  2003/11/17 01:03:27  hbrew
- * Fix BINKDW9X macro
- *
- * Revision 2.2  2003/11/04 00:47:52  hbrew
- * Cosmetic
- *
- * Revision 2.1  2003/11/04 00:46:20  hbrew
- * confopt added.
- *
- */
-
 /* Optional and compilation options */
 /* Compiler: */
 #if defined(__MINGW32__)

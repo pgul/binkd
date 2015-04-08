@@ -11,39 +11,6 @@
  *  (at your option) any later version. See COPYING.
  */
 
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.6  2013/11/07 16:21:33  stream
- * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
- *
- * Revision 2.5  2003/10/29 21:08:39  gul
- * Change include-files structure, relax dependences
- *
- * Revision 2.4  2003/08/26 21:01:10  gul
- * Fix compilation under unix
- *
- * Revision 2.3  2003/08/26 16:06:27  stream
- * Reload configuration on-the fly.
- *
- * Warning! Lot of code can be broken (Perl for sure).
- * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
- *
- * Revision 2.2  2003/08/23 15:51:51  stream
- * Implemented common list routines for all linked records in configuration
- *
- * Revision 2.1  2002/11/12 17:27:46  gul
- * Ignore empty (\r\n) line in lo-files
- *
- * Revision 2.0  2001/01/10 12:12:39  gul
- * Binkd is under CVS again
- *
- * Revision 1.1  1997/03/28  06:20:30  mff
- * Initial revision
- *
- */
-
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>

@@ -10,48 +10,6 @@
  *  the Free Software Foundation; either version 2 of the License, or
  *  (at your option) any later version. See COPYING.
  */
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.15  2004/01/08 12:46:01  val
- * correct macrodef for msvc (_msc_ver instead of __msc__)
- *
- * Revision 2.14  2003/10/29 21:08:40  gul
- * Change include-files structure, relax dependences
- *
- * Revision 2.13  2003/10/27 23:22:54  gul
- * Fix OS/2 compilation
- *
- * Revision 2.12  2003/10/20 18:04:46  gul
- * Previous patch break OS/2 compilation. Fixed.
- *
- * Revision 2.11  2003/10/20 17:57:13  gul
- * Dynamic load bzlib.dll built as C++
- *
- * Revision 2.10  2003/10/19 22:02:38  gul
- * OS/2 ZLIBDL fix
- *
- * Revision 2.9  2003/10/19 12:21:47  gul
- * Stream compression
- *
- * Revision 2.8  2003/10/06 08:25:28  val
- * turn off optimization for zlibdl.c
- *
- * Revision 2.7  2003/10/06 06:30:36  val
- * zlib code fix
- *
- * Revision 2.6  2003/09/25 06:41:43  val
- * fix compilation under win32
- *
- * Revision 2.5  2003/09/24 09:53:16  val
- * fix warnings
- *
- * Revision 2.4  2003/09/24 07:32:17  val
- * bzlib2 compression support, new compression keyword: zlevel
- *
- *
- */
 
 #ifdef ZLIBDL
 

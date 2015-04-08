@@ -11,61 +11,6 @@
  *  (at your option) any later version. See COPYING.
  */
 
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.14  2014/08/13 20:50:54  gul
- * Fixed IPv6 support with MSVC build
- *
- * Revision 2.13  2013/12/11 13:06:12  stas
- * Fix warning "missing sentinel in function call"
- *
- * Revision 2.12  2013/10/23 19:25:56  stream
- * EWOULDBLOCK, O_BINARY, O_NOINHERIT could be defined to wrong value
- *
- * Revision 2.11  2013/01/24 17:25:35  gul
- * Support "-pipe" option on Win32
- *
- * Revision 2.10  2012/11/06 05:05:19  stas
- * more comprehensible diagnostic message
- *
- * Revision 2.9  2012/11/02 11:25:34  green
- * Check return value of pipe() call
- *
- * Revision 2.8  2012/09/22 19:19:37  gul
- * Compilation under mingw
- *
- * Revision 2.7  2012/09/20 12:16:53  gul
- * Added "call via external pipe" (for example ssh) functionality.
- * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
- *
- * Revision 2.6  2003/10/29 21:08:39  gul
- * Change include-files structure, relax dependences
- *
- * Revision 2.5  2003/08/26 21:01:10  gul
- * Fix compilation under unix
- *
- * Revision 2.4  2003/04/07 18:22:16  gul
- * Wait for external process under win32 bugfix
- *
- * Revision 2.3  2003/04/06 08:01:32  gul
- * Close handles after CreateProcess()
- *
- * Revision 2.2  2003/04/06 07:54:41  gul
- * Change wait for child process function for win32
- *
- * Revision 2.1  2001/10/27 08:07:17  gul
- * run and run_args returns exit code of calling process
- *
- * Revision 2.0  2001/01/10 12:12:39  gul
- * Binkd is under CVS again
- *
- * Revision 1.1  1997/03/28  06:16:56  mff
- * Initial revision
- *
- */
-
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>

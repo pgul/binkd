@@ -11,60 +11,6 @@
  *  (at your option) any later version. See COPYING.
  */
 
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.11  2013/11/07 16:21:33  stream
- * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
- *
- * Revision 2.10  2008/04/17 15:19:44  gul
- * Fixed sending files with space or control chars in name
- *
- * Revision 2.9  2006/01/23 07:03:45  stas
- * Fix (null) suffix after ASO->BSO bundle name conversion
- *
- * Revision 2.8  2005/10/10 16:24:22  stas
- * Change method for generate 8+3 bundle name from ASO bundle name
- *
- * Revision 2.7  2005/09/22 12:11:13  gul
- * Dequote filenames for compare in M_GET processing
- *
- * Revision 2.6  2003/10/29 21:08:39  gul
- * Change include-files structure, relax dependences
- *
- * Revision 2.5  2003/08/26 21:01:10  gul
- * Fix compilation under unix
- *
- * Revision 2.4  2003/08/26 16:06:26  stream
- * Reload configuration on-the fly.
- *
- * Warning! Lot of code can be broken (Perl for sure).
- * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
- *
- * Revision 2.3  2003/06/30 22:42:27  hbrew
- * Print only binkd name (without path) in error messages
- *
- * Revision 2.2  2003/03/01 18:29:52  gul
- * Change size_t to off_t for file sizes and offsets
- *
- * Revision 2.1  2003/02/22 21:32:46  gul
- * Amiga Style Outbound support
- *
- * Revision 2.0  2001/01/10 12:12:38  gul
- * Binkd is under CVS again
- *
- * Revision 1.3  1997/11/05  01:11:29  mff
- * bt+ arcshield
- *
- * Revision 1.2  1997/10/23  04:00:17  mff
- * minor changes
- *
- * Revision 1.1  1997/03/28  06:49:13  mff
- * Initial revision
- *
- */
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

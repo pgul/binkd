@@ -21,39 +21,6 @@
  *
  */
 
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.8  2014/08/14 06:42:02  gul
- * Fixed compilation on unix
- *
- * Revision 2.7  2014/08/13 20:50:54  gul
- * Fixed IPv6 support with MSVC build
- *
- * Revision 2.6  2012/02/18 16:43:39  green
- * Corrected linking issues on Win32
- *
- * Revision 2.5  2012/01/22 20:40:56  green
- * Replaces index (deprecated) with strchr
- *
- * Revision 2.4  2012/01/22 12:27:07  green
- * No SRV lookup for IP addresses
- *
- * Revision 2.3  2012/01/08 17:34:58  green
- * Avoid using MAXHOSTNAMELEN
- *
- * Revision 2.2  2012/01/08 02:03:46  green
- * Implement fallback for system not exporting resolv/ns_initparse etc.
- *
- * Revision 2.1  2012/01/03 17:52:32  green
- * Implement FSP-1035 (SRV record usage)
- * - add SRV enabled getaddrinfo() wrapper (srv_gai.[ch])
- * - Unix (libresolv, autodetected) and Win32 support implemented
- * - Port information is stored as string now, i.e. may be service name
- *
- */
-
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>

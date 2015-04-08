@@ -15,68 +15,6 @@
 /*  the License, or (at your option) any later version. See COPYING.  */
 /*--------------------------------------------------------------------*/
 
-/*
- * $Id$
- *
- * Revision history:
- * $Log$
- * Revision 2.21  2014/08/13 20:50:55  gul
- * Fixed IPv6 support with MSVC build
- *
- * Revision 2.20  2012/01/03 17:25:35  green
- * Implemented IPv6 support
- * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
- * - Add compatibility layer for target systems not supporting RFC2553 calls in rfc2553.[ch]
- * - Add support for multiple listen sockets -- one for IPv4 and one for IPv6 (use V6ONLY)
- * - For WIN32 platform add configuration parameter IPV6 (mutually exclusive with BINKD9X)
- * - On WIN32 platform use Winsock2 API if IPV6 support is requested
- * - config: node IP address literal + port supported: [<ipv6 address>]:<port>
- *
- * Revision 2.19  2004/03/29 16:26:00  stas
- * use different icons for window and for systray
- *
- * Revision 2.18  2004/01/19 08:51:35  hbrew
- * Change icon ID to 1
- *
- * Revision 2.17  2004/01/07 21:42:24  stas
- * Don't export w32exitfunc()
- *
- * Revision 2.16  2004/01/04 16:01:10  stas
- * Fix service name convertion: now Service Display Name may be content a comma
- *
- * Revision 2.15  2004/01/04 15:51:06  stas
- * Fix service name convertion: now Service Display Name (parameter of the '-S' command line option) may be content a '\' and '/' characters
- *
- * Revision 2.14  2004/01/03 19:04:20  stas
- * New functions: public w32Init() and hidden w32exitfunc()
- *
- * Revision 2.12  2004/01/03 12:17:44  stas
- * Implement full icon support (winNT/2k/XP)
- *
- * Revision 2.11  2004/01/02 21:20:17  stas
- * GetMainWindow(): function retrieves the window handle used by the main window of application
- *
- * Revision 2.10  2003/10/18 18:50:48  stas
- * Move to new 'tray.c' file several functions when is related with 'minimize to tray' feature
- *
- * Revision 2.9  2003/10/18 17:02:29  stas
- * Don't set '-S name' option to NT service parameters list in registry
- *
- * Revision 2.8  2003/10/06 17:16:47  stas
- * (Cosmetics) Rename tcperr() to w32err() for win32/win9x versions
- *
- * Revision 2.7  2003/08/26 22:18:49  gul
- * Fix compilation under w32-mingw and os2-emx
- *
- * Revision 2.6  2003/08/21 15:40:34  gul
- * Change building commandline for service under win32
- * (patch by Alexander Reznikov)
- *
- * Revision 2.5  2003/08/04 12:23:40  gul
- * Add CVS tags
- *
- */
-
 #include <stdlib.h>
 #include "../sys.h"
 #include "../iphdr.h"

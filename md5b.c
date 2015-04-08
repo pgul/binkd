@@ -23,51 +23,6 @@ These notices must be retained in any copies of any part of this
 documentation and/or software.
  */
 
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.12  2014/08/13 20:50:54  gul
- * Fixed IPv6 support with MSVC build
- *
- * Revision 2.11  2012/01/07 16:22:26  green
- * Fix some compiler warnings
- *
- * Revision 2.10  2012/01/03 17:25:32  green
- * Implemented IPv6 support
- * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
- * - Add compatibility layer for target systems not supporting RFC2553 calls in rfc2553.[ch]
- * - Add support for multiple listen sockets -- one for IPv4 and one for IPv6 (use V6ONLY)
- * - For WIN32 platform add configuration parameter IPV6 (mutually exclusive with BINKD9X)
- * - On WIN32 platform use Winsock2 API if IPV6 support is requested
- * - config: node IP address literal + port supported: [<ipv6 address>]:<port>
- *
- * Revision 2.9  2004/10/18 10:29:29  gul
- * Bugfix in MD_getChallenge(), thanks to Victor Levenets <aq@takas.lt>
- *
- * Revision 2.8  2003/10/29 21:08:39  gul
- * Change include-files structure, relax dependences
- *
- * Revision 2.7  2003/08/26 16:06:26  stream
- * Reload configuration on-the fly.
- *
- * Warning! Lot of code can be broken (Perl for sure).
- * Compilation checked only under OS/2-Watcom and NT-MSVC (without Perl)
- *
- * Revision 2.6  2003/03/11 09:21:30  gul
- * Fixed OS/2 Watcom compilation
- *
- * Revision 2.5  2003/03/10 10:57:45  gul
- * Extern declarations moved to header files
- *
- * Revision 2.4  2003/03/05 13:21:50  gul
- * Fix warnings
- *
- * Revision 2.3  2003/03/02 08:08:49  gul
- * Added CVS ID and Revision
- *
- */
-
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>

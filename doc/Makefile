@@ -1,5 +1,3 @@
-# $Id$
-#
 # makefile to build documentation
 
 MAKEHTML    = makeinfo --html --no-split

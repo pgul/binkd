@@ -2,21 +2,6 @@
  * getwordx public domain library v.2.0
  * (c) 1995,1996,1997 <maloff@tts.magadan.su>
  */
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.2  2013/01/24 17:25:35  gul
- * Support "-pipe" option on Win32
- *
- * Revision 2.1  2003/10/29 21:08:38  gul
- * Change include-files structure, relax dependences
- *
- * Revision 2.0  2001/01/10 12:12:38  gul
- * Binkd is under CVS again
- *
- *
- */
 
 /*
  * Supported flags:

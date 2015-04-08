@@ -1,19 +1,3 @@
-/*
- * $Id$
- *
- * Revision history:
- * $Log$
- * Revision 2.2  2001/04/25 20:07:36  gul
- * bugfix
- *
- * Revision 2.1  2001/04/23 07:58:57  gul
- * getfree() on large drives fixed
- *
- * Revision 2.0  2001/01/10 12:12:40  gul
- * Binkd is under CVS again
- *
- *
- */
 #ifdef __WATCOMC__
   #define __IBMC__ 0
   #define __IBMCPP__ 0

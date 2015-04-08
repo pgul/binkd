@@ -11,52 +11,6 @@
  *  (at your option) any later version. See COPYING.
  */
 
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.13  2013/11/07 16:21:33  stream
- * Lot of fixes to support 2G+ files. Supports 2G+ on Windows/MSVC
- *
- * Revision 2.12  2013/02/03 21:37:44  gul
- * New option "rename-style [postfix|extension]"
- *
- * Revision 2.11  2012/09/20 12:16:52  gul
- * Added "call via external pipe" (for example ssh) functionality.
- * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
- *
- * Revision 2.10  2012/06/20 22:41:46  green
- * 1 hour timeout for defnode resolutions
- *
- * Revision 2.9  2012/01/22 13:54:12  green
- * Allow limiting IPv4/6 usage per node using new flags -4/-6
- *
- * Revision 2.8  2007/10/30 07:33:25  gul
- * New config option dont-send-empty
- *
- * Revision 2.7  2005/09/28 20:40:45  gul
- * Optional parameter root-domain for domain config option.
- *
- * Revision 2.6  2005/05/13 11:12:00  stas
- * update coment for struct _FTNQ
- *
- * Revision 2.5  2004/09/06 10:47:04  val
- * bandwidth limiting code advancements, `listed' session state fix
- *
- * Revision 2.4  2004/01/08 12:57:18  val
- * * parse up to 3 comma-separated passwords (in,pkt,out)
- * * use out password for outgoing sessions if it's set
- *
- * Revision 2.3  2003/12/26 21:12:06  gul
- * Change unixtime and file length/offset to unsigned in protocol messages
- *
- * Revision 2.2  2003/11/21 19:39:59  stream
- * Initial support for "-noproxy" node option
- *
- * Revision 2.1  2003/10/29 21:08:38  gul
- * Change include-files structure, relax dependences
- *
- */
 #ifndef _btypes_h
 #define _btypes_h
 

@@ -16,27 +16,6 @@
   
    ##################################################################### */
 
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.3  2014/08/14 06:42:02  gul
- * Fixed compilation on unix
- *
- * Revision 2.2  2012/01/07 13:52:23  green
- * Removed C++ comments (bad style, I know)
- *
- * Revision 2.1  2012/01/03 17:25:32  green
- * Implemented IPv6 support
- * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
- * - Add compatibility layer for target systems not supporting RFC2553 calls in rfc2553.[ch]
- * - Add support for multiple listen sockets -- one for IPv4 and one for IPv6 (use V6ONLY)
- * - For WIN32 platform add configuration parameter IPV6 (mutually exclusive with BINKD9X)
- * - On WIN32 platform use Winsock2 API if IPV6 support is requested
- * - config: node IP address literal + port supported: [<ipv6 address>]:<port>
- *
- */
-
 #ifndef RFC2553EMU_H
 #define RFC2553EMU_H
 

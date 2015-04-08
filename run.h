@@ -11,27 +11,6 @@
  *  (at your option) any later version. See COPYING.
  */
 
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.3  2012/09/22 19:19:37  gul
- * Compilation under mingw
- *
- * Revision 2.2  2012/09/20 12:16:54  gul
- * Added "call via external pipe" (for example ssh) functionality.
- * Added "-a", "-f" options, removed obsoleted "-u" and "-i" (for win32).
- *
- * Revision 2.1  2001/10/27 08:07:18  gul
- * run and run_args returns exit code of calling process
- *
- * Revision 2.0  2001/01/10 12:12:39  gul
- * Binkd is under CVS again
- *
- * Revision 1.1  1997/03/28  06:16:56  mff
- * Initial revision
- *
- */
 #ifndef _run_h
 #define _run_h
 

@@ -11,10 +11,6 @@
  *  (at your option) any later version. See COPYING.
  */
 
-/*
- * $Id$
- */
-
 #ifndef _Config_h
 #define _Config_h
 

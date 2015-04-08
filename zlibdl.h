@@ -10,45 +10,6 @@
  *  the Free Software Foundation; either version 2 of the License, or
  *  (at your option) any later version. See COPYING.
  */
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.19  2005/06/06 16:43:28  stream
- * Updates for OS/2+Watcom+zlib compilation
- *
- * Revision 2.18  2004/08/11 18:31:15  hbrew
- * zlibdl.h: include <windows.h> for compatibility with zlib 1.2.1
- *
- * Revision 2.17  2003/10/27 23:23:51  gul
- * Fix static ZLIB/BZLIB linking
- *
- * Revision 2.16  2003/10/24 06:41:11  val
- * ZLIBDL fix to restore linking with MSVC (bzlib2 still crashes)
- *
- * Revision 2.15  2003/10/23 21:16:09  gul
- * Fix MSVC bzlib2 ZLIBDL compilation
- *
- * Revision 2.14  2003/10/23 16:45:33  gul
- * Fix win32 zlibdl compilation
- *
- * Revision 2.13  2003/10/23 16:36:24  gul
- * Fix warning
- *
- * Revision 2.12  2003/10/20 15:44:29  gul
- * Declare DLL functions as WINAPI
- *
- * Revision 2.11  2003/10/19 12:21:47  gul
- * Stream compression
- *
- * Revision 2.10  2003/10/03 13:29:57  val
- * fix for older bzlib2 error (uses FILE but doesn't include stdio.h)
- *
- * Revision 2.9  2003/09/25 09:01:28  gul
- * Fix CVS macro again
- *
- *
- */
 
 #ifndef _ZLIBDL_H_
 #define _ZLIBDL_H_

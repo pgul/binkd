@@ -11,23 +11,6 @@
  *  (at your option) any later version. See COPYING.
  */
 
-/*
- * $Id$
- *
- * Revision history:
- * $Log$
- * Revision 2.3  2003/03/26 13:53:28  gul
- * Fix OS/2 compilation
- *
- * Revision 2.2  2003/03/11 09:21:30  gul
- * Fixed OS/2 Watcom compilation
- *
- * Revision 2.1  2003/03/01 20:26:36  gul
- * *** empty log message ***
- *
- *
- */
-
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>

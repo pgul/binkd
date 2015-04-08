@@ -11,17 +11,6 @@
  *  (at your option) any later version. See COPYING.
  */
 
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.0  2001/01/10 12:12:37  gul
- * Binkd is under CVS again
- *
- * Revision 1.1  1997/03/28  06:56:22  mff
- * Initial revision
- *
- */
 #ifndef _assert_h
 #define _assert_h
 

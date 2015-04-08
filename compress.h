@@ -10,22 +10,6 @@
  *  the Free Software Foundation; either version 2 of the License, or
  *  (at your option) any later version. See COPYING.
  */
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.3  2003/12/09 21:58:20  gul
- * Bugfix in resend file in compression mode,
- * new functions compress_abort() and decompress_abort().
- *
- * Revision 2.2  2003/10/27 23:22:54  gul
- * Fix OS/2 compilation
- *
- * Revision 2.1  2003/10/19 12:21:46  gul
- * Stream compression
- *
- *
- */
 
 #ifndef _COMPRESS_H_
 #define _COMPRESS_H_

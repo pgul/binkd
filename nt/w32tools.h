@@ -11,44 +11,6 @@
  *  (at your option) any later version. See COPYING.
  */
 
-/*
- * $Id$
- *
- * Revision history:
- * $Log$
- * Revision 2.12  2012/01/23 18:10:57  gul
- * Fixed declaration of binkd_main() (no 3rd param)
- *
- * Revision 2.11  2004/01/04 16:55:00  stas
- * Move declarations of the 'binkd_main' into one place (nt/w32tools.h)
- *
- * Revision 2.10  2004/01/03 19:04:20  stas
- * New functions: public w32Init() and hidden w32exitfunc()
- *
- * Revision 2.9  2004/01/03 18:14:41  stas
- * Two macroses: IsNTService and Is9xService
- *
- * Revision 2.8  2004/01/03 12:17:44  stas
- * Implement full icon support (winNT/2k/XP)
- *
- * Revision 2.7  2004/01/02 21:20:17  stas
- * GetMainWindow(): function retrieves the window handle used by the main window of application
- *
- * Revision 2.6  2003/10/28 20:20:10  stas
- * Rewrite NT service code, remove obsoleted code and add some checks. Found a thread-not-safety problem.
- *
- * Revision 2.5  2003/10/18 18:50:48  stas
- * Move to new 'tray.c' file several functions when is related with 'minimize to tray' feature
- *
- * Revision 2.4  2003/08/21 15:40:35  gul
- * Change building commandline for service under win32
- * (patch by Alexander Reznikov)
- *
- * Revision 2.3  2003/08/04 12:23:40  gul
- * Add CVS tags
- *
- */
-
 #ifndef __W32TOOLS_H
 #define __W32TOOLS_H
 

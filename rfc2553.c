@@ -8,36 +8,6 @@
 
    ##################################################################### */
 
-/*
- * $Id$
- *
- * $Log$
- * Revision 2.6  2013/02/04 12:47:12  gul
- * New config option "listen"
- *
- * Revision 2.5  2012/09/24 00:26:42  gul
- * Resolve logic changed
- *
- * Revision 2.4  2012/07/06 21:42:16  green
- * Corrected potential double-free
- *
- * Revision 2.3  2012/07/05 20:56:41  green
- * Corrected mutex handling for multi-threaded environments
- *
- * Revision 2.2  2012/01/07 13:52:23  green
- * Removed C++ comments (bad style, I know)
- *
- * Revision 2.1  2012/01/03 17:25:32  green
- * Implemented IPv6 support
- * - replace (almost) all getXbyY function calls with getaddrinfo/getnameinfo (RFC2553) calls
- * - Add compatibility layer for target systems not supporting RFC2553 calls in rfc2553.[ch]
- * - Add support for multiple listen sockets -- one for IPv4 and one for IPv6 (use V6ONLY)
- * - For WIN32 platform add configuration parameter IPV6 (mutually exclusive with BINKD9X)
- * - On WIN32 platform use Winsock2 API if IPV6 support is requested
- * - config: node IP address literal + port supported: [<ipv6 address>]:<port>
- *
- */
-
 #include "rfc2553.h"
 #include <stdlib.h>
 #include <string.h>
