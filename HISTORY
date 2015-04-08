@@ -1,3 +1,7 @@
+2015/04/08 20:10:51 1.1a-71 gul
+Config.h,2.715,2.716 assert.h,2.0,2.1 binkd.c,2.121,2.122 binlog.c,2.14,2.15 binlog.h,2.3,2.4 branch.c,2.16,2.17 breaksig.c,2.6,2.7 bsy.c,2.13,2.14 bsy.h,2.2,2.3 btypes.h,2.13,2.14 client.c,2.96,2.97 client.h,2.0,2.1 common.h,2.17,2.18 compress.c,2.5,2.6 compress.h,2.3,2.4 confopt.h,2.11,2.12 crypt.c,2.4,2.5 crypt.h,2.5,2.6 exitproc.c,2.46,2.47 ftnaddr.c,2.12,2.13 ftnaddr.h,2.7,2.8 ftndom.c,2.8,2.9 ftndom.h,2.6,2.7 ftnnode.c,2.48,2.49 ftnnode.h,2.24,2.25 ftnq.c,2.42,2.43 ftnq.h,2.11,2.12 getw.c,2.10,2.11 getw.h,2.2,2.3 https.c,2.29,2.30 https.h,2.5,2.6 inbound.c,2.52,2.53 inbound.h,2.10,2.11 iphdr.h,2.27,2.28 iptools.c,2.21,2.22 iptools.h,2.9,2.10 md5b.c,2.12,2.13 md5b.h,2.6,2.7 perlhooks.c,2.86,2.87 perlhooks.h,2.17,2.18 prothlp.c,2.11,2.12 prothlp.h,2.6,2.7 protoco2.h,2.33,2.34 protocol.c,2.235,2.236 protocol.h,2.5,2.6 readcfg.c,2.110,2.111 readcfg.h,2.43,2.44 readdir.h,2.6,2.7 readflo.c,2.6,2.7 readflo.h,2.4,2.5 rfc2553.c,2.6,2.7 rfc2553.h,2.3,2.4 run.c,2.14,2.15 run.h,2.3,2.4 sem.h,2.15,2.16 server.c,2.62,2.63 server.h,2.5,2.6 setpttl.h,2.0,2.1 srif.c,2.23,2.24 srif.h,2.6,2.7 srv_gai.c,2.8,2.9 srv_gai.h,2.4,2.5 sys.h,2.45,2.46 tools.c,2.81,2.82 tools.h,2.30,2.31 xalloc.c,2.6,2.7 zlibdl.c,2.15,2.16 zlibdl.h,2.19,2.20
+Убраны CVS макросы '$Log' и частично '$Id'
+
 2015/04/08 20:10:24 1.1a-70 gul
 daemonize.c,2.8,2.9 daemonize.h,2.1,2.2 getfree.c,2.1,2.2 rename.c,2.0,2.1 sem.c,1.1,1.2 setpttl.c,2.3,2.4
 Убраны CVS макросы '$Log' и частично '$Id'
