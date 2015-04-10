@@ -1,3 +1,7 @@
+2015/04/10 23:01:50 gul
+README.md,2.1,2.2
+rewrite `README.md` using GitHub Flavored Markdown
+
 2015/04/10 23:01:12 gul
 README.md,NONE,2.1 README,2.2,NONE
 rename `README` to `README.md` (implying GitHub Flavored Markdown)
