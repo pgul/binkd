@@ -65,9 +65,6 @@ from Russian by Michael Dukelsky 2:5020/1042.
     Release versions, documentation, log analyzers etc. (Pavel Gulchouck
     2:463/68):
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/
-    The mirrors:
-    http://binkd.spb.ru/cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/
-      (Russia, Andrey Ostanovsky 2:5030/1957)
 
     Binaries (windows, os/2):
     http://download.binkd.org
@@ -90,9 +87,7 @@ from Russian by Michael Dukelsky 2:5020/1042.
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-1_0_0 binkd
 
     Anonymous FTP:
-    ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/snapshot (main)
-    ftp://ftp.grumbler.org/pub/binkd/current (the mirror is refreshed
-                                              at 23:50 UTC+5)
+    ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/snapshot
 
     binkd/2 1.1a (current, EMX), compiled everynight:
     FREQ from node 2:221/1, file alias: binkd2e. It's possibe to download from

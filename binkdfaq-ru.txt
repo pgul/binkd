@@ -61,9 +61,6 @@
 
     Релизы, документация, анализаторы логов и пр. (Pavel Gulchouck 2:463/68):
     ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/
-    Зеркала
-    http://binkd.spb.ru/cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/
-      (Россия, Andrey Ostanovsky 2:5030/1957)
 
     Скомпилированные версии (windows, os/2):
     http://download.binkd.org
@@ -86,8 +83,7 @@
        cvs -d :pserver:binkd@cvs.happy.kiev.ua:/cvs co -r binkd-1.0.0 binkd
 
     Анонимный FTP:
-    ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/snapshot (основной)
-    ftp://ftp.grumbler.org/pub/binkd/current (зеркало, обновляется 23:50 UTC+5)
+    ftp://cvs.happy.kiev.ua/pub/fidosoft/mailer/binkd/snapshot
 
     binkd/2 1.1a (current, EMX), скомпилированный еженощно:
     FREQ c узла 2:221/1, алиас файла: binkd2e. Можно скачать также с BBS узла
