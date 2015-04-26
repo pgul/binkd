@@ -125,7 +125,7 @@ system registry.
                         ==> see 5., but for binkd9x-service-local
 7. binkd9x -t start -S all
                         ==> see 5., but for all services
-9. binkd9x -t start -q  ==> �. 5., but does not create console (it is
+9. binkd9x -t start -q  ==> см. 5., but does not create console (it is
                             convinient for using in scripts or bat-files).
 10. binkd9x -t stop -q  ==> similar to 9., but the service is stopped.
  ... and so on...

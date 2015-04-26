@@ -12,13 +12,13 @@ not been received up to the moment we can consider the protocol version of
 the opposite side to be equal 1.0
 
 2. One more M_NUL message, which one should understand as far as possible is
-M_NUL "OPT XXX YYY ...".  It is a way to send arbitrary options (the list of
+M_NUL "OPT XXX YYY ...".Â  It is a way to send arbitrary options (the list of
 option names is case sensitive and delimited by spaces). Binkd/0.9 understands
 "NR" option: a request to change to NR mode (an example of the request: M_NUL
 "OPT NR"). Generally speaking we cannot be sure that the remote side will
 comply with our request after we have sent such a command and in general we
 have no way to know its decision (except we stipulate especially for necessity
-to send back a reply for the XXX option).  In case of NR any behavior of the
+to send back a reply for the XXX option).Â  In case of NR any behavior of the
 remote side should not confuse us (see below).
 
 3. In order to have a possibility to receive requests (in particular file
