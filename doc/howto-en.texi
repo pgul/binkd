@@ -9,7 +9,7 @@
 @settitle @value{DESCR}
 @setchapternewpage odd
 @documentlanguage en
-@documentencoding ISO-8859-1
+@documentencoding UTF-8
 @documentdescription
 @value{DESCR}
 @end documentdescription
@@ -47,7 +47,7 @@
 @end ifnotinfo
 
 @top @value{DESCR}
-@c Этот документ описывает типичные действия по настройке
+@c п╜я┌п╬я┌ п╢п╬п╨я┐п╪п╣п╫я┌ п╬п©п╦я│я▀п╡п╟п╣я┌ я┌п╦п©п╦я┤п╫я▀п╣ п╢п╣п╧я│я┌п╡п╦я▐ п©п╬ п╫п╟я│я┌я─п╬п╧п╨п╣
 @c @value{BINKD} @value{VERSION}.
 
 @menu

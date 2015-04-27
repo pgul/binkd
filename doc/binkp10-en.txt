@@ -45,7 +45,7 @@ The commands which binkd/0.8 understands and their arguments:
    M_NUL  0
 
    The command argument is ignored (and is possibly logged). This is the way
-   we transmit the nodelist information, the sysop’s name and so on.
+   we transmit the nodelist information, the sysopâ€™s name and so on.
 
    eg, "ZYZ Dima Maloff"
 
@@ -133,7 +133,7 @@ The commands which binkd/0.8 understands and their arguments:
    M_GET  9
 
    M_GET is used as a request to resend a file. The M_GET arguments copy the
-   arguments of the M_FILE command which we’d like to see from the remote
+   arguments of the M_FILE command which weâ€™d like to see from the remote
    system. :) Binkd sends it as a response to M_FILE if it does not like the
    offset from which the file transmission has been started by the remote
    system.
@@ -174,7 +174,7 @@ A typical session between two binkd mailers:
  M_FILE "file1 100 423424244 0"         data
  data                                   data
  data                                   data
- M_EOB                                  (¯®«ãç¨«¨ file1 æ¥«¨ª®¬, ¯®¤â¢¥à¦¤ ¥¬)
+ M_EOB                                  (Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ð»Ð¸ file1 Ñ†ÐµÐ»Ð¸ÐºÐ¾Ð¼, Ð¿Ð¾Ð´Ñ‚Ð²ÐµÑ€Ð¶Ð´Ð°ÐµÐ¼)
  (file2 is received, acknowledging it)  M_GOT "file1 100 423424244"
  M_GOT "file2 200 42342434"             data
                                         M_EOB
