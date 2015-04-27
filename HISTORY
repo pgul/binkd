@@ -1,3 +1,7 @@
+2015/04/27 19:15:52 gul
+binkd9x-en.txt,2.2,2.3
+replace “см.” with “see” in `binkd9x-en.txt`
+
 2015/04/27 19:13:54 gul
 binkd9x-en.txt,2.1,2.2 binkd9x-ru.txt,2.1,2.2 binkdfaq-ru.txt,2.3,2.4
 Convert documentation to UTF-8
