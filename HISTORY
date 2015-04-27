@@ -1,3 +1,8 @@
+2015/04/27 19:13:24 gul
+binkd-ug-ru.htm,1.19,1.20 binkp10-en.txt,1.1,1.2 binkp10-ru.txt,1.1,1.2 binkp11-en.txt,1.1,1.2 binkp11-ru.txt,1.1,1.2 binkplic-ru.html,1.1,1.2 howto-en.texi,1.2,1.3 howto-ru.texi,1.4,1.5 nd-mode-ru.txt,1.1,1.2
+Convert documentation to UTF-8
+Previously it was a mess of CP866, KOI8-R, and Windows-1251.
+
 2015/04/10 23:01:50 gul
 README.md,2.1,2.2
 rewrite `README.md` using GitHub Flavored Markdown
