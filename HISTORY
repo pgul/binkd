@@ -1,3 +1,7 @@
+2015/06/07 22:52:10 1.1a-72 gul
+rename.c,2.1,2.2
+More clean non-destructive rename() on unix
+
 2015/04/27 19:15:52 gul
 binkd9x-en.txt,2.2,2.3
 replace “см.” with “see” in `binkd9x-en.txt`
