@@ -417,6 +417,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
      
       if (aiErr != 0)
       {
+        Log(2, "getaddrinfo failed: %s (%d)", gai_strerror(aiErr), aiErr);
         bad_try(&node->fa, "Cannot getaddrinfo", BAD_CALL, config);
         continue;
       }
