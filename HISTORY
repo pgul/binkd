@@ -1,3 +1,7 @@
+2015/06/18 09:42:10 1.1a-73 git
+client.c,2.97,2.98
+Improve logging
+
 2015/06/07 22:52:10 1.1a-72 gul
 rename.c,2.1,2.2
 More clean non-destructive rename() on unix
