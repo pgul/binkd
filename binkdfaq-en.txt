@@ -702,6 +702,10 @@ processor is created for a unix-like OS but can be compiled in the OS/2,
 Windows and maybe other operating systems. Now it is included into "ftnapps" 
 project on Sourceforge and may be downloaded from 
 http://ftnapps.sourceforge.net/vireq.html.
+Binaries built for Win32 and OS/2 may be downloaded from
+http://download.binkd.org  and
+http://sites.google.com/site/vasilyevmax/fido
+
 
 ----------------------------------------------------------------------------
 

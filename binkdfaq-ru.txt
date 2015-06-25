@@ -673,6 +673,10 @@ FREQ-процессор, созданный для юниксоподобных 
 Windows и, возможно, в других ОС. Ныне он включен в проект "ftnapps" на
 Sourceforge и его можно загрузить со страницы
 http://ftnapps.sourceforge.net/vireq.html.
+Скомпилированные Win32 и OS/2 версии доступны на
+http://download.binkd.org
+http://sites.google.com/site/vasilyevmax/fido
+
 
 ----------------------------------------------------------------------------
 
