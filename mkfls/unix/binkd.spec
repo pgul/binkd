@@ -36,7 +36,7 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root)
-%{_prefix}/*
-
+%{_sbindir}/*
+%{_mandir}/man8/*
 
 
