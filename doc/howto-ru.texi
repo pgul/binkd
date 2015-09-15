@@ -25,7 +25,7 @@
 @titlepage
 @title @value{DESCR}
 @subtitle Русская редакция
-@author Stas Degteff  2:5080/102@fidonet, g@grumbler.org
+@author Stas Degteff  2:5080/102@@fidonet, g@@grumbler.org
 @page
 @c{empty page to get the page numbering right}
 @end titlepage
