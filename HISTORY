@@ -1,3 +1,8 @@
+2015/10/09 20:54:11 1.1a-75 git
+perlhooks.c,2.88,2.89
+Typo in perlhooks function call
+Signed-off-by: Pavel Gulchuk <gul@gul.kiev.ua>
+
 2015/10/09 12:12:41 1.1a-74 git
 perlhooks.c,2.87,2.88
 Fixed error "attempt to change r/o variable" on perl 5.20
