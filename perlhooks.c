@@ -622,7 +622,7 @@ MUTEXSEM perlsem;
     char sv_config[20];                                            \
     def_config();                                                  \
     if ( ( svret = perl_get_sv(sv_config, TRUE)) != NULL ) {       \
-      v_setpvn(svret, (char *)&cfg, sizeof(&cfg));                 \
+      sv_setpvn(svret, (char *)&cfg, sizeof(&cfg));                \
         SvREADONLY_on(svret);                                      \
     }                                                              \
   }
