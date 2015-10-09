@@ -611,11 +611,66 @@ MUTEXSEM perlsem;
               def_config();                                        \
               sv = perl_get_sv(sv_config, FALSE);                  \
               if (sv) {                                            \
-                cfg = (BINKD_CONFIG*)SvPV(sv, n_a);                \
+                cfg = *((BINKD_CONFIG**)SvPV(sv, n_a));            \
                 if (!cfg || n_a == 0) cfg = current_config;        \
               } else                                               \
                 cfg = current_config;                              \
             }
+
+#define SET_CONFIG(cfg)                                            \
+  { SV *svret;                                                     \
+    char sv_config[20];                                            \
+    def_config();                                                  \
+    if ( ( svret = perl_get_sv(sv_config, TRUE)) != NULL ) {       \
+      v_setpvn(svret, (char *)&cfg, sizeof(&cfg));                 \
+        SvREADONLY_on(svret);                                      \
+    }                                                              \
+  }
+
+#define CLEAR_CONFIG                                               \
+  { SV *svret;                                                     \
+    char sv_config[20];                                            \
+    def_config();                                                  \
+    if ( ( svret = perl_get_sv(sv_config, FALSE)) != NULL ) {      \
+      SvREFCNT_dec(svret);                                         \
+    }                                                              \
+  }
+
+#define FIND_STATE(state)                                          \
+    {   SV *sv;                                                    \
+        char sv_state[20];                                         \
+        def_state();                                               \
+        sv = perl_get_sv(sv_state, FALSE);                         \
+        if (!sv) {                                                 \
+          Log(LL_ERR, "can't find $%s pointer", sv_state);         \
+          state = NULL;                                            \
+        } else {                                                   \
+          state = *((STATE**)SvPV(sv, n_a));                       \
+          if (!(state) || !n_a) {                                  \
+            Log(LL_ERR, "$%s pointer is NULL", sv_state);          \
+            state = NULL;                                          \
+          }                                                        \
+        }                                                          \
+    }
+
+#define SET_STATE(state)                                           \
+  { SV *svret;                                                     \
+    char sv_state[20];                                             \
+    def_state();                                                   \
+    if ( ( svret = perl_get_sv(sv_state, TRUE)) != NULL ) {        \
+      sv_setpvn(svret, (char *)&state, sizeof(&state));            \
+      SvREADONLY_on(svret);                                        \
+    }                                                              \
+  }
+
+#define CLEAR_STATE                                                \
+  { SV *svret;                                                     \
+    char sv_state[20];                                             \
+    def_state();                                                   \
+    if ( ( svret = perl_get_sv(sv_state, FALSE)) != NULL ) {       \
+      SvREFCNT_dec(svret);                                         \
+    }                                                              \
+  }
 
 /* bits for subroutines, must correspond to perl_subnames */
 typedef enum { 
@@ -933,22 +988,19 @@ extern void msg_send2 (STATE *state, t_msg m, char *s1, char *s2);
 #endif
 {
   dXSARGS;
-  SV *sv;
   STATE *state;
   t_msg m;
   char *str;
   STRLEN n_a;
-  char sv_state[20];
 
   if (items != 2) {
     Log(LL_ERR, "wrong params number to msg_send (needs 2, exist %d)", items);
     XSRETURN_EMPTY;
   }
-  def_state();
-  sv = perl_get_sv(sv_state, FALSE);
-  if (!sv) { Log(LL_ERR, "can't find $%s pointer", sv_state); XSRETURN_EMPTY; }
-  state = (STATE*)SvPV(sv, n_a);
-  if (!state || !n_a) { Log(LL_ERR, "$%s pointer is NULL", sv_state); XSRETURN_EMPTY; }
+  FIND_STATE(state);
+  if (!state) {
+    XSRETURN_EMPTY;
+  }
   m = (t_msg)SvIV(ST(0));
   str = (char *)SvPV(ST(1), n_a); if (n_a == 0) str = "";
   msg_send2(state, m, str, NULL);
@@ -1445,10 +1497,7 @@ void *perl_init_clone(BINKD_CONFIG *cfg) {
 #endif
     /* this pointer is used later */
     if (p) {
-      char sv_config[20];
-      SV *svret;
-      def_config();
-      VK_ADD_strn(svret, sv_config, cfg, sizeof(BINKD_CONFIG));
+      SET_CONFIG(cfg);
     }
   }
   else p = NULL;
@@ -1457,17 +1506,11 @@ void *perl_init_clone(BINKD_CONFIG *cfg) {
 }
 /* destruct a clone */
 void perl_done_clone(void *p) {
-  char sv_config[20];
-  SV *sv;
-
   Log(LL_DBG, "perl_done_clone(): destructing clone %p", p);
   if (p == NULL) return;
-  def_config();
-  VK_ADD_strn(sv, sv_config, NULL, 0); /* is it possible to set NULL pointer? */
-  /* SvREFCNT_dec(sv); */
+  CLEAR_CONFIG;
   PL_perl_destruct_level = 2;
   PERL_SET_CONTEXT((PerlInterpreter *)p); /* as in mod_perl */
-  def_config();
 #ifndef PERL_MULTITHREAD
   perl_destruct((PerlInterpreter *)p);
 /* #ifndef WIN32 - mod_perl has it unless CLONEf_CLONE_HOST */
@@ -1516,15 +1559,19 @@ static void setup_session(STATE *state, int lvl) {
   if (lvl >= 2 && state->perl_set_lvl < 2) {
     int secure;
     uintmax_t netsize, filessize;
-    if (state->state_ext != P_NA) secure = state->state_ext;
-      else secure = state->state;
+    if (state->state_ext != P_NA)
+      secure = state->state_ext;
+    else
+      secure = state->state;
     VK_ADD_intz(sv, "secure", secure);
     VK_ADD_str (sv, "sysname", state->sysname);
     VK_ADD_str (sv, "sysop", state->sysop);
     VK_ADD_str (sv, "location", state->location);
-    q_get_sizes (state->q, &netsize, &filessize);
-    VK_ADD_intz(sv, "traf_mail", (IV)netsize);
-    VK_ADD_intz(sv, "traf_file", (IV)filessize);
+    if (perl_get_sv("traf_mail", FALSE) == NULL) {
+      q_get_sizes (state->q, &netsize, &filessize);
+      VK_ADD_intz(sv, "traf_mail", (IV)netsize);
+      VK_ADD_intz(sv, "traf_file", (IV)filessize);
+    }
     hv = perl_get_hv("opt", TRUE);
     hv_clear(hv);
     VK_ADD_HASH_intz(hv, sv, "ND", state->ND_flag);
@@ -1811,9 +1858,7 @@ char *perl_on_handshake(STATE *state) {
   BINKD_CONFIG *cfg = state->config;
   /* this pointer is used later */
   if (cfg->perl_ok && Perl_get_context()) {
-    char sv_state[20];
-    def_state();
-    VK_ADD_strn(svret, sv_state, state, sizeof(STATE)); 
+    SET_STATE(state);
   }
   if (cfg->perl_ok & (1 << PERL_ON_HANDSHAKE)) {
     Log(LL_DBG, "perl_on_handshake(), perl=%p", Perl_get_context());
@@ -1840,9 +1885,11 @@ char *perl_on_handshake(STATE *state) {
         av_push(he, newSVpv(buf, 0));
         q = q_scan_addrs (0, &(state->to->fa), 1, 1, cfg);
       }
-      q_get_sizes (q, &netsize, &filessize);
-      VK_ADD_intz(sv, "traf_mail", (IV)netsize);
-      VK_ADD_intz(sv, "traf_file", (IV)filessize);
+      if (perl_get_sv("traf_mail", FALSE) == NULL) {
+        q_get_sizes (q, &netsize, &filessize);
+        VK_ADD_intz(sv, "traf_mail", (IV)netsize);
+        VK_ADD_intz(sv, "traf_file", (IV)filessize);
+      }
       setup_session(state, 1);
       ENTER;
       SAVETMPS;
@@ -1935,12 +1982,7 @@ void perl_after_session(STATE *state, int status) {
   SV *sv;
   BINKD_CONFIG *cfg = state->config;
 
-  if (cfg->perl_ok && Perl_get_context()) {
-    char sv_state[20];
-    def_state();
-    VK_ADD_strn(sv, sv_state, NULL, 0); /* is it allowed or we should set to empty string? */
-    /* SvREFCNT_dec(sv); */
-  }
+  CLEAR_STATE;
   if (cfg->perl_ok & (1 << PERL_AFTER_SESSION)) {
     Log(LL_DBG, "perl_after_session(), perl=%p", Perl_get_context());
     if (!Perl_get_context()) return;
