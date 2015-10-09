@@ -1,3 +1,8 @@
+2015/10/09 12:12:41 1.1a-74 git
+perlhooks.c,2.87,2.88
+Fixed error "attempt to change r/o variable" on perl 5.20
+Signed-off-by: Pavel Gulchuk <gul@gul.kiev.ua>
+
 2015/09/15 22:47:08 dukelsky
 howto-en.texi,1.3,1.4 howto-ru.texi,1.5,1.6
 Email addresses had incorrect syntax
