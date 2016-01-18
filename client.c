@@ -122,7 +122,7 @@ static int do_client(BINKD_CONFIG *config)
     {
       struct call_args args;
 
-      if (!bsy_test (&r->fa, F_BSY, config) || 
+      if (!bsy_test (&r->fa, F_BSY, config) ||
           !bsy_test (&r->fa, F_CSY, config))
       {
         char szDestAddr[FTN_ADDR_SZ + 1];
@@ -255,7 +255,7 @@ void clientmgr (void *arg)
 
     if (
 #ifdef HAVE_THREADS
-        !server_flag && 
+        !server_flag &&
 #endif
         !poll_flag)
       checkcfg();
@@ -299,6 +299,22 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 #endif
   struct addrinfo *ai, *aiNodeHead, *aiHead, hints;
   int aiErr;
+  static int sa_init = 1;
+  static struct sockaddr_in sa_0;
+#ifdef AF_INET6
+  static struct sockaddr_in6 sa6_0;
+#endif
+
+  if (sa_init)
+  {
+    sa_init = 0;
+    memset((void *)&sa_0, 0, sizeof(struct sockaddr_in));
+    sa_0.sin_family = AF_INET;
+#ifdef AF_INET6
+    memset((void *)&sa6_0, 0, sizeof(struct sockaddr_in6));
+    sa6_0.sin6_family = AF_INET6;
+#endif
+  }
 
   /* setup hints for getaddrinfo */
   memset((void *)&hints, 0, sizeof(hints));
@@ -364,10 +380,8 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       Log(1, "%s host %s not found", proxy[0] ? "Proxy" : "Socks", host);
 #ifdef WITH_PERL
       xfree(hosts);
-#ifdef HTTPS
       xfree(proxy);
       xfree(socks);
-#endif
 #endif
       return 0;
     }
@@ -400,7 +414,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       }
       if (!binkd_exit)
       {
-	Log (1, "connection to %s failed");
+        Log (1, "connection to %s failed");
 	/* bad_try (&node->fa, "exec error", BAD_CALL, config); */
       }
       sockfd = INVALID_SOCKET;
@@ -414,7 +428,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 #endif
     {
       aiErr = srv_getaddrinfo(host, port, &hints, &aiNodeHead);
-     
+
       if (aiErr != 0)
       {
         Log(2, "getaddrinfo failed: %s (%d)", gai_strerror(aiErr), aiErr);
@@ -428,25 +442,28 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 
     for (ai = aiHead; ai != NULL && sockfd == INVALID_SOCKET; ai = ai->ai_next)
     {
+      if (0 == sockaddr_cmp_addr(ai->ai_addr, (struct sockaddr *)&sa_0))
+      {
+        Log(1, "Invalid address: 0.0.0.0");
+
+        /* try possible next address */
+        continue;
+      }
+#ifdef AF_INET6
+      if (0 == sockaddr_cmp_addr(ai->ai_addr, (struct sockaddr *)&sa6_0))
+      {
+        Log(1, "Invalid IPv6 address: [::]");
+
+        /* try possible next address */
+        continue;
+      }
+#endif
       if ((sockfd = socket (ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == INVALID_SOCKET)
       {
-	Log (1, "socket: %s", TCPERR ());
+        Log (1, "socket: %s", TCPERR ());
 
-	/* as long as there are more addresses, try those */
-        if (ai != NULL) 
-          continue;
-        else
-        {
-#ifdef WITH_PERL
-	  xfree(hosts);
-#ifdef HTTPS
-	  xfree(proxy);
-	  xfree(socks);
-#endif
-#endif
-	  freeaddrinfo(aiHead);
-	  return 0;
-	}
+        /* try possible next address */
+        continue;
       }
       add_socket(sockfd);
       /* Was the socket created after close_sockets loop in exitfunc()? */
@@ -496,7 +513,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       if (config->bindaddr[0])
       {
 	struct addrinfo *src_ai, src_hints;
-	
+
 	memset((void *)&src_hints, 0, sizeof(src_hints));
 	src_hints.ai_socktype = SOCK_STREAM;
 	src_hints.ai_family = ai->ai_family;
