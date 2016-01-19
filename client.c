@@ -48,6 +48,15 @@ static void call (void *arg);
 
 int n_clients = 0;
 
+#ifdef AF_INET6
+#define NO_INVALID_ADDRESSES 2
+#else
+#define NO_INVALID_ADDRESSES 1
+#endif
+struct sockaddr invalidAddresses[NO_INVALID_ADDRESSES] = { 0 };
+/* Is this way of initializing to 0 compatibel with all compilers in use?
+ * Otherwise do a memset() in clientmgr() */
+
 #if defined(HAVE_FORK) && !defined(HAVE_THREADS)
 
 static void alrm (int signo)
@@ -122,7 +131,7 @@ static int do_client(BINKD_CONFIG *config)
     {
       struct call_args args;
 
-      if (!bsy_test (&r->fa, F_BSY, config) || 
+      if (!bsy_test (&r->fa, F_BSY, config) ||
           !bsy_test (&r->fa, F_CSY, config))
       {
         char szDestAddr[FTN_ADDR_SZ + 1];
@@ -213,6 +222,12 @@ void clientmgr (void *arg)
 
   UNUSED_ARG(arg);
 
+  /* Initialize invalid addresses. Remainder of members is already initialized to 0. */
+  invalidAddresses[0].sa_family = AF_INET;
+#ifdef AF_INET6
+  invalidAddresses[1].sa_family = AF_INET6;
+#endif
+
 #ifdef HAVE_THREADS
   pidcmgr = PID();
 #elif defined(HAVE_FORK)
@@ -255,7 +270,7 @@ void clientmgr (void *arg)
 
     if (
 #ifdef HAVE_THREADS
-        !server_flag && 
+        !server_flag &&
 #endif
         !poll_flag)
       checkcfg();
@@ -284,7 +299,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   int sockfd = INVALID_SOCKET;
   int sock_out;
   char szDestAddr[FTN_ADDR_SZ + 1];
-  int i, rc, pid = -1;
+  int i, j, rc, pid = -1;
   char host[BINKD_FQDNLEN + 5 + 1];       /* current host/port */
   char addrbuf[BINKD_FQDNLEN + 1];
   char servbuf[MAXSERVNAME + 1];
@@ -364,10 +379,8 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       Log(1, "%s host %s not found", proxy[0] ? "Proxy" : "Socks", host);
 #ifdef WITH_PERL
       xfree(hosts);
-#ifdef HTTPS
       xfree(proxy);
       xfree(socks);
-#endif
 #endif
       return 0;
     }
@@ -400,7 +413,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       }
       if (!binkd_exit)
       {
-	Log (1, "connection to %s failed");
+        Log (1, "connection to %s failed");
 	/* bad_try (&node->fa, "exec error", BAD_CALL, config); */
       }
       sockfd = INVALID_SOCKET;
@@ -414,7 +427,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 #endif
     {
       aiErr = srv_getaddrinfo(host, port, &hints, &aiNodeHead);
-     
+
       if (aiErr != 0)
       {
         Log(2, "getaddrinfo failed: %s (%d)", gai_strerror(aiErr), aiErr);
@@ -428,25 +441,26 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 
     for (ai = aiHead; ai != NULL && sockfd == INVALID_SOCKET; ai = ai->ai_next)
     {
-      if ((sockfd = socket (ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == INVALID_SOCKET)
-      {
-	Log (1, "socket: %s", TCPERR ());
-
-	/* as long as there are more addresses, try those */
-        if (ai != NULL) 
-          continue;
-        else
+      for (j = 0; j < NO_INVALID_ADDRESSES; j++)
+        if (0 == sockaddr_cmp_addr(ai->ai_addr, &invalidAddresses[j]))
         {
-#ifdef WITH_PERL
-	  xfree(hosts);
-#ifdef HTTPS
-	  xfree(proxy);
-	  xfree(socks);
-#endif
-#endif
-	  freeaddrinfo(aiHead);
-	  return 0;
-	}
+          rc = getnameinfo( &invalidAddresses[j], sizeof(struct sockaddr), addrbuf, sizeof(addrbuf)
+                          , NULL, 0, NI_NUMERICHOST );
+          if (rc != 0)
+            Log(2, "Error in getnameinfo(): %s (%d)", gai_strerror(rc), rc);
+          else
+            Log(1, "Invalid address: %s", addrbuf);
+
+          /* try possible next address */
+          continue;
+        }
+
+      if ((sockfd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == INVALID_SOCKET)
+      {
+        Log (1, "socket: %s", TCPERR ());
+
+        /* try possible next address */
+        continue;
       }
       add_socket(sockfd);
       /* Was the socket created after close_sockets loop in exitfunc()? */
@@ -496,7 +510,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       if (config->bindaddr[0])
       {
 	struct addrinfo *src_ai, src_hints;
-	
+
 	memset((void *)&src_hints, 0, sizeof(src_hints));
 	src_hints.ai_socktype = SOCK_STREAM;
 	src_hints.ai_family = ai->ai_family;
