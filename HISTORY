@@ -1,3 +1,7 @@
+2016/01/19 15:22:15 1.1a-76 git
+.gitignore,NONE,2.1 client.c,2.98,2.99
+Check for "illegal" IP nrs 0.0.0.0 and [::] before trying to make a connection
+
 2015/10/09 20:54:11 1.1a-75 git
 perlhooks.c,2.88,2.89
 Typo in perlhooks function call
