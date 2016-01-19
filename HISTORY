@@ -1,3 +1,8 @@
+2016/01/19 15:22:22 1.1a-77 git
+client.c,2.99,2.100
+Check for "illegal" IP nrs 0.0.0.0 and [::] before trying to make a connection
+Using an array for the addresses and initializing outside of branch code.
+
 2016/01/19 15:22:15 1.1a-76 git
 .gitignore,NONE,2.1 client.c,2.98,2.99
 Check for "illegal" IP nrs 0.0.0.0 and [::] before trying to make a connection
