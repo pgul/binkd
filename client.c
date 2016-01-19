@@ -48,6 +48,15 @@ static void call (void *arg);
 
 int n_clients = 0;
 
+#ifdef AF_INET6
+#define NO_INVALID_ADDRESSES 2
+#else
+#define NO_INVALID_ADDRESSES 1
+#endif
+struct sockaddr invalidAddresses[NO_INVALID_ADDRESSES] = { 0 };
+/* Is this way of initializing to 0 compatibel with all compilers in use?
+ * Otherwise do a memset() in clientmgr() */
+
 #if defined(HAVE_FORK) && !defined(HAVE_THREADS)
 
 static void alrm (int signo)
@@ -213,6 +222,12 @@ void clientmgr (void *arg)
 
   UNUSED_ARG(arg);
 
+  /* Initialize invalid addresses. Remainder of members is already initialized to 0. */
+  invalidAddresses[0].sa_family = AF_INET;
+#ifdef AF_INET6
+  invalidAddresses[1].sa_family = AF_INET6;
+#endif
+
 #ifdef HAVE_THREADS
   pidcmgr = PID();
 #elif defined(HAVE_FORK)
@@ -284,7 +299,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   int sockfd = INVALID_SOCKET;
   int sock_out;
   char szDestAddr[FTN_ADDR_SZ + 1];
-  int i, rc, pid = -1;
+  int i, j, rc, pid = -1;
   char host[BINKD_FQDNLEN + 5 + 1];       /* current host/port */
   char addrbuf[BINKD_FQDNLEN + 1];
   char servbuf[MAXSERVNAME + 1];
@@ -299,22 +314,6 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 #endif
   struct addrinfo *ai, *aiNodeHead, *aiHead, hints;
   int aiErr;
-  static int sa_init = 1;
-  static struct sockaddr_in sa_0;
-#ifdef AF_INET6
-  static struct sockaddr_in6 sa6_0;
-#endif
-
-  if (sa_init)
-  {
-    sa_init = 0;
-    memset((void *)&sa_0, 0, sizeof(struct sockaddr_in));
-    sa_0.sin_family = AF_INET;
-#ifdef AF_INET6
-    memset((void *)&sa6_0, 0, sizeof(struct sockaddr_in6));
-    sa6_0.sin6_family = AF_INET6;
-#endif
-  }
 
   /* setup hints for getaddrinfo */
   memset((void *)&hints, 0, sizeof(hints));
@@ -442,23 +441,21 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 
     for (ai = aiHead; ai != NULL && sockfd == INVALID_SOCKET; ai = ai->ai_next)
     {
-      if (0 == sockaddr_cmp_addr(ai->ai_addr, (struct sockaddr *)&sa_0))
-      {
-        Log(1, "Invalid address: 0.0.0.0");
+      for (j = 0; j < NO_INVALID_ADDRESSES; j++)
+        if (0 == sockaddr_cmp_addr(ai->ai_addr, &invalidAddresses[j]))
+        {
+          rc = getnameinfo( &invalidAddresses[j], sizeof(struct sockaddr), addrbuf, sizeof(addrbuf)
+                          , NULL, 0, NI_NUMERICHOST );
+          if (rc != 0)
+            Log(2, "Error in getnameinfo(): %s (%d)", gai_strerror(rc), rc);
+          else
+            Log(1, "Invalid address: %s", addrbuf);
 
-        /* try possible next address */
-        continue;
-      }
-#ifdef AF_INET6
-      if (0 == sockaddr_cmp_addr(ai->ai_addr, (struct sockaddr *)&sa6_0))
-      {
-        Log(1, "Invalid IPv6 address: [::]");
+          /* try possible next address */
+          continue;
+        }
 
-        /* try possible next address */
-        continue;
-      }
-#endif
-      if ((sockfd = socket (ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == INVALID_SOCKET)
+      if ((sockfd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == INVALID_SOCKET)
       {
         Log (1, "socket: %s", TCPERR ());
 
