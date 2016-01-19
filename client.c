@@ -53,9 +53,7 @@ int n_clients = 0;
 #else
 #define NO_INVALID_ADDRESSES 1
 #endif
-struct sockaddr invalidAddresses[NO_INVALID_ADDRESSES] = {{ 0 }};
-/* Is this way of initializing to 0 compatibel with all compilers in use?
- * Otherwise do a memset() in clientmgr() */
+struct sockaddr invalidAddresses[NO_INVALID_ADDRESSES];
 
 #if defined(HAVE_FORK) && !defined(HAVE_THREADS)
 
@@ -222,7 +220,8 @@ void clientmgr (void *arg)
 
   UNUSED_ARG(arg);
 
-  /* Initialize invalid addresses. Remainder of members is already initialized to 0. */
+  /* Initialize invalid addresses */
+  memset(invalidAddresses, 0, sizeof(invalidAddresses));
   invalidAddresses[0].sa_family = AF_INET;
 #ifdef AF_INET6
   invalidAddresses[1].sa_family = AF_INET6;
@@ -444,16 +443,24 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       for (j = 0; j < NO_INVALID_ADDRESSES; j++)
         if (0 == sockaddr_cmp_addr(ai->ai_addr, &invalidAddresses[j]))
         {
-          rc = getnameinfo( &invalidAddresses[j], sizeof(struct sockaddr), addrbuf, sizeof(addrbuf)
+#ifdef AF_INET6
+          const int l = invalidAddresses[j].sa_family == AF_INET6 
+                      ? sizeof(struct sockaddr_in6): sizeof(struct sockaddr_in);
+#else
+          const int l = sizeof(struct sockaddr_in);
+#endif
+          rc = getnameinfo( &invalidAddresses[j], l, addrbuf, sizeof(addrbuf)
                           , NULL, 0, NI_NUMERICHOST );
           if (rc != 0)
             Log(2, "Error in getnameinfo(): %s (%d)", gai_strerror(rc), rc);
           else
             Log(1, "Invalid address: %s", addrbuf);
 
-          /* try possible next address */
-          continue;
+          break;
         }
+      if (j < NO_INVALID_ADDRESSES)
+        /* try possible next address */
+        continue;
 
       if ((sockfd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == INVALID_SOCKET)
       {
