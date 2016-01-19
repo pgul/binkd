@@ -53,7 +53,7 @@ int n_clients = 0;
 #else
 #define NO_INVALID_ADDRESSES 1
 #endif
-struct sockaddr invalidAddresses[NO_INVALID_ADDRESSES] = { 0 };
+struct sockaddr invalidAddresses[NO_INVALID_ADDRESSES] = {{ 0 }};
 /* Is this way of initializing to 0 compatibel with all compilers in use?
  * Otherwise do a memset() in clientmgr() */
 
