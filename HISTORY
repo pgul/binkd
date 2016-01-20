@@ -1,3 +1,7 @@
+2016/01/20 16:52:07 1.1a-81 git
+client.c,2.103,2.104
+Removed the memset. static variables are guaranteed to be initialized to 0, even by older compilers.
+
 2016/01/20 16:51:28 1.1a-80 git
 client.c,2.102,2.103
 Made the file "global" var static. This should make the var auto initialized to 0 for C99 compatible compilers. But left in the memset just in case.
