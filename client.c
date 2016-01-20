@@ -220,8 +220,7 @@ void clientmgr (void *arg)
 
   UNUSED_ARG(arg);
 
-  /* Initialize invalid addresses */
-  memset(invalidAddresses, 0, sizeof(invalidAddresses));
+  /* Initialize invalid addresses. static variables are guaranteed to be initialized to 0, so no need to specify all members */
   invalidAddresses[0].sa_family = AF_INET;
 #ifdef AF_INET6
   invalidAddresses[1].sa_family = AF_INET6;
