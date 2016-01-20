@@ -1,3 +1,7 @@
+2016/01/20 16:51:24 1.1a-79 git
+client.c,2.101,2.102
+Code of previous commit tested and fixed.
+
 2016/01/20 16:50:19 1.1a-78 git
 client.c,2.100,2.101
 Initialization warning fixed
