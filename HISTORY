@@ -1,3 +1,8 @@
+2016/01/20 16:51:28 1.1a-80 git
+client.c,2.102,2.103
+Made the file "global" var static. This should make the var auto initialized to 0 for C99 compatible compilers. But left in the memset just in case.
+Expanded tab characters in client.c
+
 2016/01/20 16:51:24 1.1a-79 git
 client.c,2.101,2.102
 Code of previous commit tested and fixed.
