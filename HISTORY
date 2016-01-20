@@ -1,3 +1,29 @@
+2016/01/20 16:52:07 1.1a-81 git
+client.c,2.103,2.104
+Removed the memset. static variables are guaranteed to be initialized to 0, even by older compilers.
+
+2016/01/20 16:51:28 1.1a-80 git
+client.c,2.102,2.103
+Made the file "global" var static. This should make the var auto initialized to 0 for C99 compatible compilers. But left in the memset just in case.
+Expanded tab characters in client.c
+
+2016/01/20 16:51:24 1.1a-79 git
+client.c,2.101,2.102
+Code of previous commit tested and fixed.
+
+2016/01/20 16:50:19 1.1a-78 git
+client.c,2.100,2.101
+Initialization warning fixed
+
+2016/01/19 15:22:22 1.1a-77 git
+client.c,2.99,2.100
+Check for "illegal" IP nrs 0.0.0.0 and [::] before trying to make a connection
+Using an array for the addresses and initializing outside of branch code.
+
+2016/01/19 15:22:15 1.1a-76 git
+.gitignore,NONE,2.1 client.c,2.98,2.99
+Check for "illegal" IP nrs 0.0.0.0 and [::] before trying to make a connection
+
 2015/10/09 20:54:11 1.1a-75 git
 perlhooks.c,2.88,2.89
 Typo in perlhooks function call
