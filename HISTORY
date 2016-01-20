@@ -1,3 +1,7 @@
+2016/01/20 16:50:19 1.1a-78 git
+client.c,2.100,2.101
+Initialization warning fixed
+
 2016/01/19 15:22:22 1.1a-77 git
 client.c,2.99,2.100
 Check for "illegal" IP nrs 0.0.0.0 and [::] before trying to make a connection
