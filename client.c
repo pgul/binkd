@@ -53,9 +53,7 @@ int n_clients = 0;
 #else
 #define NO_INVALID_ADDRESSES 1
 #endif
-struct sockaddr invalidAddresses[NO_INVALID_ADDRESSES] = { 0 };
-/* Is this way of initializing to 0 compatibel with all compilers in use?
- * Otherwise do a memset() in clientmgr() */
+static struct sockaddr invalidAddresses[NO_INVALID_ADDRESSES];
 
 #if defined(HAVE_FORK) && !defined(HAVE_THREADS)
 
@@ -222,7 +220,7 @@ void clientmgr (void *arg)
 
   UNUSED_ARG(arg);
 
-  /* Initialize invalid addresses. Remainder of members is already initialized to 0. */
+  /* Initialize invalid addresses. static variables are guaranteed to be initialized to 0, so no need to specify all members */
   invalidAddresses[0].sa_family = AF_INET;
 #ifdef AF_INET6
   invalidAddresses[1].sa_family = AF_INET6;
@@ -360,19 +358,19 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       *sp++ = '\0';
       sport = sp;
       if ((sp=strchr(sp, '/')) != NULL)
-	*sp++ = '\0';
+        *sp++ = '\0';
     }
     else
     {
       if ((sp=strchr(host, '/')) != NULL)
-	*sp++ = '\0';
+        *sp++ = '\0';
       sport = proxy[0] ? "squid" : "socks"; /* default port */
     }
     /* resolve proxy host */
     if ( (aiErr = srv_getaddrinfo(host, sport, &hints, &aiProxyHead)) != 0)
     {
-	Log(2, "Port %s not found, try default %d", sp, proxy[0] ? 3128 : 1080);
-	aiErr = getaddrinfo(host, proxy[0] ? "3128" : "1080", &hints, &aiProxyHead);
+        Log(2, "Port %s not found, try default %d", sp, proxy[0] ? 3128 : 1080);
+        aiErr = getaddrinfo(host, proxy[0] ? "3128" : "1080", &hints, &aiProxyHead);
     }
     if (aiErr != 0)
     {
@@ -389,7 +387,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 
   for (i = 1; sockfd == INVALID_SOCKET
        && (rc = get_host_and_port
-	   (i, host, &port, hosts, &node->fa, config)) != -1; ++i)
+           (i, host, &port, hosts, &node->fa, config)) != -1; ++i)
   {
     if (rc == 0)
     {
@@ -407,14 +405,14 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       free(cmdline);
       if (pid != -1)
       {
-	Log (4, "connected");
-	add_socket(sock_out);
-	break;
+        Log (4, "connected");
+        add_socket(sock_out);
+        break;
       }
       if (!binkd_exit)
       {
         Log (1, "connection to %s failed");
-	/* bad_try (&node->fa, "exec error", BAD_CALL, config); */
+        /* bad_try (&node->fa, "exec error", BAD_CALL, config); */
       }
       sockfd = INVALID_SOCKET;
       continue;
@@ -444,16 +442,24 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       for (j = 0; j < NO_INVALID_ADDRESSES; j++)
         if (0 == sockaddr_cmp_addr(ai->ai_addr, &invalidAddresses[j]))
         {
-          rc = getnameinfo( &invalidAddresses[j], sizeof(struct sockaddr), addrbuf, sizeof(addrbuf)
+#ifdef AF_INET6
+          const int l = invalidAddresses[j].sa_family == AF_INET6 
+                      ? sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in);
+#else
+          const int l = sizeof(struct sockaddr_in);
+#endif
+          rc = getnameinfo( &invalidAddresses[j], l, addrbuf, sizeof(addrbuf)
                           , NULL, 0, NI_NUMERICHOST );
           if (rc != 0)
             Log(2, "Error in getnameinfo(): %s (%d)", gai_strerror(rc), rc);
           else
             Log(1, "Invalid address: %s", addrbuf);
 
-          /* try possible next address */
-          continue;
+          break;
         }
+      if (j < NO_INVALID_ADDRESSES)
+        /* try possible next address */
+        continue;
 
       if ((sockfd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == INVALID_SOCKET)
       {
@@ -467,98 +473,98 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       if (binkd_exit)
       {
 #ifdef WITH_PERL
-	xfree(hosts);
+        xfree(hosts);
 #ifdef HTTPS
-	xfree(proxy);
-	xfree(socks);
+        xfree(proxy);
+        xfree(socks);
 #endif
 #endif
-	freeaddrinfo(aiHead);
-	return 0;
+        freeaddrinfo(aiHead);
+        return 0;
       }
       rc = getnameinfo(ai->ai_addr, ai->ai_addrlen, addrbuf, sizeof(addrbuf),
-		       servbuf, sizeof(servbuf), NI_NUMERICHOST | NI_NUMERICSERV);
+                       servbuf, sizeof(servbuf), NI_NUMERICHOST | NI_NUMERICSERV);
       if (rc != 0) {
-	Log (2, "Error in getnameinfo(): %s (%d)", gai_strerror(rc), rc);
+        Log (2, "Error in getnameinfo(): %s (%d)", gai_strerror(rc), rc);
         snprintf(addrbuf, BINKD_FQDNLEN, "invalid");
-	*servbuf = '\0';
+        *servbuf = '\0';
       }
 
 #ifdef HTTPS
       if (use_proxy)
       {
-	char *sp = strchr(host, ':');
-	if (sp) *sp = '\0';
-	if (port == config->oport)
-	  Log (4, "trying %s via %s %s:%s...", host,
-	       proxy[0] ? "proxy" : "socks", addrbuf, servbuf);
-	else
-	  Log (4, "trying %s:%s via %s %s:%s...", host, port,
-	       proxy[0] ? "proxy" : "socks", addrbuf, servbuf);
+        char *sp = strchr(host, ':');
+        if (sp) *sp = '\0';
+        if (port == config->oport)
+          Log (4, "trying %s via %s %s:%s...", host,
+               proxy[0] ? "proxy" : "socks", addrbuf, servbuf);
+        else
+          Log (4, "trying %s:%s via %s %s:%s...", host, port,
+               proxy[0] ? "proxy" : "socks", addrbuf, servbuf);
       }
       else
 #endif
       {
-	if (port == config->oport)
+        if (port == config->oport)
           Log (4, "trying %s [%s]...", host, addrbuf);
-	else
+        else
           Log (4, "trying %s [%s]:%s...", host, addrbuf, servbuf);
-	dst_ip = addrbuf;
-	port = servbuf;
+        dst_ip = addrbuf;
+        port = servbuf;
       }
       /* find bind addr with matching address family */
       if (config->bindaddr[0])
       {
-	struct addrinfo *src_ai, src_hints;
+        struct addrinfo *src_ai, src_hints;
 
-	memset((void *)&src_hints, 0, sizeof(src_hints));
-	src_hints.ai_socktype = SOCK_STREAM;
-	src_hints.ai_family = ai->ai_family;
-	src_hints.ai_protocol = IPPROTO_TCP;
-	if ((aiErr = getaddrinfo(config->bindaddr, NULL, &src_hints, &src_ai)) == 0)
+        memset((void *)&src_hints, 0, sizeof(src_hints));
+        src_hints.ai_socktype = SOCK_STREAM;
+        src_hints.ai_family = ai->ai_family;
+        src_hints.ai_protocol = IPPROTO_TCP;
+        if ((aiErr = getaddrinfo(config->bindaddr, NULL, &src_hints, &src_ai)) == 0)
         {
           if (bind(sockfd, src_ai->ai_addr, src_ai->ai_addrlen))
-	    Log(4, "bind: %s", TCPERR());
-	  freeaddrinfo(src_ai);
-	}
+            Log(4, "bind: %s", TCPERR());
+          freeaddrinfo(src_ai);
+        }
         else
-	  if (aiErr == EAI_FAMILY)
-	    /* address family of target and bind address don't match */
-	    continue;
-	  else
-	    /* otherwise just warn and don't bind() */
-	    Log(2, "bind -- getaddrinfo: %s (%d)", gai_strerror(aiErr), aiErr);
+          if (aiErr == EAI_FAMILY)
+            /* address family of target and bind address don't match */
+            continue;
+          else
+            /* otherwise just warn and don't bind() */
+            Log(2, "bind -- getaddrinfo: %s (%d)", gai_strerror(aiErr), aiErr);
       }
 #if defined(HAVE_FORK) && !defined(HAVE_THREADS)
       if (config->connect_timeout)
       {
-	signal(SIGALRM, alrm);
-	alarm(config->connect_timeout);
+        signal(SIGALRM, alrm);
+        alarm(config->connect_timeout);
       }
 #endif
       if (connect (sockfd, ai->ai_addr, ai->ai_addrlen) == 0)
       {
 #if defined(HAVE_FORK) && !defined(HAVE_THREADS)
-	alarm(0);
+        alarm(0);
 #endif
-	Log (4, "connected");
-	sock_out = sockfd;
-	break;
+        Log (4, "connected");
+        sock_out = sockfd;
+        break;
       }
 
 #if defined(HAVE_FORK) && !defined(HAVE_THREADS)
       if (errno == EINTR && config->connect_timeout)
-	save_err = strerror (ETIMEDOUT);
+        save_err = strerror (ETIMEDOUT);
       else
-	save_err = TCPERR ();
+        save_err = TCPERR ();
       alarm(0);
 #else
       save_err = TCPERR ();
 #endif
       if (!binkd_exit)
       {
-	Log (1, "connection to %s failed: %s", szDestAddr, save_err);
-	bad_try (&node->fa, save_err, BAD_CALL, config);
+        Log (1, "connection to %s failed: %s", szDestAddr, save_err);
+        bad_try (&node->fa, save_err, BAD_CALL, config);
       }
       del_socket(sockfd);
       soclose (sockfd);
