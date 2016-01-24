@@ -9,7 +9,7 @@ extern int sockfd_used;
 /*
  * Listens... Than calls protocol()
  */
-void servmgr(void);
+void servmgr(void *);
 
 extern int ext_rand;
 

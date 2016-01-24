@@ -304,10 +304,12 @@ static int do_server(BINKD_CONFIG *config)
   }
 }
 
-void servmgr (void)
+void servmgr (void *arg)
 {
   int status;
   BINKD_CONFIG *config;
+
+  UNUSED_ARG(arg);
 
   srand(time(0));
   setproctitle ("server manager");
