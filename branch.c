@@ -120,7 +120,7 @@ again:
       #ifdef HAVE_GETTID
       rc = args.tid;
       #else
-      rc = (int)(0xffff & (int)tid);
+      rc = (int)(0xffff & (long int)tid);
       #endif
     }
     ReleaseSem(&args.mutex);
