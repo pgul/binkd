@@ -1,3 +1,7 @@
+2016/01/24 13:37:09 1.1a-85 git
+server.c,2.63,2.64 server.h,2.6,2.7
+Fixed warning on multithread version
+
 2016/01/24 13:33:08 1.1a-84 git
 binkd.c,2.122,2.123 exitproc.c,2.47,2.48
 Run servmgr as non-main thread on multithread version
