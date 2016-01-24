@@ -543,10 +543,12 @@ case x$with_pthreads in
      AC_TRY_RUN([
         #include <sys/syscall.h>
         #include <unistd.h>
-        if (syscall(SYS_gettid) == -1)
-          return 1;
-        else
-          return 0;
+        int main() {
+          if (syscall(SYS_gettid) == -1)
+            return 1;
+          else
+            return 0;
+        }
      ], AC_DEFINE(HAVE_GETTID) AC_MSG_RESULT(yes),
        AC_MSG_RESULT(no),
        AC_MSG_RESULT(cross-compiling. No assumptions made)
