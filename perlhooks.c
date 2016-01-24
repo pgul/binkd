@@ -1982,7 +1982,10 @@ void perl_after_session(STATE *state, int status) {
   SV *sv;
   BINKD_CONFIG *cfg = state->config;
 
-  CLEAR_STATE;
+  if (cfg->perl_ok && Perl_get_context()) {
+    CLEAR_STATE;
+  }
+
   if (cfg->perl_ok & (1 << PERL_AFTER_SESSION)) {
     Log(LL_DBG, "perl_after_session(), perl=%p", Perl_get_context());
     if (!Perl_get_context()) return;
