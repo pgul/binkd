@@ -540,11 +540,13 @@ case x$with_pthreads in
      esac
 
      AC_MSG_CHECKING(for gettid syscall)
-     AC_TRY_LINK([
+     AC_TRY_RUN([
         #include <sys/syscall.h>
         #include <unistd.h>
-     ], [
-        return syscall(SYS_gettid);
+        if (syscall(SYS_gettid) == -1)
+          return 1;
+        else
+          return 0;
      ], AC_DEFINE(HAVE_GETTID) AC_MSG_RESULT(yes),
        AC_MSG_RESULT(no),
        AC_MSG_RESULT(cross-compiling. No assumptions made)
