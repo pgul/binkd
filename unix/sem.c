@@ -23,7 +23,16 @@ int _WaitSem(void *vpSem, int timeout) {
   int rc;
 
   pthread_mutex_lock(&(sem->mutex));
+#ifdef HAVE_CLOCK_GETTIME
   clock_gettime(CLOCK_REALTIME, &ts);
+#else
+  {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    ts.tv_sec = tv.tv_sec + 0;
+    ts.tv_nsec = tv.tv_usec * 1000;
+  }
+#endif
   ts.tv_sec += 5;
   rc = pthread_cond_timedwait(&(sem->cond), &(sem->mutex), &ts);
   pthread_mutex_unlock(&(sem->mutex));
