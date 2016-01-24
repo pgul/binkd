@@ -1,3 +1,7 @@
+2016/01/24 11:54:14 1.1a-82 git
+branch.c,2.17,2.18 md5b.c,2.13,2.14 sys.h,2.46,2.47
+Fixed warnings for unix multithread version
+
 2016/01/20 16:52:07 1.1a-81 git
 client.c,2.103,2.104
 Removed the memset. static variables are guaranteed to be initialized to 0, even by older compilers.
