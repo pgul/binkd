@@ -1,3 +1,8 @@
+2016/01/24 22:54:12 1.1a-86 git
+binkd.c,2.123,2.124 breaksig.c,2.7,2.8 server.c,2.64,2.65 server.h,2.7,2.8
+Servmgr returned to main thread
+But signal handler does not call exit(), just set binkd_exit flag
+
 2016/01/24 13:37:09 1.1a-85 git
 server.c,2.63,2.64 server.h,2.6,2.7
 Fixed warning on multithread version
