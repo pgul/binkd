@@ -1,3 +1,7 @@
+2016/01/24 23:00:48 1.1a-87 git
+perlhooks.c,2.89,2.90
+Fixed segfault after session without perl hooks
+
 2016/01/24 22:54:12 1.1a-86 git
 binkd.c,2.123,2.124 breaksig.c,2.7,2.8 server.c,2.64,2.65 server.h,2.7,2.8
 Servmgr returned to main thread
