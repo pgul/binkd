@@ -734,13 +734,7 @@ int main (int argc, char *argv[])
     create_sem_file (current_config->pid_file, 1);
   }
 
-#ifdef HAVE_THREADS
-  if (server_flag && (pidsmgr = branch (servmgr, 0, 0)) < 0)
-    Log (0, "cannot branch out");
-  while (1) sleep(1);
-#else
   servmgr ();
-#endif
 
   return 0;
 }

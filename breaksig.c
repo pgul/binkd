@@ -25,8 +25,11 @@ static void exitsig (int arg)
   if (pidcmgr)
     Log (0, "got signal #%i. Killing %i and quitting...", arg, (int) pidcmgr);
   else
-#endif
     Log (0, "got signal #%i.", arg);
+#else
+  Log (1, "got signal #%i.", arg);
+  binkd_exit = 1;
+#endif
 }
 
 /* Set up break handler, set up exit list if needed */
