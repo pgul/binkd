@@ -29,6 +29,13 @@ static void exitsig (int arg)
 #else
   Log (1, "got signal #%i.", arg);
   binkd_exit = 1;
+#ifdef WITH_PTHREADS
+  if (tidsmgr && tidsmgr != (int) PID ())
+  {
+    Log(6, "Resend signal to servmgr");
+    pthread_kill(servmgr_thread, arg);
+  }
+#endif
 #endif
 }
 
