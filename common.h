@@ -70,6 +70,10 @@ extern int checkcfg_flag;	/* exit(3) on config change */
 extern int pidcmgr;		/* pid for clientmgr */
 extern int pidCmgr;             /* real pid for clientmgr (not 0) */
 extern int pidsmgr;		/* pid for server */
+#ifdef WITH_PTHREADS
+extern int tidsmgr;
+extern pthread_t servmgr_thread;
+#endif
 extern char **saved_envp;
 extern int no_MD5;
 extern int no_crypt;

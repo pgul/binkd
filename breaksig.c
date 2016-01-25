@@ -25,8 +25,18 @@ static void exitsig (int arg)
   if (pidcmgr)
     Log (0, "got signal #%i. Killing %i and quitting...", arg, (int) pidcmgr);
   else
-#endif
     Log (0, "got signal #%i.", arg);
+#else
+  Log (1, "got signal #%i.", arg);
+  binkd_exit = 1;
+#ifdef WITH_PTHREADS
+  if (tidsmgr && tidsmgr != (int) PID ())
+  {
+    Log(6, "Resend signal to servmgr");
+    pthread_kill(servmgr_thread, arg);
+  }
+#endif
+#endif
 }
 
 /* Set up break handler, set up exit list if needed */

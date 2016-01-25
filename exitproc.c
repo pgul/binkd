@@ -96,11 +96,7 @@ void exitfunc (void)
     /* wait for threads exit */
     binkd_exit = 1;
     for (;;)
-#ifdef OS2
-      if (n_servers || n_clients || (pidcmgr && server_flag))
-#else
       if (n_servers || n_clients || pidcmgr || pidsmgr)
-#endif
       {
 	close_srvmgr_socket();
 	if (pidcmgr)
@@ -115,12 +111,16 @@ void exitfunc (void)
 	  timeout++;
 	  if (timeout == 4) /* 4 sec */
 	  {
-	    Log(5, "exitfunc(): warning, threads exit timeout (%i sec)!", timeout);
+	    Log(5, "exitfunc(): warning, threads exit timeout (%i sec), n_servers %i, n_clients %i pidcmgr %i pidsmgr %i!",
+			    timeout, n_servers, n_clients, (int)pidcmgr, (int)pidsmgr);
 	    break;
 	  }
 	}
 	else
+	{
+	  Log(9, "Thread finished");
 	  timeout = 0;
+	}
       }
       else
       {

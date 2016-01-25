@@ -82,7 +82,7 @@
       #include <sys/syscall.h>
       #define PID() (int)syscall(SYS_gettid)
     #else
-      #define PID() ((int)(0xffff & (int)pthread_self()))
+      #define PID() ((int)(0xffff & (long int)pthread_self()))
     #endif
   #else
     #include <process.h>

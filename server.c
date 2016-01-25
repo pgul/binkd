@@ -202,6 +202,9 @@ static int do_server(BINKD_CONFIG *config)
         blocksig();
         continue;
       case -1:
+        save_errno = TCPERRNO;
+        if (binkd_exit)
+          goto accepterr;
         if (TCPERRNO == EINTR)
         {
           unblocksig();
@@ -216,9 +219,7 @@ static int do_server(BINKD_CONFIG *config)
           }
           continue;
         }
-        save_errno = TCPERRNO;
-        if (!binkd_exit) /* Suppress servmgr socket error at binkd exit */
-          Log (1, "servmgr select(): %s", TCPERR ());
+        Log (1, "servmgr select(): %s", TCPERR ());
         goto accepterr;
     }
  

@@ -532,18 +532,23 @@ case x$with_pthreads in
      OPT_SRC="$OPT_SRC unix/sem.c"
      AC_CHECK_FUNCS(clock_gettime)
      case x$ac_cv_func_clock_gettime in
-       xyes) ;;
-       *)  AC_CHECK_LIB(rt, clock_gettime, [LIBS="$LIBS -lrt"],
-                        AC_ERROR(clock_gettime() required for thread version))
+       xyes)
+           AC_DEFINE(HAVE_CLOCK_GETTIME)
+           ;;
+       *)  AC_CHECK_LIB(rt, clock_gettime, AC_DEFINE(HAVE_CLOCK_GETTIME) LIBS="$LIBS -lrt")
            ;;
      esac
 
-     LIBS="$LIBS -lrt"
      AC_MSG_CHECKING(for gettid syscall)
-     AC_TRY_COMPILE([
+     AC_TRY_RUN([
         #include <sys/syscall.h>
-     ], [
-        return syscall(SYS_gettid);
+        #include <unistd.h>
+        int main() {
+          if (syscall(SYS_gettid) == -1)
+            return 1;
+          else
+            return 0;
+        }
      ], AC_DEFINE(HAVE_GETTID) AC_MSG_RESULT(yes),
        AC_MSG_RESULT(no),
        AC_MSG_RESULT(cross-compiling. No assumptions made)

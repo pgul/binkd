@@ -419,7 +419,7 @@ static void getrand(unsigned char *res, int len, STATE *rnd)
     int ext_rand;
   } rd;
   time(&rd.tm);
-  rd.pid=PID();
+  rd.pid=(unsigned short)PID();
   rd.rand=rand();
   rd.ext_rand=ext_rand;
   hmac_md5((void *)&rd, sizeof(rd), (void *)rnd, sizeof(STATE), digest);

@@ -84,6 +84,10 @@ MUTEXSEM fhsem;
 int pidcmgr = 0;		       /* pid for clientmgr */
 int pidCmgr = 0;		       /* real pid for clientmgr (not 0) */
 int pidsmgr = 0;		       /* pid for server */
+#ifdef WITH_PTHREADS
+pthread_t servmgr_thread;
+int tidsmgr;
+#endif
 static SOCKET inetd_socket_in = -1, inetd_socket_out = -1;
 static char *remote_addr, *remote_node;
 
@@ -708,6 +712,10 @@ int main (int argc, char *argv[])
   }
 
   pidsmgr = (int) getpid ();
+#ifdef WITH_PTHREADS
+  servmgr_thread = pthread_self();
+  tidsmgr = PID();
+#endif
   if (client_flag && (pidcmgr = branch (clientmgr, 0, 0)) < 0)
   {
     Log (0, "cannot branch out");
