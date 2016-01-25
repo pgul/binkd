@@ -30,7 +30,7 @@ inbound.o: inbound.c readcfg.h Config.h btypes.h iphdr.h sys.h inbound.h \
  protoco2.h common.h tools.h getw.h protocol.h readdir.h ftnaddr.h \
  ftnnode.h srif.h perlhooks.h prothlp.h
 breaksig.o: breaksig.c sys.h common.h iphdr.h tools.h getw.h btypes.h \
- Config.h
+ Config.h sem.h
 branch.o: branch.c common.h iphdr.h sys.h tools.h getw.h btypes.h \
  Config.h
 rename.o: unix/rename.c

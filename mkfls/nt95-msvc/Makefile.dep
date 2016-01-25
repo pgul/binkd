@@ -430,6 +430,7 @@ $(OUTDIR)\breaksig.obj: \
 	"readcfg.h" \
 	"sys.h" \
 	"tools.h" \
+	"sem.h" \
 	"nt\win9x.h" \
 	"nt\WSock.h"
 

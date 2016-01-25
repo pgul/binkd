@@ -17,6 +17,7 @@
 #include "sys.h"
 #include "common.h"
 #include "tools.h"
+#include "sem.h"
 
 static void exitsig (int arg)
 {
@@ -34,7 +35,8 @@ static void exitsig (int arg)
   {
     Log(6, "Resend signal to servmgr");
     pthread_kill(servmgr_thread, arg);
-  }
+  } else if (!server_flag)
+    PostSem(&wakecmgr);
 #endif
 #endif
 }
