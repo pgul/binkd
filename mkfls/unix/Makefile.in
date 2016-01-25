@@ -52,7 +52,7 @@ banner:
 
 install: compile .version
 	./mkinstalldirs $(DESTDIR)$(prefix)/sbin
-	$(INSTALL) $(APPL) $(DESTDIR)$(prefix)/sbin/$(APPL)-`cat .version`
+	$(INSTALL) -s $(APPL) $(DESTDIR)$(prefix)/sbin/$(APPL)-`cat .version`
 	rm -f $(DESTDIR)$(prefix)/sbin/$(APPL)
 	(VER=`cat .version` ; cd $(DESTDIR)$(prefix)/sbin ; ln -s $(APPL)-$$VER $(APPL) )
 	./mkinstalldirs $(DESTDIR)$(MANDIR)/man8
