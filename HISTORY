@@ -1,3 +1,7 @@
+2016/01/25 09:47:39 git
+Makefile.dep,2.29,2.30
+Removed delay on exit multithread client-only by signal
+
 2016/01/25 09:34:15 1.1a-89 git
 client.c,2.104,2.105
 Fixed exit by signal on multithread clientonly mode
