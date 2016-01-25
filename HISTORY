@@ -1,3 +1,7 @@
+2016/01/25 09:34:15 1.1a-89 git
+client.c,2.104,2.105
+Fixed exit by signal on multithread clientonly mode
+
 2016/01/24 23:32:38 1.1a-88 git
 binkd.c,2.124,2.125 breaksig.c,2.8,2.9 common.h,2.18,2.19
 Signal handling in pthread version on FreeBSD
