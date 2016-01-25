@@ -285,9 +285,11 @@ void clientmgr (void *arg)
   unblocksig();
 #ifdef HAVE_THREADS
   pidcmgr = 0;
-  PostSem(&eothread);
-  if (binkd_exit)
-    ENDTHREAD();
+  if (server_flag) {
+    PostSem(&eothread);
+    if (binkd_exit)
+      ENDTHREAD();
+  }
 #endif
   exit (0);
 }
