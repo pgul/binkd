@@ -1,3 +1,7 @@
+2016/01/27 21:40:15 1.1a-91 git
+sem.c,1.3,1.4
+Fixed timeout on wait unix semaphore
+
 2016/01/27 21:23:45 1.1a-90 git
 binkd.c,2.125,2.126 client.c,2.105,2.106 rfc2553.c,2.7,2.8 rfc2553.h,2.4,2.5
 Fixed SIGHUP handler in unix pthread version
