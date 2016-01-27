@@ -111,7 +111,7 @@ static int do_server(BINKD_CONFIG *config)
     if ((aiErr = getaddrinfo(listen_list->addr[0] ? listen_list->addr : NULL, 
                              listen_list->port, &hints, &aiHead)) != 0)
     {
-      Log(0, "servmgr getaddrinfo: %s (%d)", gai_strerror(aiErr), aiErr);
+      Log(1, "servmgr getaddrinfo: %s (%d)", gai_strerror(aiErr), aiErr);
       return -1;
     }
 
@@ -120,8 +120,8 @@ static int do_server(BINKD_CONFIG *config)
       sockfd[sockfd_used] = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
       if (sockfd[sockfd_used] < 0)
       {
-        Log (0, "servmgr socket(): %s", TCPERR ());
-        continue;
+        Log(1, "servmgr socket(): %s", TCPERR ());
+        return -1;
       }
 #ifdef UNIX /* Not sure how to set NOINHERIT flag for socket on Windows and OS/2 */
       if (fcntl(sockfd[sockfd_used], F_SETFD, FD_CLOEXEC) != 0)
@@ -142,15 +142,15 @@ static int do_server(BINKD_CONFIG *config)
     
       if (bind (sockfd[sockfd_used], ai->ai_addr, ai->ai_addrlen) != 0)
       {
-        Log (0, "servmgr bind(): %s", TCPERR ());
+        Log(1, "servmgr bind(): %s", TCPERR ());
         soclose(sockfd[sockfd_used]);
-        continue;
+        return -1;
       }
       if (listen (sockfd[sockfd_used], 5) != 0)
       {
-        Log(0, "servmgr listen(): %s", TCPERR ());
+        Log(1, "servmgr listen(): %s", TCPERR ());
         soclose(sockfd[sockfd_used]);
-        continue;
+        return -1;
       }
 
       sockfd_used++;
@@ -162,7 +162,7 @@ static int do_server(BINKD_CONFIG *config)
   }
 
   if (sockfd_used == 0) {
-    Log(0, "servmgr: No listen socket open");
+    Log(1, "servmgr: No listen socket open");
     return -1;
   }
 
