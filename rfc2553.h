@@ -51,7 +51,7 @@
                   const struct addrinfo *hints,
                   struct addrinfo **res);
   void freeaddrinfo(struct addrinfo *ai);
-  char * gai_strerror(int ecode);
+  char *gai_strerror(int ecode);
 
   #ifndef AI_PASSIVE
   #define AI_PASSIVE (1<<1)

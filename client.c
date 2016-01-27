@@ -169,7 +169,7 @@ static int do_client(BINKD_CONFIG *config)
 
       unblocksig();
       while (need_sleep > 0 && !binkd_exit
-#if defined(HAVE_FORK) && !defined(HAVE_THREADS)
+#if defined(HAVE_FORK)
              && !got_sighup
 #endif
             )

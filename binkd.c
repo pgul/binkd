@@ -133,7 +133,9 @@ void sighandler(int signo)
 
   switch (signo) {
     case SIGHUP:  got_sighup++;
+#ifndef HAVE_THREADS
                   if (pidcmgr) kill(pidcmgr, SIGHUP);
+#endif
                   break;
     case SIGCHLD: got_sigchld++;
                   break;

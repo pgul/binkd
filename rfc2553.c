@@ -208,7 +208,7 @@ static char *ai_errlist[] = {
     "Unknown error",		/* EAI_UNKNOWN    */
 };
 
-char * gai_strerror(int ecode)
+char *gai_strerror(int ecode)
 {
     if (ecode > EAI_NONAME || ecode < EAI_UNKNOWN)
 	ecode = EAI_UNKNOWN;
