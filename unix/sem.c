@@ -33,7 +33,7 @@ int _WaitSem(void *vpSem, int timeout) {
     ts.tv_nsec = tv.tv_usec * 1000;
   }
 #endif
-  ts.tv_sec += 5;
+  ts.tv_sec += timeout;
   rc = pthread_cond_timedwait(&(sem->cond), &(sem->mutex), &ts);
   pthread_mutex_unlock(&(sem->mutex));
   return rc;
