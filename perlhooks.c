@@ -623,7 +623,7 @@ MUTEXSEM perlsem;
     def_config();                                                  \
     if ( ( svret = perl_get_sv(sv_config, TRUE)) != NULL ) {       \
       sv_setpvn(svret, (char *)&cfg, sizeof(&cfg));                \
-        SvREADONLY_on(svret);                                      \
+      SvREADONLY_on(svret);                                        \
     }                                                              \
   }
 
@@ -1535,6 +1535,7 @@ static void setup_addrs(char *name, int n, FTN_ADDR *p) {
   int   i;
 
   av = perl_get_av(name, TRUE);
+  SvREADONLY_off( (SV*)av );
   av_clear(av);
   for (i = 0; i < n; i++) {
     ftnaddress_to_str(buf, p+i);
@@ -2335,7 +2336,9 @@ int perl_on_recv(STATE *state, char *s, int size) {
     lockperlsem();
     { dSP;
       if ( (sv = perl_get_sv("s", TRUE)) ) {
-        sv_setpvn(sv, s, size); SvREADONLY_on(sv);
+        SvREADONLY_off(sv);
+        sv_setpvn(sv, s, size);
+        SvREADONLY_on(sv);
       }
       ENTER;
       SAVETMPS;
