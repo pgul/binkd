@@ -1,3 +1,8 @@
+2016/03/28 18:25:15 1.0.5-pre5 git
+perlhooks.c,2.79.2.2,2.79.2.3
+Fixed "Modification of a read-only value attempted" error
+Signed-off-by: Pavel Gulchuk <gul@gul.kiev.ua>
+
 2015/01/14 09:43:44 1.0.5-pre4 gul
 protocol.c,2.219.2.5,2.219.2.6
 Improve logging
