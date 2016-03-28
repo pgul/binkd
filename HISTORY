@@ -1,3 +1,7 @@
+2016/03/28 18:08:43 1.1a-93 git
+perlhooks.c,2.90,2.91
+Fixed "Modification of a read-only value attempted" error
+
 2016/01/27 23:31:08 1.1a-92 git
 server.c,2.65,2.66
 Safe servmgr shudown on error
