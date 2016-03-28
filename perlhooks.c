@@ -1751,6 +1751,7 @@ static void setup_addrs(char *name, int n, FTN_ADDR *p) {
   int   i;
 
   av = perl_get_av(name, TRUE);
+  SvREADONLY_off( (SV*)av );
   av_clear(av);
   for (i = 0; i < n; i++) {
     ftnaddress_to_str(buf, p+i);
