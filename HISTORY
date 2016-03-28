@@ -1,3 +1,7 @@
+2016/03/28 18:29:09 1.1a-94 git
+perlhooks.c,2.91,2.92
+Fixed "Modification of a read-only value attempted" error
+
 2016/03/28 18:08:43 1.1a-93 git
 perlhooks.c,2.90,2.91
 Fixed "Modification of a read-only value attempted" error
