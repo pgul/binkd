@@ -729,24 +729,31 @@ struct perl_const { char *name; int value; } perl_consts[] = {
 
 #define VK_ADD_intz(_sv, _name, _v)                 \
   if ( (_sv = perl_get_sv(_name, TRUE)) != NULL ) { \
-    sv_setiv(_sv, _v); SvREADONLY_on(_sv);          \
+    SvREADONLY_off(_sv);                            \
+    sv_setiv(_sv, _v);                              \
+    SvREADONLY_on(_sv);                             \
   }
 #define VK_ADD_strz(_sv, _name, _v)                 \
   if ( (_sv = perl_get_sv(_name, TRUE)) != NULL ) { \
-    sv_setpv(_sv, _v ? _v : ""); SvREADONLY_on(_sv);\
+    SvREADONLY_off(_sv);                            \
+    sv_setpv(_sv, _v ? _v : "");                    \
+    SvREADONLY_on(_sv);                             \
   }
 #define VK_ADD_str(_sv, _name, _v)                            \
   if ( (_sv = perl_get_sv(_name, TRUE)) != NULL ) {           \
+    SvREADONLY_off(_sv);                                      \
     if (_v) sv_setpv(_sv, _v); else sv_setsv(_sv, &sv_undef); \
     SvREADONLY_on(_sv);                                       \
   }
 #define VK_ADD_strs(_sv, _name, _v)                           \
   if ( (_sv = perl_get_sv(_name, TRUE)) != NULL ) {           \
+    SvREADONLY_off(_sv);                                      \
     sv_setpv(_sv, (char *)_v);                                \
     SvREADONLY_on(_sv);                                       \
   }
 #define VK_ADD_strn(_sv, _name, _v, len)                      \
   if ( (_sv = perl_get_sv(_name, TRUE)) != NULL ) {           \
+    SvREADONLY_off(_sv);                                      \
     sv_setpvn(_sv, (char *)_v, len);                          \
     SvREADONLY_on(_sv);                                       \
   }
