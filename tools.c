@@ -917,13 +917,21 @@ int pkt_getaddr(unsigned char *raw,
                 short *oz, short *onet, short *onode, short *op,
                 short *dz, short *dnet, short *dnode, short *dp)
 {
-  if (oz) *oz = -1; if (onet) *onet = -1; if (onode) *onode = -1; if (op) *op = -1;
-  if (dz) *dz = -1; if (dnet) *dnet = -1; if (dnode) *dnode = -1; if (dp) *dp = -1;
+  if (oz)    *oz    = -1;
+  if (onet)  *onet  = -1;
+  if (onode) *onode = -1;
+  if (op)    *op    = -1;
+  if (dz)    *dz    = -1;
+  if (dnet)  *dnet  = -1;
+  if (dnode) *dnode = -1;
+  if (dp)    *dp    = -1;
   /* wrong pkt version */
   if (GET_BYTE2(raw, 18) != 2) return 0;
   /* fts-1 net and node */
-  if (onode) *onode = GET_BYTE2(raw, 0); if (onet) *onet = GET_BYTE2(raw, 20);
-  if (dnode) *dnode = GET_BYTE2(raw, 2); if (dnet) *dnet = GET_BYTE2(raw, 22);
+  if (onode) *onode = GET_BYTE2(raw, 0);
+  if (onet)  *onet  = GET_BYTE2(raw, 20);
+  if (dnode) *dnode = GET_BYTE2(raw, 2);
+  if (dnet)  *dnet  = GET_BYTE2(raw, 22);
   /* qmail, zmail - not point-aware, get zone */
   if (raw[24] == 0x29 || raw[24] == 0x35) {
     if (oz) *oz = GET_BYTE2(raw, 34);
@@ -931,8 +939,10 @@ int pkt_getaddr(unsigned char *raw,
   }
   /* type-2 */
   else if (raw[44] & 1) {
-    if (oz) *oz = GET_BYTE2(raw, 46); if (op) *op = GET_BYTE2(raw, 50);
-    if (dz) *dz = GET_BYTE2(raw, 48); if (dp) *dp = GET_BYTE2(raw, 52);
+    if (oz) *oz = GET_BYTE2(raw, 46);
+    if (op) *op = GET_BYTE2(raw, 50);
+    if (dz) *dz = GET_BYTE2(raw, 48);
+    if (dp) *dp = GET_BYTE2(raw, 52);
     /* type 2+ */
     if (raw[44] == raw[41] && raw[45] == raw[40]) {
       if (onet && GET_BYTE2(raw, 50) != 0 && *onet == -1)
