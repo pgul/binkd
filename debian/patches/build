@@ -1,0 +1,29 @@
+Modified Makefile to install binary without version number.
+--- a/mkfls/unix/Makefile.in
++++ b/mkfls/unix/Makefile.in
+@@ -47,14 +47,9 @@
+ 	@echo " run \`configure --prefix=/another/path' and go to step 1.   "
+ 	@echo
+ 
+-.version: $(APPL)
+-	@./$(APPL) -v | $(AWK) '{ print $$2; }' > $@
+-
+-install: compile .version
++install: compile
+ 	./mkinstalldirs $(DESTDIR)$(prefix)/sbin
+-	$(INSTALL) -s $(APPL) $(DESTDIR)$(prefix)/sbin/$(APPL)-`cat .version`
+-	rm -f $(DESTDIR)$(prefix)/sbin/$(APPL)
+-	(VER=`cat .version` ; cd $(DESTDIR)$(prefix)/sbin ; ln -s $(APPL)-$$VER $(APPL) )
++	$(INSTALL) -s $(APPL) $(DESTDIR)$(prefix)/sbin/$(APPL)
+ 	./mkinstalldirs $(DESTDIR)$(MANDIR)/man8
+ 	$(INSTALL) -m 644 $(APPL).8 $(DESTDIR)$(MANDIR)/man8/$(APPL).8
+ 	./mkinstalldirs $(DESTDIR)$(CONFDIR)
+@@ -66,7 +61,7 @@
+ 
+ cleanall: clean
+ 	rm -f $(APPL) Makefile Makefile.dep Makefile.in
+-	rm -f configure configure.in .version install-sh mkinstalldirs
++	rm -f configure configure.in install-sh mkinstalldirs
+ 
+ # targets for compatibility
+ mostlyclean: clean

@@ -1,108 +1,27 @@
 #!/usr/bin/make -f
+# See debhelper(7) (uncomment to enable)
+# output every command that modifies files on the build system.
+#DH_VERBOSE = 1
+#export DH_OPTIONS=-v
 
-# Uncomment this to turn on verbose mode.
-export DH_VERBOSE=1
+# see EXAMPLES in dpkg-buildflags(1) and read /usr/share/dpkg/*
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/default.mk
 
-export DH_COMPAT=4
-#export DEBIAN=1
-PACKAGE=binkd1
-MAJOR=`sed -n "/\#define MAJOR/s/.*\([0-9]\+\).*$$/\1/p" Config.h`
-MINOR=`sed -n "/\#define MINOR/s/.*\([0-9]\+\).*$$/\1/p" Config.h`
-SUFFIX=`sed -n "/\#define SUFFIX/s/.*\"\([-a-z]\+\)\".*$$/\1/p" Config.h`
-PATCHLEVEL=`sed -n "/\#define PATCHLEVEL/s/.*\([0-9]\+\).*$$/\1/p" Config.h`
-VERSION=$(MAJOR).$(MINOR)+$(SUFFIX)$(PATCHLEVEL)
-PREFIX=$(CURDIR)/debian/binkd1
-CONFIGURE_OPTIONS += --with-zlib --with-https --with-ntlm --with-bwlim --with-perl --sysconfdir=$(PREFIX)/etc/ftn --prefix=$(PREFIX) --mandir=$(PREFIX)/usr/share/man
+# see FEATURE AREAS in dpkg-buildflags(1)
+#export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
-# These are used for cross-compiling and for saving the configure script
-# from having to guess our platform (since we know it already)
-DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
-DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+# see ENVIRONMENT in dpkg-buildflags(1)
+# package maintainers to append CFLAGS
+#export DEB_CFLAGS_MAINT_APPEND  = -Wall -pedantic
+# package maintainers to append LDFLAGS
+#export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
 
-ifeq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
-	CONFIGURE_OPTIONS += --with-debug
-endif
-ifneq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
-	INSTALL_PROGRAM += -s
-endif
 
-default:
-	@echo "What's do?"
+# main packaging script based on dh7 syntax
+%:
+	dh $@ 
 
-configure: configure-stamp
-configure-stamp:
-	dh_testdir
-	# Add here commands to configure the package.
-	-cp mkfls/unix/{configure*,install-sh,Makefile.*,mkinstalldirs} ./
-	chmod +x mkinstalldirs
-	./configure $(CONFIGURE_OPTIONS)
-	touch $@
-
-build: build-stamp
-
-build-stamp: configure-stamp 
-	dh_testdir
-
-	# Add here commands to compile the package.
-	$(MAKE)
-	cd doc ; $(MAKE) text ; cd ..
-
-	touch $@
-
-clean:
-	dh_testdir
-	dh_testroot
-	-rm -f  build-stamp configure-stamp install-sh configure Makefile.in \
-		Makefile Makefile.dep configure.in config.log binkd build
-
-	# Add here commands to clean up after the build process.
-	-$(MAKE) distclean
-
-	dh_clean
-
-install: build
-	dh_testdir
-	dh_testroot
-	dh_clean -k
-	dh_installdirs
-
-	$(MAKE) install
-	install -d $(PREFIX)/usr/share/doc/$(PACKAGE)
-	install \!README*  HISTORY *.[Tt][Xx][Tt]* doc/*.{txt,html,htm} $(PREFIX)/usr/share/doc/$(PACKAGE)/
-
-# Build architecture-independent files here.
-binary-indep: build install
-# We have nothing to do by default.
-
-# Build architecture-dependent files here.
-binary-arch: build install
-	dh_testdir
-	dh_testroot
-#	dh_installdebconf	
-	dh_installdocs
-#	dh_installexamples
-#	dh_installmenu
-#	dh_installlogrotate
-#	dh_installemacsen
-#	dh_installpam
-#	dh_installmime
-#	dh_installinit
-#	dh_installcron
-	dh_installman
-#	dh_installinfo
-#	dh_undocumented
-	dh_installchangelogs
-	dh_link
-	dh_strip
-	dh_compress
-	dh_fixperms
-#	dh_makeshlibs
-	dh_installdeb
-#	dh_perl
-	dh_shlibdeps
-	dh_gencontrol -- -v$(VERSION)
-	dh_md5sums
-	dh_builddeb
-
-binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install configure
+override_dh_auto_configure:
+	cp mkfls/unix/install-sh mkfls/unix/mkinstalldirs mkfls/unix/configure mkfls/unix/Makefile.* .
+	dh_auto_configure -- --with-zlib --with-https --with-ntlm --with-bwlim --with-perl --sysconfdir=/etc/ftn
