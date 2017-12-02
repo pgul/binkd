@@ -1,7 +1,7 @@
         binkd FAQ
 
         Frequently Asked Questions on FTN Mailer binkd
-        $Date$
+        $Date: 2015/06/25 13:37:02 $
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
@@ -126,9 +126,9 @@ compiler and the way of building the program.
 
     binkd is a fidonet mailer working via Internet and using binkp protocol
 (FSP-1018 & other). This protocol is also supported by such mailers as Argus
-(win32; RitLabs; http://www.ritlabs.com) and it's clones Radius and Taurus,
-BForce (unix), Internet Rex program (DOS/W32/OS2) and BeeMail (win32; Stephen
-Proffitt, 1:105/10; http://beemail.gexonline.net/)
+(win32; RitLabs; https://www.ritlabs.com/en/products/argus/) and it's clones
+Radius and Taurus, BForce (unix), Internet Rex program (DOS/W32/OS2) and 
+BeeMail (win32; Stephen Proffitt, 1:105/10)
 
     binkd features:
     - freeware, open source;
@@ -389,8 +389,9 @@ Forbidden)
     ? 31 Mar 16:48:44 [40423] unable to connect: {13} Permission denied
 
     In such a case you may try to use http tunnelling for instance with the
-help of httport (one can take it at http://www.htthost.com/) or you may
-find a node receiving binkp connections at port 443.
+help of httport, HTTPTunnel (http://http-tunnel.sourceforge.net/), stunnel
+(https://www.stunnel.org/) or you may find a node receiving binkp 
+connections at port 443.
 
 
 ----------------------------------------------------------------------------
@@ -595,27 +596,28 @@ binkp protocol whereas T-mail/IP uses EMSI etc.
     binkdstat 0.1 beta4 Christmas version 6.01.2002
     Statistics generator for binkd
     (c) Dmitry Sergienko, 2:464/910@fidonet, dmitry@trifle.net 14.08.2000
-    http://web.apex.dp.ua/~trooper/binkdstat
     http://binkd.grumbler.org/loganalisers/binkdstat-ds.0.1_beta4_Christmas
-
-    You can find several different generators at Nick Soveiko's site:
-http://www.doe.carleton.ca/~nsoveiko/fido/binkd/statistics_generators/
 
     There also exists BndStat program:
     BNDST101.ZIP   34812 14-Aug-01 (AREA:AFTNMISC)
     BndStat 1.01. With sources. binkd statistics generator. Compiled for all
     platforms. Included win32 binaries. (C) Dmitry Rusov, 2:5090/94
 
-    A set of statistics generators for binkd and qico under *nix (c) Vasily
-Krysin, 2:5054/84: http://deep.perm.ru/files/fido/fustat-0.02.tar.gz
-
     Log analyzer by val khokhlov (perl):
     http://www.vk.kiev.ua/create/soft.html#bnkds
     http://binkd.grumbler.org/loganalisers/stat-binkd.pl.gz
 
     binkdstat (c) val khokhlov, Dmitry Kolvakh, updated at April 2006
-    http://www.pstu.ru/~keu/binkdstat.zip
     http://binkd.grumbler.org/loganalisers/binkdstat.zip
+
+    T-Hist (c) Michael Markowsky, 2:5020/378 (KLUG's BBS)
+    Binary log file analyzer for various mailers including binkd.
+    Works in DOS, Windows NT (2000, XP, 2003) and OS/2.
+    ftp://ftp.grumbler.org/pub/binkd/hist30a7.zip
+
+    Kleine Statistiker/BINKD for DOS v0.60a, Russian version
+    A small statistics generator for posting statistics to an echo conference.
+    ftp://ftp.grumbler.org/pub/binkd/statddos.rar
 
 
 ----------------------------------------------------------------------------
@@ -785,11 +787,6 @@ Windows 3.x. They work using IP stacks Trumpet Winsock ver. 3.0 revision D
 and Novell TCP/IP Client for Win 3.11 (see the answer to the question
 'binkd Under DOS', the section "The DOS version has the feature...").
 
-    The sources and the binaries:
-    http://zharik.host.sk/index.php?pages=d&page=d
-
-    0.9.2 only:
-    http://www.doe.carleton.ca/~nsoveiko/fido/binkd/0.9.2/
 
 ----------------------------------------------------------------------------
 
