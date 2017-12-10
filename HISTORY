@@ -1,3 +1,7 @@
+2017/12/10 10:33:17 1.1a-96 git
+perlhooks.c,2.92,2.93
+Compatibility with perl 5.26
+
 2017/12/02 17:21:45 git
 binkdfaq-en.txt,2.4,2.5 binkdfaq-ru.txt,2.5,2.6
 Dead web links were deleted
