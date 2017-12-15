@@ -194,10 +194,6 @@
 #  undef q
 #endif
 
-#ifdef __GNUC__
-#  define Perl___notused Perl___notused __attribute__ ((unused))
-#endif
-
 #ifdef PERLDL
 
 #if PERL_REVISION<5 || (PERL_REVISION==5 && PERL_VERSION<8)
