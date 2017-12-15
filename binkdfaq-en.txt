@@ -190,8 +190,8 @@ processing technique of its own and other changes), in MBSE, Internet Rex,
 BForce and others. In Internet Rex (version 2.24 and later) an incompatible
 variant of binkp 1.1 of its own is implemented.
 
-    One can find the protocol description in Russian (cp866) here:
-http://binkd.grumbler.org/binkp.txt
+    One can find the protocol description here:
+http://binkd.grumbler.org/binkp
 
 
 ----------------------------------------------------------------------------
