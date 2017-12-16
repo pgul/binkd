@@ -1,3 +1,7 @@
+2017/12/16 12:33:14 git
+binkdfaq-en.txt,2.6,2.7 binkdfaq-ru.txt,2.6,2.7
+A reference to a node that no longer exists in the nodelist was deleted
+
 2017/12/15 19:40:18 git
 binkdfaq-en.txt,2.5,2.6
 The URL for protocol description was fixed
