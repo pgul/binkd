@@ -41,6 +41,9 @@ FTN_NODE *add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *o
 #ifdef BW_LIM
               long bw_send, long bw_recv,
 #endif
+#ifdef AF_FORCE
+              int AFF_flag,
+#endif
               BINKD_CONFIG *config);
 
 #define NL_UNLISTED  0                 /* node is unlisted (dynamically added) */

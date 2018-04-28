@@ -436,7 +436,42 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       }
       aiHead = aiNodeHead;
     }
-
+#ifdef AF_INET6
+#ifdef AF_FORCE
+    /* Soft address family force ai list reorder */
+    /* Soft IPv6 force */
+    struct addrinfo *aiNewHead = NULL;
+    if (aiHead->ai_family == AF_INET && node->AFF_flag == 6)
+    {
+       for (ai = aiHead; ai != NULL; ai = ai->ai_next)
+       {
+          if (ai->ai_family == AF_INET && ai->ai_next != NULL && ai->ai_next->ai_family == AF_INET6)
+          {
+             aiNewHead = ai->ai_next;
+	     ai->ai_next = aiNewHead->ai_next;
+	     aiNewHead->ai_next = aiHead;
+	     aiHead = aiNewHead;
+	     ai = NULL;
+          }
+       }
+    }
+    /* Soft IPv4 force */
+    else if (aiHead->ai_family == AF_INET6 && node->AFF_flag == 4)
+    {
+       for (ai = aiHead; ai != NULL; ai = ai->ai_next)
+       {
+          if (ai->ai_family == AF_INET6 && ai->ai_next != NULL && ai->ai_next->ai_family == AF_INET)
+          {
+             aiNewHead = ai->ai_next;
+	     ai->ai_next = aiNewHead->ai_next;
+	     aiNewHead->ai_next = aiHead;
+	     aiHead = aiNewHead;
+	     ai = NULL;
+          }
+       }
+    }
+#endif
+#endif
     /* Trying... */
 
     for (ai = aiHead; ai != NULL && sockfd == INVALID_SOCKET; ai = ai->ai_next)
