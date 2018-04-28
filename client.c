@@ -451,7 +451,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 	     ai->ai_next = aiNewHead->ai_next;
 	     aiNewHead->ai_next = aiHead;
 	     aiHead = aiNewHead;
-	     ai = NULL;
+	     break;
           }
        }
     }
@@ -466,7 +466,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 	     ai->ai_next = aiNewHead->ai_next;
 	     aiNewHead->ai_next = aiHead;
 	     aiHead = aiNewHead;
-	     ai = NULL;
+	     break;
           }
        }
     }
