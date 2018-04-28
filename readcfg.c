@@ -669,6 +669,9 @@ static int read_passwords(char *filename)
 #ifdef BW_LIM
                   BW_DEF, BW_DEF,
 #endif
+#ifdef AF_FORCE
+                  0,
+#endif
                   &work_config);
         if (pn && !pn->listed) pn->listed = NL_PASSWORDS;
       }
