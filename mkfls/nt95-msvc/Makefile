@@ -168,6 +168,12 @@ CDEFS=$(CDEFS) -DBW_LIM=1
 !endif
 # bandwidth limiting ----------------------------------------------------------
 
+# soft AF force +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!ifdef AF_FORCE
+CDEFS=$(CDEFS) -DAF_FORCE=1
+!endif
+# soft AF force ---------------------------------------------------------------
+
 # perl support ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # PERLDL implies PERL
 !if defined(PERLDL) && !defined(PERL)
