@@ -689,6 +689,7 @@ with_perl
 with_zlib
 with_bzip2
 with_pthreads
+with_af_force
 '
       ac_precious_vars='build_alias
 host_alias
@@ -4744,6 +4745,13 @@ else
 fi
 
 
+# Check whether --with-ntlm was given.
+if test "${with_af_force+set}" = set; then :
+  withval=$with_af_force; do_afforce=yes
+else
+  do_afforce=no
+fi
+
 case x$do_proxy in
   xyes)
    $as_echo "#define HTTPS 1" >>confdefs.h
@@ -4760,7 +4768,7 @@ case x$do_ntlm in
    ;;
 esac
 
-case x$do_ntlm in
+case x$do_afforce in
   xyes)
    $as_echo "#define AF_FORCE 1" >>confdefs.h
 

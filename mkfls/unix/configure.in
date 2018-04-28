@@ -235,7 +235,7 @@ AC_ARG_WITH(ntlm,
             [  --with-ntlm             NTLM proxy authorization support (default no)],
             do_ntlm=yes; do_proxy=yes, do_ntlm=no)
 
-AC_ARG_WITH(afforce,
+AC_ARG_WITH(af_force,
             [  --with-af-force         Enable soft AF force feature (default no)],
             do_afforce=yes, do_afforce=no)
 
