@@ -3,7 +3,7 @@
 
 # Usage: make [DEBUG=1] [BINKD9X=1] [PERL=1] [PERLDL=1]
 #             [ZLIB=1] [BZLIB2=1] [ZLIBDL=1] [DEBUGCHILD=1]
-#             [IPV6=1] [FTS5004=1] [BW_LIM=1]
+#             [IPV6=1] [FTS5004=1] [BW_LIM=1] [AF_FORCE=1]
 #
 #
 
@@ -102,6 +102,12 @@ ifdef BW_LIM
 CDEFS+= -DBW_LIM=1
 endif
 # bandwidth limiting ----------------------------------------------------------
+
+# soft AF force +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ifdef AF_FORCE
+CDEFS+= -DAF_FORCE=1
+endif
+# soft AF force ---------------------------------------------------------------
 
 # perl support ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # PERLDL implies PERL

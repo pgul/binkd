@@ -313,6 +313,9 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   struct addrinfo *aiProxyHead;
 #endif
   struct addrinfo *ai, *aiNodeHead, *aiHead, hints;
+#ifdef AF_FORCE
+  struct addrinfo *aiNewHead;
+#endif
   int aiErr;
 
   /* setup hints for getaddrinfo */
@@ -440,7 +443,6 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 #ifdef AF_FORCE
     /* Soft address family force ai list reorder */
     /* Soft IPv6 force */
-    struct addrinfo *aiNewHead = NULL;
     if (aiHead->ai_family == AF_INET && node->AFF_flag == 6)
     {
        for (ai = aiHead; ai != NULL; ai = ai->ai_next)
