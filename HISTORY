@@ -1,3 +1,7 @@
+2018/05/14 22:32:19 1.1a-97 git
+.ggg.swp,NONE,2.1 btypes.h,2.14,2.15 client.c,2.106,2.107 ftnnode.c,2.49,2.50 ftnnode.h,2.25,2.26 readcfg.c,2.111,2.112
+Soft AF force code added
+
 2017/12/16 12:33:14 git
 binkdfaq-en.txt,2.6,2.7 binkdfaq-ru.txt,2.6,2.7
 A reference to a node that no longer exists in the nodelist was deleted
