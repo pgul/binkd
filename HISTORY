@@ -1,3 +1,7 @@
+2018/05/14 22:32:38 1.1a-98 git
+client.c,2.107,2.108
+Added breaks to AFF for loops
+
 2018/05/14 22:32:27 git
 .ggg.swp,2.1,NONE
 Soft AF force code added
