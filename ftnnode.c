@@ -79,6 +79,9 @@ static FTN_NODE *add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pk
 #ifdef BW_LIM
               long bw_send, long bw_recv,
 #endif
+#ifdef AF_FORCE
+              int AFF_flag,
+#endif
               BINKD_CONFIG *config)
 {
   int cn;
@@ -111,6 +114,9 @@ static FTN_NODE *add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pk
     pn->IP_afamily = AF_UNSPEC;
 #ifdef BW_LIM
     pn->bw_send = bw_send; pn->bw_recv = bw_recv;
+#endif
+#ifdef AF_FORCE
+    pn->AFF_flag = AFF_flag;
 #endif
 
     /* We've broken the order... */
@@ -194,6 +200,9 @@ FTN_NODE *add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *o
 #ifdef BW_LIM
               long bw_send, long bw_recv,
 #endif
+#ifdef AF_FORCE
+              int AFF_flag,
+#endif
               BINKD_CONFIG *config)
 {
   FTN_NODE *pn;
@@ -204,6 +213,9 @@ FTN_NODE *add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *o
 		  IP_afamily,
 #ifdef BW_LIM
                   bw_send, bw_recv,
+#endif
+#ifdef AF_FORCE
+                  AFF_flag,
 #endif
                   config);
   releasenodesem();
@@ -270,6 +282,9 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
 #ifdef BW_LIM
     on->bw_send = np->bw_send; on->bw_recv = np->bw_recv;
 #endif
+#ifdef AF_FORCE
+    on->AFF_flag = np->AFF_flag;
+#endif
     return on;
   }
 
@@ -278,6 +293,9 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
        np->HC_flag, np->NP_flag, np->pipe, np->IP_afamily,
 #ifdef BW_LIM
        np->bw_send, np->bw_recv,
+#endif
+#ifdef AF_FORCE
+       np->AFF_flag,
 #endif
        config);
   sort_nodes (config);
@@ -384,6 +402,9 @@ int poll_node (char *s, BINKD_CONFIG *config)
 		       HC_USE_OLD, NP_USE_OLD, NULL, AF_USE_OLD,
 #ifdef BW_LIM
                        BW_DEF, BW_DEF,
+#endif
+#ifdef AF_FORCE
+                       0,
 #endif
                        config);
     releasenodesem();

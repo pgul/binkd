@@ -313,6 +313,9 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   struct addrinfo *aiProxyHead;
 #endif
   struct addrinfo *ai, *aiNodeHead, *aiHead, hints;
+#ifdef AF_FORCE
+  struct addrinfo *aiNewHead;
+#endif
   int aiErr;
 
   /* setup hints for getaddrinfo */
@@ -436,7 +439,41 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       }
       aiHead = aiNodeHead;
     }
-
+#ifdef AF_INET6
+#ifdef AF_FORCE
+    /* Soft address family force ai list reorder */
+    /* Soft IPv6 force */
+    if (aiHead->ai_family == AF_INET && node->AFF_flag == 6)
+    {
+       for (ai = aiHead; ai != NULL; ai = ai->ai_next)
+       {
+          if (ai->ai_family == AF_INET && ai->ai_next != NULL && ai->ai_next->ai_family == AF_INET6)
+          {
+             aiNewHead = ai->ai_next;
+	     ai->ai_next = aiNewHead->ai_next;
+	     aiNewHead->ai_next = aiHead;
+	     aiHead = aiNewHead;
+	     break;
+          }
+       }
+    }
+    /* Soft IPv4 force */
+    else if (aiHead->ai_family == AF_INET6 && node->AFF_flag == 4)
+    {
+       for (ai = aiHead; ai != NULL; ai = ai->ai_next)
+       {
+          if (ai->ai_family == AF_INET6 && ai->ai_next != NULL && ai->ai_next->ai_family == AF_INET)
+          {
+             aiNewHead = ai->ai_next;
+	     ai->ai_next = aiNewHead->ai_next;
+	     aiNewHead->ai_next = aiHead;
+	     aiHead = aiNewHead;
+	     break;
+          }
+       }
+    }
+#endif
+#endif
     /* Trying... */
 
     for (ai = aiHead; ai != NULL && sockfd == INVALID_SOCKET; ai = ai->ai_next)

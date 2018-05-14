@@ -123,6 +123,11 @@
 #else
 #  define _DBNKD_IPV6
 #endif
+#ifdef AF_FORCE
+#  define _DBNKD_AF_FORCE ", af_force"
+#else
+#  define _DBNKD_AF_FORCE
+#endif
 #ifdef WITH_FSP1035
 #  define _DBNKD_FSP1035 ", fsp1035"
 #else
@@ -133,4 +138,4 @@
 #define _DBNKD _DBNKD_COMPILER _DBNKD_BINKD9X _DBNKD_RTLSTATIC _DBNKD_DEBUG \
                _DBNKD_DEBUGCHILD _DBNKD_ZLIB _DBNKD_BZLIB2 _DBNKD_PERL      \
                _DBNKD_HTTPS _DBNKD_NTLM _DBNKD_AMIGADOS_4D_OUTBOUND         \
-               _DBNKD_BW_LIM _DBNKD_IPV6 _DBNKD_FSP1035
+               _DBNKD_BW_LIM _DBNKD_IPV6 _DBNKD_AF_FORCE _DBNKD_FSP1035

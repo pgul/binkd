@@ -669,6 +669,9 @@ static int read_passwords(char *filename)
 #ifdef BW_LIM
                   BW_DEF, BW_DEF,
 #endif
+#ifdef AF_FORCE
+                  0,
+#endif
                   &work_config);
         if (pn && !pn->listed) pn->listed = NL_PASSWORDS;
       }
@@ -1126,6 +1129,9 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
 #ifdef BW_LIM
   long bw_send = BW_DEF, bw_recv = BW_DEF;
 #endif
+#ifdef AF_FORCE
+  int  AFF_flag = 0;
+#endif
   FTN_ADDR fa;
   FTN_NODE *pn;
 
@@ -1202,6 +1208,22 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
 	ConfigError("IPv6 not supported in your version of BinkD");
 #endif
       }
+#ifdef AF_FORCE
+      else if (STRICMP (tmp, "-64") == 0)
+      {
+        if (AFF_flag < 4)
+          AFF_flag = 6;
+        else
+          ConfigError("`-64' may only be used once and mutually exclusive with `-46'");
+      }
+      else if (STRICMP (tmp, "-46") == 0)
+      {
+        if (AFF_flag < 4)
+          AFF_flag = 4;
+        else
+          ConfigError("`-46' may only be used once and mutually exclusive with `-64'");
+      }
+#endif
       else if (STRICMP (tmp, "-pipe") == 0)
       {
 	if (j == wordcount - 1) ConfigError("`-pipe' option requires parameter");
@@ -1239,6 +1261,9 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
 	    IP_afamily,
 #ifdef BW_LIM
             bw_send, bw_recv,
+#endif
+#ifdef AF_FORCE
+            AFF_flag,
 #endif
             &work_config);
   if (pn) pn->listed = NL_NODE;

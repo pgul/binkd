@@ -235,6 +235,10 @@ AC_ARG_WITH(ntlm,
             [  --with-ntlm             NTLM proxy authorization support (default no)],
             do_ntlm=yes; do_proxy=yes, do_ntlm=no)
 
+AC_ARG_WITH(af_force,
+            [  --with-af-force         Enable soft AF force feature (default no)],
+            do_afforce=yes, do_afforce=no)
+
 case x$do_proxy in
   xyes)
    AC_DEFINE(HTTPS)
@@ -246,6 +250,12 @@ case x$do_ntlm in
   xyes)
    AC_DEFINE(NTLM)
    OPT_SRC="$OPT_SRC ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c"
+   ;;
+esac
+
+case x$do_afforce in
+  xyes)
+   AC_DEFINE(AF_FORCE)
    ;;
 esac
 

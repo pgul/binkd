@@ -83,6 +83,9 @@ struct _FTN_NODE
 #endif
   int IP_afamily;
   time_t recheck;
+#ifdef AF_FORCE
+  int AFF_flag;                       /* 4||6 force IPv4||IPv6 for first connect () try */
+#endif
 };
 
 typedef struct _FTNQ FTNQ;

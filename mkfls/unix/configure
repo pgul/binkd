@@ -689,6 +689,7 @@ with_perl
 with_zlib
 with_bzip2
 with_pthreads
+with_af_force
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1323,6 +1324,7 @@ Optional Packages:
   --with-zlib[=path]      zlib compression (default auto)
   --with-bzip2[=path]     bzip2 compression (default auto)
   --with-pthreads         Use posix threads (default no, not recommended)
+  --with-af-force         Enable soft AF force feature (default no)
 
 Some influential environment variables:
   CC          C compiler command
@@ -4743,6 +4745,13 @@ else
 fi
 
 
+# Check whether --with-ntlm was given.
+if test "${with_af_force+set}" = set; then :
+  withval=$with_af_force; do_afforce=yes
+else
+  do_afforce=no
+fi
+
 case x$do_proxy in
   xyes)
    $as_echo "#define HTTPS 1" >>confdefs.h
@@ -4756,6 +4765,13 @@ case x$do_ntlm in
    $as_echo "#define NTLM 1" >>confdefs.h
 
    OPT_SRC="$OPT_SRC ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c"
+   ;;
+esac
+
+case x$do_afforce in
+  xyes)
+   $as_echo "#define AF_FORCE 1" >>confdefs.h
+
    ;;
 esac
 

@@ -3,7 +3,7 @@
 #
 # Usage: nmake [DEBUG=1] [STATIC=1] [BINKD9X=1] [PERL=1] [PERLDL=1]
 #              [ZLIB=1] [BZLIB2=1] [ZLIBDL=1] [DEBUGCHILD=1] [BW_LIM=1]
-#              [MSVC_VER=10] [IPV6=1] [FTS5004=1] [X64=1]
+#              [MSVC_VER=10] [IPV6=1] [FTS5004=1] [X64=1] [AF_FORCE=1]
 #
 # Use MSVC_VER=10 to build with Visual Studio 2008 or 2010
 #
@@ -167,6 +167,12 @@ CDEFS=$(CDEFS) -DDEBUGCHILD
 CDEFS=$(CDEFS) -DBW_LIM=1
 !endif
 # bandwidth limiting ----------------------------------------------------------
+
+# soft AF force +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!ifdef AF_FORCE
+CDEFS=$(CDEFS) -DAF_FORCE=1
+!endif
+# soft AF force ---------------------------------------------------------------
 
 # perl support ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # PERLDL implies PERL
