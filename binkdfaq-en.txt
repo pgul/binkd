@@ -47,6 +47,7 @@ from Russian by Michael Dukelsky 2:5020/1042.
     36. What for Does One Need the "ftrans" Directive in the Configuration File?
     37. Why binkd in Windows Works As a Service With Admin Rights Only?
     38. Will Anybody Make Nodelist Support in binkd After All?
+    39. Does binkd Support non-ASCII Domain Names?
     A1. I Have Found a Bug in binkd!
     A2. I Want To Talk To Developers.
     A3. I Want To Get Information About Changes In binkd Immediately!
@@ -1174,6 +1175,16 @@ binkd itself (for instance, if your binkd works in a laundry washer which has
 no Perl and using DDN is undesirable for some reason), and if someone sends
 along a patch for parsing nodelist inside binkd, then with high probability
 the patch will be applied and binkd will support nodelist natively.
+
+
+----------------------------------------------------------------------------
+
+
+        39. Does binkd Support non-ASCII Domain Names?
+
+    Yes, it does. In Windows such a domain name may be used directly in binkd
+configuration file. In Linux and OS X it should be translated to Punycode
+beforehand.
 
 
 ----------------------------------------------------------------------------
