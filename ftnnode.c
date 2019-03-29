@@ -258,8 +258,11 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
     if (!strcmp(host, "-"))
       continue;
 
-    aiErr = srv_getaddrinfo(host, port ? port : NULL, &hints, &ai);
-    if (aiErr != 0) continue;
+    if (&on->recheck < safe_time())
+    {
+    	aiErr = srv_getaddrinfo(host, port ? port : NULL, &hints, &ai);
+    	if (aiErr != 0) continue;
+    }
     freeaddrinfo(ai);
     sprintf (host+strlen(host), ":%s", port);
     i=0;
@@ -318,7 +321,7 @@ static FTN_NODE *get_node_info_nolock (FTN_ADDR *fa, BINKD_CONFIG *config)
 
   /* not found or not in config file and recheck required ... */
   if (( !np || 
-        (np->listed != NL_NODE && np->recheck < safe_time())) 
+        (np->listed != NL_NODE)) 
       && config->havedefnode) 
     /* ... try resolve from defnode */
     np=get_defnode_info(fa, np, config);
