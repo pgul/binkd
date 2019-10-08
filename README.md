@@ -15,14 +15,40 @@ non-UNIX:
 
 UNIXes:
 
-1. Copy all files from mkfls/unix/ to the root of binkd sources:
+1.) Clone the repo: 
 
-		cd /usr/src/binkd-1.1
-		cp mkfls/unix/* .
-2. Run configure:
+`$ git clone https://github.com/pgul/binkd`
 
-		sh configure
-3. Run make.
+2.) Change into the new binkd source directory:
+
+`$ cd binkd`
+
+3.) Copy all files from mkfls/unix/ to the root of binkd sources:
+
+`cp mkfls/unix/* .`
+
+2.) Run configure and make:
+
+`$ ./configure`
+`$ make`
+
+3.) When finished, the following instructions will be displayed offering various options for you:
+
+```
+ Binkd is successfully compiled.
+
+ If you want to install Binkd files into /usr/local
+     1. Run `make -n install' to be sure this makefile will
+        do not something criminal during the installation;
+     2. `su' to root;
+     3. Run `make install' to install Binkd.
+     4. Edit /usr/local/etc/binkd.conf-dist and RENAME it or
+        MOVE it somewhere (so another `make install' will
+        not overwrite it during your next Binkd upgrade)
+
+ If you want to put the files into some other directory just
+ run `configure --prefix=/another/path' and go to step 1.
+```
 
 ## Installation
 
