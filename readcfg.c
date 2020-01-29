@@ -1285,10 +1285,11 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
  *
  *  Returns 0 on error, -1 on EOF, 1 otherwise
  */
-int get_host_and_port (int n, char *host, char **port, char *src, FTN_ADDR *fa, BINKD_CONFIG *config)
+int get_host_and_port (int n, char *host, char *port, char *src, FTN_ADDR *fa, BINKD_CONFIG *config)
 {
   int rc = 0;
   char *s = getwordx2 (src, n, 0, ",;", "");
+  char *p = NULL;
 
   if (s)
   {
@@ -1316,11 +1317,13 @@ int get_host_and_port (int n, char *host, char **port, char *src, FTN_ADDR *fa, 
 
     if (!t)
     {
-      *port = config->oport;
+      strnzcpy (port, config->oport, MAXPORTSTRLEN);
       rc = 1;
     }
-    else if ((*port = find_port (t + 1)) != 0)
+    else if ((p = find_port(t + 1)) != NULL) {
+      strnzcpy (port, p, MAXPORTSTRLEN);
       rc = 1;
+    }
 
     free (s);
   }

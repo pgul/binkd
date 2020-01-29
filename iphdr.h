@@ -71,6 +71,8 @@
   #define MAXSERVNAME 80                    /* max id len in /etc/services */
 #endif
 
+#define MAXPORTSTRLEN 32
+
 #ifndef HAVE_SOCKLEN_T
   typedef int socklen_t;
 #endif

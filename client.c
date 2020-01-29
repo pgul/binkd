@@ -304,7 +304,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   char addrbuf[BINKD_FQDNLEN + 1];
   char servbuf[MAXSERVNAME + 1];
   char *hosts;
-  char *port;
+  char port[MAXPORTSTRLEN + 1] = { 0 };
   char *dst_ip = NULL;
   const char *save_err;
 #ifdef HTTPS
@@ -392,7 +392,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 
   for (i = 1; sockfd == INVALID_SOCKET
        && (rc = get_host_and_port
-           (i, host, &port, hosts, &node->fa, config)) != -1; ++i)
+           (i, host, port, hosts, &node->fa, config)) != -1; ++i)
   {
     if (rc == 0)
     {
@@ -534,7 +534,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       {
         char *sp = strchr(host, ':');
         if (sp) *sp = '\0';
-        if (port == config->oport)
+        if (strcmp (port, config->oport) == 0)
           Log (4, "trying %s via %s %s:%s...", host,
                proxy[0] ? "proxy" : "socks", addrbuf, servbuf);
         else
@@ -544,12 +544,12 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       else
 #endif
       {
-        if (port == config->oport)
+        if (strcmp (port, config->oport) == 0)
           Log (4, "trying %s [%s]...", host, addrbuf);
         else
           Log (4, "trying %s [%s]:%s...", host, addrbuf, servbuf);
         dst_ip = addrbuf;
-        port = servbuf;
+        strnzcpy (port, servbuf, MAXPORTSTRLEN);
       }
       /* find bind addr with matching address family */
       if (config->bindaddr[0])

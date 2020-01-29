@@ -261,7 +261,7 @@ void simplelist_free(struct list_linkpoint *lp, void (*destructor)(void *));
  */
 void destroy_maskchain(void *p);
 
-int  get_host_and_port (int n, char *host, char **port, char *src, FTN_ADDR *fa, BINKD_CONFIG *config);
+int  get_host_and_port (int n, char *host, char *port, char *src, FTN_ADDR *fa, BINKD_CONFIG *config);
 
 char *mask_test(char *s, struct maskchain *chain);
 

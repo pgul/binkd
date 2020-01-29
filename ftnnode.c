@@ -237,7 +237,7 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
   int aiErr;
   FTN_NODE n, *np;
   char host[BINKD_FQDNLEN + 1];       /* current host/port */
-  char *port;
+  char port[MAXPORTSTRLEN + 1] = { 0 };
   int i;
 
   /* setup hints for getaddrinfo */
@@ -253,12 +253,12 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
   if (!np) /* we don't have defnode info */
     return on;
 
-  for (i=1; np->hosts && get_host_and_port(i, host, &port, np->hosts, fa, config)==1; i++)
+  for (i=1; np->hosts && get_host_and_port(i, host, port, np->hosts, fa, config)==1; i++)
   {
     if (!strcmp(host, "-"))
       continue;
 
-    aiErr = srv_getaddrinfo(host, port ? port : NULL, &hints, &ai);
+    aiErr = srv_getaddrinfo(host, port[0] ? port : NULL, &hints, &ai);
     if (aiErr != 0) continue;
     freeaddrinfo(ai);
     sprintf (host+strlen(host), ":%s", port);

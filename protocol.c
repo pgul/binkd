@@ -1159,7 +1159,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
       int ipok = 0;
 #endif
       char host[BINKD_FQDNLEN + 1];       /* current host/port */
-      char *port;
+      char port[MAXPORTSTRLEN + 1] = { 0 };
       struct sockaddr_storage sin;
       struct addrinfo *ai, *aiHead, hints;
       int aiErr;
@@ -1202,7 +1202,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
 #endif
 
       for (i = 1; pn->hosts &&
-           (rc = get_host_and_port(i, host, &port, pn->hosts, &pn->fa, config)) != -1; ++i)
+           (rc = get_host_and_port(i, host, port, pn->hosts, &pn->fa, config)) != -1; ++i)
       {
         if (rc == 0)
         {
