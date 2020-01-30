@@ -1,3 +1,23 @@
+2020/01/30 10:21:49 1.1a-101 git
+client.c,2.109,2.110
+Fix an out-of-bounds error on sockaddrs.
+The `invalidAddresses` vector in `client.c` is used
+to hold invalid addresses `binkd` should not use.
+However, the array was of type `struct sockaddr`,
+which is not large enough to hold all of the
+protocol-specific data of the `struct sockaddr_*`
+structures.  As a result, `binkd` would access
+out-of-bounds memory when examining elements of
+the array.
+
+Fixed by redefining `invalidAddresses` to be an
+array of type `struct sockaddr_storage`, which is
+guaranteed by POSIX to be large enough to hold all
+data associated with a socket address for any
+protocol family.
+
+Signed-off-by: Dan Cross <cross@fat-dragon.org>
+
 2020/01/30 10:21:13 1.1a-100 git
 client.c,2.108,2.109 ftnnode.c,2.50,2.51 iphdr.h,2.28,2.29 protocol.c,2.236,2.237 readcfg.c,2.113,2.114 readcfg.h,2.44,2.45
 Fix use-after-free bug in get_host_and_port.
