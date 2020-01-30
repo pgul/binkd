@@ -53,7 +53,7 @@ int n_clients = 0;
 #else
 #define NO_INVALID_ADDRESSES 1
 #endif
-static struct sockaddr invalidAddresses[NO_INVALID_ADDRESSES];
+static struct sockaddr_storage invalidAddresses[NO_INVALID_ADDRESSES];
 
 #if defined(HAVE_FORK) && !defined(HAVE_THREADS)
 
@@ -221,9 +221,9 @@ void clientmgr (void *arg)
   UNUSED_ARG(arg);
 
   /* Initialize invalid addresses. static variables are guaranteed to be initialized to 0, so no need to specify all members */
-  invalidAddresses[0].sa_family = AF_INET;
+  invalidAddresses[0].ss_family = AF_INET;
 #ifdef AF_INET6
-  invalidAddresses[1].sa_family = AF_INET6;
+  invalidAddresses[1].ss_family = AF_INET6;
 #endif
 
 #ifdef HAVE_THREADS
@@ -304,7 +304,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
   char addrbuf[BINKD_FQDNLEN + 1];
   char servbuf[MAXSERVNAME + 1];
   char *hosts;
-  char *port;
+  char port[MAXPORTSTRLEN + 1] = { 0 };
   char *dst_ip = NULL;
   const char *save_err;
 #ifdef HTTPS
@@ -392,7 +392,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
 
   for (i = 1; sockfd == INVALID_SOCKET
        && (rc = get_host_and_port
-           (i, host, &port, hosts, &node->fa, config)) != -1; ++i)
+           (i, host, port, hosts, &node->fa, config)) != -1; ++i)
   {
     if (rc == 0)
     {
@@ -479,15 +479,15 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
     for (ai = aiHead; ai != NULL && sockfd == INVALID_SOCKET; ai = ai->ai_next)
     {
       for (j = 0; j < NO_INVALID_ADDRESSES; j++)
-        if (0 == sockaddr_cmp_addr(ai->ai_addr, &invalidAddresses[j]))
+        if (0 == sockaddr_cmp_addr(ai->ai_addr, (struct sockaddr *)&invalidAddresses[j]))
         {
 #ifdef AF_INET6
-          const int l = invalidAddresses[j].sa_family == AF_INET6 
+          const int l = invalidAddresses[j].ss_family == AF_INET6
                       ? sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in);
 #else
           const int l = sizeof(struct sockaddr_in);
 #endif
-          rc = getnameinfo( &invalidAddresses[j], l, addrbuf, sizeof(addrbuf)
+          rc = getnameinfo( (struct sockaddr *)&invalidAddresses[j], l, addrbuf, sizeof(addrbuf)
                           , NULL, 0, NI_NUMERICHOST );
           if (rc != 0)
             Log(2, "Error in getnameinfo(): %s (%d)", gai_strerror(rc), rc);
@@ -534,7 +534,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       {
         char *sp = strchr(host, ':');
         if (sp) *sp = '\0';
-        if (port == config->oport)
+        if (strcmp (port, config->oport) == 0)
           Log (4, "trying %s via %s %s:%s...", host,
                proxy[0] ? "proxy" : "socks", addrbuf, servbuf);
         else
@@ -544,12 +544,12 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       else
 #endif
       {
-        if (port == config->oport)
+        if (strcmp (port, config->oport) == 0)
           Log (4, "trying %s [%s]...", host, addrbuf);
         else
           Log (4, "trying %s [%s]:%s...", host, addrbuf, servbuf);
         dst_ip = addrbuf;
-        port = servbuf;
+        strnzcpy (port, servbuf, MAXPORTSTRLEN);
       }
       /* find bind addr with matching address family */
       if (config->bindaddr[0])
