@@ -1,3 +1,13 @@
+2020/01/30 10:21:13 1.1a-100 git
+client.c,2.108,2.109 ftnnode.c,2.50,2.51 iphdr.h,2.28,2.29 protocol.c,2.236,2.237 readcfg.c,2.113,2.114 readcfg.h,2.44,2.45
+Fix use-after-free bug in get_host_and_port.
+Don't use pointer assignment in this function,
+but rather, copy into a fixed-length buffer.
+
+Fixes #15
+
+Signed-off-by: Dan Cross <cross@fat-dragon.org>
+
 2019/01/23 09:16:18 git
 binkdfaq-en.txt,2.7,2.8 binkdfaq-ru.txt,2.7,2.8
 add a question on non-ASCII domains
