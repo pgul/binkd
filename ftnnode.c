@@ -153,7 +153,7 @@ static FTN_NODE *add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pk
 
   /* pwd, "-" for no password (requirement of binkp protocol) */
   if ( (pwd && strcmp(pwd, "-"))
-        && (!pn->pwd || strcmp(pn->pwd, "-") == 0)
+        && strcmp(pn->pwd, "-") == 0
         && (!pn->pkt_pwd || strcmp(pn->pkt_pwd, "-") == 0)
         && (!pn->out_pwd || strcmp(pn->out_pwd, "-") == 0)
      ) /* if any of passwords for the node is presents, then don't change all passwords */
