@@ -1,3 +1,8 @@
+2020/04/05 20:33:09 git
+README.md,2.2,2.3
+Update README.md
+Fixed incorrect instructions and beautified the steps into a tested and verified cookbook style Howto.
+
 2020/01/30 10:21:49 1.1a-101 git
 client.c,2.109,2.110
 Fix an out-of-bounds error on sockaddrs.
