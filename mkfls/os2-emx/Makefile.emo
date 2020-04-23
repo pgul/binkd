@@ -9,9 +9,15 @@ CFLAGS=$(DEFINES) -Wall -Zomf -Zmt -funsigned-char -Wno-char-subscripts
 LFLAGS=-Zomf -Zcrtdll -Zmt -Zlinker /PM:VIO
 LIBS=-lsocket
 NTLM_SRC=ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c
-SRCS=binkd.c readcfg.c tools.c ftnaddr.c ftnq.c client.c server.c protocol.c bsy.c inbound.c breaksig.c branch.c os2/gettid.c os2/sem.c  ftndom.c ftnnode.c os2/getfree.c srif.c pmatch.c readflo.c prothlp.c iptools.c rfc2553.c run.c binlog.c exitproc.c getw.c xalloc.c setpttl.c https.c md5b.c crypt.c ${NTLM_SRC}
+SRCS=binkd.c readcfg.c tools.c ftnaddr.c ftnq.c client.c server.c protocol.c bsy.c inbound.c breaksig.c branch.c os2/gettid.c os2/sem.c ftndom.c ftnnode.c os2/getfree.c srif.c pmatch.c readflo.c prothlp.c iptools.c rfc2553.c run.c binlog.c exitproc.c getw.c xalloc.c setpttl.c https.c md5b.c crypt.c srv_gai.c os2/ns_parse.c ${NTLM_SRC}
+TARGET=binkd2emo
+
+#PERLDIR=../perl5.00553/os2
+#ZLIB_DIR=../zlib-1.2.11
+#BZLIB2_DIR=../bzip2-1.0.6
 
 ifdef DEBUG
+TARGET:=$(TARGET)-debug
 CFLAGS+=-g -DDEBUG
 LFLAGS+=-g
 else
@@ -20,13 +26,17 @@ LFLAGS+=-O2 -s
 endif
 
 ifdef NOFORK
+TARGET:=$(TARGET)-nofork
 CFLAGS+=-DDEBUGCHILD
 endif
 
 ifdef PERL
+TARGET:=$(TARGET)-perl
+ifndef PERLDIR
 PERLDIR=$(shell perl -MConfig -e "print $$Config{archlib}")
+endif
 CFLAGS+= -DWITH_PERL -DPERL_MULTITHREAD -DDOSISH -DEMBED -DOS2=2 \
-         -D_EMX_CRT_REV_=64 -I$(PERLDIR)/CORE
+	 -D_EMX_CRT_REV_=64 -I$(PERLDIR)/CORE
 #CFLAGS+= -D__ST_MT_ERRNO__
 LFLAGS+= -L$(PERLDIR)/CORE -Zstack 16000
 LIBS:= $(PERLDIR)/auto/DynaLoader/DynaLoader.lib \
@@ -37,13 +47,17 @@ endif
 ifdef ZLIB
 COMPRESS=1
 CFLAGS+= -DWITH_ZLIB=1
-ifdef ZLIB_DIR
-CFLAGS+= -I$(ZLIB_DIR)/include
+ifdef ZLIB_BASE
+CFLAGS+= -I$(ZLIB_BASE)
 endif
 ifndef ZLIBDL
-LIBS:=-lz $(LIBS)
-ifdef ZLIB_DIR
-LFLAGS+= -L$(ZLIB_DIR)/lib
+TARGET:=$(TARGET)-zlib
+ifndef ZLIB_LIB
+ZLIB_LIB=z_s
+endif
+LIBS:=-l$(ZLIB_LIB) $(LIBS)
+ifdef ZLIB_BASE
+LFLAGS+= -L$(ZLIB_BASE)
 endif
 endif
 endif
@@ -51,13 +65,17 @@ endif
 ifdef BZLIB2
 COMPRESS=1
 CFLAGS+= -DWITH_BZLIB2=1
-ifdef BZLIB2_DIR
-CFLAGS+= -I$(BZLIB2_DIR)/include
+ifdef BZLIB2_BASE
+CFLAGS+= -I$(BZLIB2_BASE)
 endif
 ifndef ZLIBDL
-LIBS:=-lbz2 $(LIBS)
-ifdef BZLIB2_DIR
-LFLAGS+= -L$(BZLIB2_DIR)/lib
+TARGET:=$(TARGET)-bzlib2
+ifndef BZLIB2_LIB
+BZLIB2_LIB=libbz2
+endif
+LIBS:=-l$(BZLIB2_LIB) $(LIBS)
+ifdef BZLIB2_BASE
+LFLAGS+= -L$(BZLIB2_BASE)
 endif
 endif
 endif
@@ -80,7 +98,9 @@ endif
 
 OBJS=${SRCS:.c=.obj}
 
-all: binkd2eo.exe
+TARGET:=$(TARGET).exe
+
+all: $(TARGET)
 
 .c.obj:
 	@echo Compiling $<...
@@ -88,7 +108,7 @@ all: binkd2eo.exe
 
 .DELETE_ON_ERROR:
 
-binkd2eo.exe: $(OBJS)
+$(TARGET): $(OBJS)
 	@echo Linking $@...
 	@$(CC) -o $@ $(LFLAGS) $(OBJS) $(LIBS)
 
