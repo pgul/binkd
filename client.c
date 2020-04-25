@@ -220,9 +220,21 @@ void clientmgr (void *arg)
 
   UNUSED_ARG(arg);
 
+ /*
+  * This strange casting dance is to work around systems that are
+  * supported by binkd (OS/2 and Windows 9x),
+  * but do not support `struct sockaddr_storage`.
+  * This is not needed for IPv6, since we assume that if the target
+  * platform is new enough to understand IPv6, it probably also
+  * understands `sockaddr_storage`.
+  * Some compilers (MSVC6 as example) have rudimental AF_INET6,
+  * but don't have `struct sockaddr_storage`.
+  * So we have to check not only AF_INET6, but more defines.
+  */
+
   /* Initialize invalid addresses. static variables are guaranteed to be initialized to 0, so no need to specify all members */
-  invalidAddresses[0].ss_family = AF_INET;
-#ifdef AF_INET6
+  ((struct sockaddr *)&invalidAddresses[0])->sa_family = AF_INET;
+#if defined(AF_INET6) && defined(_SS_MAXSIZE)
   invalidAddresses[1].ss_family = AF_INET6;
 #endif
 
@@ -481,7 +493,7 @@ static int call0 (FTN_NODE *node, BINKD_CONFIG *config)
       for (j = 0; j < NO_INVALID_ADDRESSES; j++)
         if (0 == sockaddr_cmp_addr(ai->ai_addr, (struct sockaddr *)&invalidAddresses[j]))
         {
-#ifdef AF_INET6
+#if defined(AF_INET6) && defined(_SS_MAXSIZE)
           const int l = invalidAddresses[j].ss_family == AF_INET6
                       ? sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in);
 #else

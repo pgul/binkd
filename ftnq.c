@@ -270,7 +270,7 @@ static FTNQ *q_scan_box (FTNQ *q, FTN_ADDR *fa, char *boxpath, char flvr, int de
       sb.st_mtime = 0; /* ??? val: don't know how to get it if stat() isn't used */
       strnzcat (buf, de->d_name, sizeof (buf));
       if (de->d_name[0] != '.'
-#if defined(_MSC_VER) || defined(DOS)
+#if defined(_MSC_VER) || defined(DOS) && !defined(DJGPP)
           && (de->d_attrib & 0x1a) == 0 /* not hidden, directory or volume label */
 #elif defined(OS2) && !defined(IBMC) && !defined(__WATCOMC__)
           && (de->d_attr & 0x1a) == 0   /* not hidden, directory or volume label */

@@ -36,6 +36,10 @@
 #define SHELL "cmd.exe"
 #define SHELL_META "\"\'\\%<>|" /* not sure */
 #define SHELLOPT "/c"
+#elif defined(DOS)
+#define SHELL (getenv("COMSPEC") ? getenv("COMSPEC") : "command.com")
+#define SHELL_META "\"\'\\%<>|&^@"
+#define SHELLOPT "/c"
 #else
 #error "Unknown platform"
 #endif

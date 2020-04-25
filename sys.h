@@ -95,7 +95,7 @@
       #define PID() ((int)gettid())
     #endif
   #endif
-#elif defined(__MSC__)
+#elif defined(__MSC__) || defined(DJGPP)
   #include <process.h>
   #define PID()    ((int)getpid())
   void dos_sleep(int);

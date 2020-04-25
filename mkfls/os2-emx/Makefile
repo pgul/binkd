@@ -1,7 +1,7 @@
 # $Id$
 #
 # Usage: make [DEBUG=1] [NOFORK=1] [PERL=1] [PERLDL=1]
-#             [ZLIB=1] [BZLIB2=1] [ZLIBDL=1] [BW_LIM=1]
+#	      [ZLIB=1] [BZLIB2=1] [ZLIBDL=1] [BW_LIM=1]
 #
 # Tested with perl 5.0053
 #
@@ -13,10 +13,15 @@ CFLAGS=$(DEFINES) -Wall -funsigned-char -Wno-char-subscripts
 LFLAGS=-Los2
 LIBS=-lsocket -lresolv
 NTLM_SRC=ntlm/des_enc.c ntlm/helpers.c ntlm/ecb_enc.c ntlm/md4_dgst.c ntlm/set_key.c
-SRCS=binkd.c readcfg.c tools.c ftnaddr.c ftnq.c client.c server.c protocol.c bsy.c inbound.c breaksig.c branch.c os2/gettid.c os2/sem.c  ftndom.c ftnnode.c os2/getfree.c srif.c pmatch.c readflo.c prothlp.c iptools.c rfc2553.c run.c binlog.c exitproc.c getw.c xalloc.c setpttl.c https.c md5b.c crypt.c srv_gai.c os2/ns_parse.c ${NTLM_SRC}
-TARGET=binkd2e.exe
+SRCS=binkd.c readcfg.c tools.c ftnaddr.c ftnq.c client.c server.c protocol.c bsy.c inbound.c breaksig.c branch.c os2/gettid.c os2/sem.c ftndom.c ftnnode.c os2/getfree.c srif.c pmatch.c readflo.c prothlp.c iptools.c rfc2553.c run.c binlog.c exitproc.c getw.c xalloc.c setpttl.c https.c md5b.c crypt.c srv_gai.c os2/ns_parse.c ${NTLM_SRC}
+TARGET=binkd2emx
+
+#PERLDIR=../perl5.00553/os2
+#ZLIB_DIR=../zlib-1.2.11
+#BZLIB2_DIR=../bzip2-1.0.6
 
 ifdef DEBUG
+TARGET:=$(TARGET)-debug
 CFLAGS+=-g -DDEBUG
 LFLAGS+=-g
 else
@@ -25,30 +30,37 @@ LFLAGS+=-O2 -s
 endif
 
 ifdef NOFORK
+TARGET:=$(TARGET)-nofork
 CFLAGS+=-DDEBUGCHILD
 endif
 
 ifdef PERLDL
+TARGET:=$(TARGET)-perldl
+ifndef PERLDIR
 PERLDIR=$(shell perl -MConfig -e "print $$Config{archlib}")
+endif
 CFLAGS+= -Zmt -DWITH_PERL -DPERLDL -DDOSISH -DPERL_IS_AOUT -DEMBED -I$(PERLDIR)/CORE
 LFLAGS+= -Zmt -Zcrtdll -Zstack 16000
 SRCS+= perlhooks.c
 else
 ifdef PERL
+TARGET:=$(TARGET)-perl
+ifndef PERLDIR
 PERLDIR=$(shell perl -MConfig -e "print $$Config{archlib}")
+endif
 CFLAGS+= -DWITH_PERL -DDOSISH -DPERL_IS_AOUT -DEMBED -I$(PERLDIR)/CORE
 LFLAGS+= -L$(PERLDIR)/CORE -Zsmall-conv -Zstack 16000
 LIBS:=$(PERLDIR)/auto/DB_File/DB_File.a \
-         $(PERLDIR)/auto/SDBM_File/SDBM_File.a \
-         $(PERLDIR)/auto/Fcntl/Fcntl.a \
-         $(PERLDIR)/auto/IO/IO.a \
-         $(PERLDIR)/auto/POSIX/POSIX.a \
-         $(PERLDIR)/auto/Socket/Socket.a \
-         $(PERLDIR)/auto/OS2/Process/Process.a \
-         $(PERLDIR)/auto/OS2/ExtAttr/ExtAttr.a \
-         $(PERLDIR)/auto/OS2/REXX/REXX.a \
-         $(PERLDIR)/auto/DynaLoader/DynaLoader.a \
-         -llibperl -lm -lbsd -ldb $(LIBS)
+	 $(PERLDIR)/auto/SDBM_File/SDBM_File.a \
+	 $(PERLDIR)/auto/Fcntl/Fcntl.a \
+	 $(PERLDIR)/auto/IO/IO.a \
+	 $(PERLDIR)/auto/POSIX/POSIX.a \
+	 $(PERLDIR)/auto/Socket/Socket.a \
+	 $(PERLDIR)/auto/OS2/Process/Process.a \
+	 $(PERLDIR)/auto/OS2/ExtAttr/ExtAttr.a \
+	 $(PERLDIR)/auto/OS2/REXX/REXX.a \
+	 $(PERLDIR)/auto/DynaLoader/DynaLoader.a \
+	 -llibperl -lm -lbsd -ldb $(LIBS)
 SRCS+= perlhooks.c
 else
 CFLAGS+= -Zcrtdll
@@ -60,12 +72,16 @@ ifdef ZLIB
 COMPRESS=1
 CFLAGS+= -DWITH_ZLIB=1
 ifdef ZLIB_DIR
-CFLAGS+= -I$(ZLIB_DIR)/include
+CFLAGS+= -I$(ZLIB_DIR)
 endif
 ifndef ZLIBDL
-LIBS:=-lz_s $(LIBS)
+TARGET:=$(TARGET)-zlib
+ifndef ZLIB_LIB
+ZLIB_LIB=z_s
+endif
+LIBS:=-l$(ZLIB_LIB) $(LIBS)
 ifdef ZLIB_DIR
-LFLAGS+= -L$(ZLIB_DIR)/lib
+LFLAGS+= -L$(ZLIB_DIR)
 endif
 endif
 endif
@@ -74,12 +90,16 @@ ifdef BZLIB2
 COMPRESS=1
 CFLAGS+= -DWITH_BZLIB2=1
 ifdef BZLIB2_DIR
-CFLAGS+= -I$(BZLIB2_DIR)/include
+CFLAGS+= -I$(BZLIB2_DIR)
 endif
 ifndef ZLIBDL
-LIBS:=-llibbz2_s $(LIBS)
+TARGET:=$(TARGET)-bzlib2
+ifndef BZLIB2_LIB
+BZLIB2_LIB=libbz2
+endif
+LIBS:=-l$(BZLIB2_LIB) $(LIBS)
 ifdef BZLIB2_DIR
-LFLAGS+= -L$(BZLIB2_DIR)/lib
+LFLAGS+= -L$(BZLIB2_DIR)
 endif
 endif
 endif
@@ -99,6 +119,8 @@ endif
 
 .SUFFIXES: .imp .a
 OBJS=${SRCS:.c=.o}
+
+TARGET:=$(TARGET).exe
 
 all: $(TARGET)
 
