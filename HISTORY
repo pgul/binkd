@@ -1,3 +1,15 @@
+2020/04/25 15:53:10 1.1a-102 git
+client.c,2.110,2.111
+Fix build for OS/2 and Windows 9x on ancient compilers
+Original patch by Dan Cross,
+additional testing and improvements by Max Vasilyev
+Neither Win9x nor OS/2 define `struct sockaddr_storage`.
+To work around this, we resort to casts to make the
+`ss_family` member of that struct look like the `sa_family`
+member in a `struct sockaddr`.  According to POSIX, all
+of these structs should be defined in such a way that
+this will work without surprises.
+
 2020/04/05 20:33:09 git
 README.md,2.2,2.3
 Update README.md
