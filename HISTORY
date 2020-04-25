@@ -1,3 +1,7 @@
+2020/04/25 15:53:17 git
+Makefile,NONE,1.1
+compile Binkd for DOS with djgpp 2.05 and watt32 library
+
 2020/04/25 15:53:10 1.1a-102 git
 client.c,2.110,2.111
 Fix build for OS/2 and Windows 9x on ancient compilers
