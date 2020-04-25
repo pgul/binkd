@@ -1,3 +1,7 @@
+2020/04/25 15:53:52 git
+Makefile,2.28,2.29 Makefile.emo,1.11,1.12 Makefile.klibc,1.6,1.7
+[OS/2] change .EXE naming scheme and library definitions
+
 2020/04/25 15:53:47 1.1a-103 git
 ftnq.c,2.43,2.44 run.c,2.15,2.16 sys.h,2.47,2.48
 compile Binkd for DOS with djgpp 2.05 and watt32 library
