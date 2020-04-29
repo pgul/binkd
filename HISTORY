@@ -1,3 +1,26 @@
+2020/04/29 09:03:10 1.1a-104 git
+ftnnode.c,2.51,2.52 ftnq.c,2.44,2.45 protocol.c,2.237,2.238
+Silence warnings: remove superfluous nullity checks
+struct `FTN_NODE` defined in `btypes.h` contains
+the member `pwd`, which is a character array.
+Several places in the code, this array was checked
+for nullity; however, this was always done in a place
+where the validity of the referring `FTN_NODE` struct
+pointer had already been established, and as `pwd` is
+an array (and not a generic pointer) it can never be
+NULL.  These superflous checks caused warnings when
+compiling under `clang`.
+
+This change removes those checks to silence these warnings.
+
+Additionally, at those call sites often the code called
+`strcmp` to compare `p->pwd` against some other string,
+invariably inside of a conditional.  Modify the
+conditionals to always explicity compare the value
+returned from `strcmp` against e.g. 0.
+
+Signed-off-by: Dan Cross <cross@fat-dragon.org>
+
 2020/04/25 15:53:52 git
 Makefile,2.28,2.29 Makefile.emo,1.11,1.12 Makefile.klibc,1.6,1.7
 [OS/2] change .EXE naming scheme and library definitions
