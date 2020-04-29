@@ -176,9 +176,8 @@ FTNQ *q_scan_addrs (FTNQ *q, FTN_ADDR *fa, int n, int to, BINKD_CONFIG *config)
     if (!to && config->send_if_pwd)
     {
       /* do not give unsecure mail even to secure link when send-if-pwd */
-      FTN_NODE *fn;
-      if ((fn = get_node_info(fa+i, config)) == NULL ||
-           fn->pwd == NULL || strcmp(fn->pwd, "-") == 0)
+      FTN_NODE *fn = get_node_info (fa + i, config);;
+      if (fn == NULL || strcmp(fn->pwd, "-") == 0)
 	continue;
     }
     ftnaddress_to_filename (buf, fa + i, config);
@@ -316,7 +315,7 @@ FTNQ *q_scan_boxes (FTNQ *q, FTN_ADDR *fa, int n, int to, BINKD_CONFIG *config)
     if (!to && config->send_if_pwd)
     {
       /* do not give unsecure mail even to secure link when send-if-pwd */
-      if (node == NULL || node->pwd == NULL || strcmp(node->pwd, "-") == 0)
+      if (node == NULL || strcmp(node->pwd, "-") == 0)
 	continue;
     }
 #ifndef MAILBOX
