@@ -250,7 +250,7 @@ makedirs: $(MAKEDIRS)
 
 $(MAKEDIRS):
 	@echo Making directory $@...
-	@mkdir $@
+	@mkdir -p $@
 
 install: all clean
 
