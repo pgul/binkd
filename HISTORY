@@ -1,3 +1,7 @@
+2020/04/30 21:30:12 git
+Makefile,1.1,1.2
+[DOS] fix making directory tree for DOS build
+
 2020/04/29 09:03:10 1.1a-104 git
 ftnnode.c,2.51,2.52 ftnq.c,2.44,2.45 protocol.c,2.237,2.238
 Silence warnings: remove superfluous nullity checks
