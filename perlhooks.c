@@ -1270,7 +1270,7 @@ static void perl_setup(BINKD_CONFIG *cfg, PerlInterpreter *perl) {
 }
 
 /* init root perl, parse hooks file, return success */
-int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
+int perl_init(char *perlfile, BINKD_CONFIG *cfg, int first_call) {
   int rc, i;
   SV *sv;
   char *cmd;
@@ -1376,7 +1376,8 @@ int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
 #endif                                                      /* PERLDL */
   /* init perl */
 #ifdef PERL_SYS_INIT3
-  PERL_SYS_INIT3(&i, &perlargv, &perlenv);
+  if (first_call)
+    PERL_SYS_INIT3(&i, &perlargv, &perlenv);
 #endif
   perl = perl_alloc();
   PERL_SET_CONTEXT(perl);
