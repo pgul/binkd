@@ -1425,7 +1425,7 @@ int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
   for (i = 0; i < sizeof(perl_subnames)/sizeof(perl_subnames[0]); i++) {
     if (perl_get_cv(perl_subnames[i], FALSE)) cfg->perl_ok |= (1 << i);
   }
-#if defined(HAVE_THREAD) && defined(PERL_MULTITHREAD)
+#if defined(HAVE_THREADS) && defined(PERL_MULTITHREAD)
   InitSem (&perlsem);
 #endif
   cfg->perl = perl;
