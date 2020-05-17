@@ -1380,6 +1380,7 @@ int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
 #endif
   perl = perl_alloc();
   PERL_SET_CONTEXT(perl);
+  PL_perl_destruct_level = 1;
   perl_construct(perl);
   rc = perl_parse(perl, xs_init, i, perlargv, (char **)NULL);
   Log(LL_DBG, "perl_init(): parse rc=%d", rc);
@@ -1463,6 +1464,7 @@ void perl_done(BINKD_CONFIG *cfg, int master) {
     /* de-allocate */
     Log(LL_DBG, "perl_done(): destructing perl %p", cfg->perl);
 #ifndef _MSC_VER
+    PL_perl_destruct_level = 1;
     perl_destruct((PerlInterpreter *)cfg->perl);
     perl_free((PerlInterpreter *)cfg->perl);
 #endif
