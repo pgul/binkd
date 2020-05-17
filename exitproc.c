@@ -147,7 +147,7 @@ void exitfunc (void)
   {
     if (*config->pid_file && pidsmgr == (int) getpid ())
       delete (config->pid_file);
-	/* completely unload config */
+    /* completely unload config */
 #if defined(HAVE_FORK) && !defined(HAVE_THREADS)
     unlock_config_structure(config, inetd_flag || (!pidsmgr && pidCmgr == (int) getpid()) || (pidsmgr == (int) getpid()));
 #else
