@@ -1,3 +1,7 @@
+2020/05/17 20:52:14 1.1a-107 git
+readcfg.c,2.114,2.115
+Require PERL_MULTIPLICITY for run multiple perl interpreters
+
 2020/05/17 20:52:07 1.1a-106 git
 perlhooks.c,2.94,2.95
 Set PL_perl_destruct_level to 1 for correct restart perl interpreter
