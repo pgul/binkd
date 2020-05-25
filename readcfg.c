@@ -893,7 +893,7 @@ int checkcfg(void)
   new_config = readcfg(pc->path);
 
 #ifdef WITH_PERL
-#if defined(HAVE_THREADS) && defined(PERL_MULTIPLICITY)
+#if defined(HAVE_THREADS) || defined(PERL_MULTIPLICITY)
   if (new_config && new_config->perl_script[0])
   {
     if (!perl_init(new_config->perl_script, new_config, 0))
