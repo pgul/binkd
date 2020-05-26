@@ -1,3 +1,7 @@
+2020/05/26 20:48:08 1.1a-111 git
+binkd.c,2.127,2.128
+Print "Facilities" without space at the end of line. Make sense for further "binkd.exe -vv>file_id.diz" processing. (#21)
+
 2020/05/25 14:12:23 git
 configure,2.57,2.58 configure.in,2.57,2.58
 Fix check perl multiplicity in configure
