@@ -547,14 +547,14 @@ int main (int argc, char *argv[])
     if (verbose_flag>1)
     {
       printf ("Compilation flags: " _DBNKD ".\n");
-      printf ("Facilities: "
+      printf ("Facilities:"
 #ifndef srv_getaddrinfo
-              "fts5004 "
+              " fts5004"
 #endif
 #ifndef HAVE_GETADDRINFO
-              "rfc2553emu "
+              " rfc2553emu"
 #else
-              "ipv6 "
+              " ipv6"
 #endif
               "\n");
     }
