@@ -26,7 +26,7 @@ extern char *perl_subnames[];  /* names for perl subs */
 extern MUTEXSEM perlsem;
 #endif
 
-int perl_init(char *, BINKD_CONFIG *); /* init root perl, parse hooks file, return success */
+int perl_init(char *, BINKD_CONFIG *, int); /* init root perl, parse hooks file, return success */
 void perl_done(BINKD_CONFIG *, int);   /* deinit perl */
 #ifdef HAVE_THREADS
 void *perl_init_clone(BINKD_CONFIG *); /* clone root perl */

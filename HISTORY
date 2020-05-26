@@ -1,3 +1,83 @@
+2020/05/25 14:12:23 git
+configure,2.57,2.58 configure.in,2.57,2.58
+Fix check perl multiplicity in configure
+
+2020/05/25 08:48:41 1.1a-110 git
+readcfg.c,2.116,2.117
+Revert 4a528544 (perl multiplicity)
+
+2020/05/17 23:32:09 1.1a-109 git
+binkd.c,2.126,2.127 perlhooks.c,2.95,2.96 perlhooks.h,2.18,2.19 readcfg.c,2.115,2.116
+Call PERL_SYS_INIT3() only once
+
+2020/05/17 20:52:52 1.1a-108 git
+exitproc.c,2.48,2.49
+tab to spaces
+
+2020/05/17 20:52:14 1.1a-107 git
+readcfg.c,2.114,2.115
+Require PERL_MULTIPLICITY for run multiple perl interpreters
+
+2020/05/17 20:52:07 1.1a-106 git
+perlhooks.c,2.94,2.95
+Set PL_perl_destruct_level to 1 for correct restart perl interpreter
+Signed-off-by: Pavel Gulchuk <gul@gul.kiev.ua>
+
+2020/05/17 20:11:12 1.1a-105 git
+perlhooks.c,2.93,2.94
+Fix init perlsem
+
+2020/04/30 21:30:12 git
+Makefile,1.1,1.2
+[DOS] fix making directory tree for DOS build
+
+2020/04/29 09:03:10 1.1a-104 git
+ftnnode.c,2.51,2.52 ftnq.c,2.44,2.45 protocol.c,2.237,2.238
+Silence warnings: remove superfluous nullity checks
+struct `FTN_NODE` defined in `btypes.h` contains
+the member `pwd`, which is a character array.
+Several places in the code, this array was checked
+for nullity; however, this was always done in a place
+where the validity of the referring `FTN_NODE` struct
+pointer had already been established, and as `pwd` is
+an array (and not a generic pointer) it can never be
+NULL.  These superflous checks caused warnings when
+compiling under `clang`.
+
+This change removes those checks to silence these warnings.
+
+Additionally, at those call sites often the code called
+`strcmp` to compare `p->pwd` against some other string,
+invariably inside of a conditional.  Modify the
+conditionals to always explicity compare the value
+returned from `strcmp` against e.g. 0.
+
+Signed-off-by: Dan Cross <cross@fat-dragon.org>
+
+2020/04/25 15:53:52 git
+Makefile,2.28,2.29 Makefile.emo,1.11,1.12 Makefile.klibc,1.6,1.7
+[OS/2] change .EXE naming scheme and library definitions
+
+2020/04/25 15:53:47 1.1a-103 git
+ftnq.c,2.43,2.44 run.c,2.15,2.16 sys.h,2.47,2.48
+compile Binkd for DOS with djgpp 2.05 and watt32 library
+
+2020/04/25 15:53:17 git
+Makefile,NONE,1.1
+compile Binkd for DOS with djgpp 2.05 and watt32 library
+
+2020/04/25 15:53:10 1.1a-102 git
+client.c,2.110,2.111
+Fix build for OS/2 and Windows 9x on ancient compilers
+Original patch by Dan Cross,
+additional testing and improvements by Max Vasilyev
+Neither Win9x nor OS/2 define `struct sockaddr_storage`.
+To work around this, we resort to casts to make the
+`ss_family` member of that struct look like the `sa_family`
+member in a `struct sockaddr`.  According to POSIX, all
+of these structs should be defined in such a way that
+this will work without surprises.
+
 2020/04/05 20:33:09 git
 README.md,2.2,2.3
 Update README.md

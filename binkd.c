@@ -615,7 +615,7 @@ int main (int argc, char *argv[])
 
 #ifdef WITH_PERL
   if (current_config->perl_script[0]) {
-    if (!perl_init(current_config->perl_script, current_config)) {
+    if (!perl_init(current_config->perl_script, current_config, 1)) {
       if (current_config->perl_strict)
         Log (0, "error parsing Perl script %s", current_config->perl_script);
     } else {

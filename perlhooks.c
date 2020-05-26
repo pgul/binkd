@@ -1270,7 +1270,7 @@ static void perl_setup(BINKD_CONFIG *cfg, PerlInterpreter *perl) {
 }
 
 /* init root perl, parse hooks file, return success */
-int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
+int perl_init(char *perlfile, BINKD_CONFIG *cfg, int first_call) {
   int rc, i;
   SV *sv;
   char *cmd;
@@ -1376,10 +1376,12 @@ int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
 #endif                                                      /* PERLDL */
   /* init perl */
 #ifdef PERL_SYS_INIT3
-  PERL_SYS_INIT3(&i, &perlargv, &perlenv);
+  if (first_call)
+    PERL_SYS_INIT3(&i, &perlargv, &perlenv);
 #endif
   perl = perl_alloc();
   PERL_SET_CONTEXT(perl);
+  PL_perl_destruct_level = 1;
   perl_construct(perl);
   rc = perl_parse(perl, xs_init, i, perlargv, (char **)NULL);
   Log(LL_DBG, "perl_init(): parse rc=%d", rc);
@@ -1425,7 +1427,7 @@ int perl_init(char *perlfile, BINKD_CONFIG *cfg) {
   for (i = 0; i < sizeof(perl_subnames)/sizeof(perl_subnames[0]); i++) {
     if (perl_get_cv(perl_subnames[i], FALSE)) cfg->perl_ok |= (1 << i);
   }
-#if defined(HAVE_THREAD) && defined(PERL_MULTITHREAD)
+#if defined(HAVE_THREADS) && defined(PERL_MULTITHREAD)
   InitSem (&perlsem);
 #endif
   cfg->perl = perl;
@@ -1463,6 +1465,7 @@ void perl_done(BINKD_CONFIG *cfg, int master) {
     /* de-allocate */
     Log(LL_DBG, "perl_done(): destructing perl %p", cfg->perl);
 #ifndef _MSC_VER
+    PL_perl_destruct_level = 1;
     perl_destruct((PerlInterpreter *)cfg->perl);
     perl_free((PerlInterpreter *)cfg->perl);
 #endif

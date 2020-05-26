@@ -1259,7 +1259,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
         ip_verified = 2;
       } else if (ipok<0 || pn->restrictIP == 2)
       { /* not matched or unresolvable with strict check */
-        if (pn->pwd && strcmp(pn->pwd, "-") && state->to == 0)
+        if (strcmp(pn->pwd, "-") != 0 && state->to == 0)
         {
           if (ipok == 0)
             Log (1, "addr: %s (unresolvable)", szFTNAddr);
@@ -1293,7 +1293,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
           pn->restrictIP == ipStrict
         ) ip_check = CHECK_WRONG;
       }
-      if (ip_check == CHECK_WRONG && !state->to && pn->pwd && strcmp(pn->pwd, "-")) {
+      if (ip_check == CHECK_WRONG && !state->to && strcmp(pn->pwd, "-") != 0) {
         Log (1, "addr: %s (not from allowed remote IP, aborted)", szFTNAddr);
         msg_send2 (state, M_ERR, "Bad source IP", 0);
         return 0;
@@ -1402,7 +1402,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
     {
       Log (2, "addr: %s (n/a or busy)", szFTNAddr);
 #if 1
-      if (pn && pn->pwd && strcmp(pn->pwd, "-") && state->to == 0)
+      if (pn && strcmp(pn->pwd, "-") != 0 && state->to == 0)
       {
         Log (1, "Secure AKA %s busy, drop the session", szFTNAddr);
         msg_sendf (state, M_BSY, "Secure AKA %s busy", szFTNAddr);
@@ -1416,7 +1416,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
     if (!state->to && pn)
     { if (pn->ND_flag)
       {
-        if (pn->pwd && strcmp(pn->pwd, "-"))
+        if (strcmp(pn->pwd, "-") != 0)
         {
           secure_ND = THEY_ND;
           secure_NR = WANT_NR;
@@ -1429,7 +1429,7 @@ static int ADR (STATE *state, char *s, int sz, BINKD_CONFIG *config)
       }
       else if (pn->NR_flag)
       {
-        if (pn->pwd && strcmp(pn->pwd, "-"))
+        if (strcmp(pn->pwd, "-") != 0)
           secure_NR = WANT_NR;
         else
           unsecure_NR = WANT_NR;

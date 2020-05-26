@@ -896,7 +896,7 @@ int checkcfg(void)
 #if defined(HAVE_THREADS) || defined(PERL_MULTIPLICITY)
   if (new_config && new_config->perl_script[0])
   {
-    if (!perl_init(new_config->perl_script, new_config))
+    if (!perl_init(new_config->perl_script, new_config, 0))
       if (new_config->perl_strict)
       {
         Log (1, "error parsing Perl script %s, using old config", new_config->perl_script);
@@ -911,7 +911,7 @@ int checkcfg(void)
       perl_done(current_config, 0);
     if (new_config->perl_script[0])
     {
-      if (!perl_init(new_config->perl_script, new_config))
+      if (!perl_init(new_config->perl_script, new_config, 0))
         if (new_config->perl_strict)
           Log (0, "error parsing Perl script %s", new_config->perl_script);
     }

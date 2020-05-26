@@ -5099,8 +5099,8 @@ else
                 PerlInterpreter *one_perl, *two_perl;
                 int i1=0, i2=0;
                 SV *sv;
-                char *one_args[] = { "one_perl",  "-e", "\$_=1" };
-                char *two_args[] = { "two_perl",  "-e", "\$_=2" };
+                char *one_args[] = { "one_perl",  "-e", "\$_=1", NULL };
+                char *two_args[] = { "two_perl",  "-e", "\$_=2", NULL };
                 PERL_SYS_INIT3(&argc,&argv,&env);
                 one_perl = perl_alloc();
                 perl_construct(one_perl);
