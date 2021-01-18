@@ -71,7 +71,8 @@ SigHandler (DWORD SigType)
       break;
     case CTRL_CLOSE_EVENT:
       Log (1, "Interrupted by Close");
-      break;
+      binkd_exit = TRUE;
+      return TRUE;
     case CTRL_LOGOFF_EVENT:
 #ifndef BINKD9X
       if (isService ())
