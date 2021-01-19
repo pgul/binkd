@@ -1,3 +1,12 @@
+2021/01/19 11:07:11 git
+Makefile,2.55,2.56
+Define HAS_SNPRINTF for modern MSVC build compatibility (e.g. MSVC2019)
+Fix build error using "nmake MSVC_VER=10" and MSVC2019:
+
+Linking binkd.exe...
+snprintf.obj : error LNK2005: _snprintf already defined in readcfg.obj
+bin\msvc10-binkd\binkd.exe : fatal error LNK1169: one or more multiply defined symbols found
+
 2020/05/26 20:48:08 1.1a-111 git
 binkd.c,2.127,2.128
 Print "Facilities" without space at the end of line. Make sense for further "binkd.exe -vv>file_id.diz" processing. (#21)
