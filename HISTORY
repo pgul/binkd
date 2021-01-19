@@ -1,3 +1,10 @@
+2021/01/19 11:07:20 1.1a-112 git
+breaksig.c,2.26,2.27
+Graceful exit when idle for Windows builds, for Nick Andre.
+Set the binkd_exit flag to TRUE when signaled to exit and return TRUE
+(indicating that the signal was handled by the process) thus mimicking the
+behavior of the *nix builds' handling of termination signals.
+
 2021/01/19 11:07:11 git
 Makefile,2.55,2.56
 Define HAS_SNPRINTF for modern MSVC build compatibility (e.g. MSVC2019)
