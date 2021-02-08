@@ -28,6 +28,7 @@
 #include "sys.h"
 #include "iphdr.h"
 #include "srv_gai.h"
+#include "ns_parse.h"
 
 int srv_getaddrinfo(const char *node, const char *service,
 		    const struct addrinfo *hints,
@@ -61,7 +62,7 @@ int srv_getaddrinfo(const char *node, const char *service,
 	return getaddrinfo(node, service, hints, res);
 
     /* detect IP addresses */
-    if ((hints->ai_family == AF_INET || hints->ai_family == AF_UNSPEC) && 
+    if ((hints->ai_family == AF_INET || hints->ai_family == AF_UNSPEC) &&
 #ifdef WIN32
 	    inet_addr(node) != INADDR_NONE
 #else
@@ -70,7 +71,7 @@ int srv_getaddrinfo(const char *node, const char *service,
 	    )
 	return getaddrinfo(node, service, hints, res);
 #ifdef AF_INET6
-    if ((hints->ai_family == AF_INET6 || hints->ai_family == AF_UNSPEC) && 
+    if ((hints->ai_family == AF_INET6 || hints->ai_family == AF_UNSPEC) &&
 	    strchr(node, ':'))
 	return getaddrinfo(node, service, hints, res);
 #endif
@@ -142,7 +143,7 @@ int srv_getaddrinfo(const char *node, const char *service,
 	    rc = dn_expand(resp, resp+rlen, p+6, tgt_name, sizeof(tgt_name));
 	    if (rc < 2)
 		break;
-	    snprintf(tgt_port, sizeof(tgt_port), "%u", 
+	    snprintf(tgt_port, sizeof(tgt_port), "%u",
 		    (unsigned int)p[4] << 8 | (unsigned int)p[5]);
 #endif
 
