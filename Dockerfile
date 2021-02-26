@@ -24,4 +24,5 @@ COPY --from=builder /binkd/binkd /binkd/
 VOLUME 	/ftn
 EXPOSE 24554
 
-ENTRYPOINT ["/binkd/binkd", "/ftn/binkd/binkd.conf"]
+ENTRYPOINT ["/binkd/binkd"]
+CMD ["-h"]
