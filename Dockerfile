@@ -1,22 +1,19 @@
-FROM alpine:3.13 as builder
+FROM ubuntu:latest as builder
 
 WORKDIR /binkd
 #COPY . /binkd
 
-RUN apk add --no-cache --virtual .build-deps \
-  build-base git make gcc binutils abuild \
+RUN apt update && apt upgrade -y \
+  && apt install -y git gcc make
   && git clone https://github.com/pgul/binkd.git /binkd \
   && cp mkfls/unix/* . \
   && ./configure \
   && make -j$(getconf _NPROCESSORS_ONLN)
 
-
-FROM alpine:3.13
+FROM ubuntu:latest
 LABEL maintainer="Serg Podtynnyi <serg@podtynnyi.com>"
 
-RUN apk add --no-cache curl \
-  && apk update \
-  && apk upgrade --no-cache
+RUN apt update && apt upgrade -y 
 
 WORKDIR /binkd
 COPY --from=builder /binkd/binkd /binkd/
