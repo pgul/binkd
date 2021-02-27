@@ -4,7 +4,7 @@ WORKDIR /binkd
 #COPY . /binkd
 
 RUN apt update && apt upgrade -y \
-  && apt install -y git gcc make
+  && apt install -y git gcc make \
   && git clone https://github.com/pgul/binkd.git /binkd \
   && cp mkfls/unix/* . \
   && ./configure \
