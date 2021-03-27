@@ -1,9 +1,10 @@
-#!/bin/sh -e
+#!/bin/sh
+set -e
 
-rm -f /var/run/ftn/binkd.pid
 if [ "$1" = purge ]; then
   rm -f /var/log/binkd/binkd*
-  rmdir /var/log/binkd 2>/dev/null || true
+  rmdir --ignore-fail-on-non-empty /var/log/binkd/ 2>/dev/null || true
 fi
 
 #DEBHELPER#
+
