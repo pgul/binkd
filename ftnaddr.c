@@ -1,4 +1,4 @@
-*
+/*
  *  ftnaddr.c -- Handle FTN addresses
  *
  *  ftnaddr.c is a part of binkd project
