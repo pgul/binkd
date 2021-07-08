@@ -245,8 +245,11 @@ void ftnaddress_to_filename_ (char *s, FTN_ADDR *fa, FTN_DOMAIN *pDomains
   }
   else
   {
-    char ext[] = "\0ext";	       /* ".ext" */
-    char pnt[] = "\0pnt/0000xxxx";     /* ".pnt..." */
+    char ext[6];	       /* ".ext" */
+    char pnt[14];     /* ".pnt..." */
+
+    memset(ext, 0, 6);
+    memset(pnt, 0, 14);
 
 #ifdef AMIGADOS_4D_OUTBOUND
     if (aso)
