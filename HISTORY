@@ -1,3 +1,7 @@
+2021/07/08 10:01:11 git
+Makefile.in,2.25,2.26 binkd.spec,1.214,1.215
+fix binkd.spec and add a doc package with config and FAQ
+
 2021/01/19 11:07:20 1.1a-112 git
 breaksig.c,2.26,2.27
 Graceful exit when idle for Windows builds, for Nick Andre.
