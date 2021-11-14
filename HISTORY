@@ -1,3 +1,7 @@
+2021/11/14 11:17:45 1.1a-113 git
+protocol.c,2.238,2.239
+Fix format in log and M_ERR messages
+
 2021/07/08 10:01:11 git
 Makefile.in,2.25,2.26 binkd.spec,1.214,1.215
 fix binkd.spec and add a doc package with config and FAQ
