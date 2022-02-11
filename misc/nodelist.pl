@@ -161,10 +161,14 @@ sub compile_nodelist
 		$line =~ s/\r?\n$//s;
 		next unless $line =~ /^([a-z]*),(\d+),([^,]*),[^,]*,[^,]*,([^,]*),\d+(?:,(.*))?\s*$/i;
 		($keyword, $node, $name, $phone, $flags) = ($1, $2, $3, $4, $5);
+		next if $keyword eq 'Down';
+		next if $keyword eq 'Hold';
+		next if $keyword eq 'Pvt';
 		$uflag = "";
 		%flags = ();
 		%addr = ();
 		@addr = ();
+		if ( defined( $flags ) ) {
 		foreach (split(/,/, $flags)) {
 			if (/^U/) {
 				$uflag = "U";
@@ -180,8 +184,7 @@ sub compile_nodelist
 				$flags{$_} .= "";
 			}
 		}
-		next if $keyword eq "Down";
-		next if $keyword eq "Hold";
+		}
 		if ($keyword eq "Zone") {
 			$zone = $region = $net = $node;
 			$node = 0;
