@@ -2262,9 +2262,9 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
       }
       else if ((offset = (boff_t)strtoumax (argv[3], NULL, 10)) > state->out.size)
       {
-        Log (1, "GET: remote requests seeking %s to %" PRIuMAX ", file size " PRIuMAX,
+        Log (1, "GET: remote requests seeking %s to %" PRIuMAX ", file size %" PRIuMAX,
              argv[0], (uintmax_t) offset, (uintmax_t) state->out.size);
-        msg_sendf(state, M_ERR, "Invalid M_GET violates binkp: offset " PRIuMAX " after end of file, file %s size " PRIuMAX,
+        msg_sendf(state, M_ERR, "Invalid M_GET violates binkp: offset %" PRIuMAX " after end of file, file %s size %" PRIuMAX,
                   (uintmax_t)offset, argv[0], (uintmax_t)state->out.size);
         /* touch the file and drop session */
         fclose(state->out.f);
@@ -2276,7 +2276,7 @@ static int GET (STATE *state, char *args, int sz, BINKD_CONFIG *config)
       {
         Log (1, "GET: error seeking %s to %" PRIuMAX ": %s",
              argv[0], (uintmax_t) offset, strerror (errno));
-        msg_sendf(state, M_ERR, "Error seeking: %s size " PRIuMAX " to offset " PRIuMAX,
+        msg_sendf(state, M_ERR, "Error seeking: %s size %" PRIuMAX " to offset %" PRIuMAX,
                   argv[0], (uintmax_t)state->out.size, (uintmax_t)offset);
         fclose(state->out.f);
         state->out.f=NULL;

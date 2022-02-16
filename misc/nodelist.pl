@@ -40,7 +40,7 @@ sub find_nodelist
 	my (@listdir);
 
 	if (!defined($glob)) {
-		$diehandler = $SIG{"__DIE__"};
+		my $diehandler = $SIG{"__DIE__"};
 		$SIG{"__DIE__"} = sub {};
 		eval "use File::Glob;";
 		$SIG{"__DIE__"} = $diehandler;
@@ -91,7 +91,6 @@ sub config_loaded
 {
 	my ($nlist) = find_nodelist();
 	my ($magichost) = magichost();
-	my ($subst);
 
 	if ($nlist ne $curnodelist || !%nodelist) {
 		compile_nodelist($curnodelist = $nlist);
@@ -105,7 +104,7 @@ sub config_loaded
 
 sub on_call
 {
-	my ($subst);
+	my $subst;
 	$hosts = $subst if defined($subst = subst($addr, $hosts));
 	return 1;
 }
@@ -138,7 +137,7 @@ sub subst
 sub compile_nodelist
 {
 	my ($nlist) = @_;
-	my ($zone, $net, $node, $dom, $ird, $domain, $start);
+	my ($zone, $region, $net, $node, $dom, $ird, $domain, $start);
 	my ($line, $keyword, $name, $phone, $flags, $port, $lport, $nodes);
 	my (%flags, $uflag, %addr, @addr, $domzone, $domreg, $domnet);
 
@@ -161,11 +160,13 @@ sub compile_nodelist
 		$line =~ s/\r?\n$//s;
 		next unless $line =~ /^([a-z]*),(\d+),([^,]*),[^,]*,[^,]*,([^,]*),\d+(?:,(.*))?\s*$/i;
 		($keyword, $node, $name, $phone, $flags) = ($1, $2, $3, $4, $5);
+		next if $keyword eq "Down";
+		next if $keyword eq "Hold";
 		$uflag = "";
 		%flags = ();
 		%addr = ();
 		@addr = ();
-		foreach (split(/,/, $flags)) {
+		foreach (split(/,/, $flags // "")) {
 			if (/^U/) {
 				$uflag = "U";
 				next if /^U$/;
@@ -180,13 +181,11 @@ sub compile_nodelist
 				$flags{$_} .= "";
 			}
 		}
-		next if $keyword eq "Down";
-		next if $keyword eq "Hold";
 		if ($keyword eq "Zone") {
 			$zone = $region = $net = $node;
 			$node = 0;
 			$domzone = $domreg = $domnet = "";
-			foreach $i (qw(M 1 2 3 4)) {
+			foreach my $i (qw(M 1 2 3 4)) {
 				$domzone = $domreg = $domnet = "DO$i:" . $flags{"UDO$i"} if $flags{"UDO$i"};
 			}
 			$ird = $flags{"IRD"};
@@ -194,7 +193,7 @@ sub compile_nodelist
 			$region = $net = $node;
 			$node = 0;
 			$domreg = $domnet = "";
-			foreach $i (qw(M 1 2 3 4)) {
+			foreach my $i (qw(M 1 2 3 4)) {
 				$domreg = $domnet = "DO$i:" . $flags{"UDO$i"} if $flags{"UDO$i"};
 			}
 			$ird = $flags{"IRD"};
@@ -202,22 +201,22 @@ sub compile_nodelist
 			$net = $node;
 			$node = 0;
 			$domnet = "";
-			foreach $i (qw(M 1 2 3 4)) {
+			foreach my $i (qw(M 1 2 3 4)) {
 				$domnet = "DO$i:" . $flags{"UDO$i"} if $flags{"UDO$i"};
 			}
 			$ird = $flags{"IRD"};
 		}
 		next unless defined($flags{"IBN"});
-		%port = ();
+		my %port = ();
 		foreach (split(/,/, $flags{"IBN"})) {
 			if (/^\d*$/) {
 				$port{/\d/ ? ":$_" : ""} = 1;
 				next;
 			}
-			$lport = "";
+			my $lport = "";
 			($_, $lport) = ($`, ":$'") if /:/;
 			$_ .= "." unless /^\d+\.\d+\.\d+\.\d+$|\.$/;
-			%lport = ($lport ? ( ":$lport" => 1 ) : %port);
+			my %lport = ($lport ? ( ":$lport" => 1 ) : %port);
 			$lport{""} = 1 unless %lport;
 			foreach $lport (keys %lport) {
 				next if $addr{"$_$lport"};
@@ -235,7 +234,7 @@ sub compile_nodelist
 		if ($_ = $flags{"INA"}) {
 			foreach (split(/,/, $flags{"INA"})) {
 				$_ .= "." unless /^\d+\.\d+\.\d+\.\d+$|\.$/;
-				foreach $port (keys %port) {
+				foreach my $port (keys %port) {
 					next if $addr{"$_$port"};
 					$addr{"$_$port"} = 1;
 					push(@addr, "$_$port");
@@ -260,12 +259,12 @@ sub compile_nodelist
 			}
 		}
 		unless (@addr) {
-			$domflag = ($domnet || $domreg || $domzone);
-			foreach $i (qw(M 1 2 3 4)) {
+			my $domflag = ($domnet || $domreg || $domzone);
+			foreach my $i (qw(M 1 2 3 4)) {
 				$domflag = "DO$i:" . $flags{"UDO$i"} if $flags{"UDO$i"};
 			}
 			if ($domflag =~ /^DO(.):/) {
-				($i, $dom) = ($1, $');
+				my ($i, $dom) = ($1, $');
 				if ($i eq 'M') {
 					$_ = "f$node.n$net.z$zone.$domain.$dom.";
 				} elsif ($i eq '4') {
@@ -294,8 +293,8 @@ sub compile_nodelist
 		}
 		next unless @addr;
 		%addr = ();
-		foreach $addr (@addr) {
-			foreach $port (keys %port) {
+		foreach my $addr (@addr) {
+			foreach my $port (keys %port) {
 				$addr{"$addr$port"} = 1;
 			}
 		}
