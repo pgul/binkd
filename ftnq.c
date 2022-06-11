@@ -1125,8 +1125,29 @@ void good_try (FTN_ADDR *fa, char *comment, BINKD_CONFIG *config)
   unsigned nok, nbad;
 
   if (config->tries == 0) return;
-  read_try (fa, &nok, &nbad, config);
-  nbad = 0;
-  ++nok;
-  write_try (fa, &nok, &nbad, comment, config);
+  if (config->remove_try_files == 0)
+  {
+    read_try (fa, &nok, &nbad, config);
+    nbad = 0;
+    ++nok;
+    write_try (fa, &nok, &nbad, comment, config);
+  }
+  else
+  {
+    remove_try (fa, config);
+  }
+}
+
+void remove_try (FTN_ADDR *fa, BINKD_CONFIG *config)
+{
+  char buf[MAXPATHLEN + 1];
+  struct stat sb;
+  if (config->tries == 0) return;
+  ftnaddress_to_filename (buf, fa, config);
+  if (*buf)
+  {
+    strnzcat (buf, ".try", sizeof (buf));
+    if (stat(buf, &sb) == -1) return;
+    delete (buf);
+  }
 }
