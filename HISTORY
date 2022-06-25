@@ -1,3 +1,7 @@
+2022/06/25 08:55:47 1.1a-114 git
+binkd.cfg,2.64,2.65 binkd.conf,1.9,1.10 ftnq.c,2.45,2.46 ftnq.h,2.12,2.13 readcfg.c,2.117,2.118 readcfg.h,2.45,2.46
+Remove .try files after successful session
+
 2022/05/19 20:31:12 git
 binkd.cfg,2.63,2.64 binkd.conf,1.8,1.9
 The -64 and -46 options and their descriptions have been added to the config.
