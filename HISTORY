@@ -1,3 +1,7 @@
+2022/07/01 10:11:12 git
+binkdfaq-en.txt,2.8,2.9 binkdfaq-ru.txt,2.8,2.9
+update Max Vasilyev's site address
+
 2022/06/25 08:55:47 1.1a-114 git
 binkd.cfg,2.64,2.65 binkd.conf,1.9,1.10 ftnq.c,2.45,2.46 ftnq.h,2.12,2.13 readcfg.c,2.117,2.118 readcfg.h,2.45,2.46
 Remove .try files after successful session
