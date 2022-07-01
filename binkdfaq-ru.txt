@@ -65,7 +65,7 @@
 
     Скомпилированные версии (windows, os/2):
     http://download.binkd.org
-    http://sites.google.com/site/vasilyevmax/fido
+    https://sites.google.com/view/vasilyevmax/
       (Max Vasilyev 2:5057/77)
 
     Исходники лежат на гитхабе:
@@ -666,7 +666,7 @@ Sourceforge и его можно загрузить со страницы
 http://ftnapps.sourceforge.net/vireq.html.
 Скомпилированные Win32 и OS/2 версии доступны на
 http://download.binkd.org
-http://sites.google.com/site/vasilyevmax/fido
+https://sites.google.com/view/vasilyevmax/
 
 
 ----------------------------------------------------------------------------
