@@ -65,7 +65,13 @@ int run (char *cmd)
   Log (3, "executing `%s'", cmd);
   memset(&si, 0, sizeof(si));
   si.cb=sizeof(si);
-  if (!sp) sp="command";
+  if (!sp)
+  {
+    if (Is9x())
+      sp="command";
+    else
+      sp="cmd";
+  }
   cs=(char*)malloc(strlen(sp)+strlen(cmd)+6);
   dw=CREATE_DEFAULT_ERROR_MODE;
   strcpy(cs, sp);
