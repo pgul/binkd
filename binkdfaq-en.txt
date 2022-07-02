@@ -69,7 +69,7 @@ from Russian by Michael Dukelsky 2:5020/1042.
 
     Binaries (windows, os/2):
     http://download.binkd.org
-    http://sites.google.com/site/vasilyevmax/fido
+    https://sites.google.com/view/vasilyevmax/
       (Max Vasilyev 2:5057/77)
 
     One may find the sources at github:
@@ -707,7 +707,7 @@ project on Sourceforge and may be downloaded from
 http://ftnapps.sourceforge.net/vireq.html.
 Binaries built for Win32 and OS/2 may be downloaded from
 http://download.binkd.org  and
-http://sites.google.com/site/vasilyevmax/fido
+https://sites.google.com/view/vasilyevmax/
 
 
 ----------------------------------------------------------------------------

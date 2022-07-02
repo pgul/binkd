@@ -125,6 +125,7 @@ struct _BINKD_CONFIG
   int        hold_skipped;
   int        backresolv;
   int        send_if_pwd;
+  int        remove_try_files;
   int        debugcfg;
   int        loglevel;
   int        conlog;

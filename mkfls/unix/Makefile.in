@@ -8,8 +8,9 @@ INSTALL=@INSTALL@
 # prepend prefix to installed program names
 prefix=@prefix@
 CONFDIR=@sysconfdir@
-MANDIR=@mandir@
-DATADIR=@datarootdir@
+DATADIR=@prefix@/share
+MANDIR=$(DATADIR)/man
+DOCDIR=$(DATADIR)/doc/$(APPL)
 
 SRCS=md5b.c binkd.c readcfg.c tools.c ftnaddr.c ftnq.c client.c server.c protocol.c bsy.c inbound.c breaksig.c branch.c unix/rename.c unix/getfree.c ftndom.c ftnnode.c srif.c pmatch.c readflo.c prothlp.c iptools.c rfc2553.c run.c binlog.c exitproc.c getw.c xalloc.c crypt.c unix/setpttl.c unix/daemonize.c @OPT_SRC@
 OBJS=${SRCS:.c=.o}
@@ -59,6 +60,8 @@ install: compile .version
 	$(INSTALL) -m 644 $(APPL).8 $(DESTDIR)$(MANDIR)/man8/$(APPL).8
 	./mkinstalldirs $(DESTDIR)$(CONFDIR)
 	$(INSTALL) -m 644 $(APPL).conf $(DESTDIR)$(CONFDIR)/$(APPL).conf-dist
+	./mkinstalldirs $(DESTDIR)$(DOCDIR)
+	$(INSTALL) -m 644 binkdfaq-??.txt $(DESTDIR)$(DOCDIR)
 
 clean:
 	rm -f *.[bo] unix/*.[bo] ntlm/*.[bo] *.BAK *.core *.obj *.err

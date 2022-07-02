@@ -414,6 +414,7 @@ static KEYWORD keywords[] =
   {"hold-skipped", read_time, &work_config.hold_skipped, 0, DONT_CHECK},
   {"backresolv", read_bool, &work_config.backresolv, 0, 0},
   {"pid-file", read_string, work_config.pid_file, 'f', 0},
+  {"remove-try-files", read_bool, &work_config.remove_try_files, 0, 0},
 #ifdef HTTPS
   {"proxy", read_string, work_config.proxy, 0, BINKD_FQDNLEN + 40},
   {"socks", read_string, work_config.socks, 0, BINKD_FQDNLEN + 40},
