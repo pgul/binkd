@@ -113,5 +113,6 @@ void bad_try (FTN_ADDR *fa, const char *error, const int where, BINKD_CONFIG *co
 void good_try (FTN_ADDR *fa, char *comment, BINKD_CONFIG *config);
 void read_try (FTN_ADDR *fa, unsigned *nok, unsigned *nbad, BINKD_CONFIG *config);
 void write_try (FTN_ADDR *fa, unsigned *nok, unsigned *nbad, char *comment, BINKD_CONFIG *config);
+void remove_try (FTN_ADDR *fa, BINKD_CONFIG *config);
 
 #endif

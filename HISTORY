@@ -1,3 +1,16 @@
+2022/07/02 13:06:13 1.1a-115 git
+run.c,2.16,2.17
+Set correct command line interpreter for Windows in fail situation
+Signed-off-by: vasilyevmax <35378045+vasilyevmax@users.noreply.github.com>
+
+2022/07/01 10:11:12 git
+binkdfaq-en.txt,2.8,2.9 binkdfaq-ru.txt,2.8,2.9
+update Max Vasilyev's site address
+
+2022/06/25 08:55:47 1.1a-114 git
+binkd.cfg,2.64,2.65 binkd.conf,1.9,1.10 ftnq.c,2.45,2.46 ftnq.h,2.12,2.13 readcfg.c,2.117,2.118 readcfg.h,2.45,2.46
+Remove .try files after successful session
+
 2022/05/19 20:31:12 git
 binkd.cfg,2.63,2.64 binkd.conf,1.8,1.9
 The -64 and -46 options and their descriptions have been added to the config.
