@@ -10,10 +10,11 @@ use File::Spec::Functions;
 use File::Path qw(make_path remove_tree);
 use LWP::Simple;
 use Cwd 'abs_path';
+use Fcntl;
 
-my $vers = 'v.0.0.0.1';
+my $vers = 'v.0.0.0.3';
 
-my ( $logfile, $pollnodes, $listpollnodes, $config, $fromfile, %zonedom,
+my ( $logfile, $pollnodes, $config, $fromfile, %zonedom,
      $check_updates, $defaultzone, $defaultdomain, $outbound, $needhelp,
      $printver, $whatsnew, $pause, $exportconf, $interval );
 
@@ -30,7 +31,6 @@ GetOptions ( "poll-nodes=s"      => \$pollnodes,
              "ver"               => \$printver,
              "interval=i"        => \$interval,
              "whatsnew"          => \$whatsnew,
-#             ""
              "log-file=s"        => \$logfile )     # string
 or die("Error in command line arguments\n");
 
@@ -64,8 +64,6 @@ sub usage()
 		"                                   Optional. Default 0.\n".
 		"                     -u option\n".
 		"                    --update=option How to update the program. Optional.\n".
-                "                                  =a - auto. Check for a new version, download\n".
-                "                                       and update.\n".
                 "                                  =d - download. Check for a new version and\n".
                 "                                       download the update to a new file.\n".
                 "                                  =f - Force download poll.pl end exit even\n".
@@ -97,11 +95,24 @@ DefaultZone 2
 DefaultDomain fidonet
 
 # Domain names for other zones. May be a few. Optional.
+Zone  10 league10
+Zone  17 tormoznet
+Zone  21 fsxnet
+Zone  25 metronet
+Zone  32 gamenet
 Zone  39 amiganet
+Zone  46 agorenet
+Zone  75 bbsnet
+Zone 115 pascal-net
+Zone 111 stnnet
+Zone 169 battle
+Zone 618 micronet
+Zone 700 spooknet
 Zone 888 rsnet
+Zone 954 hobbynet
 
 # path to outbound
-outbound /home/fido/out
+outbound /home/fido/outbound
 
 # file name with path
 logfile /home/fido/logs/poll.log
@@ -126,10 +137,14 @@ exit;
 
 sub readconf()
 {
-	my $line;
-	printf( STDERR "Cannot open $config: $!\r") && return '' unless open( CF, "<$config" );
+	my ( $line, $CF );
 
-	while (defined($line = <CF>)) {
+	unless( open( $CF, "<", $config ) ) {
+	    printf( STDERR "Cannot open $config: $!\r");
+	    return '';
+	}
+
+	while ( defined( $line = <$CF>) ) {
 		next if $line =~ /^[ 	]*\#.*/;
 		$line =~ s/\r//g;
 		$line =~ s/\n//g;
@@ -151,15 +166,15 @@ sub readconf()
 			$check_updates = lc($1) unless defined $check_updates;
 		}
 	}
-	close(CF);
+	close($CF);
 }
 
 sub readfromfile()
 {
-	my ( $fb, $f );
-	if ( open( F, $fromfile) ) {
-		read( F, $fb, -s $fromfile );
-		close(F);
+	my ( $fb, $f, $F );
+	if ( open( $F, "<", $fromfile) ) {
+		read( $F, $fb, -s $fromfile );
+		close($F);
 	}
 #	$fb =~ s/[^\d\:\/\.]/ /sg;
 	$f = '';
@@ -182,9 +197,9 @@ sub dolog($)
     my @ltime = localtime();
     my $logtime = sprintf( "%04d-%02d-%02d %02d:%02d:%02d", 1900+$ltime[5], 1+$ltime[4], $ltime[3], $ltime[2], $ltime[1], $ltime[0] );
 
-    if( open( LF, ">>$logfile" ) ) {
-	print( LF "$logtime $logstr\n" );
-	close( LF );
+    if( open( my $LF, ">>", $logfile ) ) {
+	print( $LF "$logtime $logstr\n" );
+	close( $LF );
     } else { print STDERR "Cant open \'$logfile\'. ($!)\n"; }
 }
 
@@ -194,7 +209,7 @@ sub dolog($)
 sub getbsoname($)
 {
 	my ( $address ) = @_;
-	my ( $dom, $bsoname );
+	my ( $bsoname );
 
 	$address =~ /(\d+)\:(\d+)\/(\d+)\.?(\d*)/;
 	my ( $destzone, $destnet, $destnode, $destpnt ) = ( $1, $2, $3, $4 );
@@ -227,11 +242,11 @@ sub getbsoname($)
 return $bsoname;
 }
 
-my $url = 'http://brorabbit.g0x.ru/files/perl/';
+my $url = 'https://brorabbit.g0x.ru/files/perl/';
 sub update()
 {
-    return if $check_updates eq 'n';
-    return unless $check_updates =~ /^[nwdaf]$/;
+#    return if $check_updates eq 'n';
+    return unless $check_updates =~ /^[wdf]$/i;
 
     my ( $ver_s, $upd, $of );
 #    my $url = 'http://brorabbit.g0x.ru/files/perl/';
@@ -256,14 +271,10 @@ sub update()
 	dolog("Latest version is $ver_s\! Downloaded filename is \'$of\'.");
     } elsif ( $vers lt $ver_s ) {
         if ( $check_updates eq 'w' ) {
-	print " \*\*\* You should update to $ver_s\! \*\*\* \n";
-	dolog(" \*\*\* You should update to $ver_s\! \*\*\* ");
-	return;
-        } elsif ( $check_updates eq 'a' ) {
-	$of = $curpath;
-	print "$p_name\.pl will be updated to $ver_s\!\n";
-	dolog(" \*\*\* Updating $p_name\.pl to $ver_s\!");
-        } elsif ( $check_updates eq 'd' ) {
+	    print " \*\*\* You should update to $ver_s\! \*\*\* \n";
+	    dolog(" \*\*\* You should update to $ver_s\! \*\*\* ");
+	    return;
+        } elsif ( $check_updates eq 'd' || $check_updates eq 'f' ) {
 #		$curpath =~ /^(.*?)\.pl$/;
 #		$of = "$1_$ver_s\.pl";
 	    if ( $curpath =~ /^(.*?)\.pl$/ ) {
@@ -287,12 +298,13 @@ sub update()
         dolog("Can't get update. ${url}callip.pl");
         return;
     }
-    if ( open ( OF, ">$of") ) {
-        binmode(OF);
-        print( OF $upd );
-        close(OF);
+    if ( open ( my $OF, ">$of") ) {
+        binmode($OF);
+        print( $OF $upd );
+        close($OF);
         chmod 0755, $of if $^O eq 'linux';
         print "$of saved.\n\n";
+        exit if $check_updates eq 'f';
     } else {
         print STDERR "Can't open $of ($!).\n";
     }
@@ -306,7 +318,7 @@ exportcfg() if defined $exportconf;
 
 usage() if defined $needhelp;
 if ($printver) {
-    print "Youre version is $vers\n".
+    print "Youre version is $vers\n";
     exit;
 }
 if ( $whatsnew ) {
@@ -335,23 +347,20 @@ if ( defined( $config ) ){
 	readconf();
 }
 
-usage() unless defined( $pollnodes );
-
 # set some defaults
 $defaultzone = 2 unless defined $defaultzone;
 $defaultdomain = 'fidonet' unless defined $defaultdomain;
 $check_updates = 'w' unless defined $check_updates;
 $outbound = '/home/fido/outbound' unless defined $outbound;
 
-dolog("$0 $arg");
-
 update();
+usage() unless defined( $pollnodes );
 
-#$pollnodes =~ s/  / /sg while $pollnodes =~ /  /s;
+dolog("$0 $arg");
 
 my @nodes = split( / /, $pollnodes );
 
-my $filename;
+my ( $filename, $F, $fbsy );
 
 for my $addr ( @nodes ) {
 
@@ -360,18 +369,31 @@ for my $addr ( @nodes ) {
 	    dolog("$addr is busy.");
 	    next;
 	}
+	unless ( sysopen( $fbsy, "$filename.bsy", O_CREAT | O_EXCL ) ) {
+	    print STDERR "Can't create $filename.bsy ($!).\n";
+	    dolog("Can't create $filename.bsy ($!).");
+	    next;
+	}else { close($fbsy); }
 	if ( -e "$filename.clo" ) {
 	    dolog("Poll for $addr already exists.");
+	    unless( unlink( "$filename.bsy" ) ) {
+		print STDERR "Can't delete file $filename.bsy ($!).\n";
+	    	dolog("Can't delete file $filename.bsy ($!).");
+	    }
 	    next;
 	}
-	if( open( F, ">>$filename.clo") ) {
-		close(F);
+	print $filename."\n";
+	if( sysopen( $F, "$filename.clo", O_CREAT | O_EXCL ) ) {
+		close($F);
 		dolog("Poll for $addr created.")
 	} else {
 		print STDERR "Can't create $filename.clo ($!)\n";
 		dolog("Can't create poll for node $addr. Filename $filename.clo (Error: $!)");
 	}
-
+	unless( unlink( "$filename.bsy" ) ) {
+	    print STDERR "Can't delete file $filename.bsy ($!).\n";
+	    dolog("Can't delete file $filename.bsy ($!).");
+	}
 	if( defined $interval ) {
 #	    print "   Poll to $addr created. Waiting $interval sec...\n";
 	    sleep $interval;
@@ -400,7 +422,7 @@ for my $addr ( @nodes ) {
             --export   Export to STDOUT an example configuration file.
 
              -f filename
-            --from-file=filename Any kind of text file with any character
+            --from-file=filename Any kind of text filewith any character
                        separated list of nodes to poll. May be omitted.
              -l filename
             --log-file=filename log file name. If omitted no logfile
@@ -419,8 +441,6 @@ for my $addr ( @nodes ) {
                            Optional. Default 0.
              -u option
             --update=option How to update the program. Optional.
-                          =a - auto. Check for a new version, download
-                               and update.
                           =d - download. Check for a new version and
                                download the update to a new file.
                           =f - Force download poll.pl end exit even
