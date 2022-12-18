@@ -1,4 +1,4 @@
-%global binkd_relnum 3
+%global binkd_relnum 4
 
 # for generic build; it will be overriden for some distributions
 %global vendor_prefix %nil
@@ -45,13 +45,15 @@ Summary: Sample config and FAQ for %name
 %prep
 %setup -q -n %name
 cp -p mkfls/unix/{Makefile*,configure*,install-sh,mkinstalldirs} .
+sed -i 's/\(\t$(INSTALL)\) -s/\1/g' ./Makefile.in
 
 %build
 %configure \
         --prefix=%_prefix \
         --sysconfdir=%_datarootdir/doc/%name \
         --with-proxy --with-ntlm --with-bwlim \
-        --with-perl --with-zlib --with-bzip2
+        --with-perl --with-zlib --with-bzip2 \
+        --with-debug
 %make_build
 
 %install
