@@ -1,4 +1,4 @@
-%global binkd_relnum 4
+%global binkd_relnum 5
 
 # for generic build; it will be overriden for some distributions
 %global vendor_prefix %nil
@@ -22,6 +22,7 @@ License: GPL
 Source: %name.tar.gz
 URL: ftp://happy.kiev.ua/pub/fidosoft/mailer/binkd/
 Provides: binkd
+BuildRequires: gcc
 BuildRequires: perl-devel >= 5.8.3
 %if "%_vendor" == "redhat"
 BuildRequires: perl(ExtUtils::Embed)
