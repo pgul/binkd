@@ -1,7 +1,7 @@
         binkd FAQ
 
         Frequently Asked Questions on FTN Mailer binkd
-        $Date: 2015/06/25 13:37:02 $
+        $Date: 2022/07/01 07:11:10 $
 
     This list of Frequently Asked Questions was compiled from the questions
 that were asked in the Russian echo conference RU.BINKD. Some part of the
