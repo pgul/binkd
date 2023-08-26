@@ -68,6 +68,10 @@
     https://sites.google.com/view/vasilyevmax/
       (Max Vasilyev 2:5057/77)
 
+    Скомпилированная версия для OS/2:
+    https://www.fidonet.fi/pub/binkdos2/
+      (Tommi Koivula 2:221/6)
+
     Исходники лежат на гитхабе:
     https://github.com/pgul/binkd
     а также на синхронизированном с ним сервере CVS:

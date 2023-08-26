@@ -72,6 +72,10 @@ from Russian by Michael Dukelsky 2:5020/1042.
     https://sites.google.com/view/vasilyevmax/
       (Max Vasilyev 2:5057/77)
 
+    Binary for OS/2:
+    https://www.fidonet.fi/pub/binkdos2/
+      (Tommi Koivula 2:221/6)
+
     One may find the sources at github:
     https://github.com/pgul/binkd
     or at synchronized with it CVS server:
