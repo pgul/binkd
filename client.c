@@ -202,7 +202,8 @@ static int do_client(BINKD_CONFIG *config)
     /* This sleep can be interrupted by signal, it's OK */
     unblocksig();
     check_child(&n_clients);
-    SLEEP (config->call_delay);
+    if (!config->no_call_delay)
+      SLEEP (config->call_delay);
     check_child(&n_clients);
     blocksig();
   }

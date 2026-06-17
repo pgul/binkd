@@ -1,0 +1,358 @@
+--- a/btypes.h
++++ b/btypes.h
+@@ -73,6 +73,7 @@
+   int HC_flag;
+   int restrictIP;
+   int NP_flag;                         /* no proxy */
++  int NC_flag;                         /* no compression */
+ 
+   time_t hold_until;
+   int busy;			       /* 0=free, 'c'=.csy, other=.bsy */
+--- a/client.c
++++ b/client.c
+@@ -202,7 +202,8 @@
+     /* This sleep can be interrupted by signal, it's OK */
+     unblocksig();
+     check_child(&n_clients);
+-    SLEEP (config->call_delay);
++    if (!config->no_call_delay)
++      SLEEP (config->call_delay);
+     check_child(&n_clients);
+     blocksig();
+   }
+--- a/ftnnode.c
++++ b/ftnnode.c
+@@ -74,7 +74,7 @@
+  */
+ static FTN_NODE *add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pwd,
+               char obox_flvr, char *obox, char *ibox, int NR_flag, int ND_flag,
+-	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, char *pipe,
++	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, int NC_flag, char *pipe,
+ 	      int IP_afamily,
+ #ifdef BW_LIM
+               long bw_send, long bw_recv,
+@@ -107,6 +107,7 @@
+     pn->NR_flag = NR_OFF;
+     pn->ND_flag = ND_OFF;
+     pn->NP_flag = NP_OFF;
++    pn->NC_flag = NC_OFF;
+     pn->MD_flag = MD_USE_OLD;
+     pn->HC_flag = HC_USE_OLD;
+     pn->pipe = NULL;
+@@ -134,6 +135,8 @@
+     pn->ND_flag = ND_flag;
+   if (NP_flag != NP_USE_OLD)
+     pn->NP_flag = NP_flag;
++  if (NC_flag != NC_USE_OLD)
++    pn->NC_flag = NC_flag;
+   if (HC_flag != HC_USE_OLD)
+     pn->HC_flag = HC_flag;
+   if (IP_afamily != AF_USE_OLD)
+@@ -195,7 +198,7 @@
+ 
+ FTN_NODE *add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pwd,
+               char obox_flvr, char *obox, char *ibox, int NR_flag, int ND_flag,
+-	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, char *pipe,
++	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, int NC_flag, char *pipe,
+ 	      int IP_afamily,
+ #ifdef BW_LIM
+               long bw_send, long bw_recv,
+@@ -209,7 +212,7 @@
+ 
+   locknodesem();
+   pn = add_node_nolock(fa, hosts, pwd, pkt_pwd, out_pwd, obox_flvr, obox, ibox, 
+-                  NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, pipe,
++                  NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, NC_flag, pipe,
+ 		  IP_afamily,
+ #ifdef BW_LIM
+                   bw_send, bw_recv,
+@@ -275,6 +278,7 @@
+     on->ND_flag=np->ND_flag;
+     on->MD_flag=np->MD_flag;
+     on->NP_flag=np->NP_flag;
++    on->NC_flag=np->NC_flag;
+     on->HC_flag=np->HC_flag;
+     on->restrictIP=np->restrictIP;
+     on->pipe=np->pipe;
+@@ -290,7 +294,7 @@
+ 
+   add_node_nolock(fa, np->hosts, NULL, NULL, NULL, np->obox_flvr, np->obox, 
+        np->ibox, np->NR_flag, np->ND_flag, np->MD_flag, np->restrictIP, 
+-       np->HC_flag, np->NP_flag, np->pipe, np->IP_afamily,
++       np->HC_flag, np->NP_flag, np->NC_flag, np->pipe, np->IP_afamily,
+ #ifdef BW_LIM
+        np->bw_send, np->bw_recv,
+ #endif
+@@ -399,7 +403,7 @@
+     if (!get_node_info_nolock (&target, config))
+       add_node_nolock (&target, "*", NULL, NULL, NULL, '-', NULL, NULL, 
+ 		       NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, 
+-		       HC_USE_OLD, NP_USE_OLD, NULL, AF_USE_OLD,
++		       HC_USE_OLD, NP_USE_OLD, NC_USE_OLD, NULL, AF_USE_OLD,
+ #ifdef BW_LIM
+                        BW_DEF, BW_DEF,
+ #endif
+--- a/ftnnode.h
++++ b/ftnnode.h
+@@ -36,7 +36,7 @@
+  */
+ FTN_NODE *add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pwd,
+               char obox_flvr, char *obox, char *ibox, int NR_flag, int ND_flag,
+-	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, char *pipe,
++	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, int NC_flag, char *pipe,
+ 	      int IP_afamily,
+ #ifdef BW_LIM
+               long bw_send, long bw_recv,
+@@ -75,6 +75,10 @@
+ #define NP_OFF      0
+ #define NP_USE_OLD -1		       /* Use old value */
+ 
++#define NC_ON       1
++#define NC_OFF      0
++#define NC_USE_OLD -1		       /* Use old value */
++
+ #define AF_USE_OLD -1		       /* Use old value */
+ 
+ #ifdef BW_LIM
+--- a/inbound.c
++++ b/inbound.c
+@@ -249,6 +249,101 @@
+   find_tmp_name (buf, NULL, state, config);
+ }
+ 
++/*
++ * Returns 1 if there are partial files (.hr) in the inbound belonging to
++ * one of the active AKAs in state->fa[0..state->nfa-1]. Does not remove
++ * anything. Used to auto-enable NR-mode when incomplete files exist
++ *
++ * Copied from find_tmp_name()
++ */
++int inb_has_partials (STATE *state, BINKD_CONFIG *config)
++{
++    char s[MAXPATHLEN + 1];
++    char buf[MAXPATHLEN + 80];
++    DIR *dp;
++    struct dirent *de;
++    FILE *f;
++    int i, found = 0;
++    char *t, *inbound;
++
++    /* Prefer temp_inbound if configured, same logic as find_tmp_name() */
++    inbound = state->inbound;
++
++    if (config->temp_inbound[0])
++    {
++        inbound = config->temp_inbound;
++    }
++
++    if ((dp = opendir (inbound)) == 0)
++    {
++        return 0;
++    }
++
++    /* Build base path with trailing separator, t points to the filename part */
++    strnzcpy (s, inbound, MAXPATHLEN);
++
++    if (strlen(s) > 0 && s[strlen(s) - 1] != PATH_SEPARATOR[0])
++    {
++        strnzcat (s, PATH_SEPARATOR, MAXPATHLEN);
++    }
++
++    t = s + strlen (s);
++
++    while ((de = readdir (dp)) != 0 && !found)
++    {
++        /* .hr files are named 8 hex digits + ".hr" */
++        for (i = 0; i < 8; ++i)
++        {
++            if (!isxdigit (de->d_name[i]))
++                break;
++        }
++
++        if (i < 8 || STRICMP (de->d_name + 8, ".hr"))
++            continue;
++
++        strnzcat (s, de->d_name, MAXPATHLEN);
++
++        if ((f = fopen (s, "r")) != NULL)
++        {
++            if (fgets (buf, sizeof (buf), f) != NULL)
++            {
++                /* Field 4 in .hr is the FTN address of the sender */
++                char *w3 = getwordx (buf, 4, GWX_NOESC);
++
++                if (w3)
++                {
++                    FTN_ADDR fa;
++
++                    FA_ZERO (&fa);
++
++                    if (parse_ftnaddress (w3, &fa, config->pDomains.first))
++                    {
++                        /* Match against active (non-busy) AKAs only */
++                        for (i = 0; i < state->nfa; i++)
++                        {
++                            if (!ftnaddress_cmp (&fa, state->fa + i))
++                            {
++                                found = 1;
++                                break;
++                            }
++                        }
++                    }
++
++                    xfree (w3);
++                }
++            }
++
++            fclose (f);
++        }
++
++        *t = 0; /* Reset filename part for next entry */
++    }
++
++    closedir (dp);
++
++    return found;
++}
++
+ FILE *inb_fopen (STATE *state, BINKD_CONFIG *config)
+ {
+   char buf[MAXPATHLEN + 1];
+--- a/inbound.h
++++ b/inbound.h
+@@ -33,4 +33,13 @@
+  */
+ void inb_remove_partial (STATE *state, BINKD_CONFIG *config);
+ 
++/*
++ * Returns 1 if there are partial files (.hr) in the inbound belonging to
++ * one of the active AKAs in state->fa[0..state->nfa-1]. Does not remove
++ * anything. Used to auto-enable NR-mode when incomplete files exist
++ *
++ * Copied from find_tmp_name()
++ */
++int inb_has_partials (STATE *state, BINKD_CONFIG *config);
++
+ #endif
+--- a/mkfls/unix/Makefile.in
++++ b/mkfls/unix/Makefile.in
+@@ -16,7 +16,7 @@
+ OBJS=${SRCS:.c=.o}
+ AUTODEFS=@DEFS@
+ AUTOLIBS=@LIBS@
+-DEFINES=$(AUTODEFS) -DHAVE_FORK -DUNIX -DOS="\"UNIX\""
++DEFINES=$(AUTODEFS) -DHAVE_FORK -DUNIX -DOS="\"UNIX\"" -DPROTOTYPES
+ CPPFLAGS=@CPPFLAGS@
+ CFLAGS=@CFLAGS@
+ LDFLAGS=@LDFLAGS@
+--- a/protocol.c
++++ b/protocol.c
+@@ -1716,6 +1716,21 @@
+     Log (5, "Turn on NR-mode with this link (remote has buggy NR)");
+   }
+ 
++  if ((state->NR_flag & (WANT_NR | WE_NR)) == 0)
++  {
++      char *tmp_inbound = select_inbound (state->fa, state->state, config);
++      char *saved_inbound = state->inbound;
++      state->inbound = tmp_inbound;
++
++      if (inb_has_partials (state, config))
++      {
++          state->NR_flag |= WANT_NR;
++          Log (4, "auto NR-mode: incomplete files found for this link");
++      }
++
++      state->inbound = saved_inbound;
++  }
++
+   szOpt = xstrdup(" EXTCMD");
+   if (state->NR_flag & WANT_NR) xstrcat(&szOpt, " NR");
+   if (state->ND_flag & THEY_ND) xstrcat(&szOpt, " ND");
+@@ -2145,7 +2160,8 @@
+ 
+   *extra = "";
+   if (state->z_cansend && state->extcmd && state->out.size >= config->zminsize
+-      && zrule_test(ZRULE_ALLOW, state->out.netname, config->zrules.first)) {
++      && zrule_test(ZRULE_ALLOW, state->out.netname, config->zrules.first)
++      && !(state->to && state->to->NC_flag)) {
+ #ifdef WITH_BZLIB2
+     if (!state->z_send && (state->z_cansend & 2)) {
+       *extra = " BZ2"; state->z_send = 2;
+@@ -2834,6 +2850,12 @@
+   if (state->to || !state->delay_ADR) send_ADR (state, config);
+ 
+   if (state->to) {
++    if ((state->NR_flag & (WANT_NR | WE_NR)) == 0 && inb_has_partials (state, config))
++    {
++        state->NR_flag |= WANT_NR;
++        Log (4, "auto NR-mode: incomplete files found for this link");
++    }
++
+     szOpt = xstrdup(" NDA EXTCMD");
+     if (state->NR_flag & WANT_NR) xstrcat(&szOpt, " NR");
+     if (state->ND_flag & THEY_ND) xstrcat(&szOpt, " ND");
+--- a/readcfg.c
++++ b/readcfg.c
+@@ -210,6 +210,7 @@
+     snprintf(c->iport, sizeof(c->iport), "%s", find_port(""));
+     snprintf(c->oport, sizeof(c->oport), "%s", find_port(""));
+     c->call_delay        = 60;
++    c->no_call_delay     = 0;
+     c->rescan_delay      = 60;
+     c->nettimeout        = DEF_TIMEOUT;
+     c->oblksize          = DEF_BLKSIZE;
+@@ -391,6 +392,7 @@
+   {"oport", read_port, &work_config.oport, 0, 0},
+   {"rescan-delay", read_time, &work_config.rescan_delay, 1, DONT_CHECK},
+   {"call-delay", read_time, &work_config.call_delay, 1, DONT_CHECK},
++  {"no-call-delay", read_bool, &work_config.no_call_delay, 0, 0},
+   {"timeout", read_time, &work_config.nettimeout, 1, DONT_CHECK},
+   {"oblksize", read_int, &work_config.oblksize, MIN_BLKSIZE, MAX_BLKSIZE},
+   {"maxservers", read_int, &work_config.max_servers, 0, DONT_CHECK},
+@@ -666,7 +668,7 @@
+         exp_ftnaddress (&fa, work_config.pAddr, work_config.nAddr, work_config.pDomains.first);
+         pn = add_node (&fa, NULL, password, pkt_pwd, out_pwd, '-', NULL, NULL,
+                   NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, 
+-		  HC_USE_OLD, NP_USE_OLD, NULL, AF_USE_OLD,
++		  HC_USE_OLD, NP_USE_OLD, NC_USE_OLD, NULL, AF_USE_OLD,
+ #ifdef BW_LIM
+                   BW_DEF, BW_DEF,
+ #endif
+@@ -1125,7 +1127,7 @@
+   char *w[ARGNUM], *tmp, *pkt_pwd, *out_pwd, *pipe;
+   int   i, j;
+   int   NR_flag = NR_USE_OLD, ND_flag = ND_USE_OLD, HC_flag = HC_USE_OLD,
+-        MD_flag = MD_USE_OLD, NP_flag = NP_USE_OLD, restrictIP = RIP_USE_OLD,
++        MD_flag = MD_USE_OLD, NP_flag = NP_USE_OLD, NC_flag = NC_USE_OLD, restrictIP = RIP_USE_OLD,
+ 	IP_afamily = AF_USE_OLD;
+ #ifdef BW_LIM
+   long bw_send = BW_DEF, bw_recv = BW_DEF;
+@@ -1163,6 +1165,8 @@
+         NR_flag = NR_ON;
+         ND_flag = ND_ON;
+       }
++      else if (STRICMP (tmp, "-nc") == 0)
++        NC_flag = NC_ON;
+       else if (STRICMP (tmp, "-ip") == 0)
+         restrictIP = RIP_ON;  /* allow matched or unresolvable */
+       else if (STRICMP (tmp, "-sip") == 0)
+@@ -1258,7 +1262,7 @@
+ 
+   split_passwords(w[2], &pkt_pwd, &out_pwd);
+   pn = add_node (&fa, w[1], w[2], pkt_pwd, out_pwd, (char)(w[3] ? w[3][0] : '-'), w[4], w[5],
+-            NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, pipe,
++            NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, NC_flag, pipe,
+ 	    IP_afamily,
+ #ifdef BW_LIM
+             bw_send, bw_recv,
+--- a/readcfg.h
++++ b/readcfg.h
+@@ -113,6 +113,7 @@
+   int        connect_timeout;
+   int        rescan_delay;
+   int        call_delay;
++  int        no_call_delay;
+   int        max_servers;
+   int        max_clients;
+   int        kill_dup_partial_files;

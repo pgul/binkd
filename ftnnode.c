@@ -74,7 +74,7 @@ static void sort_nodes (BINKD_CONFIG *config)
  */
 static FTN_NODE *add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pwd,
               char obox_flvr, char *obox, char *ibox, int NR_flag, int ND_flag,
-	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, char *pipe,
+	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, int NC_flag, char *pipe,
 	      int IP_afamily,
 #ifdef BW_LIM
               long bw_send, long bw_recv,
@@ -107,6 +107,7 @@ static FTN_NODE *add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pk
     pn->NR_flag = NR_OFF;
     pn->ND_flag = ND_OFF;
     pn->NP_flag = NP_OFF;
+    pn->NC_flag = NC_OFF;
     pn->MD_flag = MD_USE_OLD;
     pn->HC_flag = HC_USE_OLD;
     pn->pipe = NULL;
@@ -134,6 +135,8 @@ static FTN_NODE *add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pk
     pn->ND_flag = ND_flag;
   if (NP_flag != NP_USE_OLD)
     pn->NP_flag = NP_flag;
+  if (NC_flag != NC_USE_OLD)
+    pn->NC_flag = NC_flag;
   if (HC_flag != HC_USE_OLD)
     pn->HC_flag = HC_flag;
   if (IP_afamily != AF_USE_OLD)
@@ -195,7 +198,7 @@ static FTN_NODE *add_node_nolock (FTN_ADDR *fa, char *hosts, char *pwd, char *pk
 
 FTN_NODE *add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pwd,
               char obox_flvr, char *obox, char *ibox, int NR_flag, int ND_flag,
-	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, char *pipe,
+	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, int NC_flag, char *pipe,
 	      int IP_afamily,
 #ifdef BW_LIM
               long bw_send, long bw_recv,
@@ -209,7 +212,7 @@ FTN_NODE *add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *o
 
   locknodesem();
   pn = add_node_nolock(fa, hosts, pwd, pkt_pwd, out_pwd, obox_flvr, obox, ibox, 
-                  NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, pipe,
+                  NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, NC_flag, pipe,
 		  IP_afamily,
 #ifdef BW_LIM
                   bw_send, bw_recv,
@@ -275,6 +278,7 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
     on->ND_flag=np->ND_flag;
     on->MD_flag=np->MD_flag;
     on->NP_flag=np->NP_flag;
+    on->NC_flag=np->NC_flag;
     on->HC_flag=np->HC_flag;
     on->restrictIP=np->restrictIP;
     on->pipe=np->pipe;
@@ -290,7 +294,7 @@ static FTN_NODE *get_defnode_info(FTN_ADDR *fa, FTN_NODE *on, BINKD_CONFIG *conf
 
   add_node_nolock(fa, np->hosts, NULL, NULL, NULL, np->obox_flvr, np->obox, 
        np->ibox, np->NR_flag, np->ND_flag, np->MD_flag, np->restrictIP, 
-       np->HC_flag, np->NP_flag, np->pipe, np->IP_afamily,
+       np->HC_flag, np->NP_flag, np->NC_flag, np->pipe, np->IP_afamily,
 #ifdef BW_LIM
        np->bw_send, np->bw_recv,
 #endif
@@ -399,7 +403,7 @@ int poll_node (char *s, BINKD_CONFIG *config)
     if (!get_node_info_nolock (&target, config))
       add_node_nolock (&target, "*", NULL, NULL, NULL, '-', NULL, NULL, 
 		       NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, 
-		       HC_USE_OLD, NP_USE_OLD, NULL, AF_USE_OLD,
+		       HC_USE_OLD, NP_USE_OLD, NC_USE_OLD, NULL, AF_USE_OLD,
 #ifdef BW_LIM
                        BW_DEF, BW_DEF,
 #endif

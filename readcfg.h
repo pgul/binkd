@@ -113,6 +113,7 @@ struct _BINKD_CONFIG
   int        connect_timeout;
   int        rescan_delay;
   int        call_delay;
+  int        no_call_delay;
   int        max_servers;
   int        max_clients;
   int        kill_dup_partial_files;

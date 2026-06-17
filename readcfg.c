@@ -210,6 +210,7 @@ void lock_config_structure(BINKD_CONFIG *c)
     snprintf(c->iport, sizeof(c->iport), "%s", find_port(""));
     snprintf(c->oport, sizeof(c->oport), "%s", find_port(""));
     c->call_delay        = 60;
+    c->no_call_delay     = 0;
     c->rescan_delay      = 60;
     c->nettimeout        = DEF_TIMEOUT;
     c->oblksize          = DEF_BLKSIZE;
@@ -391,6 +392,7 @@ static KEYWORD keywords[] =
   {"oport", read_port, &work_config.oport, 0, 0},
   {"rescan-delay", read_time, &work_config.rescan_delay, 1, DONT_CHECK},
   {"call-delay", read_time, &work_config.call_delay, 1, DONT_CHECK},
+  {"no-call-delay", read_bool, &work_config.no_call_delay, 0, 0},
   {"timeout", read_time, &work_config.nettimeout, 1, DONT_CHECK},
   {"oblksize", read_int, &work_config.oblksize, MIN_BLKSIZE, MAX_BLKSIZE},
   {"maxservers", read_int, &work_config.max_servers, 0, DONT_CHECK},
@@ -666,7 +668,7 @@ static int read_passwords(char *filename)
         exp_ftnaddress (&fa, work_config.pAddr, work_config.nAddr, work_config.pDomains.first);
         pn = add_node (&fa, NULL, password, pkt_pwd, out_pwd, '-', NULL, NULL,
                   NR_USE_OLD, ND_USE_OLD, MD_USE_OLD, RIP_USE_OLD, 
-		  HC_USE_OLD, NP_USE_OLD, NULL, AF_USE_OLD,
+		  HC_USE_OLD, NP_USE_OLD, NC_USE_OLD, NULL, AF_USE_OLD,
 #ifdef BW_LIM
                   BW_DEF, BW_DEF,
 #endif
@@ -1125,7 +1127,7 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
   char *w[ARGNUM], *tmp, *pkt_pwd, *out_pwd, *pipe;
   int   i, j;
   int   NR_flag = NR_USE_OLD, ND_flag = ND_USE_OLD, HC_flag = HC_USE_OLD,
-        MD_flag = MD_USE_OLD, NP_flag = NP_USE_OLD, restrictIP = RIP_USE_OLD,
+        MD_flag = MD_USE_OLD, NP_flag = NP_USE_OLD, NC_flag = NC_USE_OLD, restrictIP = RIP_USE_OLD,
 	IP_afamily = AF_USE_OLD;
 #ifdef BW_LIM
   long bw_send = BW_DEF, bw_recv = BW_DEF;
@@ -1163,6 +1165,8 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
         NR_flag = NR_ON;
         ND_flag = ND_ON;
       }
+      else if (STRICMP (tmp, "-nc") == 0)
+        NC_flag = NC_ON;
       else if (STRICMP (tmp, "-ip") == 0)
         restrictIP = RIP_ON;  /* allow matched or unresolvable */
       else if (STRICMP (tmp, "-sip") == 0)
@@ -1258,7 +1262,7 @@ static int read_node_info (KEYWORD *key, int wordcount, char **words)
 
   split_passwords(w[2], &pkt_pwd, &out_pwd);
   pn = add_node (&fa, w[1], w[2], pkt_pwd, out_pwd, (char)(w[3] ? w[3][0] : '-'), w[4], w[5],
-            NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, pipe,
+            NR_flag, ND_flag, MD_flag, restrictIP, HC_flag, NP_flag, NC_flag, pipe,
 	    IP_afamily,
 #ifdef BW_LIM
             bw_send, bw_recv,

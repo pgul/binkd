@@ -73,6 +73,7 @@ struct _FTN_NODE
   int HC_flag;
   int restrictIP;
   int NP_flag;                         /* no proxy */
+  int NC_flag;                         /* no compression */
 
   time_t hold_until;
   int busy;			       /* 0=free, 'c'=.csy, other=.bsy */

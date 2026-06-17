@@ -36,7 +36,7 @@ FTN_NODE *get_node_info (FTN_ADDR *fa, BINKD_CONFIG *config);
  */
 FTN_NODE *add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *out_pwd,
               char obox_flvr, char *obox, char *ibox, int NR_flag, int ND_flag,
-	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, char *pipe,
+	      int MD_flag, int restrictIP, int HC_flag, int NP_flag, int NC_flag, char *pipe,
 	      int IP_afamily,
 #ifdef BW_LIM
               long bw_send, long bw_recv,
@@ -74,6 +74,10 @@ FTN_NODE *add_node (FTN_ADDR *fa, char *hosts, char *pwd, char *pkt_pwd, char *o
 #define NP_ON       1
 #define NP_OFF      0
 #define NP_USE_OLD -1		       /* Use old value */
+
+#define NC_ON       1
+#define NC_OFF      0
+#define NC_USE_OLD -1		       /* Use old value */
 
 #define AF_USE_OLD -1		       /* Use old value */
 

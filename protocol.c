@@ -1716,6 +1716,21 @@ static int PWD (STATE *state, char *pwd, int sz, BINKD_CONFIG *config)
     Log (5, "Turn on NR-mode with this link (remote has buggy NR)");
   }
 
+  if ((state->NR_flag & (WANT_NR | WE_NR)) == 0)
+  {
+      char *tmp_inbound = select_inbound (state->fa, state->state, config);
+      char *saved_inbound = state->inbound;
+      state->inbound = tmp_inbound;
+
+      if (inb_has_partials (state, config))
+      {
+          state->NR_flag |= WANT_NR;
+          Log (4, "auto NR-mode: incomplete files found for this link");
+      }
+
+      state->inbound = saved_inbound;
+  }
+
   szOpt = xstrdup(" EXTCMD");
   if (state->NR_flag & WANT_NR) xstrcat(&szOpt, " NR");
   if (state->ND_flag & THEY_ND) xstrcat(&szOpt, " ND");
@@ -2145,7 +2160,8 @@ static void z_send_init(STATE *state, BINKD_CONFIG *config, char **extra)
 
   *extra = "";
   if (state->z_cansend && state->extcmd && state->out.size >= config->zminsize
-      && zrule_test(ZRULE_ALLOW, state->out.netname, config->zrules.first)) {
+      && zrule_test(ZRULE_ALLOW, state->out.netname, config->zrules.first)
+      && !(state->to && state->to->NC_flag)) {
 #ifdef WITH_BZLIB2
     if (!state->z_send && (state->z_cansend & 2)) {
       *extra = " BZ2"; state->z_send = 2;
@@ -2834,6 +2850,12 @@ static int banner (STATE *state, BINKD_CONFIG *config)
   if (state->to || !state->delay_ADR) send_ADR (state, config);
 
   if (state->to) {
+    if ((state->NR_flag & (WANT_NR | WE_NR)) == 0 && inb_has_partials (state, config))
+    {
+        state->NR_flag |= WANT_NR;
+        Log (4, "auto NR-mode: incomplete files found for this link");
+    }
+
     szOpt = xstrdup(" NDA EXTCMD");
     if (state->NR_flag & WANT_NR) xstrcat(&szOpt, " NR");
     if (state->ND_flag & THEY_ND) xstrcat(&szOpt, " ND");

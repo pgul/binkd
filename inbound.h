@@ -33,4 +33,13 @@ int inb_reject (STATE *state, BINKD_CONFIG *config);
  */
 void inb_remove_partial (STATE *state, BINKD_CONFIG *config);
 
+/*
+ * Returns 1 if there are partial files (.hr) in the inbound belonging to
+ * one of the active AKAs in state->fa[0..state->nfa-1]. Does not remove
+ * anything. Used to auto-enable NR-mode when incomplete files exist
+ *
+ * Copied from find_tmp_name()
+ */
+int inb_has_partials (STATE *state, BINKD_CONFIG *config);
+
 #endif
