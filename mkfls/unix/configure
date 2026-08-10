@@ -5275,8 +5275,8 @@ int
 main ()
 {
 
-  BZ2_bzBuffToBuffCompress(0, (unsigned long*) 0, "", 0, 6, 0, 0);
-  BZ2_bzBuffToBuffDecompress(0, (unsigned long*) 0, "", 0, 0, 0);
+  BZ2_bzBuffToBuffCompress(0, (unsigned int*) 0, "", 0, 6, 0, 0);
+  BZ2_bzBuffToBuffDecompress(0, (unsigned int*) 0, "", 0, 0, 0);
 
   ;
   return 0;
